@@ -22,6 +22,7 @@ import {
   Card,
   CardContent,
   Chip,
+  ListItemIcon,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,

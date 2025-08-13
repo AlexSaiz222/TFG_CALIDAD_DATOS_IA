@@ -96,7 +96,7 @@ const DatasetDetail = () => {
         setEvaluations(evaluationsResponse.data);
 
         // Fetch preview data
-        const previewResponse = await datasetsAPI.getDatasetPreview(datasetId);
+        const previewResponse = await datasetsAPI.previewDataset(datasetId);
         if (previewResponse.data && previewResponse.data.data) {
           setPreviewData(previewResponse.data.data);
           if (previewResponse.data.columns) {
@@ -160,7 +160,8 @@ const DatasetDetail = () => {
     setError(null);
     
     try {
-      const response = await evaluationsAPI.createEvaluation(dataset.id);
+      // Pass an empty metrics config as the second parameter
+      const response = await evaluationsAPI.createEvaluation(dataset.id, {});
       const newEvaluation = response.data;
       
       // Add the new evaluation to the list
@@ -174,7 +175,7 @@ const DatasetDetail = () => {
           
           // Update the evaluation in the list
           setEvaluations(prev => 
-            prev.map(eval => eval.id === updatedEvaluation.id ? updatedEvaluation : eval)
+            prev.map(evaluation => evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation)
           );
           
           // If evaluation is complete, fetch issues and stop polling
@@ -349,7 +350,8 @@ const DatasetDetail = () => {
                 }}
                 onClick={() => router.push(`/projects/${dataset.project_id}`)}
               >
-                {dataset.project_name}
+                {/* Display project ID until project name is available */}
+                Project {dataset.project_id}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -562,8 +564,8 @@ const DatasetDetail = () => {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{issue.type}</TableCell>
-                      <TableCell>{issue.column_name || 'N/A'}</TableCell>
+                      <TableCell sx={{ textTransform: 'capitalize' }}>{issue.metric_id ? `Metric ${issue.metric_id}` : 'System'}</TableCell>
+                      <TableCell>{issue.affected_columns && issue.affected_columns.length > 0 ? issue.affected_columns[0] : 'N/A'}</TableCell>
                       <TableCell>{issue.description}</TableCell>
                     </TableRow>
                   ))}

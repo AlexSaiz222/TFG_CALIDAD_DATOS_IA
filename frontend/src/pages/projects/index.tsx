@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  ListItemIcon,
 } from '@mui/material';
 import {
   Add as AddIcon,

@@ -17,6 +17,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  SelectChangeEvent,
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
@@ -133,7 +134,7 @@ const DatasetUpload = () => {
     maxFiles: 1
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }> | SelectChangeEvent<number>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
