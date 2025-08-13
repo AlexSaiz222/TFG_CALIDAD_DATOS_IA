@@ -2,10 +2,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { User, AuthState } from '../types';
+import { RegisterUserData } from '../pages/register';
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  register: (userData: RegisterUserData) => Promise<void>;
   logout: () => void;
 }
 
@@ -93,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Register function
-  const register = async (userData: any) => {
+  const register = async (userData: RegisterUserData) => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     
     try {

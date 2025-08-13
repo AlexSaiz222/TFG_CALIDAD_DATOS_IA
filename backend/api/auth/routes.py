@@ -40,12 +40,21 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     
+    # Create access and refresh tokens
+    access_token = create_access_token(identity=new_user.id)
+    refresh_token = create_refresh_token(identity=new_user.id)
+    
     return jsonify({
         "message": "User registered successfully",
+        "token": access_token,
+        "refresh_token": refresh_token,
         "user": {
             "id": new_user.id,
             "username": new_user.username,
             "email": new_user.email,
+            "first_name": new_user.first_name,
+            "last_name": new_user.last_name,
+            "organization": new_user.organization,
             "role": new_user.role
         }
     }), 201
@@ -71,12 +80,16 @@ def login():
     refresh_token = create_refresh_token(identity=user.id)
     
     return jsonify({
-        "access_token": access_token,
+        "message": "Login successful",
+        "token": access_token,
         "refresh_token": refresh_token,
         "user": {
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "organization": user.organization,
             "role": user.role
         }
     }), 200

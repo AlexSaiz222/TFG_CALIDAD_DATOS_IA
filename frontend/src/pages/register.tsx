@@ -12,9 +12,24 @@ import {
   Grid,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
+import { User } from '../types';
+
+// Interfaz para el formulario de registro
+interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  first_name: string;
+  last_name: string;
+  organization: string;
+}
+
+// Interfaz para los datos que se envían al backend
+export interface RegisterUserData extends Omit<RegisterFormData, 'confirmPassword'> {}
 
 const Register = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
     email: '',
     password: '',
@@ -28,14 +43,14 @@ const Register = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: RegisterFormData) => ({
       ...prev,
       [name]: value,
     }));
     
     // Clear error when field is edited
     if (formErrors[name]) {
-      setFormErrors((prev) => ({
+      setFormErrors((prev: Record<string, string>) => ({
         ...prev,
         [name]: '',
       }));
@@ -47,11 +62,13 @@ const Register = () => {
     
     if (!formData.username.trim()) {
       errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
     }
     
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
       errors.email = 'Email is invalid';
     }
     
@@ -61,7 +78,9 @@ const Register = () => {
       errors.password = 'Password must be at least 6 characters';
     }
     
-    if (formData.password !== formData.confirmPassword) {
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
     
@@ -78,7 +97,7 @@ const Register = () => {
     
     // Remove confirmPassword from data sent to API
     const { confirmPassword, ...userData } = formData;
-    await register(userData);
+    await register(userData as RegisterUserData);
   };
 
   return (
@@ -233,19 +252,16 @@ const Register = () => {
               {loading ? <CircularProgress size={24} /> : 'Sign Up'}
             </Button>
             <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Link href="/login" passHref>
-                <Typography
-                  component="a"
-                  variant="body2"
-                  sx={{
-                    color: '#00B37E',
-                    textDecoration: 'none',
-                    '&:hover': {
-                      textDecoration: 'underline',
-                    },
-                  }}
-                >
-                  {'Already have an account? Sign In'}
+              <Link 
+                href="/login" 
+                style={{
+                  color: '#00B37E',
+                  textDecoration: 'none',
+                }}
+                className="hover:underline"
+              >
+                <Typography variant="body2">
+                  Already have an account? Sign In
                 </Typography>
               </Link>
             </Box>

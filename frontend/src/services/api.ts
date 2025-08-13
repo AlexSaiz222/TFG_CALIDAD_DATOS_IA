@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { RegisterUserData } from '../pages/register';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -42,14 +43,14 @@ export const authAPI = {
   login: (username: string, password: string) => 
     api.post('/auth/login', { username, password }),
   
-  register: (userData: any) => 
+  register: (userData: RegisterUserData) => 
     api.post('/auth/register', userData),
   
   refreshToken: () => 
     api.post('/auth/refresh'),
   
   getProfile: () => 
-    api.get('/auth/profile'),
+    api.get('/auth/me'),
 };
 
 // Projects API

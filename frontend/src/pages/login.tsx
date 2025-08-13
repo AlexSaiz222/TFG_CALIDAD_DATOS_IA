@@ -110,19 +110,16 @@ const Login = () => {
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
             <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Link href="/register" passHref>
-                <Typography
-                  component="a"
-                  variant="body2"
-                  sx={{
-                    color: '#00B37E',
-                    textDecoration: 'none',
-                    '&:hover': {
-                      textDecoration: 'underline',
-                    },
-                  }}
-                >
-                  {"Don't have an account? Sign Up"}
+              <Link 
+                href="/register" 
+                style={{
+                  color: '#00B37E',
+                  textDecoration: 'none',
+                }}
+                className="hover:underline"
+              >
+                <Typography variant="body2">
+                  Don't have an account? Sign Up
                 </Typography>
               </Link>
             </Box>
