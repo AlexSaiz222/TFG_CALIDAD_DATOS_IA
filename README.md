@@ -57,6 +57,3 @@ TFG_CALIDAD_DATOS_IA/
 └── docker-compose.yml       # Docker Compose configuration
 ```
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
