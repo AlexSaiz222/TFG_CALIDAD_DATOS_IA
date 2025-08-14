@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import timedelta
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -67,16 +68,76 @@ def create_app(config_name=None):
     app.config['SLOW_FUNCTION_THRESHOLD_MS'] = 200  # Umbral para funciones lentas (ms)
     
     # Inicializar extensiones
-    CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS']}}, supports_credentials=True)
+    CORS(app, 
+         resources={r"/*": {"origins": app.config['CORS_ORIGINS']}},
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         expose_headers=["Content-Type", "Authorization"],
+         max_age=600
+    )
     db.init_app(app)
     
     # Configurar JWT con blacklist
     jwt = JWTManager(app)
     
+    # Configurar opciones adicionales de JWT
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)  # Aumentar tiempo de expiración
+    app.config['JWT_ERROR_MESSAGE_KEY'] = 'message'  # Clave para mensajes de error
+    
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(jwt_header, jwt_payload):
         jti = jwt_payload['jti']
         return jti in jwt_blacklist
+        
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({
+            'success': False,
+            'error': 'token_expired',
+            'message': 'El token ha expirado'
+        }), 401
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return jsonify({
+            'success': False,
+            'error': 'invalid_token',
+            'message': 'Token inválido'
+        }), 401
+        
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        app.logger.warning(f"Solicitud sin token: {error}")
+        return jsonify({
+            'success': False,
+            'error': 'authorization_required',
+            'message': 'Se requiere token de autorización'
+        }), 401
+        
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        app.logger.warning(f"Token inválido: {error}")
+        return jsonify({
+            'success': False,
+            'error': 'invalid_token',
+            'message': f'Token inválido: {error}'
+        }), 401
+        
+    @jwt.token_verification_failed_loader
+    def verification_failed_callback():
+        app.logger.warning("Verificación de token fallida")
+        return jsonify({
+            'success': False,
+            'error': 'token_verification_failed',
+            'message': 'La verificación del token ha fallado'
+        }), 401
+        
+    # Nota: decode_error_loader no está disponible en esta versión de Flask-JWT-Extended
+    # Usamos invalid_token_loader que captura errores similares
     
     # Inicializar rate limiter
     limiter.init_app(app)

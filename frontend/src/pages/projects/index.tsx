@@ -58,8 +58,9 @@ const Projects = () => {
     const fetchProjects = async () => {
       try {
         const response = await projectsAPI.getProjects();
-        setProjects(response.data);
-        setFilteredProjects(response.data);
+        // getProjects ahora devuelve directamente el array de proyectos
+        setProjects(response);
+        setFilteredProjects(response);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching projects:', error);

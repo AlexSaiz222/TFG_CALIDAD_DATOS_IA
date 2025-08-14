@@ -16,23 +16,88 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Asegurar que el token se envía correctamente
+      // Asignar el token al header Authorization
+      // Usar la forma más compatible con diferentes versiones de Axios
+      config.headers = config.headers || {};
+      // @ts-ignore - Ignorar error de tipado, esto funciona en runtime
+      config.headers['Authorization'] = `Bearer ${token}`;
+      
+      // Log para depuración
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+      console.log('Token enviado:', `Bearer ${token.substring(0, 10)}...`);
+    } else {
+      console.log(`API Request sin token: ${config.method?.toUpperCase()} ${config.url}`);
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Error en interceptor de solicitud:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor for handling common errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log de respuestas exitosas para depuración
+    console.log(`API Response Success: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
   (error) => {
+    // No procesar errores si no hay respuesta (problemas de red, CORS, etc.)
+    if (!error.response) {
+      console.error('Error de red o CORS:', error.message);
+      return Promise.reject(error);
+    }
+    
+    // Log detallado del error para depuración
+    console.error(`API Error ${error.response.status}: ${error.config.method?.toUpperCase()} ${error.config.url}`);
+    console.error('Datos de error:', error.response.data);
+    
     // Handle 401 Unauthorized errors (token expired)
-    if (error.response && error.response.status === 401) {
-      // Clear local storage and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.response.status === 401) {
+      // Only clear storage and redirect if we're not already on the login page
+      // and if the request was NOT for auth/refresh or auth/me endpoints
+      const isAuthEndpoint = error.config.url?.includes('/auth/me') || error.config.url?.includes('/auth/refresh');
+      const isLoginPage = window.location.pathname === '/login';
+      
+      console.log('Detalles de error 401:', {
+        url: error.config.url,
+        isAuthEndpoint,
+        isLoginPage,
+        currentPath: window.location.pathname
+      });
+      
+      // Solo redirigir si NO estamos en la página de login y si NO es un endpoint de autenticación
+      // que falló por razones normales (como token expirado durante verificación)
+      if (!isAuthEndpoint && !isLoginPage) {
+        console.log('Sesión expirada o token inválido, redirigiendo a login');
+        
+        // Mostrar mensaje de error en consola para depuración
+        console.error('Error de autenticación:', error.response?.data || 'No hay datos de respuesta');
+        
+        // Clear local storage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Use router for navigation instead of direct location change
+        // This will preserve React state and prevent full page reload
+        if (typeof window !== 'undefined') {
+          // Store the current URL to redirect back after login
+          localStorage.setItem('redirectAfterLogin', window.location.pathname);
+          
+          // Añadir mensaje de error para mostrar en la página de login
+          localStorage.setItem('loginError', 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+          
+          // Usar setTimeout para evitar problemas de redirección inmediata
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 500); // Aumentar el tiempo para evitar problemas de redirección
+        }
+      } else {
+        console.log('Error 401 en endpoint de autenticación o ya en página de login, no redirigiendo');
+      }
     }
     return Promise.reject(error);
   }
@@ -49,17 +114,50 @@ export const authAPI = {
   refreshToken: () => 
     api.post('/auth/refresh'),
   
-  getProfile: () => 
-    api.get('/auth/me'),
+  getProfile: () => {
+    // Obtener el token manualmente para asegurar que se envía correctamente
+    const token = localStorage.getItem('token');
+    return api.get('/auth/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
 };
 
 // Projects API
 export const projectsAPI = {
-  getProjects: () => 
-    api.get('/projects'),
+  getProjects: async () => {
+    try {
+      // Obtener el token manualmente para asegurar que se envía correctamente
+      const token = localStorage.getItem('token');
+      const res = await api.get('/projects', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      // El backend devuelve { success, projects: [...] }
+      // Asegurarnos de que siempre devolvemos un array
+      const projects = res.data?.projects;
+      if (Array.isArray(projects)) {
+        return projects;
+      }
+      console.error('API response for projects is not an array:', res.data);
+      return [];
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      return [];
+    }
+  },
   
-  getProject: (id: number) => 
-    api.get(`/projects/${id}`),
+  getProject: (id: number) => {
+    const token = localStorage.getItem('token');
+    return api.get(`/projects/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
   
   createProject: (projectData: any) => 
     api.post('/projects', projectData),

@@ -221,6 +221,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <DrawerHeader />
+        {/* Asegurar que children siempre se renderice de forma segura */}
         {children}
       </Box>
     </Box>

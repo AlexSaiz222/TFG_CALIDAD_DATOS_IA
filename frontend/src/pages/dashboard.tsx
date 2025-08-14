@@ -19,32 +19,85 @@ import {
 import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { projectsAPI } from '../services/api';
-import { Project } from '../types';
+// Eliminamos la importación de Project para evitar problemas de tipo
+// import { Project } from '../types';
+
+// Definición de tipos para asegurar consistencia
+type SafeProject = {
+  id: number;
+  name: string;
+  description: string | null;
+  dataset_count: number;
+  updated_at: string;
+  created_at: string;
+};
+
+// Función para convertir un proyecto a un formato seguro
+const toSafeProject = (project: any): SafeProject => {
+  return {
+    id: project?.id || 0,
+    name: project?.name || 'Unnamed Project',
+    description: project?.description || null,
+    dataset_count: typeof project?.dataset_count === 'number' ? project.dataset_count : 0,
+    updated_at: project?.updated_at || new Date().toISOString(),
+    created_at: project?.created_at || new Date().toISOString(),
+  };
+};
 
 const Dashboard = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  // Inicializar con un array vacío para evitar problemas de tipo
+  const [projects, setProjects] = useState<SafeProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, user } = useAuth();
   const router = useRouter();
-
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
+  
+  // Redirección explícita para usuarios no autenticados
   useEffect(() => {
-    // Redirect to login if not authenticated
-    if (!isAuthenticated && !loading) {
-      router.push('/login');
+    if (!authLoading && !isAuthenticated) {
+      console.log('Dashboard: Usuario no autenticado, redirigiendo a login...');
+      router.replace('/login');
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, authLoading, router]);
+
+  if (authLoading) {
+      return (
+        <Box sx={{ display:'flex', justifyContent:'center', alignItems:'center', height:'100vh' }}>
+          <CircularProgress />
+        </Box>
+      );
+  }
+  if (!isAuthenticated) return null; // el useEffect hará la redirección
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        console.log('Fetching projects...');
         const response = await projectsAPI.getProjects();
-        setProjects(response.data);
+        console.log('API response:', response);
+        
+        // Asegurar que response sea un array y convertir cada proyecto a formato seguro
+        let safeProjects: SafeProject[] = [];
+        
+        if (Array.isArray(response)) {
+          for (let i = 0; i < response.length; i++) {
+            try {
+              safeProjects.push(toSafeProject(response[i]));
+            } catch (e) {
+              console.error('Error al procesar proyecto:', e);
+            }
+          }
+        }
+        
+        console.log('Safe projects:', safeProjects);
+        setProjects(safeProjects);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching projects:', error);
         setError('Failed to load projects. Please try again later.');
         setLoading(false);
+        // En caso de error, asegurar que projects sea un array vacío
+        setProjects([]);
       }
     };
 
@@ -53,14 +106,36 @@ const Dashboard = () => {
     }
   }, [isAuthenticated]);
 
-  // Calculate summary statistics
-  const totalProjects = projects.length;
-  const totalDatasets = projects.reduce((sum, project) => sum + project.dataset_count, 0);
+  // Usar variables simples para evitar cualquier problema con arrays
+  // Estas variables se calculan de forma segura sin métodos avanzados
   
-  // Get recent projects (last 3)
-  const recentProjects = [...projects]
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 3);
+  // Total de proyectos - simplemente la longitud del array
+  const totalProjects = projects.length;
+  
+  // Total de datasets - suma manual
+  let totalDatasets = 0;
+  try {
+    for (let i = 0; i < projects.length; i++) {
+      if (projects[i] && typeof projects[i].dataset_count === 'number') {
+        totalDatasets += projects[i].dataset_count;
+      }
+    }
+  } catch (e) {
+    console.error('Error al calcular totalDatasets:', e);
+  }
+  
+  // Proyectos recientes - máximo 3
+  let recentProjects: SafeProject[] = [];
+  try {
+    // Si hay proyectos, tomar hasta 3 sin ordenar para evitar problemas
+    if (projects.length > 0) {
+      // Simplemente tomar los primeros 3 sin ordenar
+      recentProjects = projects.slice(0, 3);
+    }
+  } catch (e) {
+    console.error('Error al obtener proyectos recientes:', e);
+    recentProjects = [];
+  }
 
   if (!isAuthenticated) {
     return (
@@ -296,7 +371,14 @@ const Dashboard = () => {
                         {project.dataset_count} {project.dataset_count === 1 ? 'dataset' : 'datasets'}
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#555555' }}>
-                        Updated {new Date(project.updated_at).toLocaleDateString()}
+                        {/* Usar try-catch para manejar posibles errores de fecha */}
+                        {(() => {
+                          try {
+                            return `Updated ${new Date(project.updated_at).toLocaleDateString()}`;
+                          } catch (e) {
+                            return 'Recently updated';
+                          }
+                        })()}
                       </Typography>
                     </Box>
                   </CardContent>

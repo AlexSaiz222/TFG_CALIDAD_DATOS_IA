@@ -16,6 +16,19 @@ def register_request_middleware(app):
     Args:
         app: Instancia de Flask
     """
+    
+    # Middleware para manejar solicitudes OPTIONS (preflight CORS)
+    @app.before_request
+    def handle_preflight():
+        """
+        Maneja solicitudes preflight OPTIONS para CORS.
+        Responde inmediatamente a las solicitudes OPTIONS sin autenticación.
+        """
+        if request.method == 'OPTIONS':
+            # Crear respuesta para solicitud preflight
+            from flask import Response
+            response = Response('')
+            return response
     @app.before_request
     def before_request():
         """
