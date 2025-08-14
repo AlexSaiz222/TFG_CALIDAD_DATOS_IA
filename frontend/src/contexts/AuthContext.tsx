@@ -36,6 +36,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           loading: false,
           error: null,
         });
+        
+        // Si no estamos en la página de login, redirigir automáticamente
+        if (typeof window !== 'undefined' && 
+            !window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register')) {
+          console.log('AuthContext: Redirigiendo a login por falta de token...');
+          router.replace('/login');
+        }
         return;
       }
       
@@ -70,11 +78,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           loading: false,
           error: 'Session expired. Please login again.',
         });
+        
+        // Redirigir a login si no estamos ya en la página de login
+        if (typeof window !== 'undefined' && 
+            !window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register')) {
+          console.log('AuthContext: Redirigiendo a login por error de autenticación...');
+          router.replace('/login');
+        }
       }
     };
     
     checkAuth();
-  }, []);
+  }, [router]);
 
   // Login function
   const login = async (username: string, password: string) => {

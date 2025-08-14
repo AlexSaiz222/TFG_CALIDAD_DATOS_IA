@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import {
   AppBar,
@@ -17,6 +17,7 @@ import {
   Avatar,
   Menu,
   MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -49,7 +50,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
+
+  // Redirección explícita para usuarios no autenticados
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      console.log('MainLayout: Usuario no autenticado, redirigiendo a login...');
+      router.replace('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Mostrar pantalla de carga mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Si no está autenticado, no renderizar nada y esperar la redirección
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const handleDrawerToggle = () => {
     setOpen(!open);

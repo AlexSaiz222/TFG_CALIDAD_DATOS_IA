@@ -60,6 +60,7 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, authLoading, router]);
 
+  // Mostrar carga mientras se verifica la autenticación
   if (authLoading) {
       return (
         <Box sx={{ display:'flex', justifyContent:'center', alignItems:'center', height:'100vh' }}>
@@ -67,9 +68,19 @@ const Dashboard = () => {
         </Box>
       );
   }
-  if (!isAuthenticated) return null; // el useEffect hará la redirección
+  
+  // Si no está autenticado, no renderizar nada y esperar la redirección
+  if (!isAuthenticated) {
+    console.log('Dashboard: No autenticado, esperando redirección...');
+    return null; // el useEffect hará la redirección
+  }
 
   useEffect(() => {
+    // Solo ejecutar si el usuario está autenticado
+    if (!isAuthenticated) {
+      return;
+    }
+    
     const fetchProjects = async () => {
       try {
         console.log('Fetching projects...');
@@ -79,14 +90,29 @@ const Dashboard = () => {
         // Asegurar que response sea un array y convertir cada proyecto a formato seguro
         let safeProjects: SafeProject[] = [];
         
-        if (Array.isArray(response)) {
-          for (let i = 0; i < response.length; i++) {
-            try {
-              safeProjects.push(toSafeProject(response[i]));
-            } catch (e) {
-              console.error('Error al procesar proyecto:', e);
+        // Verificar si response es null o undefined antes de intentar procesarlo
+        if (response) {
+          // Si response no es un array, intentar encontrar la propiedad que contiene los proyectos
+          const projectsData = Array.isArray(response) ? response : 
+                              (response as any).data ? (response as any).data : 
+                              (response as any).projects ? (response as any).projects : 
+                              (response as any).results ? (response as any).results : 
+                              null;
+          
+          // Si encontramos datos de proyectos y es un array, procesarlos
+          if (Array.isArray(projectsData)) {
+            for (let i = 0; i < projectsData.length; i++) {
+              try {
+                safeProjects.push(toSafeProject(projectsData[i]));
+              } catch (e) {
+                console.error('Error al procesar proyecto:', e);
+              }
             }
+          } else {
+            console.warn('No se encontraron datos de proyectos en formato array');
           }
+        } else {
+          console.warn('La respuesta de la API es null o undefined');
         }
         
         console.log('Safe projects:', safeProjects);
@@ -101,23 +127,24 @@ const Dashboard = () => {
       }
     };
 
-    if (isAuthenticated) {
-      fetchProjects();
-    }
+    // Solo llamar a fetchProjects si el usuario está autenticado
+    fetchProjects();
   }, [isAuthenticated]);
 
   // Usar variables simples para evitar cualquier problema con arrays
   // Estas variables se calculan de forma segura sin métodos avanzados
   
   // Total de proyectos - simplemente la longitud del array
-  const totalProjects = projects.length;
+  const totalProjects = Array.isArray(projects) ? projects.length : 0;
   
   // Total de datasets - suma manual
   let totalDatasets = 0;
   try {
-    for (let i = 0; i < projects.length; i++) {
-      if (projects[i] && typeof projects[i].dataset_count === 'number') {
-        totalDatasets += projects[i].dataset_count;
+    if (Array.isArray(projects)) {
+      for (let i = 0; i < projects.length; i++) {
+        if (projects[i] && typeof projects[i].dataset_count === 'number') {
+          totalDatasets += projects[i].dataset_count;
+        }
       }
     }
   } catch (e) {
@@ -128,7 +155,7 @@ const Dashboard = () => {
   let recentProjects: SafeProject[] = [];
   try {
     // Si hay proyectos, tomar hasta 3 sin ordenar para evitar problemas
-    if (projects.length > 0) {
+    if (Array.isArray(projects) && projects.length > 0) {
       // Simplemente tomar los primeros 3 sin ordenar
       recentProjects = projects.slice(0, 3);
     }

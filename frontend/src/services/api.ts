@@ -131,21 +131,59 @@ export const projectsAPI = {
     try {
       // Obtener el token manualmente para asegurar que se envía correctamente
       const token = localStorage.getItem('token');
+      console.log('API: Solicitando proyectos...');
       const res = await api.get('/projects', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      // El backend devuelve { success, projects: [...] }
-      // Asegurarnos de que siempre devolvemos un array
-      const projects = res.data?.projects;
-      if (Array.isArray(projects)) {
-        return projects;
+      console.log('API: Respuesta de proyectos recibida:', res);
+      
+      // Verificar estructura de la respuesta y normalizar
+      if (!res || !res.data) {
+        console.warn('API: Respuesta de proyectos sin datos');
+        return [];
       }
-      console.error('API response for projects is not an array:', res.data);
-      return [];
+      
+      // Comprobar si la respuesta es directamente un array o tiene estructura anidada
+      let projects;
+      
+      if (Array.isArray(res.data)) {
+        projects = res.data;
+      } else if (typeof res.data === 'object') {
+        // Buscar en propiedades comunes donde podrían estar los proyectos
+        if (Array.isArray(res.data.results)) {
+          projects = res.data.results;
+        } else if (Array.isArray(res.data.data)) {
+          projects = res.data.data;
+        } else if (Array.isArray(res.data.projects)) {
+          projects = res.data.projects;
+        } else {
+          // Si no encontramos un array en ninguna propiedad conocida,
+          // verificar si el objeto mismo es un proyecto único
+          if (res.data.id && typeof res.data.id === 'number') {
+            projects = [res.data]; // Es un único proyecto
+          } else {
+            console.warn('API: No se encontró estructura de proyectos reconocible');
+            projects = [];
+          }
+        }
+      } else {
+        console.warn('API: Tipo de respuesta no reconocido:', typeof res.data);
+        projects = [];
+      }
+      
+      console.log('API: Proyectos normalizados:', projects);
+      
+      // Verificar que cada elemento sea un objeto válido y tenga un id
+      const validProjects = Array.isArray(projects) ? 
+        projects.filter((project: any) => project && typeof project === 'object') : 
+        [];
+      
+      return validProjects;
     } catch (error) {
       console.error('Error fetching projects:', error);
+      // Devolver array vacío en caso de error para evitar errores en cascada
       return [];
     }
   },
