@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useRouter } from 'next/router';
 import { authAPI } from '../services/api';
 import { User, AuthState } from '../types';
-import { RegisterUserData } from '../pages/register';
+import type { RegisterUserData } from '../types/auth';
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;

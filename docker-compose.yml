@@ -1,25 +1,30 @@
 services:
-  # Frontend service
+  # Frontend (Next.js)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        - NODE_ENV=development
+    command: pnpm dev
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-    depends_on:
-      - backend
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:5000
+      # Mejor detección de cambios de archivos dentro de contenedor (especialmente en Mac/Windows)
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      # Monta TODO el frontend (para que pages/, components/, etc. se reflejen al instante)
+      - ./frontend:/app
+      # Volúmenes anónimos para no pisar node_modules/.next del contenedor
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
     networks:
       - app-network
     restart: unless-stopped
 
-  # Backend service
+  # Backend service (Flask)
   backend:
     build:
       context: ./backend
@@ -58,7 +63,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # Celery worker service
+  # Celery worker
   celery-worker:
     build:
       context: ./backend
@@ -86,7 +91,7 @@ services:
       - app-network
     restart: unless-stopped
 
-  # Celery beat service (para tareas programadas)
+  # Celery beat (tareas programadas)
   celery-beat:
     build:
       context: ./backend
@@ -108,7 +113,7 @@ services:
       - app-network
     restart: unless-stopped
 
-  # Flower - Monitoreo de Celery
+  # Flower - monitor de Celery
   flower:
     build:
       context: ./backend
@@ -128,7 +133,7 @@ services:
       - app-network
     restart: unless-stopped
 
-  # PostgreSQL service
+  # PostgreSQL
   postgres:
     image: postgres:14
     ports:
@@ -149,7 +154,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # MinIO service (S3-compatible storage)
+  # MinIO (S3-compatible)
   minio:
     image: minio/minio
     ports:
@@ -170,7 +175,7 @@ services:
       timeout: 20s
       retries: 3
 
-  # Redis service (for caching and queues)
+  # Redis
   redis:
     image: redis:6
     ports:

@@ -108,12 +108,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <CssBaseline />
       <AppBar
         position="fixed"
-        sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+        sx={(theme) => ({
+          zIndex: theme.zIndex.drawer + 1,
           backgroundColor: '#FFFFFF',
           color: '#1A1A1A',
           boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-        }}
+        })}
       >
         <Toolbar>
           <IconButton
@@ -231,17 +231,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Drawer>
       <Box
         component="main"
-        sx={{
+        sx={(theme) => ({
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${open ? drawerWidth : 0}px)` },
           ml: { sm: `${open ? drawerWidth : 0}px` },
-          transition: (theme) =>
-            theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-        }}
+          transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+        })}
       >
         <DrawerHeader />
         {/* Asegurar que children siempre se renderice de forma segura */}

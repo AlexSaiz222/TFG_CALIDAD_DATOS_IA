@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { RegisterUserData } from '../pages/register';
+import type { RegisterUserData } from '../types/auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -105,19 +105,21 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  login: (username: string, password: string) => 
-    api.post('/auth/login', { username, password }),
+  login: (username: string, password: string) => {
+    console.log('Intentando login en: /api/auth/login');
+    return api.post('/api/auth/login', { username, password });
+  },
   
   register: (userData: RegisterUserData) => 
-    api.post('/auth/register', userData),
+    api.post('/api/auth/register', userData),
   
   refreshToken: () => 
-    api.post('/auth/refresh'),
+    api.post('/api/auth/refresh'),
   
   getProfile: () => {
     // Obtener el token manualmente para asegurar que se envía correctamente
     const token = localStorage.getItem('token');
-    return api.get('/auth/me', {
+    return api.get('/api/auth/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -132,7 +134,7 @@ export const projectsAPI = {
       // Obtener el token manualmente para asegurar que se envía correctamente
       const token = localStorage.getItem('token');
       console.log('API: Solicitando proyectos...');
-      const res = await api.get('/projects', {
+      const res = await api.get('/api/projects', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -206,7 +208,7 @@ export const projectsAPI = {
   
   getProject: (id: number) => {
     const token = localStorage.getItem('token');
-    return api.get(`/projects/${id}`, {
+    return api.get(`/api/projects/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -214,71 +216,71 @@ export const projectsAPI = {
   },
   
   createProject: (projectData: any) => 
-    api.post('/projects', projectData),
+    api.post('/api/projects', projectData),
   
   updateProject: (id: number, projectData: any) => 
-    api.put(`/projects/${id}`, projectData),
+    api.put(`/api/projects/${id}`, projectData),
   
   deleteProject: (id: number) => 
-    api.delete(`/projects/${id}`),
+    api.delete(`/api/projects/${id}`),
 };
 
 // Datasets API
 export const datasetsAPI = {
   getDatasets: (projectId: number) => 
-    api.get(`/projects/${projectId}/datasets`),
+    api.get(`/api/projects/${projectId}/datasets`),
   
   getDataset: (id: number) => 
-    api.get(`/datasets/${id}`),
+    api.get(`/api/datasets/${id}`),
   
   uploadDataset: (projectId: number, formData: FormData) => 
-    api.post(`/projects/${projectId}/datasets/upload`, formData, {
+    api.post(`/api/projects/${projectId}/datasets/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     }),
   
   previewDataset: (id: number) => 
-    api.get(`/datasets/${id}/preview`),
+    api.get(`/api/datasets/${id}/preview`),
   
   deleteDataset: (id: number) => 
-    api.delete(`/datasets/${id}`),
+    api.delete(`/api/datasets/${id}`),
 };
 
 // Metrics API
 export const metricsAPI = {
   getMetrics: () => 
-    api.get('/metrics'),
+    api.get('/api/metrics'),
   
   getMetricTemplates: () => 
-    api.get('/metric-templates'),
+    api.get('/api/metric-templates'),
   
   getMetricTemplate: (id: number) => 
-    api.get(`/metric-templates/${id}`),
+    api.get(`/api/metric-templates/${id}`),
   
   createMetricTemplate: (templateData: any) => 
-    api.post('/metric-templates', templateData),
+    api.post('/api/metric-templates', templateData),
   
   updateMetricTemplate: (id: number, templateData: any) => 
-    api.put(`/metric-templates/${id}`, templateData),
+    api.put(`/api/metric-templates/${id}`, templateData),
   
   deleteMetricTemplate: (id: number) => 
-    api.delete(`/metric-templates/${id}`),
+    api.delete(`/api/metric-templates/${id}`),
 };
 
 // Evaluations API
 export const evaluationsAPI = {
   getEvaluations: (datasetId: number) => 
-    api.get(`/datasets/${datasetId}/evaluations`),
+    api.get(`/api/datasets/${datasetId}/evaluations`),
   
   getEvaluation: (id: number) => 
-    api.get(`/evaluations/${id}`),
+    api.get(`/api/evaluations/${id}`),
   
   createEvaluation: (datasetId: number, metricsConfig: any) => 
-    api.post(`/datasets/${datasetId}/evaluations`, { metrics_config: metricsConfig }),
+    api.post(`/api/datasets/${datasetId}/evaluations`, { metrics_config: metricsConfig }),
   
   getIssues: (evaluationId: number) => 
-    api.get(`/evaluations/${evaluationId}/issues`),
+    api.get(`/api/evaluations/${evaluationId}/issues`),
 };
 
 export default api;

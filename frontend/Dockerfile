@@ -1,29 +1,16 @@
+# ./frontend/Dockerfile (DESARROLLO)
 FROM node:18-alpine
-
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Instalar pnpm
+RUN npm i -g pnpm
 
-# Copy only package files first to leverage Docker cache
+# Instalar dependencias usando el lockfile
 COPY package.json pnpm-lock.yaml ./
-
-# Clean install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy only necessary files for the build
-COPY next.config.js ./
-COPY tsconfig.json ./
-COPY next-env.d.ts ./
-COPY public ./public
-COPY src ./src
-COPY .env.local ./
-
-# Build application
-RUN pnpm build
-
-# Expose port
+# Exponer el puerto de Next.js
 EXPOSE 3000
 
-# Run the application
-CMD ["pnpm", "start"]
+# Arrancar Next en modo dev (HMR)
+CMD ["pnpm", "dev"]
