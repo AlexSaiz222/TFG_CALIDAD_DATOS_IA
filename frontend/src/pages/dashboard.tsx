@@ -90,29 +90,46 @@ const Dashboard = () => {
         // Asegurar que response sea un array y convertir cada proyecto a formato seguro
         let safeProjects: SafeProject[] = [];
         
-        // Verificar si response es null o undefined antes de intentar procesarlo
-        if (response) {
-          // Si response no es un array, intentar encontrar la propiedad que contiene los proyectos
-          const projectsData = Array.isArray(response) ? response : 
-                              (response as any).data ? (response as any).data : 
-                              (response as any).projects ? (response as any).projects : 
-                              (response as any).results ? (response as any).results : 
-                              null;
-          
-          // Si encontramos datos de proyectos y es un array, procesarlos
-          if (Array.isArray(projectsData)) {
-            for (let i = 0; i < projectsData.length; i++) {
-              try {
-                safeProjects.push(toSafeProject(projectsData[i]));
-              } catch (e) {
-                console.error('Error al procesar proyecto:', e);
+        try {
+          // Verificar si response es null o undefined antes de intentar procesarlo
+          if (response) {
+            // Si response no es un array, intentar encontrar la propiedad que contiene los proyectos
+            let projectsData = null;
+            
+            try {
+              if (Array.isArray(response)) {
+                projectsData = response;
+              } else if (typeof response === 'object') {
+                if (Array.isArray((response as any).data)) {
+                  projectsData = (response as any).data;
+                } else if (Array.isArray((response as any).projects)) {
+                  projectsData = (response as any).projects;
+                } else if (Array.isArray((response as any).results)) {
+                  projectsData = (response as any).results;
+                }
               }
+            } catch (e) {
+              console.error('Error al extraer datos de proyectos:', e);
+              projectsData = null;
+            }
+            
+            // Si encontramos datos de proyectos y es un array, procesarlos
+            if (Array.isArray(projectsData)) {
+              for (let i = 0; i < projectsData.length; i++) {
+                try {
+                  safeProjects.push(toSafeProject(projectsData[i]));
+                } catch (e) {
+                  console.error('Error al procesar proyecto:', e);
+                }
+              }
+            } else {
+              console.warn('No se encontraron datos de proyectos en formato array');
             }
           } else {
-            console.warn('No se encontraron datos de proyectos en formato array');
+            console.warn('La respuesta de la API es null o undefined');
           }
-        } else {
-          console.warn('La respuesta de la API es null o undefined');
+        } catch (processingError) {
+          console.error('Error al procesar la respuesta de proyectos:', processingError);
         }
         
         console.log('Safe projects:', safeProjects);

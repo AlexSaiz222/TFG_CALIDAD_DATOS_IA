@@ -112,8 +112,7 @@ services:
   flower:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    command: celery -A celery_app.celery flower --port=5555
+      dockerfile: Dockerfile.flower
     ports:
       - "5555:5555"
     volumes:

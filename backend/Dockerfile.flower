@@ -1,0 +1,27 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar solo los archivos de requisitos primero para aprovechar la caché de Docker
+COPY requirements.txt .
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Instalar Flower explícitamente para asegurar que esté disponible
+RUN pip install --no-cache-dir flower==1.2.0
+
+# Copiar el resto de la aplicación
+COPY . .
+
+# Exponer el puerto de Flower
+EXPOSE 5555
+
+# Comando para ejecutar Flower
+CMD ["celery", "-A", "celery_app.celery", "flower", "--port=5555", "--address=0.0.0.0"]

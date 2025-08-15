@@ -146,39 +146,55 @@ export const projectsAPI = {
       }
       
       // Comprobar si la respuesta es directamente un array o tiene estructura anidada
-      let projects;
+      let projects = [];
       
-      if (Array.isArray(res.data)) {
-        projects = res.data;
-      } else if (typeof res.data === 'object') {
-        // Buscar en propiedades comunes donde podrían estar los proyectos
-        if (Array.isArray(res.data.results)) {
-          projects = res.data.results;
-        } else if (Array.isArray(res.data.data)) {
-          projects = res.data.data;
-        } else if (Array.isArray(res.data.projects)) {
-          projects = res.data.projects;
-        } else {
-          // Si no encontramos un array en ninguna propiedad conocida,
-          // verificar si el objeto mismo es un proyecto único
-          if (res.data.id && typeof res.data.id === 'number') {
-            projects = [res.data]; // Es un único proyecto
+      try {
+        if (Array.isArray(res.data)) {
+          projects = res.data;
+        } else if (typeof res.data === 'object') {
+          // Buscar en propiedades comunes donde podrían estar los proyectos
+          if (Array.isArray(res.data.results)) {
+            projects = res.data.results;
+          } else if (Array.isArray(res.data.data)) {
+            projects = res.data.data;
+          } else if (Array.isArray(res.data.projects)) {
+            projects = res.data.projects;
           } else {
-            console.warn('API: No se encontró estructura de proyectos reconocible');
-            projects = [];
+            // Si no encontramos un array en ninguna propiedad conocida,
+            // verificar si el objeto mismo es un proyecto único
+            if (res.data.id && typeof res.data.id === 'number') {
+              projects = [res.data]; // Es un único proyecto
+            } else {
+              console.warn('API: No se encontró estructura de proyectos reconocible');
+              projects = [];
+            }
           }
+        } else {
+          console.warn('API: Tipo de respuesta no reconocido:', typeof res.data);
+          projects = [];
         }
-      } else {
-        console.warn('API: Tipo de respuesta no reconocido:', typeof res.data);
+      } catch (parseError) {
+        console.error('API: Error al procesar la respuesta:', parseError);
         projects = [];
       }
       
       console.log('API: Proyectos normalizados:', projects);
       
+      // Asegurar que projects sea siempre un array
+      if (!Array.isArray(projects)) {
+        console.warn('API: projects no es un array después de la normalización, forzando array vacío');
+        projects = [];
+      }
+      
       // Verificar que cada elemento sea un objeto válido y tenga un id
-      const validProjects = Array.isArray(projects) ? 
-        projects.filter((project: any) => project && typeof project === 'object') : 
-        [];
+      let validProjects = [];
+      try {
+        if (Array.isArray(projects)) {
+          validProjects = projects.filter((project: any) => project && typeof project === 'object');
+        }
+      } catch (filterError) {
+        console.error('API: Error al filtrar proyectos:', filterError);
+      }
       
       return validProjects;
     } catch (error) {

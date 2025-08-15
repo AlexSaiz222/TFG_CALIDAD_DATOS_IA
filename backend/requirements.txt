@@ -10,6 +10,7 @@ gunicorn==20.1.0
 # Procesamiento asíncrono
 celery==5.2.7
 redis==4.5.4
+flower==1.2.0
 
 # Base de datos
 SQLAlchemy==2.0.7
