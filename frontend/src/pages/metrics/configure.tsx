@@ -123,13 +123,33 @@ const MetricsConfigurationPage = () => {
       try {
         // Fetch available metrics
         const metricsResponse = await metricsAPI.getMetrics();
-        const metricsData = metricsResponse.data;
+        
+        // Ensure metricsData is an array
+        let metricsData = [];
+        if (metricsResponse.data) {
+          if (Array.isArray(metricsResponse.data)) {
+            metricsData = metricsResponse.data;
+          } else if (metricsResponse.data.metrics && Array.isArray(metricsResponse.data.metrics)) {
+            metricsData = metricsResponse.data.metrics;
+          } else if (typeof metricsResponse.data === 'object') {
+            // Look for any array property that might contain metrics
+            const possibleArrays = Object.values(metricsResponse.data).filter(val => Array.isArray(val));
+            if (possibleArrays.length > 0) {
+              // Use the first array found
+              metricsData = possibleArrays[0] as any[];
+            } else {
+              console.warn('API response does not contain an array of metrics');
+            }
+          }
+        }
+        
+        console.log('Normalized metrics data:', metricsData);
         setMetrics(metricsData);
 
         // Extract unique categories from metrics
-        const uniqueCategories = Array.from(
-          new Set(metricsData.map((metric: Metric) => metric.category))
-        ).sort() as string[];
+        const uniqueCategories = Array.isArray(metricsData) && metricsData.length > 0 ? 
+          Array.from(new Set(metricsData.map((metric: Metric) => metric.category))).sort() as string[] : 
+          [];
         setCategories(uniqueCategories);
 
         // Fetch project details
@@ -345,16 +365,16 @@ const MetricsConfigurationPage = () => {
   };
 
   // Filter metrics based on search query and category filter
-  const filteredMetrics = metrics.filter(metric => {
+  const filteredMetrics = Array.isArray(metrics) ? metrics.filter(metric => {
     const matchesSearch = metric.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          (metric.description && metric.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = categoryFilter === 'all' || metric.category === categoryFilter;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   // Get metric details by ID
   const getMetricById = (metricId: number) => {
-    return metrics.find(m => m.id === metricId);
+    return Array.isArray(metrics) ? metrics.find(m => m.id === metricId) : undefined;
   };
 
   if (loading) {
