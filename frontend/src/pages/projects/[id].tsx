@@ -32,6 +32,7 @@ import {
   Add as AddIcon,
   CloudUpload as CloudUploadIcon,
   Assessment as AssessmentIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI } from '../../services/api';
@@ -73,6 +74,8 @@ const ProjectDetail = () => {
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [projectDeleteDialogOpen, setProjectDeleteDialogOpen] = useState(false);
+  const [projectDeleteLoading, setProjectDeleteLoading] = useState(false);
 
   useEffect(() => {
     const fetchProjectData = async () => {
@@ -86,9 +89,16 @@ const ProjectDetail = () => {
         const projectResponse = await projectsAPI.getProject(projectId);
         setProject(projectResponse.data);
 
-        // Fetch datasets for this project
-        const datasetsResponse = await datasetsAPI.getDatasets(projectId);
-        setDatasets(datasetsResponse.data);
+        try {
+          // Fetch datasets for this project
+          const datasetsResponse = await datasetsAPI.getDatasets(projectId);
+          setDatasets(datasetsResponse.data);
+        } catch (datasetError: any) {
+          console.error('Error fetching datasets:', datasetError);
+          // Si hay un error al obtener datasets, simplemente establecemos un array vacío
+          // pero no mostramos error al usuario ya que el proyecto se cargó correctamente
+          setDatasets([]);
+        }
 
         setLoading(false);
       } catch (error: any) {
@@ -121,8 +131,16 @@ const ProjectDetail = () => {
     setDeleteDialogOpen(true);
   };
 
+  const handleProjectDeleteClick = () => {
+    setProjectDeleteDialogOpen(true);
+  };
+
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
+  };
+
+  const handleProjectDeleteCancel = () => {
+    setProjectDeleteDialogOpen(false);
   };
 
   const handleDeleteConfirm = async () => {
@@ -144,6 +162,22 @@ const ProjectDetail = () => {
       setError('Failed to delete dataset. Please try again later.');
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleProjectDeleteConfirm = async () => {
+    if (!project) return;
+    
+    setProjectDeleteLoading(true);
+    try {
+      await projectsAPI.deleteProject(project.id);
+      
+      // Redirect to projects list after successful deletion
+      router.push('/projects');
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      setProjectDeleteLoading(false);
+      setProjectDeleteDialogOpen(false);
     }
   };
 
@@ -218,11 +252,28 @@ const ProjectDetail = () => {
           </Box>
           <Button
             variant="outlined"
+            startIcon={<SettingsIcon />}
+            onClick={() => router.push(`/metrics/configure?id=${project.id}`)}
+            sx={{
+              borderColor: '#00B37E',
+              color: '#00B37E',
+              mr: 2,
+              '&:hover': {
+                borderColor: '#00A070',
+                backgroundColor: 'rgba(0, 179, 126, 0.04)',
+              },
+            }}
+          >
+            Configure Metrics
+          </Button>
+          <Button
+            variant="outlined"
             startIcon={<EditIcon />}
             onClick={() => router.push(`/projects/edit/${project.id}`)}
             sx={{
               borderColor: '#00B37E',
               color: '#00B37E',
+              mr: 2,
               '&:hover': {
                 borderColor: '#00A070',
                 backgroundColor: 'rgba(0, 179, 126, 0.04)',
@@ -230,6 +281,21 @@ const ProjectDetail = () => {
             }}
           >
             Edit
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<DeleteIcon />}
+            onClick={handleProjectDeleteClick}
+            sx={{
+              borderColor: '#E5484D',
+              color: '#E5484D',
+              '&:hover': {
+                borderColor: '#C73D42',
+                backgroundColor: 'rgba(229, 72, 77, 0.04)',
+              },
+            }}
+          >
+            Delete
           </Button>
         </Box>
 
@@ -486,7 +552,7 @@ const ProjectDetail = () => {
         </MenuItem>
       </Menu>
 
-      {/* Delete confirmation dialog */}
+      {/* Delete dataset confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
@@ -512,6 +578,36 @@ const ProjectDetail = () => {
             disabled={deleteLoading}
           >
             {deleteLoading ? <CircularProgress size={24} /> : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete project confirmation dialog */}
+      <Dialog
+        open={projectDeleteDialogOpen}
+        onClose={handleProjectDeleteCancel}
+        aria-labelledby="project-delete-dialog-title"
+        aria-describedby="project-delete-dialog-description"
+      >
+        <DialogTitle id="project-delete-dialog-title">
+          {"Delete Project?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="project-delete-dialog-description">
+            Are you sure you want to delete the project "{project?.name}"? This action cannot be undone and will delete all associated datasets and evaluations.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleProjectDeleteCancel} disabled={projectDeleteLoading}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleProjectDeleteConfirm} 
+            color="error" 
+            autoFocus
+            disabled={projectDeleteLoading}
+          >
+            {projectDeleteLoading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

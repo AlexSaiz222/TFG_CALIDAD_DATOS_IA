@@ -252,6 +252,17 @@ export const metricsAPI = {
   getMetrics: () => 
     api.get('/api/metrics'),
   
+  // Project metric configurations
+  getProjectMetricConfigs: (projectId: number) => 
+    api.get(`/api/projects/${projectId}/metrics/config`),
+    
+  saveProjectMetricConfigs: (projectId: number, configs: any) => 
+    api.post(`/api/projects/${projectId}/metrics/config`, { metrics_config: configs }),
+  
+  validateMetricConfig: (config: any) => 
+    api.post('/api/metrics/validate', { config }),
+  
+  // Metric templates
   getMetricTemplates: () => 
     api.get('/api/metric-templates'),
   
