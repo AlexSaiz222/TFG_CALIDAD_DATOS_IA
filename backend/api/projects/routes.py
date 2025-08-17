@@ -149,7 +149,7 @@ def delete_project(project_id):
         return jsonify({"error": "Project not found"}), 404
     
     # Check if user has access to the project
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         return jsonify({"error": "Unauthorized access to project"}), 403
     
     # Delete project from database

@@ -169,13 +169,15 @@ const ProjectDetail = () => {
     if (!project) return;
     
     setProjectDeleteLoading(true);
+    setError(null);
     try {
       await projectsAPI.deleteProject(project.id);
       
       // Redirect to projects list after successful deletion
       router.push('/projects');
-    } catch (error) {
-      console.error('Error deleting project:', error);
+    } catch (err: any) {
+      console.error('Error deleting project:', err);
+      setError('Failed to delete project. Please try again later.');
       setProjectDeleteLoading(false);
       setProjectDeleteDialogOpen(false);
     }
