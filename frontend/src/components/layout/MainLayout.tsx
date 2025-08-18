@@ -71,7 +71,7 @@ const GlobalStyles = () => {
   return (
     <style jsx global>{`
       @keyframes shine {
-        0% { background-position: -100% 0; }
+        0%, 5% { background-position: -200% 0; }
         100% { background-position: 100% 0; }
       }
     `}</style>
@@ -185,8 +185,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 flexGrow: 1,
                 position: 'relative',
                 cursor: 'pointer',
-                '.text-shine': {
-                  animation: 'shine 3s linear infinite',
+                '&:hover .text-shine': {
+                  animation: 'shine 5s linear infinite',
+                  backgroundPosition: '-200%', /* Asegura que comienza completamente fuera */
+                },
+                '&:not(:hover) .text-shine': {
+                  animation: 'none',
+                  backgroundImage: 'none',
+                  color: '#333333',
+                  WebkitTextFillColor: '#333333',
                 }
               }}
             >
@@ -200,8 +207,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   fontFamily: '"Segoe UI", "Trebuchet MS", "Helvetica", sans-serif',
                   color: '#333333',
                   backgroundImage: 'linear-gradient(90deg, #333333, #333333 40%, rgba(0,210,181,1) 45%, rgba(0,183,222,1) 50%, #333333 55%, #333333)',
-                  backgroundSize: '200%',
-                  backgroundPosition: '-100%',
+                  backgroundSize: '300%',
+                  backgroundPosition: '-200%',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
