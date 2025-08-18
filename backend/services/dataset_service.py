@@ -44,9 +44,9 @@ class DatasetService:
             column_info = {
                 'name': column,
                 'type': str(df[column].dtype),
-                'unique_count': df[column].nunique(),
-                'missing_count': df[column].isna().sum(),
-                'missing_percentage': round(df[column].isna().mean() * 100, 2)
+                'unique_count': int(df[column].nunique()),
+                'missing_count': int(df[column].isna().sum()),
+                'missing_percentage': float(round(df[column].isna().mean() * 100, 2))
             }
             
             # Add statistics based on data type
@@ -71,9 +71,9 @@ class DatasetService:
         
         return {
             'file_path': file_path,
-            'file_size': file_obj.tell(),
-            'row_count': row_count,
-            'column_count': column_count,
+            'file_size': int(file_obj.tell()),
+            'row_count': int(row_count),
+            'column_count': int(column_count),
             'schema': schema
         }
     
