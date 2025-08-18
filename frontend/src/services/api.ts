@@ -125,6 +125,18 @@ export const authAPI = {
       }
     });
   },
+  
+  updateProfile: (userData: any) => {
+    // Obtener el token manualmente para asegurar que se envía correctamente
+    const token = localStorage.getItem('token');
+    
+    // Call the real PUT /api/auth/me endpoint to update the user profile
+    return api.put('/api/auth/me', userData, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
 };
 
 // Projects API

@@ -17,7 +17,7 @@ import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProfilePage = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, updateProfile } = useAuth();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -54,16 +54,16 @@ const ProfilePage = () => {
     setSuccess(false);
 
     try {
-      // This is a placeholder - you'll need to implement updateProfile in your AuthContext
-      // await updateProfile(formData);
+      // Create a copy of formData without the username field since it can't be updated
+      const { username, ...updateData } = formData;
       
-      // For now, just simulate a successful update
-      setTimeout(() => {
-        setSuccess(true);
-        setLoading(false);
-      }, 1000);
+      // Call the updateProfile method from AuthContext
+      await updateProfile(updateData);
+      
+      setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.response?.data?.message || err.message || 'Failed to update profile');
+    } finally {
       setLoading(false);
     }
   };

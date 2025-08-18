@@ -8,6 +8,7 @@ interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;
   register: (userData: RegisterUserData) => Promise<void>;
   logout: () => void;
+  updateProfile: (userData: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -223,6 +224,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     router.push('/login');
   };
 
+  // Update profile function
+  const updateProfile = async (userData: any) => {
+    setAuthState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      console.log('AuthContext: Actualizando perfil de usuario...');
+      const response = await authAPI.updateProfile(userData);
+      console.log('AuthContext: Respuesta de actualización de perfil:', response.data);
+      
+      // Extract user data from response
+      let updatedUser = null;
+      
+      if (response.data && response.data.success === true) {
+        // Case 1: Nested structure with data.user
+        if (response.data.data && response.data.data.user) {
+          updatedUser = response.data.data.user;
+        }
+        // Case 2: Structure with data.user
+        else if (response.data && 'user' in response.data) {
+          updatedUser = (response.data as any).user;
+        }
+        // Case 3: User directly in data.data
+        else if (response.data.data && typeof response.data.data === 'object') {
+          updatedUser = response.data.data;
+        }
+      }
+      
+      if (!updatedUser) {
+        console.error('AuthContext: Respuesta de actualización no contiene datos de usuario válidos');
+        throw new Error('Invalid user data received');
+      }
+      
+      // Update localStorage with new user data
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Update auth state
+      setAuthState({
+        isAuthenticated: true,
+        user: updatedUser,
+        loading: false,
+        error: null,
+      });
+      
+      return updatedUser;
+    } catch (error: any) {
+      console.error('AuthContext: Error al actualizar perfil:', error);
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: error.response?.data?.message || 'Failed to update profile',
+      }));
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -230,6 +286,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
+        updateProfile,
       }}
     >
       {children}
