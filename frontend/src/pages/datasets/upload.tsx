@@ -48,8 +48,15 @@ const DatasetUpload = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await projectsAPI.getProjects();
-        setProjects(response.data);
+        const projects = await projectsAPI.getProjects();
+        // projectsAPI.getProjects already returns the array directly
+        if (Array.isArray(projects)) {
+          setProjects(projects);
+        } else {
+          // Handle unexpected response format
+          setProjects([]);
+          setError('Invalid response format from server');
+        }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -291,11 +298,13 @@ const DatasetUpload = () => {
                       <MenuItem value={0} disabled>
                         Select a project
                       </MenuItem>
-                      {projects.map((project) => (
+                      {projects && projects.length > 0 ? projects.map((project) => (
                         <MenuItem key={project.id} value={project.id}>
                           {project.name}
                         </MenuItem>
-                      ))}
+                      )) : (
+                        <MenuItem disabled>No projects available</MenuItem>
+                      )}
                     </Select>
                     {errors.projectId && (
                       <FormHelperText>{errors.projectId}</FormHelperText>
@@ -416,7 +425,7 @@ const DatasetUpload = () => {
                     Project
                   </Typography>
                   <Typography variant="body1">
-                    {projects.find(p => p.id === formData.projectId)?.name || 'Unknown Project'}
+                    {projects && projects.find(p => p.id === formData.projectId)?.name || 'Unknown Project'}
                   </Typography>
                 </Box>
                 
