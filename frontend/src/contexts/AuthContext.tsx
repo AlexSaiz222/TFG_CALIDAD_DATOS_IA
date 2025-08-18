@@ -54,16 +54,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const response = await authAPI.getProfile();
         console.log('AuthContext: Respuesta de getProfile:', response.data);
         
-        if (response.data && response.data.user) {
-          console.log('AuthContext: Usuario autenticado correctamente');
-          setAuthState({
-            isAuthenticated: true,
-            user: response.data.user,
-            loading: false,
-            error: null,
-          });
+        // Verificar la estructura de la respuesta y extraer los datos del usuario
+        if (response.data && response.data.success === true) {
+          // Caso 1: Estructura anidada con data.data.user (estructura actual)
+          if (response.data.data && response.data.data.user) {
+            console.log('AuthContext: Usuario autenticado correctamente (estructura anidada)');
+            setAuthState({
+              isAuthenticated: true,
+              user: response.data.data.user,
+              loading: false,
+              error: null,
+            });
+          } 
+          // Caso 2: Estructura con data.user (estructura esperada originalmente)
+          else if (response.data.user) {
+            console.log('AuthContext: Usuario autenticado correctamente (estructura plana)');
+            setAuthState({
+              isAuthenticated: true,
+              user: response.data.user,
+              loading: false,
+              error: null,
+            });
+          }
+          // Caso 3: El usuario está directamente en data.data (otra posible estructura)
+          else if (response.data.data && typeof response.data.data === 'object') {
+            console.log('AuthContext: Usuario autenticado correctamente (data directa)');
+            setAuthState({
+              isAuthenticated: true,
+              user: response.data.data,
+              loading: false,
+              error: null,
+            });
+          } else {
+            console.error('AuthContext: Respuesta de getProfile no contiene datos de usuario válidos');
+            console.error('AuthContext: Estructura de respuesta:', JSON.stringify(response.data));
+            throw new Error('Invalid user data received');
+          }
         } else {
           console.error('AuthContext: Respuesta de getProfile no contiene datos de usuario válidos');
+          console.error('AuthContext: Estructura de respuesta:', JSON.stringify(response.data));
           throw new Error('Invalid user data received');
         }
       } catch (error) {

@@ -514,24 +514,67 @@ def refresh():
 @jwt_required()
 def get_profile():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
     
-    if not user:
+    try:
+        # Convertir el ID a entero si es necesario
+        current_user_id_int = int(user_id) if isinstance(user_id, str) else user_id
+        
+        # Consultar usuario en la base de datos
+        try:
+            user = User.query.get(current_user_id_int)
+            
+            if not user:
+                logger.warning(f"Usuario no encontrado para ID: {current_user_id_int}")
+                return jsonify({
+                    "success": False,
+                    "error": "user_not_found",
+                    "message": "Usuario no encontrado"
+                }), 404
+            
+            # Intentar serializar la respuesta completa
+            try:
+                user_data = user.to_dict(include_sensitive=False)
+                
+                # Log de éxito
+                logger.info(f"Perfil de usuario obtenido con éxito para ID: {current_user_id_int}, username: {user.username}")
+                
+                return jsonify({
+                    "success": True,
+                    "data": {
+                        "user": user_data
+                    }
+                }), 200
+            except Exception as e:
+                # Si falla la serialización, devolver datos básicos
+                logger.error(f"Error al serializar datos de usuario en perfil: {str(e)}")
+                return jsonify({
+                    "success": True,
+                    "data": {
+                        "user": {
+                            "id": user.id,
+                            "username": user.username,
+                            "email": user.email,
+                            "first_name": user.first_name,
+                            "last_name": user.last_name,
+                            "organization": user.organization,
+                            "role": user.role
+                        }
+                    }
+                }), 200
+        except Exception as e:
+            logger.error(f"Error al consultar usuario en la base de datos: {str(e)}")
+            return jsonify({
+                "success": False,
+                "error": "database_error",
+                "message": f"Error al obtener datos del usuario: {str(e)}"
+            }), 500
+    except Exception as e:
+        logger.error(f"Error inesperado en get_profile: {str(e)}")
         return jsonify({
-            'success': False,
-            'error': {
-                'code': 'USER_NOT_FOUND',
-                'message': 'Usuario no encontrado'
-            }
-        }), 404
-    
-    return jsonify({
-        'success': True,
-        'data': {
-            'user': user.to_dict()
-        },
-        'message': 'Perfil de usuario obtenido correctamente'
-    }), 200
+            "success": False,
+            "error": "server_error",
+            "message": "Error interno del servidor"
+        }), 500
 
 @auth_bp.route('/me', methods=['PUT'])
 @jwt_required()

@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 from extensions import db
 from models.evaluation import Evaluation, Issue
+import numpy as np
 from models.dataset import Dataset
 from models.project import Project
 from services.dataset_service import DatasetService
@@ -70,21 +71,45 @@ def get_evaluations():
         pagination = query.paginate(page=page, per_page=per_page, error_out=False)
         
         # Construir respuesta
-        return jsonify({
-            "success": True,
-            "data": {
-                "evaluations": [evaluation.to_dict() for evaluation in pagination.items],
-                "pagination": {
-                    "page": page,
-                    "per_page": per_page,
-                    "total": pagination.total,
-                    "pages": pagination.pages,
-                    "has_next": pagination.has_next,
-                    "has_prev": pagination.has_prev
-                }
-            },
-            "message": "Evaluaciones obtenidas correctamente"
-        }), 200
+        try:
+            evaluations_data = []
+            for evaluation in pagination.items:
+                try:
+                    # Convertir cada evaluación a diccionario con manejo de errores
+                    eval_dict = evaluation.to_dict()
+                    evaluations_data.append(eval_dict)
+                except Exception as e:
+                    logger.error(f"Error al convertir evaluación {evaluation.id} a diccionario: {str(e)}")
+                    # Incluir versión simplificada si hay error
+                    evaluations_data.append({
+                        "id": evaluation.id,
+                        "dataset_id": evaluation.dataset_id,
+                        "status": evaluation.status,
+                        "error": f"Error al serializar: {str(e)}"
+                    })
+            
+            return jsonify({
+                "success": True,
+                "data": {
+                    "evaluations": evaluations_data,
+                    "pagination": {
+                        "page": page,
+                        "per_page": per_page,
+                        "total": pagination.total,
+                        "pages": pagination.pages,
+                        "has_next": pagination.has_next,
+                        "has_prev": pagination.has_prev
+                    }
+                },
+                "message": "Evaluaciones obtenidas correctamente"
+            }), 200
+        except Exception as e:
+            logger.error(f"Error al construir respuesta de evaluaciones: {str(e)}")
+            return jsonify({
+                "success": False,
+                "error": "Error al procesar evaluaciones",
+                "message": str(e)
+            }), 500
     except Exception as e:
         logger.error(f"Error al obtener evaluaciones: {str(e)}")
         return jsonify({
@@ -133,13 +158,22 @@ def get_evaluation(evaluation_id):
             "message": "No tienes permisos para acceder a esta evaluación"
         }), 403
     
-    return jsonify({
-        "success": True,
-        "data": {
-            "evaluation": evaluation.to_dict()
-        },
-        "message": "Evaluación obtenida correctamente"
-    }), 200
+    try:
+        eval_dict = evaluation.to_dict()
+        return jsonify({
+            "success": True,
+            "data": {
+                "evaluation": eval_dict
+            },
+            "message": "Evaluación obtenida correctamente"
+        }), 200
+    except Exception as e:
+        logger.error(f"Error al serializar evaluación {evaluation_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Error al procesar la evaluación",
+            "message": str(e)
+        }), 500
 
 @evaluations_bp.route('/<int:evaluation_id>/status', methods=['GET'])
 @jwt_required()
@@ -309,14 +343,31 @@ def create_evaluation(dataset_id):
         db.session.commit()
         
         # Devolver respuesta con información de la evaluación creada
-        return jsonify({
-            "success": True,
-            "data": {
-                "evaluation": new_evaluation.to_dict(),
-                "task_id": task.id
-            },
-            "message": "Evaluación iniciada correctamente"
-        }), 202  # 202 Accepted indica que la solicitud ha sido aceptada para procesamiento
+        try:
+            eval_dict = new_evaluation.to_dict()
+            return jsonify({
+                "success": True,
+                "data": {
+                    "evaluation": eval_dict,
+                    "task_id": task.id
+                },
+                "message": "Evaluación iniciada correctamente"
+            }), 202  # 202 Accepted indica que la solicitud ha sido aceptada para procesamiento
+        except Exception as e:
+            logger.error(f"Error al serializar nueva evaluación {new_evaluation.id}: {str(e)}")
+            # Devolver información básica si hay error de serialización
+            return jsonify({
+                "success": True,
+                "data": {
+                    "evaluation": {
+                        "id": new_evaluation.id,
+                        "dataset_id": new_evaluation.dataset_id,
+                        "status": new_evaluation.status
+                    },
+                    "task_id": task.id
+                },
+                "message": "Evaluación iniciada correctamente, pero con errores al serializar datos completos"
+            }), 202
     
     except Exception as e:
         # Registrar error y actualizar estado de la evaluación
@@ -379,14 +430,37 @@ def get_evaluation_issues(evaluation_id):
     issues = Issue.query.filter_by(evaluation_id=evaluation_id).all()
     logger.debug(f"Se encontraron {len(issues)} issues para la evaluación {evaluation_id}")
     
-    return jsonify({
-        "success": True,
-        "data": {
-            "issues": [issue.to_dict() for issue in issues],
-            "count": len(issues)
-        },
-        "message": "Issues obtenidos correctamente"
-    }), 200
+    try:
+        issues_data = []
+        for issue in issues:
+            try:
+                issues_data.append(issue.to_dict())
+            except Exception as e:
+                logger.error(f"Error al serializar issue {issue.id}: {str(e)}")
+                # Incluir versión simplificada si hay error
+                issues_data.append({
+                    "id": issue.id,
+                    "evaluation_id": issue.evaluation_id,
+                    "severity": issue.severity,
+                    "description": issue.description,
+                    "error": f"Error al serializar datos completos: {str(e)}"
+                })
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "issues": issues_data,
+                "count": len(issues)
+            },
+            "message": "Issues obtenidos correctamente"
+        }), 200
+    except Exception as e:
+        logger.error(f"Error al procesar lista de issues: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Error al procesar issues",
+            "message": str(e)
+        }), 500
 
 @evaluations_bp.route('/<int:evaluation_id>', methods=['DELETE'])
 @jwt_required()
