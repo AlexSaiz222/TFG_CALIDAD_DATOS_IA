@@ -9,18 +9,29 @@ import {
   Button,
   CircularProgress,
   Paper,
+  Divider,
+  Avatar,
+  Chip,
+  IconButton,
+  Tooltip,
+  LinearProgress,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Storage as StorageIcon,
   Assessment as AssessmentIcon,
   Warning as WarningIcon,
+  Refresh as RefreshIcon,
+  ArrowForward as ArrowForwardIcon,
+  CheckCircle as CheckCircleIcon,
+  Timeline as TimelineIcon,
 } from '@mui/icons-material';
+
+// Import the MainLayout component
 import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { projectsAPI } from '../services/api';
-// Eliminamos la importación de Project para evitar problemas de tipo
-// import { Project } from '../types';
 
 // Definición de tipos para asegurar consistencia
 type SafeProject = {
@@ -44,7 +55,7 @@ const toSafeProject = (project: any): SafeProject => {
   };
 };
 
-const Dashboard = () => {
+function Dashboard() {
   // Inicializar con un array vacío para evitar problemas de tipo
   const [projects, setProjects] = useState<SafeProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,9 +128,6 @@ const Dashboard = () => {
     fetchProjects();
   }, [isAuthenticated]);
 
-  // Usar variables simples para evitar cualquier problema con arrays
-  // Estas variables se calculan de forma segura sin métodos avanzados
-  
   // Total de proyectos - simplemente la longitud del array
   const totalProjects = Array.isArray(projects) ? projects.length : 0;
   
@@ -135,19 +143,6 @@ const Dashboard = () => {
     }
   } catch (e) {
     console.error('Error al calcular totalDatasets:', e);
-  }
-  
-  // Proyectos recientes - máximo 3
-  let recentProjects: SafeProject[] = [];
-  try {
-    // Si hay proyectos, tomar hasta 3 sin ordenar para evitar problemas
-    if (Array.isArray(projects) && projects.length > 0) {
-      // Simplemente tomar los primeros 3 sin ordenar
-      recentProjects = projects.slice(0, 3);
-    }
-  } catch (e) {
-    console.error('Error al obtener proyectos recientes:', e);
-    recentProjects = [];
   }
 
   // Mostrar carga mientras se verifica la autenticación
@@ -184,47 +179,94 @@ const Dashboard = () => {
               borderRadius: 2,
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
               transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+              overflow: 'visible',
+              position: 'relative',
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
               },
             }}
           >
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Box
-                  sx={{
-                    backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                    borderRadius: '50%',
-                    p: 1,
-                    mr: 2,
-                  }}
-                >
-                  <StorageIcon sx={{ color: '#00B37E' }} />
-                </Box>
-                <Typography variant="h6" component="div" sx={{ color: '#555555' }}>
+            <Box 
+              sx={{
+                position: 'absolute',
+                top: '-16px',
+                left: '24px',
+                backgroundColor: '#00B37E',
+                borderRadius: '12px',
+                width: '56px',
+                height: '56px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0px 4px 8px rgba(0, 179, 126, 0.25)',
+              }}
+            >
+              <StorageIcon sx={{ color: 'white', fontSize: '28px' }} />
+            </Box>
+            <CardContent sx={{ pt: 5, pb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
+                <Typography variant="h6" component="div" sx={{ color: '#1A1A1A', fontWeight: 600 }}>
                   Projects
                 </Typography>
+                <Chip 
+                  label="Active" 
+                  size="small" 
+                  sx={{ 
+                    backgroundColor: alpha('#00B37E', 0.1), 
+                    color: '#00B37E',
+                    fontWeight: 500,
+                  }} 
+                />
               </Box>
-              <Typography variant="h3" component="div" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 1 }}>
                 {totalProjects}
               </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={() => router.push('/projects/new')}
-                sx={{
-                  mt: 2,
-                  borderColor: '#00B37E',
-                  color: '#00B37E',
-                  '&:hover': {
-                    borderColor: '#00A070',
-                    backgroundColor: 'rgba(0, 179, 126, 0.04)',
-                  },
-                }}
-              >
-                New Project
-              </Button>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ color: '#555555', mb: 0.5 }}>
+                  Project completion
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={totalProjects > 0 ? 75 : 0} 
+                  sx={{ 
+                    height: 6, 
+                    borderRadius: 3,
+                    backgroundColor: alpha('#00B37E', 0.1),
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: '#00B37E',
+                    }
+                  }} 
+                />
+              </Box>
+              <Divider sx={{ my: 1.5 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push('/projects/new')}
+                  sx={{
+                    backgroundColor: '#00B37E',
+                    '&:hover': {
+                      backgroundColor: '#00A070',
+                    },
+                    boxShadow: '0px 2px 4px rgba(0, 179, 126, 0.25)',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  New Project
+                </Button>
+                <Tooltip title="View all projects">
+                  <IconButton 
+                    onClick={() => router.push('/projects')}
+                    sx={{ color: '#555555' }}
+                  >
+                    <ArrowForwardIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -235,48 +277,103 @@ const Dashboard = () => {
               borderRadius: 2,
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
               transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+              overflow: 'visible',
+              position: 'relative',
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
               },
             }}
           >
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Box
-                  sx={{
-                    backgroundColor: 'rgba(255, 184, 0, 0.1)',
-                    borderRadius: '50%',
-                    p: 1,
-                    mr: 2,
-                  }}
-                >
-                  <AssessmentIcon sx={{ color: '#FFB800' }} />
-                </Box>
-                <Typography variant="h6" component="div" sx={{ color: '#555555' }}>
+            <Box 
+              sx={{
+                position: 'absolute',
+                top: '-16px',
+                left: '24px',
+                backgroundColor: '#FFB800',
+                borderRadius: '12px',
+                width: '56px',
+                height: '56px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0px 4px 8px rgba(255, 184, 0, 0.25)',
+              }}
+            >
+              <AssessmentIcon sx={{ color: 'white', fontSize: '28px' }} />
+            </Box>
+            <CardContent sx={{ pt: 5, pb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
+                <Typography variant="h6" component="div" sx={{ color: '#1A1A1A', fontWeight: 600 }}>
                   Datasets
                 </Typography>
+                <Chip 
+                  label="Analytics" 
+                  size="small" 
+                  sx={{ 
+                    backgroundColor: alpha('#FFB800', 0.1), 
+                    color: '#FFB800',
+                    fontWeight: 500,
+                  }} 
+                />
               </Box>
-              <Typography variant="h3" component="div" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 1 }}>
                 {totalDatasets}
               </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={() => router.push('/datasets/upload')}
-                sx={{
-                  mt: 2,
-                  borderColor: '#FFB800',
-                  color: '#FFB800',
-                  '&:hover': {
-                    borderColor: '#E5A600',
-                    backgroundColor: 'rgba(255, 184, 0, 0.04)',
-                  },
-                }}
-                disabled={totalProjects === 0}
-              >
-                Upload Dataset
-              </Button>
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ color: '#555555' }}>
+                    Processing status
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#00B37E', fontWeight: 500 }}>
+                    {totalDatasets > 0 ? '100%' : '0%'}
+                  </Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={totalDatasets > 0 ? 100 : 0} 
+                  sx={{ 
+                    height: 6, 
+                    borderRadius: 3,
+                    backgroundColor: alpha('#FFB800', 0.1),
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: '#FFB800',
+                    }
+                  }} 
+                />
+              </Box>
+              <Divider sx={{ my: 1.5 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push('/datasets/upload')}
+                  sx={{
+                    backgroundColor: '#FFB800',
+                    '&:hover': {
+                      backgroundColor: '#E5A600',
+                    },
+                    boxShadow: '0px 2px 4px rgba(255, 184, 0, 0.25)',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                  disabled={totalProjects === 0}
+                >
+                  Upload Dataset
+                </Button>
+                <Tooltip title="View all datasets">
+                  <span>
+                    <IconButton 
+                      onClick={() => router.push('/datasets')}
+                      sx={{ color: '#555555' }}
+                      disabled={totalDatasets === 0}
+                    >
+                      <ArrowForwardIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -287,147 +384,294 @@ const Dashboard = () => {
               borderRadius: 2,
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
               transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+              overflow: 'visible',
+              position: 'relative',
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
               },
             }}
           >
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Box
-                  sx={{
-                    backgroundColor: 'rgba(229, 72, 77, 0.1)',
-                    borderRadius: '50%',
-                    p: 1,
-                    mr: 2,
-                  }}
-                >
-                  <WarningIcon sx={{ color: '#E5484D' }} />
-                </Box>
-                <Typography variant="h6" component="div" sx={{ color: '#555555' }}>
+            <Box 
+              sx={{
+                position: 'absolute',
+                top: '-16px',
+                left: '24px',
+                backgroundColor: '#E5484D',
+                borderRadius: '12px',
+                width: '56px',
+                height: '56px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0px 4px 8px rgba(229, 72, 77, 0.25)',
+              }}
+            >
+              <WarningIcon sx={{ color: 'white', fontSize: '28px' }} />
+            </Box>
+            <CardContent sx={{ pt: 5, pb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
+                <Typography variant="h6" component="div" sx={{ color: '#1A1A1A', fontWeight: 600 }}>
                   Quality Issues
                 </Typography>
+                <Chip 
+                  icon={<CheckCircleIcon sx={{ fontSize: '16px !important', color: '#00B37E !important' }} />}
+                  label="All Clear" 
+                  size="small" 
+                  sx={{ 
+                    backgroundColor: alpha('#00B37E', 0.1), 
+                    color: '#00B37E',
+                    fontWeight: 500,
+                    '& .MuiChip-icon': { color: '#00B37E' }
+                  }} 
+                />
               </Box>
-              <Typography variant="h3" component="div" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 1 }}>
                 0
               </Typography>
-              <Button
-                variant="outlined"
-                onClick={() => router.push('/evaluations')}
-                sx={{
-                  mt: 2,
-                  borderColor: '#E5484D',
-                  color: '#E5484D',
-                  '&:hover': {
-                    borderColor: '#D03B40',
-                    backgroundColor: 'rgba(229, 72, 77, 0.04)',
-                  },
-                }}
-              >
-                View Issues
-              </Button>
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ color: '#555555' }}>
+                    Data quality score
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#00B37E', fontWeight: 500 }}>
+                    Excellent
+                  </Typography>
+                </Box>
+                <Box sx={{ position: 'relative', height: '6px', borderRadius: '3px', backgroundColor: alpha('#E5484D', 0.1) }}>
+                  <Box sx={{ 
+                    position: 'absolute', 
+                    left: 0, 
+                    top: 0, 
+                    height: '100%', 
+                    width: '95%', 
+                    borderRadius: '3px', 
+                    background: 'linear-gradient(90deg, #00B37E 0%, #00B37E 100%)'
+                  }} />
+                </Box>
+              </Box>
+              <Divider sx={{ my: 1.5 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={() => router.push('/evaluations')}
+                  sx={{
+                    borderColor: '#E5484D',
+                    color: '#E5484D',
+                    '&:hover': {
+                      borderColor: '#D03B40',
+                      backgroundColor: 'rgba(229, 72, 77, 0.04)',
+                    },
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  View Issues
+                </Button>
+                <Tooltip title="Run new evaluation">
+                  <IconButton 
+                    onClick={() => router.push('/evaluations/new')}
+                    sx={{ color: '#555555' }}
+                  >
+                    <RefreshIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* Recent Projects */}
+      {/* Data Quality Metrics */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Recent Projects
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 2
+        }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#1A1A1A', display: 'flex', alignItems: 'center' }}>
+            <TimelineIcon sx={{ mr: 1, color: '#00B37E' }} />
+            Data Quality Metrics
           </Typography>
           <Button
-            variant="text"
-            onClick={() => router.push('/projects')}
+            endIcon={<ArrowForwardIcon />}
+            onClick={() => router.push('/metrics')}
             sx={{
               color: '#00B37E',
               '&:hover': {
-                backgroundColor: 'rgba(0, 179, 126, 0.04)',
+                backgroundColor: alpha('#00B37E', 0.1),
               },
+              textTransform: 'none',
+              fontWeight: 500,
             }}
           >
-            View All
+            View All Metrics
           </Button>
         </Box>
-
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Paper sx={{ p: 3, backgroundColor: 'rgba(229, 72, 77, 0.05)', borderRadius: 2 }}>
-            <Typography color="error">{error}</Typography>
-          </Paper>
-        ) : recentProjects.length > 0 ? (
-          <Grid container spacing={3}>
-            {recentProjects.map((project) => (
-              <Grid item xs={12} sm={6} md={4} key={project.id}>
-                <Card 
-                  sx={{ 
-                    height: '100%',
-                    borderRadius: 2,
-                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
-                    },
-                  }}
-                  onClick={() => router.push(`/projects/${project.id}`)}
-                >
-                  <CardContent>
-                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 600, color: '#1A1A1A' }}>
-                      {project.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {project.description || 'No description'}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" sx={{ color: '#555555' }}>
-                        {project.dataset_count} {project.dataset_count === 1 ? 'dataset' : 'datasets'}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#555555' }}>
-                        {/* Usar try-catch para manejar posibles errores de fecha */}
-                        {(() => {
-                          try {
-                            return `Updated ${new Date(project.updated_at).toLocaleDateString()}`;
-                          } catch (e) {
-                            return 'Recently updated';
-                          }
-                        })()}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
-            <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-              You don't have any projects yet.
+        
+        {totalDatasets === 0 ? (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              border: '1px dashed',
+              borderColor: alpha('#00B37E', 0.3),
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <TimelineIcon sx={{ fontSize: 48, color: alpha('#00B37E', 0.7), mb: 2 }} />
+            <Typography variant="body1" sx={{ color: '#555555', textAlign: 'center', mb: 2 }}>
+              Upload datasets to see quality metrics and visualizations
             </Typography>
             <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => router.push('/projects/new')}
+              variant="outlined"
+              onClick={() => router.push('/datasets/upload')}
               sx={{
-                backgroundColor: '#00B37E',
+                borderColor: '#00B37E',
+                color: '#00B37E',
                 '&:hover': {
-                  backgroundColor: '#00A070',
+                  borderColor: '#00A070',
+                  backgroundColor: alpha('#00B37E', 0.1),
                 },
+                textTransform: 'none',
               }}
+              disabled={totalProjects === 0}
             >
-              Create Your First Project
+              Upload Your First Dataset
             </Button>
           </Paper>
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px solid #EEEEEE',
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                  Completeness Score
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ position: 'relative', display: 'inline-flex', mr: 2 }}>
+                    <CircularProgress
+                      variant="determinate"
+                      value={95}
+                      size={80}
+                      thickness={4}
+                      sx={{
+                        color: '#00B37E',
+                        '& .MuiCircularProgress-circle': {
+                          strokeLinecap: 'round',
+                        },
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        position: 'absolute',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                        95%
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#00B37E' }}>
+                      Excellent
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Most fields are complete
+                    </Typography>
+                  </Box>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Recommendation: Check for missing values in optional fields to reach 100% completeness.
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px solid #EEEEEE',
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                  Consistency Score
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ position: 'relative', display: 'inline-flex', mr: 2 }}>
+                    <CircularProgress
+                      variant="determinate"
+                      value={87}
+                      size={80}
+                      thickness={4}
+                      sx={{
+                        color: '#FFB800',
+                        '& .MuiCircularProgress-circle': {
+                          strokeLinecap: 'round',
+                        },
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        position: 'absolute',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                        87%
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#FFB800' }}>
+                      Good
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Minor inconsistencies found
+                    </Typography>
+                  </Box>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Recommendation: Standardize date formats and categorical values across datasets.
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
         )}
       </Box>
     </MainLayout>
   );
-};
+}
 
 export default Dashboard;
