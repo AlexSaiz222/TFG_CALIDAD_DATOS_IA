@@ -585,134 +585,176 @@ Authorization: Bearer <access_token>
 A continuación se muestra un ejemplo de cómo están implementadas las rutas de datasets en el backend:
 
 ```python
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from werkzeug.utils import secure_filename
 import os
 import pandas as pd
-from datetime import datetime, timezone
-import io
-import uuid
 
+from extensions import db
 from models.dataset import Dataset
 from models.project import Project
-from models.user import User
-from services.storage import storage_service
-from services.data_processing import process_dataset, generate_statistics
-from extensions import db
+from services.minio_service import MinioService
+from services.dataset_service import DatasetService
 
-datasets_bp = Blueprint('datasets', __name__)
+datasets_bp = Blueprint('datasets', __name__, url_prefix='/datasets')
+minio_service = MinioService()
+dataset_service = DatasetService()
 
-@datasets_bp.route('/projects/<int:project_id>/datasets', methods=['GET'])
+# Register this blueprint with a different URL prefix for project-related endpoints
+project_datasets_bp = Blueprint('project_datasets', __name__, url_prefix='/projects/<int:project_id>/datasets')
+
+@project_datasets_bp.route('/', methods=['GET'])
 @jwt_required()
-def get_datasets(project_id):
-    user_id = get_jwt_identity()
+def get_project_datasets(project_id):
+    """Get all datasets for a specific project"""
+    current_user_id = get_jwt_identity()
     
-    # Verificar acceso al proyecto
+    try:
+        # Convert string ID from JWT to integer for database comparison
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "Invalid token",
+            "message": "Invalid user identification"
+        }), 401
+    
+    # Check if project exists
     project = Project.query.get(project_id)
     if not project:
         return jsonify({
-            'success': False,
-            'error': {
-                'code': 'PROJECT_NOT_FOUND',
-                'message': 'Proyecto no encontrado'
-            }
+            "success": False,
+            "error": "Recurso no encontrado",
+            "message": "Project not found"
         }), 404
     
-    # Verificar permisos
-    if project.owner_id != user_id:
-        # Verificar si es colaborador
-        collaboration = ProjectCollaborator.query.filter_by(
-            project_id=project_id, user_id=user_id
-        ).first()
-        
-        if not collaboration:
-            return jsonify({
-                'success': False,
-                'error': {
-                    'code': 'FORBIDDEN',
-                    'message': 'No tiene permisos para acceder a este proyecto'
-                }
-            }), 403
+    # Check if user has access to the project
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized",
+            "message": "You don't have access to this project"
+        }), 403
     
-    # Parámetros de paginación y ordenación
-    page = request.args.get('page', 1, type=int)
-    per_page = min(request.args.get('per_page', 10, type=int), 50)
-    sort_param = request.args.get('sort', 'created_at:desc')
-    
-    # Consulta de datasets
-    datasets_query = Dataset.query.filter_by(project_id=project_id)
-    
-    # Aplicar ordenación
-    if sort_param:
-        field, direction = sort_param.split(':')
-        if direction == 'desc':
-            datasets_query = datasets_query.order_by(db.desc(getattr(Dataset, field)))
-        else:
-            datasets_query = datasets_query.order_by(getattr(Dataset, field))
-    
-    # Aplicar paginación
-    paginated = datasets_query.paginate(page=page, per_page=per_page)
-    
-    # Formatear resultados
-    datasets = []
-    for dataset in paginated.items:
-        # Obtener última evaluación si existe
-        last_evaluation = None
-        if dataset.evaluations:
-            eval_obj = max(dataset.evaluations, key=lambda x: x.created_at)
-            last_evaluation = {
-                'id': eval_obj.id,
-                'status': eval_obj.status,
-                'quality_score': eval_obj.quality_score,
-                'completed_at': eval_obj.completed_at.isoformat() if eval_obj.completed_at else None
-            }
-        
-        datasets.append({
-            'id': dataset.id,
-            'name': dataset.name,
-            'description': dataset.description,
-            'file_path': dataset.file_path,
-            'file_type': dataset.file_type,
-            'file_size': dataset.file_size,
-            'row_count': dataset.row_count,
-            'column_count': dataset.column_count,
-            'created_at': dataset.created_at.isoformat(),
-            'updated_at': dataset.updated_at.isoformat() if dataset.updated_at else None,
-            'last_evaluation': last_evaluation
-        })
+    # Get datasets for this project
+    datasets = Dataset.query.filter_by(project_id=project_id).all()
     
     return jsonify({
-        'success': True,
-        'data': {
-            'datasets': datasets,
-            'pagination': {
-                'page': page,
-                'per_page': per_page,
-                'total_items': paginated.total,
-                'total_pages': paginated.pages
-            }
-        },
-        'message': 'Datasets obtenidos correctamente'
+        "success": True,
+        "data": [dataset.to_dict() for dataset in datasets]
     }), 200
 
-@datasets_bp.route('/projects/<int:project_id>/datasets/upload', methods=['POST'])
+@project_datasets_bp.route('/upload', methods=['POST'])
 @jwt_required()
-def upload_dataset(project_id):
-    user_id = get_jwt_identity()
+def upload_project_dataset(project_id):
+    """Upload a new dataset to a specific project"""
+    current_user_id = get_jwt_identity()
     
-    # Verificar acceso al proyecto
+    try:
+        # Convert string ID from JWT to integer for database comparison
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "Invalid token",
+            "message": "Invalid user identification"
+        }), 401
+    
+    # Check if project exists
     project = Project.query.get(project_id)
     if not project:
         return jsonify({
-            'success': False,
-            'error': {
-                'code': 'PROJECT_NOT_FOUND',
-                'message': 'Proyecto no encontrado'
-            }
+            "success": False,
+            "error": "Recurso no encontrado",
+            "message": "Project not found"
         }), 404
     
-    # Verificar permisos
+    # Check if user has access to the project
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized",
+            "message": "You don't have access to this project"
+        }), 403
+        
+    # Check if file is provided
+    if 'file' not in request.files:
+        return jsonify({
+            "success": False,
+            "error": "Bad Request",
+            "message": "No file provided"
+        }), 400
+    
+    file = request.files['file']
+    
+    # Check if filename is valid
+    if file.filename == '':
+        return jsonify({
+            "success": False,
+            "error": "Bad Request",
+            "message": "No file selected"
+        }), 400
+    
+    # Check file extension
+    if not file.filename.endswith('.csv'):
+        return jsonify({
+            "success": False,
+            "error": "Bad Request",
+            "message": "Only CSV files are supported"
+        }), 400
+    
+    try:
+        # Process and upload dataset
+        dataset_info = dataset_service.process_dataset(file, project_id)
+        
+        # Create new dataset record
+        new_dataset = Dataset(
+            name=request.form.get('name', file.filename),
+            description=request.form.get('description', ''),
+            project_id=project_id,
+            file_path=dataset_info['file_path'],
+            file_size=dataset_info['file_size'],
+            row_count=dataset_info['row_count'],
+            column_count=dataset_info['column_count'],
+            schema=dataset_info['schema']
+        )
+        
+        # Save dataset to database
+        db.session.add(new_dataset)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "data": new_dataset.to_dict()
+        }), 201
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": "Server Error",
+            "message": str(e)
+        }), 500
+```
+
+### Notas de Implementación
+
+1. **Conversión de ID de JWT**: Es importante notar que el ID de usuario almacenado en el token JWT es una cadena de texto (string), mientras que el ID del propietario del proyecto en la base de datos es un entero (integer). Por lo tanto, se debe realizar una conversión explícita antes de comparar estos valores:
+
+```python
+current_user_id = get_jwt_identity()  # String del token JWT
+try:
+    current_user_id_int = int(current_user_id)  # Conversión a entero
+except (ValueError, TypeError):
+    return jsonify({"error": "Invalid token"}), 401
+
+# Ahora podemos comparar con el ID del propietario del proyecto
+if project.owner_id != current_user_id_int:
+    return jsonify({"error": "Unauthorized"}), 403
+```
+
+2. **Estructura de Blueprints**: La API utiliza dos blueprints separados para endpoints relacionados con datasets:
+   - `datasets_bp` con prefijo `/datasets` para operaciones generales de datasets
+   - `project_datasets_bp` con prefijo `/projects/<int:project_id>/datasets` para operaciones de datasets específicas de un proyecto
     if project.owner_id != user_id:
         # Verificar si es colaborador con permisos de edición
         collaboration = ProjectCollaborator.query.filter_by(
