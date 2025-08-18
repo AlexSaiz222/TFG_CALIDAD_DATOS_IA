@@ -13,6 +13,141 @@ datasets_bp = Blueprint('datasets', __name__, url_prefix='/datasets')
 minio_service = MinioService()
 dataset_service = DatasetService()
 
+# Register this blueprint with a different URL prefix for project-related endpoints
+project_datasets_bp = Blueprint('project_datasets', __name__, url_prefix='/projects/<int:project_id>/datasets')
+
+@project_datasets_bp.route('/', methods=['GET'])
+@jwt_required()
+def get_project_datasets(project_id):
+    """Get all datasets for a specific project"""
+    current_user_id = get_jwt_identity()
+    
+    try:
+        # Convert string ID from JWT to integer for database comparison
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "Invalid token",
+            "message": "Invalid user identification"
+        }), 401
+    
+    # Check if project exists
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({
+            "success": False,
+            "error": "Recurso no encontrado",
+            "message": "Project not found"
+        }), 404
+    
+    # Check if user has access to the project
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized",
+            "message": "You don't have access to this project"
+        }), 403
+    
+    # Get datasets for this project
+    datasets = Dataset.query.filter_by(project_id=project_id).all()
+    
+    return jsonify({
+        "success": True,
+        "data": [dataset.to_dict() for dataset in datasets]
+    }), 200
+
+@project_datasets_bp.route('/upload', methods=['POST'])
+@jwt_required()
+def upload_project_dataset(project_id):
+    """Upload a new dataset to a specific project"""
+    current_user_id = get_jwt_identity()
+    
+    try:
+        # Convert string ID from JWT to integer for database comparison
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "Invalid token",
+            "message": "Invalid user identification"
+        }), 401
+    
+    # Check if project exists
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({
+            "success": False,
+            "error": "Recurso no encontrado",
+            "message": "Project not found"
+        }), 404
+    
+    # Check if user has access to the project
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized",
+            "message": "You don't have access to this project"
+        }), 403
+    
+    # Check if file is provided
+    if 'file' not in request.files:
+        return jsonify({
+            "success": False,
+            "error": "Bad Request",
+            "message": "No file provided"
+        }), 400
+    
+    file = request.files['file']
+    
+    # Check if filename is valid
+    if file.filename == '':
+        return jsonify({
+            "success": False,
+            "error": "Bad Request",
+            "message": "No file selected"
+        }), 400
+    
+    # Check file extension
+    if not file.filename.endswith('.csv'):
+        return jsonify({
+            "success": False,
+            "error": "Bad Request",
+            "message": "Only CSV files are supported"
+        }), 400
+    
+    try:
+        # Process and upload dataset
+        dataset_info = dataset_service.process_dataset(file, project_id)
+        
+        # Create new dataset record
+        new_dataset = Dataset(
+            name=request.form.get('name', file.filename),
+            description=request.form.get('description', ''),
+            project_id=project_id,
+            file_path=dataset_info['file_path'],
+            file_size=dataset_info['file_size'],
+            row_count=dataset_info['row_count'],
+            column_count=dataset_info['column_count'],
+            schema=dataset_info['schema']
+        )
+        
+        # Save dataset to database
+        db.session.add(new_dataset)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "data": new_dataset.to_dict()
+        }), 201
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": "Server Error",
+            "message": str(e)
+        }), 500
+
 @datasets_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_datasets():

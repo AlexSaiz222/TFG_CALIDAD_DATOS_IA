@@ -2,7 +2,7 @@ from flask import Blueprint
 
 from api.auth.routes import auth_bp
 from api.projects.routes import projects_bp
-from api.datasets.routes import datasets_bp
+from api.datasets.routes import datasets_bp, project_datasets_bp
 from api.metrics.routes import metrics_bp
 from api.evaluations.routes import evaluations_bp
 from api.admin.routes import admin_bp
@@ -17,6 +17,7 @@ def register_routes(app):
     api.register_blueprint(auth_bp)
     api.register_blueprint(projects_bp)
     api.register_blueprint(datasets_bp)
+    api.register_blueprint(project_datasets_bp)
     api.register_blueprint(metrics_bp)
     api.register_blueprint(evaluations_bp)
     api.register_blueprint(admin_bp)
