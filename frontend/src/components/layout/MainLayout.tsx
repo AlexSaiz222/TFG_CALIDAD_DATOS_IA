@@ -66,6 +66,18 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
+// Creamos un componente con estilos globales para los keyframes
+const GlobalStyles = () => {
+  return (
+    <style jsx global>{`
+      @keyframes shine {
+        0% { background-position: -100% 0; }
+        100% { background-position: 100% 0; }
+      }
+    `}</style>
+  );
+};
+
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -139,6 +151,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex', overflow: 'hidden' }}>
+      <GlobalStyles />
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -167,9 +180,37 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               height={60}
               style={{ marginRight: '5px' }}
             />
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-              DATAQUAL
-            </Typography>
+            <Box
+              sx={{
+                flexGrow: 1,
+                position: 'relative',
+                cursor: 'pointer',
+                '.text-shine': {
+                  animation: 'shine 3s linear infinite',
+                }
+              }}
+            >
+              <Typography
+                variant="h5"
+                noWrap
+                component="div"
+                className="text-shine"
+                sx={{
+                  fontWeight: 700,
+                  fontFamily: '"Segoe UI", "Trebuchet MS", "Helvetica", sans-serif',
+                  color: '#333333',
+                  backgroundImage: 'linear-gradient(90deg, #333333, #333333 40%, rgba(0,210,181,1) 45%, rgba(0,183,222,1) 50%, #333333 55%, #333333)',
+                  backgroundSize: '200%',
+                  backgroundPosition: '-100%',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  // Sin transición para no interferir con la animación
+                }}
+              >
+                DATAQUAL
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
           <Tooltip title="Account settings">
