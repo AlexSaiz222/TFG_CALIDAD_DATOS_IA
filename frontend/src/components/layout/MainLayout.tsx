@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import {
   AppBar,
   Box,
@@ -18,6 +19,9 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  Tooltip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -32,7 +36,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
 
-const drawerWidth = 220;
+const drawerWidth = 240;
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -40,6 +44,22 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 1),
   ...theme.mixins.toolbar,
   justifyContent: 'flex-end',
+}));
+
+// Ya no necesitamos el LogoContainer porque quitamos el logo del menú lateral
+
+const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
+  margin: '4px 8px',
+  borderRadius: '8px',
+  '&.Mui-selected': {
+    backgroundColor: 'rgba(0, 179, 126, 0.12)',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 179, 126, 0.18)',
+    },
+  },
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  },
 }));
 
 interface MainLayoutProps {
@@ -51,6 +71,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
+  }, [isMobile]);
 
   // Redirección explícita para usuarios no autenticados
   useEffect(() => {
@@ -103,6 +134,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];
 
+  // Ruta a la imagen del logo personalizada
+  const logoPath = '/images/logo.png'; // Asegúrate de colocar tu imagen en public/images/logo.png
+
   return (
     <Box sx={{ display: 'flex', overflow: 'hidden' }}>
       <CssBaseline />
@@ -125,31 +159,60 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Data Quality Platform
-          </Typography>
-          <IconButton
-            onClick={handleProfileMenuOpen}
-            size="small"
-            sx={{ ml: 2 }}
-            aria-controls="profile-menu"
-            aria-haspopup="true"
-          >
-            <Avatar sx={{ bgcolor: '#00B37E' }}>
-              {user?.first_name ? user.first_name[0] : user?.username ? user.username[0] : 'U'}
-            </Avatar>
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
+            <Image
+              src={logoPath}
+              alt="Data Quality Platform Logo"
+              width={60}
+              height={60}
+              style={{ marginRight: '5px' }}
+            />
+            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
+              DATAQUAL
+            </Typography>
+          </Box>
+          <Box sx={{ flexGrow: 1 }} />
+          <Tooltip title="Account settings">
+            <IconButton
+              onClick={handleProfileMenuOpen}
+              size="small"
+              sx={{ ml: 2 }}
+              aria-controls="profile-menu"
+              aria-haspopup="true"
+            >
+              <Avatar sx={{ 
+                bgcolor: '#00B37E',
+                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                }
+              }}>
+                {user?.first_name ? user.first_name[0] : user?.username ? user.username[0] : 'U'}
+              </Avatar>
+            </IconButton>
+          </Tooltip>
           <Menu
             id="profile-menu"
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleProfileMenuClose}
             PaperProps={{
-              elevation: 0,
+              elevation: 3,
               sx: {
                 overflow: 'visible',
                 filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
                 mt: 1.5,
+                borderRadius: '8px',
+                minWidth: '180px',
+                '& .MuiMenuItem-root': {
+                  borderRadius: '4px',
+                  margin: '2px 8px',
+                  padding: '8px 16px',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 179, 126, 0.08)',
+                  },
+                },
               },
             }}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -157,15 +220,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <MenuItem onClick={handleProfileClick}>
               <ListItemIcon>
-                <PersonIcon fontSize="small" />
+                <PersonIcon fontSize="small" sx={{ color: '#00B37E' }} />
               </ListItemIcon>
-              Profile
+              <Typography>Profile</Typography>
             </MenuItem>
+            <Divider sx={{ my: 1 }} />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
-                <LogoutIcon fontSize="small" />
+                <LogoutIcon fontSize="small" sx={{ color: '#E5484D' }} />
               </ListItemIcon>
-              Logout
+              <Typography>Logout</Typography>
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -183,51 +247,54 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             backgroundColor: '#FAFAFA',
             borderRight: '1px solid #EEEEEE',
             position: 'relative',
+            boxShadow: open ? '2px 0px 10px rgba(0, 0, 0, 0.05)' : 'none',
+            transition: 'box-shadow 0.3s',
           },
         }}
       >
-        <DrawerHeader>
+        <DrawerHeader sx={{ justifyContent: 'flex-end', px: 2, py: 2.5, borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
           <IconButton onClick={handleDrawerToggle}>
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
-        <Divider />
-        <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={router.pathname === item.path}
-                onClick={() => router.push(item.path)}
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(0, 179, 126, 0.08)',
-                    borderLeft: '4px solid #00B37E',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 179, 126, 0.12)',
-                    },
-                  },
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  },
-                }}
-              >
-                <ListItemIcon
+        {/* Eliminamos el Divider ya que añadimos un borde inferior al DrawerHeader */}       <List sx={{ px: 1, pt: 2 }}>
+          {menuItems.map((item) => {
+            const isSelected = router.pathname === item.path;
+            return (
+              <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+                <StyledListItemButton
+                  selected={isSelected}
+                  onClick={() => router.push(item.path)}
                   sx={{
-                    color: router.pathname === item.path ? '#00B37E' : 'inherit',
+                    pl: 2,
+                    pr: 2,
+                    py: 1,
+                    ...(isSelected && {
+                      background: 'linear-gradient(90deg, rgba(0, 179, 126, 0.12) 0%, rgba(0, 179, 126, 0.05) 100%)',
+                      borderLeft: '4px solid #00B37E',
+                    }),
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontWeight: router.pathname === item.path ? 600 : 400,
-                    color: router.pathname === item.path ? '#00B37E' : '#1A1A1A',
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <ListItemIcon
+                    sx={{
+                      color: isSelected ? '#00B37E' : '#555555',
+                      minWidth: '40px',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontWeight: isSelected ? 600 : 400,
+                      color: isSelected ? '#00B37E' : '#1A1A1A',
+                      fontSize: '0.95rem',
+                    }}
+                  />
+                </StyledListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
       </Drawer>
       <Box
