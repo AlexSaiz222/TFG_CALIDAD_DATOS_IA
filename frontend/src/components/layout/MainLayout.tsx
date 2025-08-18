@@ -32,7 +32,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -104,7 +104,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ];
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', overflow: 'hidden' }}>
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -182,6 +182,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             boxSizing: 'border-box',
             backgroundColor: '#FAFAFA',
             borderRight: '1px solid #EEEEEE',
+            position: 'relative',
           },
         }}
       >
@@ -231,16 +232,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Drawer>
       <Box
         component="main"
-        sx={(theme) => ({
+        sx={{
           flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${open ? drawerWidth : 0}px)` },
-          ml: { sm: `${open ? drawerWidth : 0}px` },
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-        })}
+          p: 2,
+          pl: 6, // Adjust this value to increase/decrease left padding
+          pr: 3, // Right padding
+          paddingTop: 4,
+          position: 'absolute',
+          left: open ? `${drawerWidth}px` : '0',
+          width: open ? `calc(100% - ${drawerWidth + 24}px)` : 'calc(100% - 24px)', // Adjusted width to account for right margin
+          transition: 'left 0.3s ease-in-out, width 0.3s ease-in-out',
+        }}
       >
         <DrawerHeader />
         {/* Asegurar que children siempre se renderice de forma segura */}
