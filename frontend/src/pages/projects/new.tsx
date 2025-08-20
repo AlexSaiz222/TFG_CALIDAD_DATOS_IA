@@ -13,6 +13,7 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI } from '../../services/api';
+import { safeNavigate } from '../../utils/routeTransition';
 
 const NewProject = () => {
   const [formData, setFormData] = useState({
@@ -65,8 +66,14 @@ const NewProject = () => {
       const response = await projectsAPI.createProject(formData);
       const newProject = response.data;
       
-      // Redirect to the project page
-      router.push(`/projects/${newProject.id}`);
+      // Clear projects cache to ensure the new project appears in the list
+      if (window.localStorage) {
+        // This will force a refresh of the projects list
+        localStorage.removeItem('projectsCache');
+      }
+      
+      // Use safe navigation to prevent route transition issues
+      safeNavigate(`/projects/${newProject.id || newProject.data?.id}`);
     } catch (error: any) {
       console.error('Error creating project:', error);
       setError(error.response?.data?.message || 'Failed to create project. Please try again.');

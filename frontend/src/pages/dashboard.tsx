@@ -78,10 +78,22 @@ function Dashboard() {
       return;
     }
     
+    let isMounted = true;
+    
     const fetchProjects = async () => {
+      // Don't show loading if we already have projects
+      if (projects.length === 0) {
+        setLoading(true);
+      }
+      setError(null);
+      
       try {
         console.log('Fetching projects...');
         const response = await projectsAPI.getProjects();
+        
+        // Check if component is still mounted before updating state
+        if (!isMounted) return;
+        
         console.log('API response:', response);
         
         // Asegurar que response sea un array y convertir cada proyecto a formato seguro
@@ -115,17 +127,30 @@ function Dashboard() {
         console.log('Safe projects:', safeProjects);
         setProjects(safeProjects);
         setLoading(false);
-      } catch (error) {
+      } catch (error: any) {
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+        
         console.error('Error fetching projects:', error);
-        setError('Failed to load projects. Please try again later.');
+        
+        // Don't show error for cancelled requests
+        if (error.name === 'CanceledError') {
+          console.log('Request was cancelled, ignoring error');
+        } else {
+          setError('Failed to load projects. Please try again later.');
+        }
+        
         setLoading(false);
-        // En caso de error, asegurar que projects sea un array vacío
-        setProjects([]);
       }
     };
 
     // Solo llamar a fetchProjects si el usuario está autenticado
     fetchProjects();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
   }, [isAuthenticated]);
 
   // Total de proyectos - simplemente la longitud del array
