@@ -513,10 +513,9 @@ const MetricsConfigurationPage = () => {
     }
   };
 
-  // Crear métricas de ejemplo siempre al inicio
-  React.useEffect(() => {
-    // Forzar la creación de métricas de ejemplo independientemente del estado
-    console.log('Creando métricas de ejemplo forzadas');
+  // Función para crear métricas de ejemplo como fallback
+  const loadExampleMetrics = () => {
+    console.log('Cargando métricas de ejemplo como fallback');
     const exampleMetrics = [
       {
         id: 1,
@@ -578,6 +577,33 @@ const MetricsConfigurationPage = () => {
     // Extract unique categories from example metrics
     const uniqueCategories = Array.from(new Set(exampleMetrics.map(metric => metric.category))).sort() as string[];
     setCategories(uniqueCategories);
+  };
+
+  // Intentar cargar métricas reales primero, usar ejemplos como fallback
+  React.useEffect(() => {
+    const loadRealMetrics = async () => {
+      try {
+        console.log('Intentando cargar métricas reales desde la API...');
+        const response = await metricsAPI.getMetrics();
+        
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          console.log(`Cargadas ${response.data.length} métricas reales desde la API`);
+          setMetrics(response.data);
+          
+          // Extraer categorías únicas de las métricas reales
+          const uniqueCategories = Array.from(new Set(response.data.map((metric: any) => metric.category))).sort() as string[];
+          setCategories(uniqueCategories);
+        } else {
+          console.log('La API devolvió un array vacío de métricas, usando fallback');
+          loadExampleMetrics();
+        }
+      } catch (error) {
+        console.error('Error cargando métricas reales:', error);
+        loadExampleMetrics();
+      }
+    };
+    
+    loadRealMetrics();
   }, []);  // Ejecutar solo una vez al montar el componente
 
   // Filter metrics based on search query and category filter
