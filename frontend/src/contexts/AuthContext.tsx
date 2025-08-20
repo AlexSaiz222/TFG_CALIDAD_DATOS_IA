@@ -4,6 +4,9 @@ import { authAPI } from '../services/api';
 import { User, AuthState } from '../types';
 import type { RegisterUserData } from '../types/auth';
 
+// Constants for auth caching
+const AUTH_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;
   register: (userData: RegisterUserData) => Promise<void>;
@@ -48,6 +51,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
       
+      // Check if we have a cached auth that's still valid
+      const lastAuthCheck = localStorage.getItem('lastAuthCheck');
+      const cachedUser = localStorage.getItem('user');
+      const now = Date.now();
+      
+      // Only use cache if it exists and is recent enough
+      if (lastAuthCheck && cachedUser) {
+        const lastCheckTime = parseInt(lastAuthCheck, 10);
+        if (now - lastCheckTime < AUTH_CACHE_DURATION) {
+          console.log('AuthContext: Usando datos de autenticación en caché');
+          try {
+            const user = JSON.parse(cachedUser);
+            setAuthState({
+              isAuthenticated: true,
+              user,
+              loading: false,
+              error: null,
+            });
+            return; // Skip the API call
+          } catch (e) {
+            console.error('AuthContext: Error al parsear usuario en caché:', e);
+            // Continue with API call if cache parsing fails
+          }
+        } else {
+          console.log('AuthContext: Caché de autenticación expirado, verificando con backend...');
+        }
+      }
+      
       console.log('AuthContext: Token encontrado, verificando con backend...');
       try {
         // Get user profile
@@ -56,41 +87,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('AuthContext: Respuesta de getProfile:', response.data);
         
         // Verificar la estructura de la respuesta y extraer los datos del usuario
+        let userData = null;
+        
         if (response.data && response.data.success === true) {
           // Caso 1: Estructura anidada con data.data.user (estructura actual)
           if (response.data.data && response.data.data.user) {
             console.log('AuthContext: Usuario autenticado correctamente (estructura anidada)');
-            setAuthState({
-              isAuthenticated: true,
-              user: response.data.data.user,
-              loading: false,
-              error: null,
-            });
+            userData = response.data.data.user;
           } 
           // Caso 2: Estructura con data.user (estructura esperada originalmente)
           else if (response.data.user) {
             console.log('AuthContext: Usuario autenticado correctamente (estructura plana)');
-            setAuthState({
-              isAuthenticated: true,
-              user: response.data.user,
-              loading: false,
-              error: null,
-            });
+            userData = response.data.user;
           }
           // Caso 3: El usuario está directamente en data.data (otra posible estructura)
           else if (response.data.data && typeof response.data.data === 'object') {
             console.log('AuthContext: Usuario autenticado correctamente (data directa)');
-            setAuthState({
-              isAuthenticated: true,
-              user: response.data.data,
-              loading: false,
-              error: null,
-            });
+            userData = response.data.data;
           } else {
             console.error('AuthContext: Respuesta de getProfile no contiene datos de usuario válidos');
             console.error('AuthContext: Estructura de respuesta:', JSON.stringify(response.data));
             throw new Error('Invalid user data received');
           }
+          
+          // Update auth state with user data
+          setAuthState({
+            isAuthenticated: true,
+            user: userData,
+            loading: false,
+            error: null,
+          });
+          
+          // Cache the authentication data
+          localStorage.setItem('lastAuthCheck', now.toString());
+          localStorage.setItem('user', JSON.stringify(userData));
+          
         } else {
           console.error('AuthContext: Respuesta de getProfile no contiene datos de usuario válidos');
           console.error('AuthContext: Estructura de respuesta:', JSON.stringify(response.data));
@@ -98,9 +129,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (error) {
         console.error('AuthContext: Error al verificar perfil:', error);
-        // Clear invalid token
+        // Clear invalid token and cache
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('lastAuthCheck');
         
         setAuthState({
           isAuthenticated: false,

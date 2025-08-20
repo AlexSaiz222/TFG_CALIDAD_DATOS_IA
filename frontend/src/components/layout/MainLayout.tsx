@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import { safeNavigate } from '../../utils/routeTransition';
 import {
   AppBar,
   Box,
@@ -99,6 +100,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       console.log('MainLayout: Usuario no autenticado, redirigiendo a login...');
+      // Use router.replace directly for auth redirects as they are critical
       router.replace('/login');
     }
   }, [isAuthenticated, authLoading, router]);
@@ -136,7 +138,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleProfileClick = () => {
     handleProfileMenuClose();
-    router.push('/profile');
+    safeNavigate('/profile');
   };
 
   const menuItems = [
@@ -312,7 +314,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
                 <StyledListItemButton
                   selected={isSelected}
-                  onClick={() => router.push(item.path)}
+                  onClick={() => safeNavigate(item.path)}
                   sx={{
                     pl: 2,
                     pr: 2,

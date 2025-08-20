@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, CancelTokenSource } from 'axios';
 import type { RegisterUserData } from '../types/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -11,23 +12,55 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for adding auth token
+// Debug logging function that only logs in development
+const debugLog = (message: string, ...args: any[]) => {
+  if (isDevelopment) {
+    console.log(message, ...args);
+  }
+};
+
+// Request deduplication system
+interface PendingRequest {
+  [key: string]: CancelTokenSource;
+};
+
+const pendingRequests: PendingRequest = {};
+
+// Request interceptor for adding auth token and deduplicating requests
 api.interceptors.request.use(
   (config) => {
+    // Generate a unique key for this request
+    const requestKey = `${config.method}:${config.url}`;
+    
+    // Skip deduplication for file uploads and certain endpoints that should never be deduplicated
+    const skipDeduplication = 
+      config.url?.includes('/upload') || 
+      config.headers?.['Content-Type'] === 'multipart/form-data';
+    
+    if (!skipDeduplication && pendingRequests[requestKey]) {
+      // Cancel previous identical request that is still pending
+      debugLog(`Cancelling duplicate request: ${requestKey}`);
+      pendingRequests[requestKey].cancel('Duplicate request cancelled');
+    }
+    
+    // Create new cancel token for this request
+    if (!skipDeduplication) {
+      const cancelToken = axios.CancelToken.source();
+      config.cancelToken = cancelToken.token;
+      pendingRequests[requestKey] = cancelToken;
+    }
+    
+    // Add authentication token
     const token = localStorage.getItem('token');
     if (token) {
-      // Asegurar que el token se envía correctamente
-      // Asignar el token al header Authorization
-      // Usar la forma más compatible con diferentes versiones de Axios
       config.headers = config.headers || {};
       // @ts-ignore - Ignorar error de tipado, esto funciona en runtime
       config.headers['Authorization'] = `Bearer ${token}`;
       
-      // Log para depuración
-      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
-      console.log('Token enviado:', `Bearer ${token.substring(0, 10)}...`);
+      // Reduced logging
+      debugLog(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     } else {
-      console.log(`API Request sin token: ${config.method?.toUpperCase()} ${config.url}`);
+      debugLog(`API Request sin token: ${config.method?.toUpperCase()} ${config.url}`);
     }
     return config;
   },
@@ -40,11 +73,31 @@ api.interceptors.request.use(
 // Response interceptor for handling common errors
 api.interceptors.response.use(
   (response) => {
-    // Log de respuestas exitosas para depuración
-    console.log(`API Response Success: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    // Clean up pending request after successful response
+    const requestKey = `${response.config.method}:${response.config.url}`;
+    if (pendingRequests[requestKey]) {
+      delete pendingRequests[requestKey];
+    }
+    
+    // Log de respuestas exitosas para depuración (reduced)
+    debugLog(`API Response Success: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
     return response;
   },
   (error) => {
+    // Clean up pending request on error too
+    if (error.config) {
+      const requestKey = `${error.config.method}:${error.config.url}`;
+      if (pendingRequests[requestKey]) {
+        delete pendingRequests[requestKey];
+      }
+    }
+    
+    // Don't process errors if it's a cancelled request (we cancelled it ourselves)
+    if (axios.isCancel(error)) {
+      debugLog('Request cancelled:', error.message);
+      return Promise.reject(error);
+    }
+    
     // No procesar errores si no hay respuesta (problemas de red, CORS, etc.)
     if (!error.response) {
       console.error('Error de red o CORS:', error.message);
@@ -53,7 +106,7 @@ api.interceptors.response.use(
     
     // Log detallado del error para depuración
     console.error(`API Error ${error.response.status}: ${error.config.method?.toUpperCase()} ${error.config.url}`);
-    console.error('Datos de error:', error.response.data);
+    debugLog('Datos de error:', error.response.data);
     
     // Handle 401 Unauthorized errors (token expired)
     if (error.response.status === 401) {
@@ -139,19 +192,32 @@ export const authAPI = {
   },
 };
 
-// Projects API
+// Projects API with caching
+let projectsCache = {
+  data: null as any[] | null,
+  timestamp: 0,
+  expiryTime: 30000 // 30 seconds cache (short enough for development, long enough to prevent duplicates)
+};
+
 export const projectsAPI = {
   getProjects: async () => {
     try {
+      // Check cache first
+      const now = Date.now();
+      if (projectsCache.data && now - projectsCache.timestamp < projectsCache.expiryTime) {
+        debugLog('API: Using cached projects data');
+        return projectsCache.data;
+      }
+      
       // Obtener el token manualmente para asegurar que se envía correctamente
       const token = localStorage.getItem('token');
-      console.log('API: Solicitando proyectos...');
+      debugLog('API: Solicitando proyectos...');
       const res = await api.get('/api/projects', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      console.log('API: Respuesta de proyectos recibida:', res);
+      debugLog('API: Respuesta de proyectos recibida');
       
       // Verificar estructura de la respuesta y normalizar
       if (!res || !res.data) {
@@ -192,7 +258,7 @@ export const projectsAPI = {
         projects = [];
       }
       
-      console.log('API: Proyectos normalizados:', projects);
+      debugLog('API: Proyectos normalizados:', projects);
       
       // Asegurar que projects sea siempre un array
       if (!Array.isArray(projects)) {
@@ -209,6 +275,10 @@ export const projectsAPI = {
       } catch (filterError) {
         console.error('API: Error al filtrar proyectos:', filterError);
       }
+      
+      // Cache the results
+      projectsCache.data = validProjects;
+      projectsCache.timestamp = now;
       
       return validProjects;
     } catch (error) {

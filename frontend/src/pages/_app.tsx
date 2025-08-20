@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from '../contexts/AuthContext';
+import { initRouteChangeHandlers } from '../utils/routeTransition';
 
 // Create a theme instance
 const theme = createTheme({
@@ -73,6 +74,11 @@ const theme = createTheme({
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
+  // Initialize route change handlers on app mount
+  useEffect(() => {
+    initRouteChangeHandlers();
+  }, []);
+
   return (
     <>
       <Head>
