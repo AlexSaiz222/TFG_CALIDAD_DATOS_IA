@@ -506,6 +506,7 @@ const DatasetUpload = () => {
                   disabled={uploading}
                   sx={{
                     backgroundColor: '#00B37E',
+                    color: '#FFFFFF',
                     '&:hover': {
                       backgroundColor: '#00A070',
                     },
@@ -519,6 +520,7 @@ const DatasetUpload = () => {
                   onClick={handleNext}
                   sx={{
                     backgroundColor: '#00B37E',
+                    color: '#FFFFFF',
                     '&:hover': {
                       backgroundColor: '#00A070',
                     },

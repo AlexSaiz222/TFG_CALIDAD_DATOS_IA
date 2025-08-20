@@ -222,6 +222,7 @@ const ProjectDetail = () => {
             sx={{
               mt: 3,
               backgroundColor: '#00B37E',
+              color: '#FFFFFF',
               '&:hover': {
                 backgroundColor: '#00A070',
               },
@@ -554,11 +555,12 @@ const ProjectDetail = () => {
               </Typography>
               <Button
                 variant="contained"
-                startIcon={<CloudUploadIcon />}
+                startIcon={<CloudUploadIcon sx={{ color: '#FFFFFF' }} />}
                 onClick={handleUploadDataset}
                 size="large"
                 sx={{
                   backgroundColor: '#00B37E',
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
@@ -581,10 +583,11 @@ const ProjectDetail = () => {
             </Typography>
             <Button
               variant="contained"
-              startIcon={<AssessmentIcon />}
+              startIcon={<AssessmentIcon sx={{ color: '#FFFFFF' }} />}
               onClick={() => datasets.length > 0 ? router.push(`/datasets/${datasets[0].id}`) : handleUploadDataset()}
               sx={{
                 backgroundColor: '#00B37E',
+                color: '#FFFFFF',
                 '&:hover': {
                   backgroundColor: '#00A070',
                 },

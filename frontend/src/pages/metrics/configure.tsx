@@ -673,6 +673,7 @@ const MetricsConfigurationPage = () => {
             sx={{
               mt: 3,
               backgroundColor: '#00B37E',
+              color: '#FFFFFF',
               '&:hover': {
                 backgroundColor: '#00A070',
               },
@@ -708,6 +709,7 @@ const MetricsConfigurationPage = () => {
             disabled={saving}
             sx={{
               backgroundColor: '#00B37E',
+              color: '#FFFFFF',
               '&:hover': {
                 backgroundColor: '#00A070',
               },
@@ -884,13 +886,13 @@ const MetricsConfigurationPage = () => {
                         disabled={selectedMetrics.some(m => m.metric_id === metric.id)}
                         sx={{
                           backgroundColor: '#00B37E',
+                          color: '#FFFFFF',
                           '&:hover': {
                             backgroundColor: '#00A070',
                           },
-                          '&.Mui-disabled': {
-                            backgroundColor: '#E0E0E0',
-                            color: '#A0A0A0',
-                          }
+                          minWidth: '70px',
+                          height: '36px',
+                          padding: '0 8px',
                         }}
                       >
                         {selectedMetrics.some(m => m.metric_id === metric.id) ? 'Added' : 'Add'}
@@ -1007,6 +1009,7 @@ const MetricsConfigurationPage = () => {
                 onClick={() => setTabValue(0)}
                 sx={{
                   backgroundColor: '#00B37E',
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
@@ -1027,10 +1030,11 @@ const MetricsConfigurationPage = () => {
             </Button>
             <Button
               variant="contained"
-              startIcon={<SaveIcon />}
+              startIcon={<SaveIcon sx={{ color: '#FFFFFF' }} />}
               disabled={saving || selectedMetrics.length === 0}
               sx={{
                 backgroundColor: '#00B37E',
+                color: '#FFFFFF',
                 '&:hover': {
                   backgroundColor: '#00A070',
                 },
@@ -1059,6 +1063,7 @@ const MetricsConfigurationPage = () => {
               disabled={selectedMetrics.length === 0}
               sx={{
                 backgroundColor: '#00B37E',
+                color: '#FFFFFF',
                 '&:hover': {
                   backgroundColor: '#00A070',
                 },
