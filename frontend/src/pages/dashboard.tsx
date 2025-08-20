@@ -268,10 +268,11 @@ function Dashboard() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
                   variant="contained"
-                  startIcon={<AddIcon />}
+                  startIcon={<AddIcon sx={{ color: 'white' }} />}
                   onClick={() => router.push('/projects/new')}
                   sx={{
                     backgroundColor: '#00B37E',
+                    color: 'white',
                     '&:hover': {
                       backgroundColor: '#00A070',
                     },
@@ -371,10 +372,11 @@ function Dashboard() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
                   variant="contained"
-                  startIcon={<AddIcon />}
+                  startIcon={<AddIcon sx={{ color: 'white' }} />}
                   onClick={() => router.push('/datasets/upload')}
                   sx={{
                     backgroundColor: '#FFB800',
+                    color: 'white',
                     '&:hover': {
                       backgroundColor: '#E5A600',
                     },
@@ -478,16 +480,16 @@ function Dashboard() {
               <Divider sx={{ my: 1.5 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
-                  variant="outlined"
-                  startIcon={<RefreshIcon />}
+                  variant="contained"
+                  startIcon={<RefreshIcon sx={{ color: 'white' }} />}
                   onClick={() => router.push('/evaluations')}
                   sx={{
-                    borderColor: '#E5484D',
-                    color: '#E5484D',
+                    backgroundColor: '#E5484D',
+                    color: 'white',
                     '&:hover': {
-                      borderColor: '#D03B40',
-                      backgroundColor: 'rgba(229, 72, 77, 0.04)',
+                      backgroundColor: '#D03B40',
                     },
+                    boxShadow: '0px 2px 4px rgba(229, 72, 77, 0.25)',
                     borderRadius: '8px',
                     textTransform: 'none',
                     fontWeight: 500,
@@ -522,15 +524,20 @@ function Dashboard() {
             Data Quality Metrics
           </Typography>
           <Button
-            endIcon={<ArrowForwardIcon />}
+            variant="contained"
+            endIcon={<ArrowForwardIcon sx={{ color: 'white' }} />}
             onClick={() => router.push('/metrics')}
             sx={{
-              color: '#00B37E',
+              backgroundColor: '#00B37E',
+              color: 'white',
               '&:hover': {
-                backgroundColor: alpha('#00B37E', 0.1),
+                backgroundColor: '#00A070',
               },
+              boxShadow: '0px 2px 4px rgba(0, 179, 126, 0.25)',
+              borderRadius: '8px',
               textTransform: 'none',
               fontWeight: 500,
+              padding: '6px 16px',
             }}
           >
             View All Metrics
@@ -556,16 +563,18 @@ function Dashboard() {
               Upload datasets to see quality metrics and visualizations
             </Typography>
             <Button
-              variant="outlined"
+              variant="contained"
               onClick={() => router.push('/datasets/upload')}
               sx={{
-                borderColor: '#00B37E',
-                color: '#00B37E',
+                backgroundColor: '#00B37E',
+                color: 'white',
                 '&:hover': {
-                  borderColor: '#00A070',
-                  backgroundColor: alpha('#00B37E', 0.1),
+                  backgroundColor: '#00A070',
                 },
+                boxShadow: '0px 2px 4px rgba(0, 179, 126, 0.25)',
+                borderRadius: '8px',
                 textTransform: 'none',
+                fontWeight: 500,
               }}
               disabled={totalProjects === 0}
             >
