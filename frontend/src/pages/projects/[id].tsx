@@ -368,20 +368,10 @@ const ProjectDetail = () => {
 
         {/* Datasets Tab */}
         <TabPanel value={tabValue} index={0}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<CloudUploadIcon />}
-              onClick={handleUploadDataset}
-              sx={{
-                backgroundColor: '#00B37E',
-                '&:hover': {
-                  backgroundColor: '#00A070',
-                },
-              }}
-            >
-              Upload Dataset
-            </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 500, color: '#555555' }}>
+              {datasets.length} {datasets.length === 1 ? 'Dataset' : 'Datasets'}
+            </Typography>
           </Box>
 
           {datasets.length > 0 ? (
@@ -393,14 +383,30 @@ const ProjectDetail = () => {
                       height: '100%',
                       borderRadius: 2,
                       boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-                      transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                      transition: 'all 0.3s ease-in-out',
+                      position: 'relative',
+                      overflow: 'visible',
                       '&:hover': {
                         transform: 'translateY(-4px)',
-                        boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
+                        '& .dataset-actions': {
+                          opacity: 1,
+                        },
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '4px',
+                        height: '100%',
+                        backgroundColor: '#00B37E',
+                        borderTopLeftRadius: 2,
+                        borderBottomLeftRadius: 2,
                       },
                     }}
                   >
-                    <CardContent>
+                    <CardContent sx={{ p: 3 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Typography 
                           variant="h6" 
@@ -410,6 +416,7 @@ const ProjectDetail = () => {
                             fontWeight: 600, 
                             color: '#1A1A1A',
                             cursor: 'pointer',
+                            transition: 'color 0.2s ease',
                             '&:hover': {
                               color: '#00B37E',
                             },
@@ -419,11 +426,19 @@ const ProjectDetail = () => {
                           {dataset.name}
                         </Typography>
                         <IconButton
+                          className="dataset-actions"
                           aria-label="dataset options"
                           onClick={(e) => handleMenuOpen(e, dataset)}
                           size="small"
+                          sx={{
+                            transition: 'opacity 0.2s ease',
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                            },
+                          }}
                         >
-                          <MoreVertIcon />
+                          <MoreVertIcon fontSize="small" />
                         </IconButton>
                       </Box>
                       
@@ -445,26 +460,66 @@ const ProjectDetail = () => {
                         </Typography>
                       )}
                       
-                      <Box sx={{ mb: 2 }}>
+                      <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                         <Chip 
-                          label={`${dataset.row_count} rows`} 
+                          label={`${dataset.row_count.toLocaleString()} rows`} 
                           size="small" 
-                          sx={{ mr: 1, mb: 1, backgroundColor: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }} 
+                          sx={{ 
+                            backgroundColor: 'rgba(0, 179, 126, 0.1)', 
+                            color: '#00B37E',
+                            fontWeight: 500,
+                            borderRadius: '16px',
+                          }} 
+                          icon={<AssessmentIcon style={{ fontSize: '16px', color: '#00B37E' }} />}
                         />
                         <Chip 
                           label={`${dataset.column_count} columns`} 
                           size="small" 
-                          sx={{ mr: 1, mb: 1, backgroundColor: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }} 
+                          sx={{ 
+                            backgroundColor: 'rgba(255, 184, 0, 0.1)', 
+                            color: '#FFB800',
+                            fontWeight: 500,
+                            borderRadius: '16px',
+                          }} 
                         />
                       </Box>
                       
-                      <Divider sx={{ my: 1 }} />
+                      <Divider sx={{ my: 1.5 }} />
                       
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{ color: '#555555' }}>
-                          {dataset.evaluation_count} {dataset.evaluation_count === 1 ? 'evaluation' : 'evaluations'}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#555555' }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        mt: 1.5,
+                      }}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          backgroundColor: dataset.evaluation_count > 0 ? 'rgba(0, 179, 126, 0.08)' : 'rgba(229, 72, 77, 0.08)',
+                          borderRadius: '12px',
+                          px: 1.5,
+                          py: 0.5,
+                        }}>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: dataset.evaluation_count > 0 ? '#00B37E' : '#E5484D',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {dataset.evaluation_count} {dataset.evaluation_count === 1 ? 'evaluation' : 'evaluations'}
+                          </Typography>
+                        </Box>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: '#555555',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                          }}
+                        >
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>Updated:</span>
                           {new Date(dataset.updated_at).toLocaleDateString()}
                         </Typography>
                       </Box>
@@ -474,32 +529,55 @@ const ProjectDetail = () => {
               ))}
             </Grid>
           ) : (
-            <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
-              <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-                No datasets available for this project.
+            <Paper
+              elevation={0}
+              sx={{
+                p: 5,
+                textAlign: 'center',
+                borderRadius: 2,
+                border: '1px dashed #CCCCCC',
+                backgroundColor: '#FAFAFA',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '300px',
+              }}
+            >
+              <CloudUploadIcon sx={{ fontSize: 60, color: '#00B37E', opacity: 0.7, mb: 2 }} />
+              <Typography variant="h5" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
+                No datasets yet
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3, color: '#555555', maxWidth: '500px' }}>
+                Upload your first dataset to start evaluating data quality for this project.
+                Supported formats include CSV, Excel, and JSON files.
               </Typography>
               <Button
                 variant="contained"
                 startIcon={<CloudUploadIcon />}
                 onClick={handleUploadDataset}
+                size="large"
                 sx={{
                   backgroundColor: '#00B37E',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
                 }}
               >
                 Upload Your First Dataset
               </Button>
-            </Box>
+            </Paper>
           )}
         </TabPanel>
 
         {/* Evaluations Tab */}
         <TabPanel value={tabValue} index={1}>
-          <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
-            <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-              No evaluations available for this project.
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 500, color: '#555555' }}>
+              0 Evaluations
             </Typography>
             <Button
               variant="contained"
@@ -516,6 +594,50 @@ const ProjectDetail = () => {
               {datasets.length > 0 ? 'Create Evaluation' : 'Upload Dataset First'}
             </Button>
           </Box>
+          
+          <Paper
+            elevation={0}
+            sx={{
+              p: 5,
+              textAlign: 'center',
+              borderRadius: 2,
+              border: '1px dashed #CCCCCC',
+              backgroundColor: '#FAFAFA',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '300px',
+            }}
+          >
+            <AssessmentIcon sx={{ fontSize: 60, color: '#FFB800', opacity: 0.7, mb: 2 }} />
+            <Typography variant="h5" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
+              No evaluations yet
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3, color: '#555555', maxWidth: '500px' }}>
+              {datasets.length > 0 
+                ? 'Select a dataset to create your first evaluation and analyze data quality metrics.'
+                : 'You need to upload a dataset first before you can create evaluations.'}
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={datasets.length > 0 ? <AssessmentIcon /> : <CloudUploadIcon />}
+              onClick={() => datasets.length > 0 ? router.push(`/datasets/${datasets[0].id}`) : handleUploadDataset()}
+              size="large"
+              sx={{
+                backgroundColor: datasets.length > 0 ? '#FFB800' : '#00B37E',
+                '&:hover': {
+                  backgroundColor: datasets.length > 0 ? '#E5A700' : '#00A070',
+                },
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
+              }}
+              disabled={datasets.length === 0 && tabValue === 1}
+            >
+              {datasets.length > 0 ? 'Create Your First Evaluation' : 'Upload Dataset First'}
+            </Button>
+          </Paper>
         </TabPanel>
       </Box>
 
