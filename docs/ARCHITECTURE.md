@@ -13,7 +13,7 @@ Este documento describe la arquitectura completa de la Plataforma de Evaluación
 
 ## Visión General
 
-La plataforma está diseñada como una aplicación web moderna con una arquitectura de microservicios containerizada, utilizando Docker Compose para orquestar todos los componentes. La aplicación consta de:
+La plataforma es una aplicación web con una arquitectura de microservicios containerizada, utilizando Docker Compose para orquestar todos los componentes. La aplicación consta de:
 
 - **Frontend**: Aplicación React/Next.js con TypeScript
 - **Backend**: API REST en Flask (Python)
