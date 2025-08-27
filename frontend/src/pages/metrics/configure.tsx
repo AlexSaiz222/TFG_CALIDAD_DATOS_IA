@@ -704,7 +704,7 @@ const MetricsConfigurationPage = () => {
           </Box>
           <Button
             variant="contained"
-            startIcon={<SaveIcon />}
+            startIcon={<SaveIcon sx={{ color: '#FFFFFF' }} />}
             onClick={handleSaveConfiguration}
             disabled={saving}
             sx={{
@@ -878,10 +878,10 @@ const MetricsConfigurationPage = () => {
                       )}
                     </CardContent>
                     <CardActions sx={{ justifyContent: 'flex-end', p: 2, pt: 0 }}>
-                      <Button 
-                        size="small" 
-                        variant="contained" 
-                        startIcon={<AddIcon />}
+                      <Button
+                        size="small"
+                        variant="contained"
+                        startIcon={<AddIcon sx={{ color: '#FFFFFF' }} />}
                         onClick={() => handleAddMetric(metric)}
                         disabled={selectedMetrics.some(m => m.metric_id === metric.id)}
                         sx={{
@@ -1059,6 +1059,7 @@ const MetricsConfigurationPage = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
             <Button
               variant="contained"
+              startIcon={<SaveIcon sx={{ color: '#FFFFFF' }} />}
               onClick={handleOpenSaveTemplateDialog}
               disabled={selectedMetrics.length === 0}
               sx={{

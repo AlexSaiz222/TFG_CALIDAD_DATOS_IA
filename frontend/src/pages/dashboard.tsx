@@ -268,11 +268,11 @@ function Dashboard() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
                   variant="contained"
-                  startIcon={<AddIcon sx={{ color: 'white' }} />}
+                  startIcon={<AddIcon sx={{ color: '#FFFFFF' }} />}
                   onClick={() => router.push('/projects/new')}
                   sx={{
                     backgroundColor: '#00B37E',
-                    color: 'white',
+                    color: '#FFFFFF',
                     '&:hover': {
                       backgroundColor: '#00A070',
                     },
@@ -525,11 +525,11 @@ function Dashboard() {
           </Typography>
           <Button
             variant="contained"
-            endIcon={<ArrowForwardIcon sx={{ color: 'white' }} />}
+            endIcon={<ArrowForwardIcon sx={{ color: '#FFFFFF' }} />}
             onClick={() => router.push('/metrics')}
             sx={{
               backgroundColor: '#00B37E',
-              color: 'white',
+              color: '#FFFFFF',
               '&:hover': {
                 backgroundColor: '#00A070',
               },
@@ -567,7 +567,7 @@ function Dashboard() {
               onClick={() => router.push('/datasets/upload')}
               sx={{
                 backgroundColor: '#00B37E',
-                color: 'white',
+                color: '#FFFFFF',
                 '&:hover': {
                   backgroundColor: '#00A070',
                 },

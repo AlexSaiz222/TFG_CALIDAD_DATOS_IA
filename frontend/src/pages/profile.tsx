@@ -196,6 +196,7 @@ const ProfilePage = () => {
                 disabled={loading}
                 sx={{
                   backgroundColor: '#00B37E',
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
@@ -203,7 +204,7 @@ const ProfilePage = () => {
                   py: 1
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Save Changes'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
               </Button>
             </Box>
           </Box>

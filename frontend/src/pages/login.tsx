@@ -237,6 +237,7 @@ const Login = () => {
                 mb: 3,
                 py: 1.5,
                 backgroundColor: '#00B37E',
+                color: '#FFFFFF',
                 borderRadius: '8px',
                 fontWeight: 600,
                 textTransform: 'none',

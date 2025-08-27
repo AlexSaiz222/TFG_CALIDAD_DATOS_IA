@@ -259,6 +259,7 @@ const DatasetDetail = () => {
             sx={{
               mt: 3,
               backgroundColor: '#00B37E',
+              color: '#FFFFFF',
               '&:hover': {
                 backgroundColor: '#00A070',
               },
@@ -308,11 +309,12 @@ const DatasetDetail = () => {
             </Button>
             <Button
               variant="contained"
-              startIcon={<PlayArrowIcon />}
+              startIcon={<PlayArrowIcon sx={{ color: '#FFFFFF' }} />}
               onClick={handleRunEvaluation}
               disabled={runningEvaluation}
               sx={{
                 backgroundColor: '#00B37E',
+                color: '#FFFFFF',
                 '&:hover': {
                   backgroundColor: '#00A070',
                 },
@@ -517,11 +519,12 @@ const DatasetDetail = () => {
               </Typography>
               <Button
                 variant="contained"
-                startIcon={<PlayArrowIcon />}
+                startIcon={<PlayArrowIcon sx={{ color: '#FFFFFF' }} />}
                 onClick={handleRunEvaluation}
                 disabled={runningEvaluation}
                 sx={{
                   backgroundColor: '#00B37E',
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
@@ -582,11 +585,12 @@ const DatasetDetail = () => {
               {evaluations.length === 0 && (
                 <Button
                   variant="contained"
-                  startIcon={<PlayArrowIcon />}
+                  startIcon={<PlayArrowIcon sx={{ color: '#FFFFFF' }} />}
                   onClick={handleRunEvaluation}
                   disabled={runningEvaluation}
                   sx={{
                     backgroundColor: '#00B37E',
+                    color: '#FFFFFF',
                     '&:hover': {
                       backgroundColor: '#00A070',
                     },

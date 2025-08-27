@@ -159,12 +159,13 @@ const NewProject = () => {
                 disabled={loading}
                 sx={{
                   backgroundColor: '#00B37E',
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Create Project'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Project'}
               </Button>
             </Box>
           </Box>

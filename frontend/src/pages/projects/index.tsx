@@ -160,10 +160,11 @@ const Projects = () => {
           </Typography>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon sx={{ color: '#FFFFFF' }} />}
             onClick={() => router.push('/projects/new')}
             sx={{
               backgroundColor: '#00B37E',
+              color: '#FFFFFF',
               '&:hover': {
                 backgroundColor: '#00A070',
               },
@@ -276,10 +277,11 @@ const Projects = () => {
             {!searchTerm && (
               <Button
                 variant="contained"
-                startIcon={<AddIcon />}
+                startIcon={<AddIcon sx={{ color: '#FFFFFF' }} />}
                 onClick={() => router.push('/projects/new')}
                 sx={{
                   backgroundColor: '#00B37E',
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
