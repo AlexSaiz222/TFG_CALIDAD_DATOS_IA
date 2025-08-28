@@ -71,9 +71,9 @@ def create_app(config_name=None):
     CORS(app, 
          resources={r"/*": {"origins": app.config['CORS_ORIGINS']}},
          supports_credentials=True,
-         allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+         allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials", "X-Request-ID", "Cache-Control", "Pragma", "Expires"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         expose_headers=["Content-Type", "Authorization"],
+         expose_headers=["Content-Type", "Authorization", "X-Request-ID"],
          max_age=600
     )
     db.init_app(app)

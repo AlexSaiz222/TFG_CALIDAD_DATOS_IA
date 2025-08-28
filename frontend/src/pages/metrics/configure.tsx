@@ -115,12 +115,32 @@ const MetricsConfigurationPage = () => {
           setMetrics([]);
         }
         
-        // Si no hay proyecto cargado, establecer un proyecto dummy
+        // Si no hay proyecto cargado, establecer un proyecto dummy con nombre más específico
         if (!project) {
-          console.log('No se cargó el proyecto, estableciendo proyecto dummy');
+          console.log('No se cargó el proyecto, estableciendo proyecto dummy con nombre recuperado');
+          
+          // Intentar obtener el nombre del proyecto de localStorage si existe
+          let projectName = 'Project';
+          try {
+            // Intentar obtener el nombre del proyecto del localStorage
+            const cachedProjects = localStorage.getItem('projectsCache');
+            if (cachedProjects) {
+              const parsedCache = JSON.parse(cachedProjects);
+              if (parsedCache.data && Array.isArray(parsedCache.data)) {
+                const cachedProject = parsedCache.data.find((p: any) => p.id === projectIdNum);
+                if (cachedProject && cachedProject.name) {
+                  projectName = cachedProject.name;
+                  console.log(`Nombre de proyecto recuperado de cache: ${projectName}`);
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Error al recuperar nombre de proyecto de cache:', e);
+          }
+          
           setProject({
             id: projectIdNum || 0,
-            name: 'Project',
+            name: projectName,
             description: '',
             owner_id: 1, // Valor por defecto
             created_at: new Date().toISOString(),

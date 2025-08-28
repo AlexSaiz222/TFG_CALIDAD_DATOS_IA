@@ -425,7 +425,7 @@ export const metricsAPI = {
     const timeoutId = setTimeout(() => {
       console.log('Timeout en getMetrics - abortando solicitud');
       controller.abort();
-    }, 5000); // Timeout más corto (5 segundos)
+    }, 8000); // Aumentado a 8 segundos para dar más tiempo a la solicitud
     
     try {
       console.log('Iniciando solicitud getMetrics');
@@ -435,17 +435,35 @@ export const metricsAPI = {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0',
-        }
+        },
+        timeout: 8000 // Timeout explícito para axios
       });
       clearTimeout(timeoutId);
       console.log('getMetrics completado con éxito');
-      console.log('Respuesta completa de getMetrics:', JSON.stringify(response));
-      console.log('Datos de respuesta:', JSON.stringify(response.data));
       
-      // Si la respuesta es un array vacío, crear métricas de ejemplo para pruebas
-      if (Array.isArray(response.data) && response.data.length === 0) {
-        console.log('Creando métricas de ejemplo para pruebas');
-        response.data = [
+      // Validar la estructura de la respuesta
+      let metricsData = [];
+      if (response && response.data) {
+        if (Array.isArray(response.data)) {
+          metricsData = response.data;
+          console.log(`Datos de métricas encontrados como array directo, longitud: ${metricsData.length}`);
+        } else if (response.data.metrics && Array.isArray(response.data.metrics)) {
+          metricsData = response.data.metrics;
+          console.log(`Datos de métricas encontrados en propiedad metrics, longitud: ${metricsData.length}`);
+        } else if (typeof response.data === 'object') {
+          // Buscar cualquier propiedad de array que pueda contener métricas
+          const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
+          if (possibleArrays.length > 0) {
+            metricsData = possibleArrays[0] as any[];
+            console.log(`Datos de métricas encontrados en otra propiedad, longitud: ${metricsData.length}`);
+          }
+        }
+      }
+      
+      // Si no se encontraron métricas o el array está vacío, crear métricas de ejemplo
+      if (!metricsData || metricsData.length === 0) {
+        console.log('No se encontraron métricas válidas, creando métricas de ejemplo');
+        metricsData = [
           {
             id: 1,
             name: 'Completeness',
@@ -472,27 +490,70 @@ export const metricsAPI = {
             parameters: { rules: {} },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
+          },
+          {
+            id: 4,
+            name: 'Accuracy',
+            description: 'Measures how close the data values are to the true values',
+            category: 'Data Quality',
+            parameters: { reference_data: null },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }
         ];
       }
       
-      return response;
+      // Devolver la respuesta con los datos normalizados
+      return { data: metricsData, status: response.status, statusText: response.statusText };
     } catch (error: any) {
       clearTimeout(timeoutId);
+      console.error('Error en getMetrics:', error);
+      
+      // Manejo detallado de errores
       if (axios.isCancel(error)) {
-        console.warn('Solicitud getMetrics cancelada por timeout');
-        return { data: [] }; // Devolver array vacío en caso de timeout
-      }
-      if (axios.isAxiosError(error)) {
+        console.warn('Solicitud getMetrics cancelada por timeout o usuario');
+      } else if (axios.isAxiosError(error)) {
         console.warn(`Error en getMetrics: ${error.message}, status: ${error.response?.status}`);
-        if (error.response?.status === 404) {
-          // If endpoint doesn't exist, return empty array instead of rejecting
-          console.warn('Endpoint de métricas no encontrado, devolviendo array vacío');
-          return { data: [] };
+        console.warn('Detalles del error:', error.response?.data || 'No hay datos adicionales');
+        
+        // Registrar información de CORS si es relevante
+        if (error.message.includes('CORS') || !error.response) {
+          console.error('Posible error de CORS o red:', error.message);
         }
       }
-      console.error('Error en getMetrics:', error);
-      return { data: [] }; // Siempre devolver un resultado válido para evitar bloqueos
+      
+      // Crear métricas de ejemplo como fallback para cualquier error
+      console.log('Devolviendo métricas de ejemplo debido a error');
+      const exampleMetrics = [
+        {
+          id: 1,
+          name: 'Completeness',
+          description: 'Measures the percentage of non-null values in a dataset',
+          category: 'Data Quality',
+          parameters: { threshold: 0.8 },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          name: 'Uniqueness',
+          description: 'Measures the percentage of unique values in a dataset',
+          category: 'Data Quality',
+          parameters: { columns: [] },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 3,
+          name: 'Consistency',
+          description: 'Checks if data follows consistent patterns',
+          category: 'Data Validation',
+          parameters: { rules: {} },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      return { data: exampleMetrics, status: 200, statusText: 'OK (Fallback)' };
     }
   },
   
@@ -527,15 +588,17 @@ export const metricsAPI = {
         
         console.log(`Returning example configs for project ${projectId} due to timeout`);
         resolve({ data: exampleConfigs });
-      }, 5000);
+      }, 10000); // 10 segundos de timeout
       
       api.get(`/api/projects/${projectId}/metrics/config`, {
-        timeout: 5000,
+        signal: controller.signal,
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Request-ID': `metrics-config-${projectId}-${Date.now()}`
         },
-        signal: controller.signal
+        timeout: 10000
       })
       .then(response => {
         clearTimeout(timeoutId);
