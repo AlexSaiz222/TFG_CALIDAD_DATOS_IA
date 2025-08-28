@@ -72,7 +72,14 @@ function TabPanel(props: TabPanelProps) {
 const MetricsConfigurationPage = () => {
   const router = useRouter();
   const { id: projectId } = router.query;
-  const projectIdNum = projectId ? parseInt(projectId as string, 10) : null;
+  // Asegurarse de que el projectId es un número válido
+  const projectIdNum = projectId && !isNaN(parseInt(projectId as string, 10)) ? 
+    parseInt(projectId as string, 10) : 
+    null;
+  
+  // Verificar si estamos en modo de desarrollo y no hay ID válido
+  const isDevelopmentMode = process.env.NODE_ENV === 'development';
+  const useDevFallback = isDevelopmentMode && projectIdNum === null && router.isReady;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -173,14 +180,22 @@ const MetricsConfigurationPage = () => {
     const controller = new AbortController();
     
     const fetchData = async () => {
-      if (!projectIdNum) return;
+      // Si no hay ID de proyecto y no estamos en modo desarrollo, mostrar error
+      if (!projectIdNum && !useDevFallback) {
+        if (isMounted) {
+          console.log('No hay ID de proyecto válido y no estamos en modo desarrollo');
+          setLoading(false);
+          setError('Project ID is invalid');
+        }
+        return;
+      }
 
       // Forzar estado inicial limpio
       if (isMounted) {
         setLoading(true);
         setError(null);
         setLoadingTemplates(true);
-        console.log('Iniciando carga de datos de métricas para proyecto:', projectIdNum);
+        console.log('Iniciando carga de datos de métricas para proyecto:', projectIdNum || 'modo desarrollo');
       }
       
       // Crear un timeout más corto para prevenir carga indefinida
@@ -196,10 +211,20 @@ const MetricsConfigurationPage = () => {
 
       try {
         // Fetch metrics and project details in parallel to improve performance
-        const [metricsResponse, projectResponse] = await Promise.allSettled([
-          metricsAPI.getMetrics(),
-          projectsAPI.getProject(projectIdNum)
-        ]);
+        const promises = [
+          metricsAPI.getMetrics()
+        ];
+        
+        // Solo intentar obtener el proyecto si hay un ID válido
+        if (projectIdNum) {
+          promises.push(projectsAPI.getProject(projectIdNum));
+        } else if (useDevFallback) {
+          console.log('Usando modo de desarrollo con proyecto de prueba');
+        }
+        
+        const responses = await Promise.allSettled(promises);
+        const metricsResponse = responses[0];
+        const projectResponse = responses.length > 1 ? responses[1] : null;
         
         // Handle metrics response
         if (metricsResponse.status === 'fulfilled') {
@@ -250,22 +275,44 @@ const MetricsConfigurationPage = () => {
         }
 
         // Handle project response
-        if (projectResponse.status === 'fulfilled') {
+        if (projectResponse && projectResponse.status === 'fulfilled') {
           const projectData = (projectResponse.value as any)?.data;
           console.log('Datos del proyecto recibidos:', projectData);
           if (isMounted && projectData) {
             setProject(projectData);
           }
-        } else {
+        } else if (projectResponse && projectResponse.status === 'rejected') {
           console.error('Error fetching project:', projectResponse.reason);
           if (isMounted) {
             setError('Error al cargar los detalles del proyecto. Por favor, inténtalo de nuevo.');
           }
+        } else if (useDevFallback && isMounted) {
+          // Crear un proyecto de prueba para modo desarrollo
+          console.log('Creando proyecto de prueba para modo desarrollo');
+          const dummyProject: Project = {
+            id: 999, // ID ficticio para desarrollo
+            name: 'Proyecto de Prueba',
+            description: 'Este es un proyecto de prueba para desarrollo',
+            owner_id: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            dataset_count: 0
+          };
+          setProject(dummyProject);
         }
 
         // Fetch project's current metric configurations with retry mechanism
         let configRetries = 0;
         const fetchMetricConfigs = async () => {
+          // Si estamos en modo desarrollo o no hay ID de proyecto, no intentar cargar configuraciones
+          if (!projectIdNum) {
+            if (useDevFallback) {
+              console.log('Modo desarrollo: usando configuraciones de métricas vacías');
+              if (isMounted) setSelectedMetrics([]);
+            }
+            return true; // No hay nada que cargar
+          }
+          
           try {
             const metricsConfigResponse = await metricsAPI.getProjectMetricConfigs(projectIdNum) as any;
             if (metricsConfigResponse?.data && Array.isArray(metricsConfigResponse.data) && isMounted) {
@@ -442,8 +489,14 @@ const MetricsConfigurationPage = () => {
   };
   
   const handleSaveAllConfigurations = async () => {
-    if (!projectIdNum) {
+    if (!projectIdNum && !useDevFallback) {
       setError('Project ID is invalid');
+      return;
+    }
+    
+    // En modo desarrollo, mostrar mensaje de éxito simulado
+    if (useDevFallback) {
+      setSuccess('Configuraciones guardadas correctamente (modo desarrollo)');
       return;
     }
     
@@ -469,6 +522,12 @@ const MetricsConfigurationPage = () => {
     
     try {
       console.log('Guardando configuración de métricas:', selectedMetrics);
+      
+      // Verificar que projectIdNum no sea null antes de llamar a la API
+      if (projectIdNum === null) {
+        throw new Error('ID de proyecto no válido');
+      }
+      
       await metricsAPI.saveProjectMetricConfigs(projectIdNum, selectedMetrics);
       
       if (isMounted) {
@@ -476,9 +535,12 @@ const MetricsConfigurationPage = () => {
         
         // Refresh project data
         try {
-          const projectResponse = await projectsAPI.getProject(projectIdNum);
-          if (isMounted) {
-            setProject(projectResponse.data);
+          // Verificar que projectIdNum no sea null antes de llamar a la API
+          if (projectIdNum !== null) {
+            const projectResponse = await projectsAPI.getProject(projectIdNum);
+            if (isMounted) {
+              setProject(projectResponse.data);
+            }
           }
         } catch (refreshErr) {
           console.error('Error refreshing project data:', refreshErr);
@@ -709,7 +771,15 @@ const MetricsConfigurationPage = () => {
             variant="text" 
             color="primary" 
             sx={{ mt: 2 }}
-            onClick={() => router.push(`/projects/${projectIdNum}`)}
+            onClick={() => {
+              // Si hay un ID válido, volver a la página del proyecto
+              // Si no, ir a la lista de proyectos
+              if (projectIdNum !== null) {
+                router.push(`/projects/${projectIdNum}`);
+              } else {
+                router.push('/projects');
+              }
+            }}
           >
             Cancel and return to project
           </Button>
@@ -755,7 +825,17 @@ const MetricsConfigurationPage = () => {
       <Box sx={{ mb: 4 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={() => router.push(`/projects/${project.id}`)} sx={{ mr: 2 }}>
+          <IconButton 
+            onClick={() => {
+              // Usar projectIdNum que ya está validado en lugar de project.id
+              if (projectIdNum !== null) {
+                router.push(`/projects/${projectIdNum}`);
+              } else {
+                router.push('/projects');
+              }
+            }} 
+            sx={{ mr: 2 }}
+          >
             <ArrowBackIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
