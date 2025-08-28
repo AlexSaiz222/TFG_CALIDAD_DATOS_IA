@@ -651,11 +651,41 @@ export const metricsAPI = {
   },
     
   saveProjectMetricConfigs: (projectId: number, configs: any) => {
-    return api.post(`/api/projects/${projectId}/metrics/config`, { 
+    // Create a controller for request cancellation
+    const controller = new AbortController();
+    
+    // Create a promise that will be rejected after the timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        reject(new Error('Timeout al guardar la configuración de métricas'));
+      }, 15000); // 15 seconds timeout
+      
+      // Store the timeout ID on the controller for cleanup
+      (controller as any).timeoutId = timeoutId;
+    });
+    
+    // Create the actual request promise
+    const requestPromise = api.post(`/api/projects/${projectId}/metrics/config`, { 
       metrics_config: configs 
     }, {
-      timeout: 10000
+      timeout: 15000,
+      signal: controller.signal,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
+    
+    // Return a promise that will resolve with the request result or reject with the timeout error
+    return Promise.race([requestPromise, timeoutPromise])
+      .finally(() => {
+        // Clean up the timeout if the request completes before the timeout
+        if ((controller as any).timeoutId) {
+          clearTimeout((controller as any).timeoutId);
+        }
+      });
   },
   
   validateMetricConfig: (config: any) => 

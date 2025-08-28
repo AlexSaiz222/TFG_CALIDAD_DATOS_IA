@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_migrate import Migrate
 
 from config_module import get_config  # Importando desde config.py
 from extensions import db
@@ -77,6 +78,9 @@ def create_app(config_name=None):
          max_age=600
     )
     db.init_app(app)
+    
+    # Inicializar Flask-Migrate
+    migrate = Migrate(app, db)
     
     # Configurar JWT con blacklist
     jwt = JWTManager(app)

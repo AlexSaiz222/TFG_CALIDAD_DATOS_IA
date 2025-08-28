@@ -1,6 +1,7 @@
 from datetime import datetime
 import numpy as np
 from extensions import db
+import json
 
 class Project(db.Model):
     """Project model for organizing datasets and evaluations"""
@@ -10,6 +11,7 @@ class Project(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    metrics_config = db.Column(db.JSON, default=list)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -50,6 +52,7 @@ class Project(db.Model):
                 'name': self.name,
                 'description': self.description,
                 'owner_id': self.owner_id,
+                'metrics_config': self._ensure_serializable(self.metrics_config) if self.metrics_config else [],
                 'created_at': self.created_at.isoformat(),
                 'updated_at': self.updated_at.isoformat(),
                 'dataset_count': dataset_count

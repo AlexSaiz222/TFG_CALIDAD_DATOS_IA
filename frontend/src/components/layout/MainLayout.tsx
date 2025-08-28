@@ -178,9 +178,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Image
               src={logoPath}
               alt="Data Quality Platform Logo"
-              width={60}
-              height={60}
-              style={{ marginRight: '5px' }}
+              width={35}
+              height={35}
+              style={{ marginRight: '10px' }}
             />
             <Box
               sx={{

@@ -18,5 +18,9 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
+# Create entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["/entrypoint.sh"]

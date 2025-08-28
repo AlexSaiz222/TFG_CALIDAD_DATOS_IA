@@ -442,26 +442,70 @@ const MetricsConfigurationPage = () => {
   };
   
   const handleSaveAllConfigurations = async () => {
-    if (!projectIdNum || selectedMetrics.length === 0) {
-      setError('No metrics selected or project ID is invalid');
+    if (!projectIdNum) {
+      setError('Project ID is invalid');
+      return;
+    }
+    
+    if (selectedMetrics.length === 0) {
+      setError('No metrics selected. Please select at least one metric.');
       return;
     }
     
     setSaving(true);
     setError(null);
+    setSuccess(null);
+    
+    // Reference to track if component is still mounted
+    let isMounted = true;
+    
+    // Set a timeout to prevent indefinite loading state
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        setSaving(false);
+        setError('La operación ha tardado demasiado tiempo. Por favor, inténtalo de nuevo.');
+      }
+    }, 20000); // 20 seconds timeout
     
     try {
+      console.log('Guardando configuración de métricas:', selectedMetrics);
       await metricsAPI.saveProjectMetricConfigs(projectIdNum, selectedMetrics);
-      setSuccess('Metric configurations saved successfully');
       
-      // Optionally refresh project data
-      const projectResponse = await projectsAPI.getProject(projectIdNum);
-      setProject(projectResponse.data);
+      if (isMounted) {
+        setSuccess('Metric configurations saved successfully');
+        
+        // Refresh project data
+        try {
+          const projectResponse = await projectsAPI.getProject(projectIdNum);
+          if (isMounted) {
+            setProject(projectResponse.data);
+          }
+        } catch (refreshErr) {
+          console.error('Error refreshing project data:', refreshErr);
+          // Non-critical error, don't show to user
+        }
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save metric configurations');
+      console.error('Error saving metric configurations:', err);
+      if (isMounted) {
+        // Check if request was cancelled
+        if (err.name === 'AbortError' || err.name === 'CanceledError') {
+          setError('La solicitud fue cancelada. Por favor, inténtalo de nuevo.');
+        } else {
+          setError(err.response?.data?.message || 'Failed to save metric configurations. Please try again.');
+        }
+      }
     } finally {
-      setSaving(false);
+      clearTimeout(timeoutId);
+      if (isMounted) {
+        setSaving(false);
+      }
     }
+    
+    // Return cleanup function
+    return () => {
+      isMounted = false;
+    };
   };
   
   // Template functions

@@ -34,9 +34,12 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - postgres
-      - minio
-      - redis
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
@@ -72,8 +75,12 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - backend
-      - redis
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
