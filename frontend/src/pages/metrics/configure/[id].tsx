@@ -100,20 +100,42 @@ const MetricsConfigurationPage = () => {
   const projectIdFromUrl = useMemo(() => {
     if (!routerReady) return null;
     const { id } = router.query;
+    
+    console.log('ID de proyecto en URL:', id);
 
-    if (typeof id === 'string' && id !== 'undefined') return id;
-    if (Array.isArray(id) && id.length > 0 && id[0] !== 'undefined') return id[0];
+    // Caso 1: ID válido como string
+    if (typeof id === 'string' && id !== 'undefined') {
+      console.log('ID encontrado como string:', id);
+      return id;
+    }
+    
+    // Caso 2: ID válido en array
+    if (Array.isArray(id) && id.length > 0 && id[0] !== 'undefined') {
+      console.log('ID encontrado en array:', id[0]);
+      return id[0];
+    }
 
+    // Caso 3: Intentar recuperar de localStorage
     try {
-      const storedId =
-        typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
+      const storedId = typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
       if (storedId) {
+        console.log('ID recuperado de localStorage:', storedId);
+        // Actualizar URL sin recargar la página
         router.replace(`/metrics/configure/${storedId}`, undefined, { shallow: true });
         return storedId;
       }
     } catch (error) {
       console.error('Error al acceder a localStorage:', error);
     }
+    
+    // Caso 4: Redirigir a la lista de proyectos si no hay ID válido
+    if (typeof window !== 'undefined' && router.isReady) {
+      console.log('No se encontró ID válido, redirigiendo a la lista de proyectos');
+      setTimeout(() => {
+        router.push('/projects');
+      }, 100);
+    }
+    
     return null;
   }, [router.query, routerReady, router]);
 
@@ -201,25 +223,43 @@ const MetricsConfigurationPage = () => {
         // Proyecto
         if (projectIdNum) {
           try {
+            console.log(`Intentando cargar proyecto con ID: ${projectIdNum}`);
             const projectResponse = await projectsAPI.getProject(projectIdNum);
-            if (isMounted) setProject(projectResponse.data);
-          } catch (projectError: any) {
             if (isMounted) {
+              console.log('Proyecto cargado correctamente:', projectResponse.data);
+              setProject(projectResponse.data);
+            }
+          } catch (projectError: any) {
+            console.error('Error al cargar proyecto:', projectError);
+            if (isMounted) {
+              // Intentar recuperar el proyecto desde localStorage
+              console.log('Intentando recuperar proyecto desde localStorage');
               const cachedProjects = localStorage.getItem('projects');
               if (cachedProjects) {
-                const projects = JSON.parse(cachedProjects);
-                const cachedProject = projects.find((p: any) => p.id === projectIdNum);
-                if (cachedProject) {
-                  setProject(cachedProject);
-                } else {
-                  setError(`No se pudo cargar el proyecto con ID ${projectIdNum}.`);
+                try {
+                  const projects = JSON.parse(cachedProjects);
+                  const cachedProject = projects.find((p: any) => p.id === projectIdNum);
+                  if (cachedProject) {
+                    console.log('Proyecto recuperado de localStorage:', cachedProject);
+                    setProject(cachedProject);
+                  } else {
+                    const errorMsg = `No se pudo cargar el proyecto con ID ${projectIdNum}. El proyecto no existe en caché.`;
+                    console.error(errorMsg);
+                    setError(errorMsg);
+                  }
+                } catch (parseError) {
+                  console.error('Error al parsear proyectos de localStorage:', parseError);
+                  setError(`Error al recuperar datos de caché: ${parseError.message}`);
                 }
               } else {
-                setError(`No se pudo cargar el proyecto con ID ${projectIdNum}.`);
+                const errorMsg = `No se pudo cargar el proyecto con ID ${projectIdNum}. No hay datos en caché.`;
+                console.error(errorMsg);
+                setError(errorMsg);
               }
             }
           }
         } else if (useDevFallback && isMounted) {
+          console.log('Usando proyecto de prueba para desarrollo');
           setProject({
             id: 0,
             name: 'Proyecto de Prueba',
@@ -232,20 +272,47 @@ const MetricsConfigurationPage = () => {
         }
 
         // Métricas
-        const metricsResponse = await metricsAPI.getMetrics();
         let metricsData: any[] = [];
-        if (Array.isArray(metricsResponse.data)) {
-          metricsData = metricsResponse.data;
-        } else if (metricsResponse.data && Array.isArray(metricsResponse.data.metrics)) {
-          metricsData = metricsResponse.data.metrics;
-        } else if (metricsResponse.data && typeof metricsResponse.data === 'object') {
-          const possibleMetricsArrays = Object.values(metricsResponse.data).filter(
-            (v) => Array.isArray(v) && (v as any[]).length > 0
-          ) as any[];
-          if (possibleMetricsArrays.length > 0) metricsData = possibleMetricsArrays[0];
+        try {
+          console.log('Intentando cargar métricas disponibles');
+          const metricsResponse = await metricsAPI.getMetrics();
+          
+          console.log('Respuesta de métricas:', metricsResponse);
+          
+          if (Array.isArray(metricsResponse.data)) {
+            console.log('Métricas encontradas como array directo');
+            metricsData = metricsResponse.data;
+          } else if (metricsResponse.data && Array.isArray(metricsResponse.data.metrics)) {
+            console.log('Métricas encontradas en propiedad metrics');
+            metricsData = metricsResponse.data.metrics;
+          } else if (metricsResponse.data && typeof metricsResponse.data === 'object') {
+            console.log('Buscando arrays en la respuesta de métricas');
+            const possibleMetricsArrays = Object.values(metricsResponse.data).filter(
+              (v) => Array.isArray(v) && (v as any[]).length > 0
+            ) as any[];
+            
+            if (possibleMetricsArrays.length > 0) {
+              console.log(`Encontrados ${possibleMetricsArrays.length} posibles arrays de métricas`);
+              metricsData = possibleMetricsArrays[0];
+            } else {
+              console.warn('No se encontraron arrays en la respuesta');
+            }
+          } else {
+            console.warn('Formato de respuesta de métricas desconocido:', metricsResponse.data);
+          }
+          
+          console.log(`Total de métricas encontradas: ${metricsData.length}`);
+        } catch (metricsError) {
+          console.error('Error al cargar métricas:', metricsError);
+          // No interrumpimos el flujo por un error en métricas, solo lo registramos
+          // y continuamos con un array vacío
+          if (isMounted) {
+            setError((prevError) => prevError || 'Error al cargar métricas. Algunas funcionalidades pueden no estar disponibles.');
+          }
         }
 
-        const normalizedMetrics = metricsData.map((metric: any) => ({
+        // Asegurarse de que metricsData sea un array antes de mapearlo
+        const normalizedMetrics = (metricsData || []).map((metric: any) => ({
           id: metric.id,
           name: metric.name,
           description: metric.description || 'Sin descripción',
@@ -302,18 +369,43 @@ const MetricsConfigurationPage = () => {
 
         // Plantillas
         try {
+          console.log('Intentando cargar plantillas de métricas');
           const templatesResponse = await metricsAPI.getMetricTemplates() as any;
+          
           if (isMounted) {
+            console.log('Respuesta de plantillas:', templatesResponse);
             const templatesData = templatesResponse.data || [];
-            const templatesArray = Array.isArray(templatesData)
-              ? templatesData
-              : templatesData.templates && Array.isArray(templatesData.templates)
-              ? templatesData.templates
-              : [];
+            
+            let templatesArray: any[] = [];
+            
+            if (Array.isArray(templatesData)) {
+              console.log('Plantillas encontradas como array directo');
+              templatesArray = templatesData;
+            } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
+              console.log('Plantillas encontradas en propiedad templates');
+              templatesArray = templatesData.templates;
+            } else if (typeof templatesData === 'object') {
+              console.log('Buscando arrays en la respuesta de plantillas');
+              const possibleTemplatesArrays = Object.values(templatesData).filter(
+                (v) => Array.isArray(v) && (v as any[]).length > 0
+              ) as any[];
+              
+              if (possibleTemplatesArrays.length > 0) {
+                console.log(`Encontrados ${possibleTemplatesArrays.length} posibles arrays de plantillas`);
+                templatesArray = possibleTemplatesArrays[0];
+              }
+            }
+            
+            console.log(`Total de plantillas encontradas: ${templatesArray.length}`);
             setTemplates(templatesArray);
           }
         } catch (templateError) {
-          if (isMounted) setTemplates([]);
+          console.error('Error al cargar plantillas:', templateError);
+          if (isMounted) {
+            setTemplates([]);
+            // No mostramos error al usuario por las plantillas, ya que no son críticas
+            console.warn('No se pudieron cargar las plantillas, continuando sin ellas');
+          }
         }
 
         if (isMounted) {
@@ -350,14 +442,20 @@ const MetricsConfigurationPage = () => {
     setSuccess(null);
 
     try {
+      // Formato correcto para la API: un array de objetos con metric_id y parameters
+      const metricsConfig = selectedMetrics.map((metric) => ({
+        metric_id: metric.id,  // Cambiado de id a metric_id para coincidir con el formato esperado
+        parameters: metric.parameters || {},
+      }));
+
+      // El formato esperado por la API
       const configToSave = {
-        project_id: project.id,
-        metrics: selectedMetrics.map((metric) => ({
-          id: metric.id,
-          parameters: metric.parameters || {},
-        })),
+        metrics_config: metricsConfig  // Enviar como metrics_config
       };
 
+      console.log('Enviando configuración a la API:', JSON.stringify(configToSave));
+      
+      // Llamada a la API con el formato correcto
       await metricsAPI.saveProjectMetricConfigs(project.id, configToSave);
       setSuccess('Configuración guardada correctamente');
 
@@ -366,11 +464,12 @@ const MetricsConfigurationPage = () => {
       }, 3000);
     } catch (err: any) {
       console.error('Error al guardar la configuración de métricas:', err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          'Error al guardar la configuración de métricas'
-      );
+      // Mejorar el mensaje de error para incluir más detalles
+      const errorMessage = err.response?.status === 404 
+        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${project.id}/metrics/config` 
+        : err.response?.data?.message || err.message || 'Error al guardar la configuración de métricas';
+      
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -406,14 +505,15 @@ const MetricsConfigurationPage = () => {
   const handleAddMetric = (metric: any) => {
     // Check if metric is already selected
     const isAlreadySelected = selectedMetrics.some(m => m.id === metric.id);
-    if (isAlreadySelected) return;
     
-    // Add metric to selectedMetrics
+    if (isAlreadySelected) {
+      // Si ya está seleccionada, la quitamos (efecto toggle)
+      setSelectedMetrics(selectedMetrics.filter(m => m.id !== metric.id));
+      return;
+    }
+    
+    // Add metric to selectedMetrics sin abrir el modal de configuración
     setSelectedMetrics([...selectedMetrics, { ...metric }]);
-    
-    // Open configuration dialog
-    setCurrentMetric({ ...metric });
-    setConfigDialogOpen(true);
   };
   
   const handleRemoveMetric = (metricId: number) => {
@@ -489,19 +589,59 @@ const MetricsConfigurationPage = () => {
               Configuración de Métricas
             </Typography>
           </Box>
-          <Alert severity="error">{error}</Alert>
-          <Button
-            variant="contained"
-            onClick={() => router.push('/projects')}
-            sx={{
-              mt: 3,
-              backgroundColor: GREEN,
-              color: '#FFFFFF',
-              '&:hover': { backgroundColor: GREEN_HOVER },
-            }}
+          <Alert 
+            severity="error"
+            sx={{ mb: 3 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small"
+                onClick={() => {
+                  // Intentar recuperar el ID del localStorage
+                  const storedId = localStorage.getItem('currentProjectId');
+                  if (storedId) {
+                    console.log('Reintentando con ID de localStorage:', storedId);
+                    router.push(`/metrics/configure/${storedId}`);
+                  } else {
+                    console.log('No hay ID en localStorage, redirigiendo a proyectos');
+                    router.push('/projects');
+                  }
+                }}
+              >
+                Reintentar
+              </Button>
+            }
           >
-            Volver a proyectos
-          </Button>
+            {error}
+          </Alert>
+          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => router.push('/projects')}
+              sx={{
+                backgroundColor: GREEN,
+                color: '#FFFFFF',
+                '&:hover': { backgroundColor: GREEN_HOVER },
+              }}
+            >
+              Volver a proyectos
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                // Limpiar el error y recargar la página
+                setError(null);
+                window.location.reload();
+              }}
+              sx={{
+                borderColor: GREEN,
+                color: GREEN,
+                '&:hover': { borderColor: GREEN_HOVER, color: GREEN_HOVER },
+              }}
+            >
+              Recargar página
+            </Button>
+          </Box>
         </Box>
       </MainLayout>
     );
@@ -543,7 +683,27 @@ const MetricsConfigurationPage = () => {
 
         {/* Mensajes */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small"
+                onClick={() => {
+                  // Intentar recuperar el ID del localStorage
+                  const storedId = localStorage.getItem('currentProjectId');
+                  if (storedId) {
+                    router.push(`/metrics/configure/${storedId}`);
+                  } else {
+                    router.push('/projects');
+                  }
+                }}
+              >
+                Reintentar
+              </Button>
+            }
+          >
             {error}
           </Alert>
         )}
@@ -786,8 +946,8 @@ const MetricsConfigurationPage = () => {
                               label={selectedMetrics.some(m => m.id === metric.id) ? 'Añadida' : 'Disponible'}
                               size="small"
                               sx={{
-                                backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? 'rgba(0, 179, 126, 0.08)' : 'rgba(229, 72, 77, 0.08)',
-                                color: selectedMetrics.some(m => m.id === metric.id) ? GREEN : RED,
+                                backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? 'rgba(0, 179, 126, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+                                color: selectedMetrics.some(m => m.id === metric.id) ? GREEN : '#555555',
                                 fontWeight: 600,
                                 borderRadius: '12px',
                               }}
@@ -802,32 +962,16 @@ const MetricsConfigurationPage = () => {
                           <Button
                             size="small"
                             sx={{
-                              borderColor: GREEN,
-                              color: GREEN,
+                              backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? '#EF5350' : GREEN,
+                              color: '#FFFFFF',
                               textTransform: 'none',
-                              '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
+                              '&:hover': { backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? '#E01815' : GREEN_HOVER },
                             }}
-                            variant="outlined"
-                            startIcon={<AddIcon />}
+                            variant="contained"
+                            startIcon={selectedMetrics.some(m => m.id === metric.id) ? null : <AddIcon />}
                             onClick={() => handleAddMetric(metric)}
-                            disabled={selectedMetrics.some(m => m.id === metric.id)}
                           >
-                            {selectedMetrics.some(m => m.id === metric.id) ? 'Añadida' : 'Añadir'}
-                          </Button>
-                          <Button
-                            size="small"
-                            sx={{
-                              ml: 'auto',
-                              borderColor: GREEN,
-                              color: GREEN,
-                              textTransform: 'none',
-                              '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
-                            }}
-                            variant="outlined"
-                            onClick={() => handleConfigureMetric(metric)}
-                            disabled={!selectedMetrics.some(m => m.id === metric.id)}
-                          >
-                            Configurar
+                            {selectedMetrics.some(m => m.id === metric.id) ? 'Quitar' : 'Añadir'}
                           </Button>
                         </CardActions>
                       </Card>
@@ -1138,6 +1282,7 @@ const MetricsConfigurationPage = () => {
             variant="contained"
             sx={{ 
               bgcolor: GREEN, 
+              color: '#FFFFFF',
               '&:hover': { bgcolor: GREEN_HOVER } 
             }}
           >

@@ -680,6 +680,9 @@ export const metricsAPI = {
     // Create a controller for request cancellation
     const controller = new AbortController();
     
+    // Log para depuración
+    debugLog('Guardando configuración de métricas para proyecto', projectId, configs);
+    
     // Create a promise that will be rejected after the timeout
     const timeoutPromise = new Promise((_, reject) => {
       const timeoutId = setTimeout(() => {
@@ -691,18 +694,55 @@ export const metricsAPI = {
       (controller as any).timeoutId = timeoutId;
     });
     
-    // Create the actual request promise
-    const requestPromise = api.post(`/api/projects/${projectId}/metrics/config`, { 
-      metrics_config: configs 
-    }, {
-      timeout: 15000,
-      signal: controller.signal,
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+    // Asegurarse de que configs tenga el formato correcto
+    // La API espera un objeto con metrics_config que es un array de objetos con metric_id y parameters
+    const formattedData = configs.hasOwnProperty('metrics_config') 
+      ? configs 
+      : { metrics_config: configs };
+    
+    // Log del formato final
+    debugLog('Formato final enviado a la API:', formattedData);
+    
+    // Intentar múltiples endpoints en caso de error 404
+    const tryEndpoints = async () => {
+      const endpoints = [
+        `/api/projects/${projectId}/metrics/config`,
+        `/api/projects/${projectId}/metrics`,
+        `/api/metrics/project/${projectId}/config`
+      ];
+      
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          debugLog(`Intentando endpoint: ${endpoint}`);
+          const response = await api.post(endpoint, formattedData, {
+            timeout: 15000,
+            signal: controller.signal,
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0',
+            }
+          });
+          debugLog(`Éxito con endpoint: ${endpoint}`, response.data);
+          return response;
+        } catch (error: any) {
+          lastError = error;
+          debugLog(`Error con endpoint ${endpoint}:`, error.message);
+          // Solo continuar al siguiente endpoint si es un error 404
+          if (error.response?.status !== 404) {
+            throw error;
+          }
+        }
       }
-    });
+      
+      // Si llegamos aquí, todos los endpoints fallaron
+      throw lastError || new Error('Todos los endpoints fallaron');
+    };
+    
+    // Create the actual request promise
+    const requestPromise = tryEndpoints();
     
     // Return a promise that will resolve with the request result or reject with the timeout error
     return Promise.race([requestPromise, timeoutPromise])
