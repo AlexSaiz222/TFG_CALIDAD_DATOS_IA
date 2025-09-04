@@ -50,16 +50,19 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 // Ya no necesitamos el LogoContainer porque quitamos el logo del menú lateral
 
 const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
-  margin: '4px 8px',
+  margin: '6px 10px',
   borderRadius: '8px',
+  transition: 'all 0.2s ease-in-out',
+  padding: '10px 16px',
   '&.Mui-selected': {
-    backgroundColor: 'rgba(0, 179, 126, 0.12)',
+    backgroundColor: 'rgba(0, 179, 126, 0.08)',
     '&:hover': {
-      backgroundColor: 'rgba(0, 179, 126, 0.18)',
+      backgroundColor: 'rgba(0, 179, 126, 0.12)',
     },
   },
   '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    transform: 'translateX(2px)',
   },
 }));
 
@@ -291,44 +294,68 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         sx={{
           width: drawerWidth,
           flexShrink: 0,
+          height: '100%',
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            backgroundColor: '#FAFAFA',
+            backgroundColor: '#FFFFFF',
             borderRight: '1px solid #EEEEEE',
-            position: 'relative',
-            boxShadow: open ? '2px 0px 10px rgba(0, 0, 0, 0.05)' : 'none',
-            transition: 'box-shadow 0.3s',
+            position: 'fixed',
+            height: '100%',
+            boxShadow: open ? '1px 0px 5px rgba(0, 0, 0, 0.03)' : 'none',
+            transition: 'all 0.3s ease',
           },
         }}
       >
-        <DrawerHeader sx={{ justifyContent: 'flex-end', px: 2, py: 2.5, borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
-          <IconButton onClick={handleDrawerToggle}>
+        <DrawerHeader sx={{ 
+          justifyContent: 'flex-end', 
+          px: 2, 
+          py: 3, 
+          borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+          mb: 1
+        }}>
+          <IconButton 
+            onClick={handleDrawerToggle}
+            sx={{
+              borderRadius: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 179, 126, 0.08)',
+              }
+            }}
+          >
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
-        {/* Eliminamos el Divider ya que añadimos un borde inferior al DrawerHeader */}       <List sx={{ px: 1, pt: 2 }}>
+        <List sx={{ px: 1, pt: 2, pb: 2 }}>
           {menuItems.map((item) => {
             const isSelected = router.pathname === item.path;
             return (
-              <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItem key={item.text} disablePadding sx={{ mb: 1.5 }}>
                 <StyledListItemButton
                   selected={isSelected}
                   onClick={() => safeNavigate(item.path)}
                   sx={{
                     pl: 2,
                     pr: 2,
-                    py: 1,
+                    py: 1.2,
                     ...(isSelected && {
-                      background: 'linear-gradient(90deg, rgba(0, 179, 126, 0.12) 0%, rgba(0, 179, 126, 0.05) 100%)',
-                      borderLeft: '4px solid #00B37E',
+                      background: 'linear-gradient(90deg, rgba(0, 179, 126, 0.08) 0%, rgba(0, 179, 126, 0.02) 100%)',
+                      borderLeft: '3px solid #00B37E',
+                      boxShadow: '0 1px 4px rgba(0, 179, 126, 0.08)',
                     }),
                   }}
                 >
                   <ListItemIcon
                     sx={{
-                      color: isSelected ? '#00B37E' : '#555555',
-                      minWidth: '40px',
+                      color: isSelected ? '#00B37E' : '#757575',
+                      minWidth: '42px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '1.2rem',
+                        transition: 'all 0.2s ease',
+                        transform: isSelected ? 'scale(1.05)' : 'scale(1)'
+                      }
                     }}
                   >
                     {item.icon}
@@ -336,10 +363,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <ListItemText
                     primary={item.text}
                     primaryTypographyProps={{
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? '#00B37E' : '#1A1A1A',
+                      fontWeight: isSelected ? 600 : 500,
+                      color: isSelected ? '#00B37E' : '#424242',
                       fontSize: '0.95rem',
+                      letterSpacing: '0.2px'
                     }}
+                    sx={{ transition: 'all 0.2s ease' }}
                   />
                 </StyledListItemButton>
               </ListItem>

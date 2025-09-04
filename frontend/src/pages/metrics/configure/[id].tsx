@@ -720,46 +720,7 @@ const MetricsConfigurationPage = () => {
           </Box>
         ) : (
           <>
-            {/* Info del proyecto (tarjeta suave como en el primero) */}
-            {project && (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  borderRadius: 2,
-                  border: '1px solid #EEEEEE',
-                  backgroundColor: '#FAFAFA',
-                }}
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body2" sx={{ color: '#555555' }}>
-                      ID de proyecto
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {project.id}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body2" sx={{ color: '#555555' }}>
-                      Nombre
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {project.name}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body2" sx={{ color: '#555555' }}>
-                      Descripción
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {project.description || '—'}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
-            )}
+            {/* Se eliminó el panel de información del proyecto */}
 
             {/* Tabs con estilo verde */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
