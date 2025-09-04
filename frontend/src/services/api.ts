@@ -350,7 +350,17 @@ export const projectsAPI = {
       let validProjects = [];
       try {
         if (Array.isArray(projects)) {
-          validProjects = projects.filter((project: any) => project && typeof project === 'object');
+          // Filter valid projects and normalize date fields
+          validProjects = projects
+            .filter((project: any) => project && typeof project === 'object')
+            .map((project: any) => {
+              // Ensure created_at and updated_at are present and valid
+              return {
+                ...project,
+                created_at: project.created_at || new Date().toISOString(),
+                updated_at: project.updated_at || new Date().toISOString()
+              };
+            });
         }
       } catch (filterError) {
         console.error('API: Error al filtrar proyectos:', filterError);
@@ -367,13 +377,29 @@ export const projectsAPI = {
     }
   },
   
-  getProject: (id: number) => {
+  getProject: async (id: number) => {
     const token = localStorage.getItem('token');
-    return api.get(`/api/projects/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+    try {
+      const response = await api.get(`/api/projects/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      // Normalize date fields if they exist
+      if (response.data && typeof response.data === 'object') {
+        response.data = {
+          ...response.data,
+          created_at: response.data.created_at || new Date().toISOString(),
+          updated_at: response.data.updated_at || new Date().toISOString()
+        };
       }
-    });
+      
+      return response;
+    } catch (error) {
+      console.error(`Error fetching project ${id}:`, error);
+      throw error;
+    }
   },
   
   createProject: (projectData: any) => {
@@ -734,7 +760,7 @@ export const metricsAPI = {
       }, 5000); // Timeout más corto (5 segundos)
       
       console.log('Iniciando solicitud getMetricTemplates');
-      api.get('/api/metric-templates', {
+      api.get('/api/metrics/templates', {
         timeout: 5000,
         signal: controller.signal,
         headers: {
@@ -748,10 +774,36 @@ export const metricsAPI = {
         console.log('getMetricTemplates completado con éxito');
         console.log('Respuesta de plantillas:', JSON.stringify(response.data));
         
+        // Asegurar que la respuesta sea un array
+        let templatesData;
+        if (!response.data) {
+          console.log('No hay datos en la respuesta, creando array vacío');
+          templatesData = [];
+        } else if (Array.isArray(response.data)) {
+          console.log('Respuesta es un array directo');
+          templatesData = response.data;
+        } else if (response.data.templates && Array.isArray(response.data.templates)) {
+          console.log('Respuesta contiene un array en la propiedad templates');
+          templatesData = response.data.templates;
+        } else if (typeof response.data === 'object') {
+          console.log('Respuesta es un objeto, buscando arrays dentro del objeto');
+          const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
+          if (possibleArrays.length > 0) {
+            templatesData = possibleArrays[0] as any[];
+            console.log('Se encontró un array dentro del objeto');
+          } else {
+            console.log('No se encontraron arrays dentro del objeto, creando array vacío');
+            templatesData = [];
+          }
+        } else {
+          console.log('Formato de respuesta desconocido, creando array vacío');
+          templatesData = [];
+        }
+        
         // Si no hay plantillas, crear ejemplos
-        if (Array.isArray(response.data) && response.data.length === 0) {
+        if (templatesData.length === 0) {
           console.log('No se encontraron plantillas, creando ejemplos');
-          response.data = [
+          templatesData = [
             {
               id: 1,
               name: 'Basic Data Quality',
@@ -765,11 +817,12 @@ export const metricsAPI = {
             },
             {
               id: 2,
-              name: 'Advanced Validation',
-              description: 'Advanced validation metrics for critical data',
+              name: 'Advanced Data Quality',
+              description: 'Advanced metrics for comprehensive data quality',
               metrics: [
-                { metric_id: 1, parameters: { threshold: 0.95 } },
-                { metric_id: 3, parameters: { rules: { minLength: 5 } } }
+                { metric_id: 3, parameters: { min_value: 0, max_value: 100 } },
+                { metric_id: 4, parameters: { format: 'yyyy-mm-dd' } },
+                { metric_id: 5, parameters: { regex: '[A-Z][a-z]+' } }
               ],
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
@@ -777,7 +830,9 @@ export const metricsAPI = {
           ];
         }
         
-        resolve(response);
+        // Devolver el array procesado
+        console.log(`Devolviendo ${templatesData.length} plantillas`);
+        resolve({ data: templatesData });
       })
       .catch(error => {
         clearTimeout(timeoutId);
@@ -799,22 +854,22 @@ export const metricsAPI = {
   },
   
   getMetricTemplate: (id: number) => 
-    api.get(`/api/metric-templates/${id}`, {
+    api.get(`/api/metrics/templates/${id}`, {
       timeout: 5000
     }),
   
   createMetricTemplate: (templateData: any) => 
-    api.post('/api/metric-templates', templateData, {
+    api.post('/api/metrics/templates', templateData, {
       timeout: 8000
     }),
   
   updateMetricTemplate: (id: number, templateData: any) => 
-    api.put(`/api/metric-templates/${id}`, templateData, {
+    api.put(`/api/metrics/templates/${id}`, templateData, {
       timeout: 8000
     }),
   
   deleteMetricTemplate: (id: number) => 
-    api.delete(`/api/metric-templates/${id}`, {
+    api.delete(`/api/metrics/templates/${id}`, {
       timeout: 5000
     }),
 };

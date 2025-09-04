@@ -37,6 +37,7 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI } from '../../services/api';
 import { Project, Dataset } from '../../types';
+import { formatDate } from '../../utils/dateUtils';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -63,7 +64,17 @@ function TabPanel(props: TabPanelProps) {
 const ProjectDetail = () => {
   const router = useRouter();
   const { id } = router.query;
+  console.log('ID del proyecto en la página de detalles (raw):', id);
   const projectId = typeof id === 'string' ? parseInt(id, 10) : undefined;
+  console.log('ID del proyecto convertido a número:', projectId);
+  
+  // Guardar el ID del proyecto en localStorage tan pronto como esté disponible
+  useEffect(() => {
+    if (projectId) {
+      console.log('Guardando ID del proyecto en localStorage:', projectId);
+      localStorage.setItem('currentProjectId', projectId.toString());
+    }
+  }, [projectId]);
 
   const [project, setProject] = useState<Project | null>(null);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -256,7 +267,44 @@ const ProjectDetail = () => {
           <Button
             variant="outlined"
             startIcon={<SettingsIcon />}
-            onClick={() => router.push(`/metrics/configure?id=${project.id}`)}
+            onClick={() => {
+              // Intentar obtener el ID del proyecto de múltiples fuentes
+              let projectIdToUse: string | undefined;
+              
+              // 1. Intentar obtener del objeto project
+              if (project && project.id) {
+                console.log('Usando ID del objeto project:', project.id);
+                projectIdToUse = project.id.toString();
+              } 
+              // 2. Si no está disponible, intentar usar projectId de la URL
+              else if (projectId) {
+                console.log('Usando ID de la URL:', projectId);
+                projectIdToUse = projectId.toString();
+              } 
+              // 3. Último recurso: intentar obtener del localStorage
+              else {
+                try {
+                  const storedId = localStorage.getItem('currentProjectId');
+                  if (storedId) {
+                    console.log('Usando ID del localStorage:', storedId);
+                    projectIdToUse = storedId;
+                  }
+                } catch (error) {
+                  console.error('Error al acceder a localStorage:', error);
+                }
+              }
+              
+              if (projectIdToUse) {
+                // Guardar el ID del proyecto en localStorage antes de navegar
+                localStorage.setItem('currentProjectId', projectIdToUse);
+                
+                // Usar router.push con la ruta correcta
+                router.push(`/metrics/configure/${projectIdToUse}`);
+              } else {
+                console.error('No se puede navegar: no se pudo determinar el ID del proyecto');
+                alert('No se pudo determinar el ID del proyecto. Por favor, inténtelo de nuevo.');
+              }
+            }}
             sx={{
               borderColor: '#00B37E',
               color: '#00B37E',
@@ -319,7 +367,7 @@ const ProjectDetail = () => {
                 Created
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                {new Date(project.created_at).toLocaleDateString()}
+                {formatDate(project.created_at)}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
@@ -327,7 +375,7 @@ const ProjectDetail = () => {
                 Last Updated
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                {new Date(project.updated_at).toLocaleDateString()}
+                {formatDate(project.updated_at)}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
@@ -521,7 +569,7 @@ const ProjectDetail = () => {
                           }}
                         >
                           <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>Updated:</span>
-                          {new Date(dataset.updated_at).toLocaleDateString()}
+                          {formatDate(dataset.updated_at)}
                         </Typography>
                       </Box>
                     </CardContent>

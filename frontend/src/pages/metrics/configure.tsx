@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -71,22 +71,72 @@ function TabPanel(props: TabPanelProps) {
 
 const MetricsConfigurationPage = () => {
   const router = useRouter();
-  const { id: projectId } = router.query;
+  
+  // Esperar a que el router esté listo antes de acceder a los parámetros
+  const [routerReady, setRouterReady] = useState(false);
+  const [projectIdFromUrl, setProjectIdFromUrl] = useState<string | null>(null);
+  
+  // Actualizar el estado cuando el router esté listo
+  useEffect(() => {
+    if (router.isReady) {
+      setRouterReady(true);
+      const { id } = router.query;
+      console.log('Router is ready. Query params:', router.query);
+      console.log('Project ID from URL (raw):', id);
+      
+      // Guardar el ID del proyecto como string
+      if (typeof id === 'string') {
+        setProjectIdFromUrl(id);
+      } else if (Array.isArray(id) && id.length > 0) {
+        setProjectIdFromUrl(id[0]);
+      } else {
+        setProjectIdFromUrl(null);
+        console.log('No se encontró ID de proyecto en la URL');
+      }
+    }
+  }, [router.isReady, router.query]);
+  
   // Asegurarse de que el projectId es un número válido
-  const projectIdNum = projectId && !isNaN(parseInt(projectId as string, 10)) ? 
-    parseInt(projectId as string, 10) : 
-    null;
+  const projectIdNum = useMemo(() => {
+    if (!projectIdFromUrl) return null;
+    
+    const parsed = parseInt(projectIdFromUrl, 10);
+    if (isNaN(parsed)) {
+      console.log('Project ID no es un número válido:', projectIdFromUrl);
+      return null;
+    }
+    console.log('Project ID validado correctamente:', parsed);
+    return parsed;
+  }, [projectIdFromUrl]);
   
   // Verificar si estamos en modo de desarrollo y no hay ID válido
   const isDevelopmentMode = process.env.NODE_ENV === 'development';
-  const useDevFallback = isDevelopmentMode && projectIdNum === null && router.isReady;
+  
+  // Solo usar fallback si estamos en desarrollo Y no hay ID válido Y el router está listo
+  const useDevFallback = useMemo(() => {
+    if (!routerReady) return false;
+    
+    const shouldUseFallback = isDevelopmentMode && projectIdNum === null;
+    console.log('¿Usar fallback de desarrollo?', shouldUseFallback, 
+      { isDevelopmentMode, projectIdNum, routerReady });
+    return shouldUseFallback;
+  }, [isDevelopmentMode, projectIdNum, routerReady]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metric[]>([]);
-  const [project, setProject] = useState<Project | null>(null);
+  // Initialize with a default empty project to avoid null checks
+  const [project, setProject] = useState<Project>({ 
+    id: 0,
+    name: '',
+    description: '',
+    owner_id: 0,
+    created_at: '',
+    updated_at: '',
+    dataset_count: 0
+  });
   const [selectedMetrics, setSelectedMetrics] = useState<MetricConfig[]>([]);
   const [tabValue, setTabValue] = useState(0);
   
@@ -185,7 +235,13 @@ const MetricsConfigurationPage = () => {
         if (isMounted) {
           console.log('No hay ID de proyecto válido y no estamos en modo desarrollo');
           setLoading(false);
-          setError('Project ID is invalid');
+          
+          // Mensaje de error más descriptivo
+          if (projectIdFromUrl === null || projectIdFromUrl === '') {
+            setError('No se ha proporcionado un ID de proyecto. Por favor, vuelva a la lista de proyectos.');
+          } else {
+            setError(`El ID de proyecto "${projectIdFromUrl}" no es válido. Debe ser un número entero.`);
+          }
         }
         return;
       }
@@ -216,7 +272,8 @@ const MetricsConfigurationPage = () => {
         ];
         
         // Solo intentar obtener el proyecto si hay un ID válido
-        if (projectIdNum) {
+        if (projectIdNum !== null) {
+          console.log(`Obteniendo proyecto con ID: ${projectIdNum}`);
           promises.push(projectsAPI.getProject(projectIdNum));
         } else if (useDevFallback) {
           console.log('Usando modo de desarrollo con proyecto de prueba');
@@ -279,15 +336,48 @@ const MetricsConfigurationPage = () => {
           const projectData = (projectResponse.value as any)?.data;
           console.log('Datos del proyecto recibidos:', projectData);
           if (isMounted && projectData) {
-            setProject(projectData);
+            // Ensure date fields are valid
+            const normalizedProject = {
+              ...projectData,
+              created_at: projectData.created_at || new Date().toISOString(),
+              updated_at: projectData.updated_at || new Date().toISOString()
+            };
+            console.log('Estableciendo proyecto real:', normalizedProject.name);
+            setProject(normalizedProject);
+            
+            // Also store in localStorage for backup/recovery
+            try {
+              localStorage.setItem(`project_${projectIdNum}`, JSON.stringify(normalizedProject));
+            } catch (e) {
+              console.warn('Failed to cache project in localStorage:', e);
+            }
           }
-        } else if (projectResponse && projectResponse.status === 'rejected') {
-          console.error('Error fetching project:', projectResponse.reason);
-          if (isMounted) {
-            setError('Error al cargar los detalles del proyecto. Por favor, inténtalo de nuevo.');
+        } else if (projectIdNum !== null) {
+          // Solo intentar recuperar del localStorage o mostrar error si hay un ID de proyecto válido
+          console.error('Error fetching project:', projectResponse?.reason);
+          
+          // Try to recover from localStorage if available
+          try {
+            const cachedProject = localStorage.getItem(`project_${projectIdNum}`);
+            if (cachedProject) {
+              const parsedProject = JSON.parse(cachedProject);
+              console.log('Recovered project from localStorage:', parsedProject);
+              if (isMounted) {
+                setProject(parsedProject);
+              }
+            } else {
+              if (isMounted) {
+                setError('Error al cargar los detalles del proyecto. Por favor, inténtalo de nuevo.');
+              }
+            }
+          } catch (e) {
+            console.error('Error recovering project from localStorage:', e);
+            if (isMounted) {
+              setError('Error al cargar los detalles del proyecto. Por favor, inténtalo de nuevo.');
+            }
           }
         } else if (useDevFallback && isMounted) {
-          // Crear un proyecto de prueba para modo desarrollo
+          // Crear un proyecto de prueba para modo desarrollo - SOLO si no hay ID de proyecto válido
           console.log('Creando proyecto de prueba para modo desarrollo');
           const dummyProject: Project = {
             id: 999, // ID ficticio para desarrollo
@@ -395,8 +485,12 @@ const MetricsConfigurationPage = () => {
       }
     };
 
-    if (projectIdNum) {
+    // Only fetch data when router is ready
+    if (router.isReady) {
+      console.log('Router is ready, fetching data...');
       fetchData();
+    } else {
+      console.log('Router is not ready yet, waiting...');
     }
     
     // Cleanup function to prevent memory leaks and state updates after unmount
@@ -404,7 +498,7 @@ const MetricsConfigurationPage = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [projectIdNum]);
+  }, [projectIdNum, projectIdFromUrl, routerReady, useDevFallback]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -706,31 +800,7 @@ const MetricsConfigurationPage = () => {
   };
 
   // Intentar cargar métricas reales primero, usar ejemplos como fallback
-  React.useEffect(() => {
-    const loadRealMetrics = async () => {
-      try {
-        console.log('Intentando cargar métricas reales desde la API...');
-        const response = await metricsAPI.getMetrics();
-        
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          console.log(`Cargadas ${response.data.length} métricas reales desde la API`);
-          setMetrics(response.data);
-          
-          // Extraer categorías únicas de las métricas reales
-          const uniqueCategories = Array.from(new Set(response.data.map((metric: any) => metric.category))).sort() as string[];
-          setCategories(uniqueCategories);
-        } else {
-          console.log('La API devolvió un array vacío de métricas, usando fallback');
-          loadExampleMetrics();
-        }
-      } catch (error) {
-        console.error('Error cargando métricas reales:', error);
-        loadExampleMetrics();
-      }
-    };
-    
-    loadRealMetrics();
-  }, []);  // Ejecutar solo una vez al montar el componente
+  // Esta carga se realiza ahora en el useEffect principal que espera a router.isReady
 
   // Filter metrics based on search query and category filter
   const filteredMetrics = Array.isArray(metrics) ? metrics.filter(metric => {
@@ -843,7 +913,7 @@ const MetricsConfigurationPage = () => {
               Metrics Configuration
             </Typography>
             <Typography variant="body1" sx={{ color: '#555555', mt: 1 }}>
-              Configure metrics for project: {project.name}
+              Configure metrics for project: {project?.name || 'Loading...'}
             </Typography>
           </Box>
           <Button
