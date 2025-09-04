@@ -33,18 +33,22 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  FilterList as FilterListIcon,
   ArrowBack as ArrowBackIcon,
   Save as SaveIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
-  Check as CheckIcon,
   Info as InfoIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
+  Assessment as AssessmentIcon,
+  CloudUpload as CloudUploadIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../../components/layout/MainLayout';
 import { metricsAPI, projectsAPI } from '../../../services/api';
+
+const GREEN = '#00B37E';
+const GREEN_HOVER = '#00A070';
+const ORANGE = '#FFB800';
+const RED = '#E5484D';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -70,146 +74,82 @@ function TabPanel(props: TabPanelProps) {
 
 const MetricsConfigurationPage = () => {
   const router = useRouter();
-  
-  // Esperar a que el router esté listo antes de acceder a los parámetros
+
+  // ======== Router readiness / ID recovery logic (se mantiene) ========
   const [routerReady, setRouterReady] = useState(false);
-  
-  // Actualizar el estado cuando el router esté listo
+
   useEffect(() => {
     if (router.isReady) {
       setRouterReady(true);
-      console.log('Router is ready. Query params:', router.query);
-      console.log('Project ID from URL (raw):', router.query.id);
-      
-      // Redireccionar automáticamente si el ID es 'undefined'
       const { id } = router.query;
+
       if (id === 'undefined' || id === undefined) {
-        console.log('Detectado ID "undefined" o null en la URL, intentando obtener ID válido...');
-        
-        // Intentar obtener un ID válido del localStorage
         try {
-          const storedId = typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
+          const storedId =
+            typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
           if (storedId) {
-            console.log('Usando ID válido desde localStorage:', storedId);
-            // Actualizar la URL sin recargar la página
             router.replace(`/metrics/configure/${storedId}`, undefined, { shallow: true });
-          } else {
-            // Si no hay ID en localStorage, mostrar mensaje pero no redireccionar automáticamente
-            console.log('No se encontró ID en localStorage');
           }
         } catch (error) {
           console.error('Error al acceder a localStorage:', error);
         }
       }
     }
-  }, [router.isReady, router.query]);
-  
-  // Obtener el ID del proyecto directamente de la ruta o del localStorage
+  }, [router.isReady, router.query, router]);
+
   const projectIdFromUrl = useMemo(() => {
-    if (!routerReady) {
-      console.log('Router no está listo aún');
-      return null;
-    }
-    
+    if (!routerReady) return null;
     const { id } = router.query;
-    console.log('Query params en projectIdFromUrl:', router.query);
-    
-    // Intentar obtener el ID de la URL
-    if (typeof id === 'string' && id !== 'undefined') {
-      console.log('ID obtenido de la URL:', id);
-      return id;
-    } else if (Array.isArray(id) && id.length > 0 && id[0] !== 'undefined') {
-      console.log('ID obtenido de la URL (array):', id[0]);
-      return id[0];
-    }
-    
-    // Si no hay ID válido en la URL, intentar obtenerlo del localStorage
+
+    if (typeof id === 'string' && id !== 'undefined') return id;
+    if (Array.isArray(id) && id.length > 0 && id[0] !== 'undefined') return id[0];
+
     try {
-      const storedId = typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
-      console.log('Intentando obtener ID del localStorage:', storedId);
-      
+      const storedId =
+        typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
       if (storedId) {
-        console.log('ID obtenido del localStorage:', storedId);
-        
-        // Actualizar la URL con el ID correcto sin recargar la página
-        if (typeof window !== 'undefined') {
-          console.log('Actualizando URL con ID del localStorage:', storedId);
-          router.replace(`/metrics/configure/${storedId}`, undefined, { shallow: true });
-        }
-        
+        router.replace(`/metrics/configure/${storedId}`, undefined, { shallow: true });
         return storedId;
       }
     } catch (error) {
       console.error('Error al acceder a localStorage:', error);
     }
-    
-    console.log('No se encontró ID de proyecto en la URL ni en localStorage');
     return null;
-  }, [router.query, routerReady]);
-  
-  // Asegurarse de que el projectId es un número válido
+  }, [router.query, routerReady, router]);
+
   const projectIdNum = useMemo(() => {
     if (!projectIdFromUrl) {
-      console.log('Project ID from URL es null o undefined');
-      
-      // Intentar obtener directamente del router.query como último recurso
       if (router.isReady && router.query.id) {
         const idFromQuery = router.query.id;
-        console.log('Intentando obtener ID directamente de router.query:', idFromQuery);
-        
         if (typeof idFromQuery === 'string') {
           const parsed = parseInt(idFromQuery, 10);
-          if (!isNaN(parsed)) {
-            console.log('ID obtenido directamente de router.query:', parsed);
-            return parsed;
-          }
+          if (!isNaN(parsed)) return parsed;
         }
       }
-      
-      // Intentar obtener del localStorage como último recurso
       try {
-        const storedId = typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
+        const storedId =
+          typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
         if (storedId) {
           const parsed = parseInt(storedId, 10);
-          if (!isNaN(parsed)) {
-            console.log('ID obtenido directamente del localStorage como último recurso:', parsed);
-            return parsed;
-          }
+          if (!isNaN(parsed)) return parsed;
         }
       } catch (error) {
         console.error('Error al acceder a localStorage en projectIdNum:', error);
       }
-      
       return null;
     }
-    
-    // Intentar convertir a número
     const parsed = parseInt(projectIdFromUrl, 10);
-    if (isNaN(parsed)) {
-      console.log('Project ID no es un número válido:', projectIdFromUrl);
-      return null;
-    }
-    
-    console.log('Project ID validado correctamente:', parsed);
+    if (isNaN(parsed)) return null;
     return parsed;
   }, [projectIdFromUrl, router.isReady, router.query.id]);
-  
-  // Verificar si estamos en modo de desarrollo y no hay ID válido
+
   const isDevelopmentMode = process.env.NODE_ENV === 'development';
-  
-  // Solo usar fallback si estamos en desarrollo Y no hay ID válido Y el router está listo
   const useDevFallback = useMemo(() => {
     if (!routerReady) return false;
-    
-    const shouldUseFallback = isDevelopmentMode && projectIdNum === null;
-    console.log('¿Usar fallback de desarrollo?', shouldUseFallback, {
-      isDevelopmentMode,
-      projectIdNum,
-      routerReady
-    });
-    return shouldUseFallback;
+    return isDevelopmentMode && projectIdNum === null;
   }, [isDevelopmentMode, projectIdNum, routerReady]);
 
+  // ======== Estado de la página ========
   const [tabValue, setTabValue] = useState(0);
   const [project, setProject] = useState<any>(null);
   const [metrics, setMetrics] = useState<any[]>([]);
@@ -225,74 +165,51 @@ const MetricsConfigurationPage = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [selectedMetrics, setSelectedMetrics] = useState<any[]>([]);
-  
-  // Iniciar un timeout de emergencia para evitar que la página se quede cargando indefinidamente
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [currentMetric, setCurrentMetric] = useState<any>(null);
+
+  // Timeout de emergencia (se mantiene)
   useEffect(() => {
-    console.log('Iniciando timeout de emergencia (3 segundos)');
     const timeout = setTimeout(() => {
-      if (loading) {
-        console.log('Timeout de emergencia activado - forzando fin de carga');
-        setLoading(false);
-      }
-      if (loadingTemplates) {
-        console.log('Timeout de emergencia activado para plantillas - forzando fin de carga');
-        setLoadingTemplates(false);
-      }
+      if (loading) setLoading(false);
+      if (loadingTemplates) setLoadingTemplates(false);
     }, 3000);
-    
     return () => clearTimeout(timeout);
   }, [loading, loadingTemplates]);
 
-  // Cargar datos cuando el router esté listo
+  // Carga de datos (se mantiene)
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
-    
+
     const fetchData = async () => {
-      console.log('fetchData ejecutándose con projectIdNum:', projectIdNum, 'useDevFallback:', useDevFallback);
-      console.log('Estado actual de projectIdFromUrl:', projectIdFromUrl);
-      
-      // Si no hay ID de proyecto y no estamos en modo desarrollo, mostrar error
       if (!projectIdNum && !useDevFallback) {
         if (isMounted) {
-          console.log('No hay ID de proyecto válido y no estamos en modo desarrollo');
           setLoading(false);
-          
-          // Mostrar error sin redireccionar automáticamente
           setError(`El ID de proyecto "${projectIdFromUrl}" no es válido. Debe ser un número entero.`);
         }
         return;
       }
 
-      // Forzar estado inicial limpio
       if (isMounted) {
         setLoading(true);
         setError(null);
         setLoadingTemplates(true);
       }
-      
+
       try {
-        // Cargar datos de métricas
+        // Proyecto
         if (projectIdNum) {
-          console.log(`Iniciando carga de datos de métricas para proyecto: ${projectIdNum}`);
-          
           try {
-            // Intentar cargar el proyecto
             const projectResponse = await projectsAPI.getProject(projectIdNum);
-            if (isMounted) {
-              setProject(projectResponse.data);
-              console.log('Proyecto cargado:', projectResponse.data);
-            }
+            if (isMounted) setProject(projectResponse.data);
           } catch (projectError: any) {
-            console.error('Error al cargar el proyecto:', projectError);
             if (isMounted) {
-              // Intentar recuperar el proyecto desde localStorage
               const cachedProjects = localStorage.getItem('projects');
               if (cachedProjects) {
                 const projects = JSON.parse(cachedProjects);
                 const cachedProject = projects.find((p: any) => p.id === projectIdNum);
                 if (cachedProject) {
-                  console.log('Usando proyecto en caché:', cachedProject);
                   setProject(cachedProject);
                 } else {
                   setError(`No se pudo cargar el proyecto con ID ${projectIdNum}.`);
@@ -302,58 +219,7 @@ const MetricsConfigurationPage = () => {
               }
             }
           }
-        } else if (useDevFallback) {
-          console.log('Iniciando carga de datos de métricas para proyecto: modo desarrollo');
-        }
-        
-        // Cargar métricas disponibles
-        const metricsResponse = await metricsAPI.getMetrics();
-        console.log('Respuesta de métricas recibida:', metricsResponse);
-        
-        let metricsData = [];
-        
-        if (Array.isArray(metricsResponse.data)) {
-          console.log('Datos de métricas encontrados como array directo, longitud:', metricsResponse.data.length);
-          metricsData = metricsResponse.data;
-        } else if (metricsResponse.data && Array.isArray(metricsResponse.data.metrics)) {
-          console.log('Datos de métricas encontrados en propiedad metrics, longitud:', metricsResponse.data.metrics.length);
-          metricsData = metricsResponse.data.metrics;
-        } else if (metricsResponse.data && typeof metricsResponse.data === 'object') {
-          // Buscar cualquier propiedad que sea un array y podría contener métricas
-          const possibleMetricsArrays = Object.values(metricsResponse.data).filter(
-            (value) => Array.isArray(value) && value.length > 0
-          );
-          
-          if (possibleMetricsArrays.length > 0) {
-            const metricsArray = possibleMetricsArrays[0] as any[];
-            console.log('Datos de métricas encontrados en otra propiedad, longitud:', metricsArray.length);
-            metricsData = metricsArray;
-          }
-        }
-        
-        // Normalizar datos de métricas
-        const normalizedMetrics = metricsData.map((metric: any) => ({
-          id: metric.id,
-          name: metric.name,
-          description: metric.description || 'No description available',
-          category: metric.category || 'general',
-          parameters: metric.parameters || {},
-          created_at: metric.created_at || new Date().toISOString(),
-          updated_at: metric.updated_at || new Date().toISOString(),
-          enabled: false,
-          config: {},
-        }));
-        
-        console.log('Normalized metrics data:', normalizedMetrics);
-        
-        if (isMounted) {
-          setMetrics(normalizedMetrics);
-          setFilteredMetrics(normalizedMetrics);
-        }
-        
-        // Si estamos en modo desarrollo y no hay proyecto, crear uno de prueba
-        if (useDevFallback && isMounted) {
-          console.log('Creando proyecto de prueba para modo desarrollo');
+        } else if (useDevFallback && isMounted) {
           setProject({
             id: 0,
             name: 'Proyecto de Prueba',
@@ -363,12 +229,41 @@ const MetricsConfigurationPage = () => {
             owner_id: 1,
             metrics_config: [],
           });
-          
-          // Verificar si el proyecto tiene configuraciones de métricas
+        }
+
+        // Métricas
+        const metricsResponse = await metricsAPI.getMetrics();
+        let metricsData: any[] = [];
+        if (Array.isArray(metricsResponse.data)) {
+          metricsData = metricsResponse.data;
+        } else if (metricsResponse.data && Array.isArray(metricsResponse.data.metrics)) {
+          metricsData = metricsResponse.data.metrics;
+        } else if (metricsResponse.data && typeof metricsResponse.data === 'object') {
+          const possibleMetricsArrays = Object.values(metricsResponse.data).filter(
+            (v) => Array.isArray(v) && (v as any[]).length > 0
+          ) as any[];
+          if (possibleMetricsArrays.length > 0) metricsData = possibleMetricsArrays[0];
+        }
+
+        const normalizedMetrics = metricsData.map((metric: any) => ({
+          id: metric.id,
+          name: metric.name,
+          description: metric.description || 'Sin descripción',
+          category: metric.category || 'general',
+          parameters: metric.parameters || {},
+          created_at: metric.created_at || new Date().toISOString(),
+          updated_at: metric.updated_at || new Date().toISOString(),
+          enabled: false,
+          config: {},
+        }));
+
+        if (isMounted) {
+          setMetrics(normalizedMetrics);
+          setFilteredMetrics(normalizedMetrics);
+        }
+
+        if (useDevFallback && isMounted) {
           if (project && project.metrics_config && Array.isArray(project.metrics_config) && project.metrics_config.length > 0) {
-            console.log('Modo desarrollo: usando configuraciones de métricas existentes');
-            
-            // Marcar las métricas que están habilitadas según la configuración
             const updatedMetrics = normalizedMetrics.map((metric: any) => {
               const configuredMetric = project.metrics_config.find((m: any) => m.metric_id === metric.id);
               if (configuredMetric) {
@@ -380,43 +275,52 @@ const MetricsConfigurationPage = () => {
               }
               return metric;
             });
-            
-            if (isMounted) {
-              setMetrics(updatedMetrics);
-              setFilteredMetrics(updatedMetrics);
-            }
-          } else {
-            console.log('Modo desarrollo: usando configuraciones de métricas vacías');
+            setMetrics(updatedMetrics);
+            setFilteredMetrics(updatedMetrics);
           }
         }
-        
-        // Cargar plantillas de métricas
+
+        // Cargar configuración actual si existe
+        if (project?.metrics_config && Array.isArray(project.metrics_config)) {
+          const selectedMetricsList = [];
+          const updatedMetrics = metrics.map((metric) => {
+            const existingConfig = project.metrics_config.find((m: any) => m.id === metric.id);
+            if (existingConfig) {
+              const configuredMetric = {
+                ...metric,
+                parameters: existingConfig.parameters || metric.parameters,
+              };
+              selectedMetricsList.push(configuredMetric);
+              return configuredMetric;
+            }
+            return metric;
+          });
+          setMetrics(updatedMetrics);
+          setFilteredMetrics(updatedMetrics);
+          setSelectedMetrics(selectedMetricsList);
+        }
+
+        // Plantillas
         try {
           const templatesResponse = await metricsAPI.getMetricTemplates() as any;
           if (isMounted) {
-            // Asegurar que templates siempre sea un array
             const templatesData = templatesResponse.data || [];
-            const templatesArray = Array.isArray(templatesData) ? templatesData : 
-              templatesData.templates && Array.isArray(templatesData.templates) ? templatesData.templates : [];
-            
+            const templatesArray = Array.isArray(templatesData)
+              ? templatesData
+              : templatesData.templates && Array.isArray(templatesData.templates)
+              ? templatesData.templates
+              : [];
             setTemplates(templatesArray);
-            console.log('Plantillas de métricas cargadas:', templatesArray.length);
-            console.log('Estructura de datos de plantillas:', JSON.stringify(templatesResponse.data));
           }
         } catch (templateError) {
-          console.error('Error al cargar plantillas de métricas:', templateError);
-          if (isMounted) {
-            setTemplates([]);
-          }
+          if (isMounted) setTemplates([]);
         }
-        
+
         if (isMounted) {
-          console.log('Carga completada con éxito - desactivando estados de carga');
           setLoading(false);
           setLoadingTemplates(false);
         }
       } catch (error: any) {
-        console.error('Error al cargar datos:', error);
         if (isMounted) {
           setError('Error al cargar datos: ' + (error.message || 'Error desconocido'));
           setLoading(false);
@@ -424,41 +328,50 @@ const MetricsConfigurationPage = () => {
         }
       }
     };
-    
-    // Only fetch data when router is ready
-    if (router.isReady) {
-      console.log('Router is ready, fetching data...');
-      fetchData();
-    } else {
-      console.log('Router is not ready yet, waiting...');
-    }
-    
-    // Cleanup function to prevent memory leaks and state updates after unmount
+
+    if (router.isReady) fetchData();
+
     return () => {
       isMounted = false;
       controller.abort();
     };
-  }, [projectIdNum, projectIdFromUrl, routerReady, useDevFallback]);
+  }, [projectIdNum, projectIdFromUrl, routerReady, useDevFallback, router.isReady]);
 
+  // ======== Handlers (se mantienen) ========
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
   const handleSaveConfiguration = async () => {
-    if (!projectIdNum) return;
-    
+    if (!project) return;
+
     setSaving(true);
     setError(null);
     setSuccess(null);
-    
+
     try {
-      // TODO: Implement saving metric configurations
-      // This will be implemented when the backend endpoint is available
-      
-      setSuccess('Metric configurations saved successfully.');
-      setSaving(false);
-    } catch (error: any) {
-      setError('Error saving configurations: ' + (error.message || 'Unknown error'));
+      const configToSave = {
+        project_id: project.id,
+        metrics: selectedMetrics.map((metric) => ({
+          id: metric.id,
+          parameters: metric.parameters || {},
+        })),
+      };
+
+      await metricsAPI.saveProjectMetricConfigs(project.id, configToSave);
+      setSuccess('Configuración guardada correctamente');
+
+      setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Error al guardar la configuración de métricas:', err);
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          'Error al guardar la configuración de métricas'
+      );
+    } finally {
       setSaving(false);
     }
   };
@@ -466,20 +379,17 @@ const MetricsConfigurationPage = () => {
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-    
     filterMetrics(query, categoryFilter);
   };
 
-  const handleCategoryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleCategoryChange = (event: any) => {
     const category = event.target.value as string;
     setCategoryFilter(category);
-    
     filterMetrics(searchQuery, category);
   };
 
   const filterMetrics = (query: string, category: string) => {
     let filtered = metrics;
-    
     if (query) {
       filtered = filtered.filter(
         (metric) =>
@@ -487,33 +397,45 @@ const MetricsConfigurationPage = () => {
           (metric.description && metric.description.toLowerCase().includes(query))
       );
     }
-    
     if (category !== 'all') {
       filtered = filtered.filter((metric) => metric.category === category);
     }
-    
     setFilteredMetrics(filtered);
   };
 
-  const handleMetricToggle = (metricId: number) => {
-    const updatedMetrics = metrics.map((metric) => {
-      if (metric.id === metricId) {
-        return { ...metric, enabled: !metric.enabled };
-      }
-      return metric;
-    });
+  const handleAddMetric = (metric: any) => {
+    // Check if metric is already selected
+    const isAlreadySelected = selectedMetrics.some(m => m.id === metric.id);
+    if (isAlreadySelected) return;
     
-    setMetrics(updatedMetrics);
+    // Add metric to selectedMetrics
+    setSelectedMetrics([...selectedMetrics, { ...metric }]);
     
-    // También actualizar las métricas filtradas
-    const updatedFilteredMetrics = filteredMetrics.map((metric) => {
-      if (metric.id === metricId) {
-        return { ...metric, enabled: !metric.enabled };
-      }
-      return metric;
-    });
-    
-    setFilteredMetrics(updatedFilteredMetrics);
+    // Open configuration dialog
+    setCurrentMetric({ ...metric });
+    setConfigDialogOpen(true);
+  };
+  
+  const handleRemoveMetric = (metricId: number) => {
+    setSelectedMetrics(selectedMetrics.filter(metric => metric.id !== metricId));
+  };
+  
+  const handleConfigureMetric = (metric: any) => {
+    setCurrentMetric({ ...metric });
+    setConfigDialogOpen(true);
+  };
+  
+  const handleConfigDialogClose = () => {
+    setConfigDialogOpen(false);
+  };
+  
+  const handleConfigDialogSave = (configuredMetric: any) => {
+    // Update the metric in selectedMetrics
+    const updatedSelectedMetrics = selectedMetrics.map(metric => 
+      metric.id === configuredMetric.id ? { ...configuredMetric } : metric
+    );
+    setSelectedMetrics(updatedSelectedMetrics);
+    setConfigDialogOpen(false);
   };
 
   const handleTemplateSelect = (template: any) => {
@@ -523,12 +445,9 @@ const MetricsConfigurationPage = () => {
 
   const applyTemplate = () => {
     if (!selectedTemplate) return;
-    
-    const templateMetricIds = selectedTemplate.metrics.map((m: any) => m.metric_id);
-    
+
     const updatedMetrics = metrics.map((metric) => {
       const templateMetric = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
-      
       if (templateMetric) {
         return {
           ...metric,
@@ -536,16 +455,13 @@ const MetricsConfigurationPage = () => {
           config: templateMetric.parameters || {},
         };
       }
-      
       return metric;
     });
-    
+
     setMetrics(updatedMetrics);
-    
-    // También actualizar las métricas filtradas
+
     const updatedFilteredMetrics = filteredMetrics.map((metric) => {
       const templateMetric = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
-      
       if (templateMetric) {
         return {
           ...metric,
@@ -553,124 +469,79 @@ const MetricsConfigurationPage = () => {
           config: templateMetric.parameters || {},
         };
       }
-      
       return metric;
     });
-    
+
     setFilteredMetrics(updatedFilteredMetrics);
     setTemplateDialogOpen(false);
   };
 
-  // Monitorear el estado para depuración
-  useEffect(() => {
-    console.log('Estado actual:', {
-      loading,
-      metricsLength: metrics.length,
-      filteredMetricsLength: filteredMetrics.length,
-      searchQuery,
-      categoryFilter,
-      error,
-      success,
-      saving,
-      projectIdNum,
-      useDevFallback,
-    });
-    
-    console.log('Contenido de métricas:', metrics);
-    console.log('Contenido de métricas filtradas:', filteredMetrics);
-  }, [
-    loading,
-    metrics,
-    filteredMetrics,
-    searchQuery,
-    categoryFilter,
-    error,
-    success,
-    saving,
-    projectIdNum,
-    useDevFallback,
-  ]);
-
-  // Renderizar mensaje de error si no hay ID de proyecto válido y no estamos en modo desarrollo
+  // ======== Render de error temprano con estilo del primer archivo ========
   if (error && !useDevFallback) {
     return (
       <MainLayout>
         <Box sx={{ p: 3 }}>
-          <Paper
-            elevation={0}
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <IconButton onClick={() => router.push('/projects')} sx={{ mr: 2 }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+              Configuración de Métricas
+            </Typography>
+          </Box>
+          <Alert severity="error">{error}</Alert>
+          <Button
+            variant="contained"
+            onClick={() => router.push('/projects')}
             sx={{
-              p: 4,
-              borderRadius: 2,
-              textAlign: 'center',
-              border: '1px solid #f5c6cb',
-              backgroundColor: '#f8d7da',
+              mt: 3,
+              backgroundColor: GREEN,
+              color: '#FFFFFF',
+              '&:hover': { backgroundColor: GREEN_HOVER },
             }}
           >
-            <ErrorIcon sx={{ fontSize: 60, color: '#721c24', mb: 2 }} />
-            <Typography variant="h5" sx={{ color: '#721c24', mb: 2 }}>
-              Error de configuración
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 3 }}>
-              {error}
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => router.push('/projects')}
-              startIcon={<ArrowBackIcon />}
-            >
-              Volver a la lista de proyectos
-            </Button>
-          </Paper>
+            Volver a proyectos
+          </Button>
         </Box>
       </MainLayout>
     );
   }
 
+  // ======== UI principal con estilo del primer archivo ========
   return (
     <MainLayout>
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3, mb: 4 }}>
         {/* Header */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 4,
-          }}
-        >
-          <Box>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => router.back()}
-              sx={{ mb: 1 }}
-            >
-              Volver
-            </Button>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <IconButton onClick={() => router.push('/projects')} sx={{ mr: 2 }}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
               Configuración de Métricas
             </Typography>
             {project && (
-              <Typography variant="h6" sx={{ color: '#666666' }}>
+              <Typography variant="body1" sx={{ color: '#555555', mt: 1 }}>
                 {project.name}
               </Typography>
             )}
           </Box>
-          <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<SaveIcon />}
-              onClick={handleSaveConfiguration}
-              disabled={saving || loading}
-              sx={{ mr: 1 }}
-            >
-              {saving ? 'Guardando...' : 'Guardar configuración'}
-            </Button>
-          </Box>
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon sx={{ color: '#FFFFFF' }} />}
+            onClick={handleSaveConfiguration}
+            disabled={saving || loading}
+            sx={{
+              backgroundColor: GREEN,
+              color: '#FFFFFF',
+              '&:hover': { backgroundColor: GREEN_HOVER },
+            }}
+          >
+            {saving ? 'Guardando...' : 'Guardar configuración'}
+          </Button>
         </Box>
 
-        {/* Messages */}
+        {/* Mensajes */}
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
@@ -682,35 +553,85 @@ const MetricsConfigurationPage = () => {
           </Alert>
         )}
 
-        {/* Loading indicator */}
-        {loading && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '200px',
-            }}
-          >
+        {/* Loading */}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
             <CircularProgress />
           </Box>
-        )}
-
-        {!loading && (
+        ) : (
           <>
-            {/* Tabs */}
+            {/* Info del proyecto (tarjeta suave como en el primero) */}
+            {project && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mb: 4,
+                  borderRadius: 2,
+                  border: '1px solid #EEEEEE',
+                  backgroundColor: '#FAFAFA',
+                }}
+              >
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="body2" sx={{ color: '#555555' }}>
+                      ID de proyecto
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {project.id}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="body2" sx={{ color: '#555555' }}>
+                      Nombre
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {project.name}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="body2" sx={{ color: '#555555' }}>
+                      Descripción
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {project.description || '—'}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            )}
+
+            {/* Tabs con estilo verde */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={tabValue} onChange={handleTabChange}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                aria-label="metrics configuration tabs"
+                sx={{
+                  '& .MuiTabs-indicator': { backgroundColor: GREEN },
+                  '& .Mui-selected': { color: GREEN },
+                }}
+              >
                 <Tab label="Métricas disponibles" />
-                <Tab label="Configuración avanzada" />
+                <Tab label="Métricas seleccionadas" />
                 <Tab label="Plantillas" />
               </Tabs>
             </Box>
 
             {/* Métricas disponibles */}
             <TabPanel value={tabValue} index={0}>
-              <Box sx={{ mb: 3 }}>
-                <Grid container spacing={2}>
+              {/* Filtros */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2,
+                  border: '1px solid #EEEEEE',
+                  backgroundColor: '#FAFAFA',
+                }}
+              >
+                <Grid container spacing={2} alignItems="center">
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
@@ -729,11 +650,7 @@ const MetricsConfigurationPage = () => {
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
                       <InputLabel>Categoría</InputLabel>
-                      <Select
-                        value={categoryFilter}
-                        label="Categoría"
-                        onChange={handleCategoryChange as any}
-                      >
+                      <Select value={categoryFilter} label="Categoría" onChange={handleCategoryChange}>
                         <MenuItem value="all">Todas las categorías</MenuItem>
                         <MenuItem value="data_quality">Calidad de datos</MenuItem>
                         <MenuItem value="statistical">Estadísticas</MenuItem>
@@ -743,7 +660,11 @@ const MetricsConfigurationPage = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-              </Box>
+              </Paper>
+
+              <Typography variant="h6" sx={{ fontWeight: 500, color: '#555555', mb: 2 }}>
+                {filteredMetrics.length} {filteredMetrics.length === 1 ? 'métrica' : 'métricas'}
+              </Typography>
 
               <Grid container spacing={3}>
                 {filteredMetrics.length === 0 ? (
@@ -751,81 +672,160 @@ const MetricsConfigurationPage = () => {
                     <Paper
                       elevation={0}
                       sx={{
-                        p: 3,
+                        p: 5,
                         textAlign: 'center',
                         borderRadius: 2,
-                        border: '1px solid #eee',
+                        border: '1px dashed #CCCCCC',
+                        backgroundColor: '#FAFAFA',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '240px',
                       }}
                     >
-                      <Typography variant="body1">
-                        No se encontraron métricas que coincidan con los criterios de búsqueda.
+                      <AssessmentIcon sx={{ fontSize: 60, color: ORANGE, opacity: 0.7, mb: 2 }} />
+                      <Typography variant="h5" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
+                        No se encontraron métricas
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: '#555555', maxWidth: '520px' }}>
+                        Ajusta los filtros o la búsqueda para ver otras métricas disponibles.
                       </Typography>
                     </Paper>
                   </Grid>
                 ) : (
                   filteredMetrics.map((metric) => (
-                    <Grid item xs={12} md={6} lg={4} key={metric.id}>
+                    <Grid item xs={12} sm={6} md={4} key={metric.id}>
                       <Card
                         sx={{
                           height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
                           borderRadius: 2,
-                          border: metric.enabled
-                            ? '2px solid #4caf50'
-                            : '1px solid #eee',
+                          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+                          transition: 'all 0.3s ease-in-out',
+                          position: 'relative',
+                          overflow: 'visible',
+                          border: '1px solid #eee',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
+                          },
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '4px',
+                            height: '100%',
+                            backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? GREEN : '#E0E0E0',
+                            borderTopLeftRadius: 8,
+                            borderBottomLeftRadius: 8,
+                          },
                         }}
                       >
-                        <CardContent sx={{ flexGrow: 1 }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'flex-start',
-                              mb: 1,
-                            }}
-                          >
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        <CardContent sx={{ p: 3 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Typography
+                              variant="h6"
+                              component="div"
+                              sx={{
+                                mb: 1,
+                                fontWeight: 600,
+                                color: '#1A1A1A',
+                              }}
+                            >
                               {metric.name}
                             </Typography>
+
                             <Chip
                               label={metric.category}
                               size="small"
                               sx={{
                                 backgroundColor:
                                   metric.category === 'data_quality'
-                                    ? '#e3f2fd'
+                                    ? 'rgba(0, 179, 126, 0.1)'
                                     : metric.category === 'statistical'
-                                    ? '#f3e5f5'
+                                    ? 'rgba(255, 184, 0, 0.12)'
                                     : metric.category === 'ml_specific'
-                                    ? '#e8f5e9'
-                                    : '#f5f5f5',
+                                    ? 'rgba(33, 150, 243, 0.12)'
+                                    : 'rgba(0,0,0,0.06)',
+                                color:
+                                  metric.category === 'data_quality'
+                                    ? GREEN
+                                    : metric.category === 'statistical'
+                                    ? ORANGE
+                                    : metric.category === 'ml_specific'
+                                    ? '#2196F3'
+                                    : '#555555',
+                                fontWeight: 500,
+                                borderRadius: '16px',
+                                textTransform: 'capitalize',
                               }}
                             />
                           </Box>
+
                           <Typography
                             variant="body2"
-                            color="textSecondary"
-                            sx={{ mb: 2 }}
+                            color="text.secondary"
+                            sx={{
+                              mb: 2,
+                              height: '40px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                            }}
                           >
                             {metric.description}
                           </Typography>
+
+                          <Divider sx={{ my: 1.5 }} />
+
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip
+                              label={selectedMetrics.some(m => m.id === metric.id) ? 'Añadida' : 'Disponible'}
+                              size="small"
+                              sx={{
+                                backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? 'rgba(0, 179, 126, 0.08)' : 'rgba(229, 72, 77, 0.08)',
+                                color: selectedMetrics.some(m => m.id === metric.id) ? GREEN : RED,
+                                fontWeight: 600,
+                                borderRadius: '12px',
+                              }}
+                            />
+                            <Tooltip title="Información de la métrica">
+                              <InfoIcon sx={{ fontSize: 18, opacity: 0.7 }} />
+                            </Tooltip>
+                          </Box>
                         </CardContent>
-                        <CardActions>
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={metric.enabled}
-                                onChange={() => handleMetricToggle(metric.id)}
-                                color="primary"
-                              />
-                            }
-                            label={metric.enabled ? 'Habilitada' : 'Deshabilitar'}
-                          />
+
+                        <CardActions sx={{ px: 3, pb: 2 }}>
                           <Button
                             size="small"
-                            color="primary"
-                            sx={{ ml: 'auto' }}
+                            sx={{
+                              borderColor: GREEN,
+                              color: GREEN,
+                              textTransform: 'none',
+                              '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
+                            }}
+                            variant="outlined"
+                            startIcon={<AddIcon />}
+                            onClick={() => handleAddMetric(metric)}
+                            disabled={selectedMetrics.some(m => m.id === metric.id)}
+                          >
+                            {selectedMetrics.some(m => m.id === metric.id) ? 'Añadida' : 'Añadir'}
+                          </Button>
+                          <Button
+                            size="small"
+                            sx={{
+                              ml: 'auto',
+                              borderColor: GREEN,
+                              color: GREEN,
+                              textTransform: 'none',
+                              '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
+                            }}
+                            variant="outlined"
+                            onClick={() => handleConfigureMetric(metric)}
+                            disabled={!selectedMetrics.some(m => m.id === metric.id)}
                           >
                             Configurar
                           </Button>
@@ -837,85 +837,237 @@ const MetricsConfigurationPage = () => {
               </Grid>
             </TabPanel>
 
-            {/* Configuración avanzada */}
+            {/* Métricas seleccionadas */}
             <TabPanel value={tabValue} index={1}>
-              <Typography variant="body1">
-                Configuración avanzada de métricas para el proyecto.
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Métricas seleccionadas
               </Typography>
-              {/* Aquí irá la configuración avanzada */}
+              
+              {selectedMetrics.length === 0 ? (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  No has seleccionado ninguna métrica. Añade métricas desde la pestaña "Métricas disponibles".
+                </Alert>
+              ) : (
+                <Grid container spacing={3}>
+                  {selectedMetrics.map((metric) => (
+                    <Grid item xs={12} sm={6} md={4} key={metric.id}>
+                      <Card
+                        sx={{
+                          position: 'relative',
+                          transition: 'all 0.2s ease-in-out',
+                          border: '1px solid #E0E0E0',
+                          borderRadius: 2,
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
+                          },
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '4px',
+                            height: '100%',
+                            backgroundColor: GREEN,
+                            borderTopLeftRadius: 8,
+                            borderBottomLeftRadius: 8,
+                          },
+                        }}
+                      >
+                        <CardContent sx={{ p: 3 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Typography
+                              variant="h6"
+                              component="div"
+                              sx={{
+                                fontWeight: 600,
+                                mb: 1,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {metric.name}
+                            </Typography>
+                            <Chip
+                              label={metric.category}
+                              size="small"
+                              sx={{
+                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                fontWeight: 500,
+                                fontSize: '0.75rem',
+                              }}
+                            />
+                          </Box>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              mb: 2,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 3,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              WebkitBoxOrient: 'vertical',
+                            }}
+                          >
+                            {metric.description}
+                          </Typography>
+                        </CardContent>
+                        <CardActions sx={{ px: 2, pb: 2, pt: 0, display: 'flex', justifyContent: 'space-between' }}>
+                          <Button
+                            size="small"
+                            sx={{
+                              borderColor: GREEN,
+                              color: GREEN,
+                              textTransform: 'none',
+                              '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
+                            }}
+                            variant="outlined"
+                            startIcon={<SettingsIcon />}
+                            onClick={() => handleConfigureMetric(metric)}
+                          >
+                            Configurar
+                          </Button>
+                          <Button
+                            size="small"
+                            sx={{
+                              borderColor: RED,
+                              color: RED,
+                              textTransform: 'none',
+                              '&:hover': { borderColor: '#D03B40', backgroundColor: 'rgba(229, 72, 77, 0.04)' },
+                            }}
+                            variant="outlined"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => handleRemoveMetric(metric.id)}
+                          >
+                            Eliminar
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
             </TabPanel>
 
             {/* Plantillas */}
             <TabPanel value={tabValue} index={2}>
               {loadingTemplates ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '200px',
-                  }}
-                >
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
                   <CircularProgress />
                 </Box>
               ) : (
                 <>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
+                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 500, color: '#555555' }}>
                     Plantillas de configuración
                   </Typography>
-                  <Typography variant="body2" sx={{ mb: 3 }}>
-                    Seleccione una plantilla para aplicar una configuración predefinida de métricas.
+                  <Typography variant="body2" sx={{ mb: 3, color: '#666' }}>
+                    Aplica una configuración predefinida de métricas para acelerar la puesta en marcha.
                   </Typography>
 
                   <Grid container spacing={3}>
-                    {(!templates || !Array.isArray(templates) || templates.length === 0) ? (
+                    {!templates || !Array.isArray(templates) || templates.length === 0 ? (
                       <Grid item xs={12}>
                         <Paper
                           elevation={0}
                           sx={{
-                            p: 3,
+                            p: 5,
                             textAlign: 'center',
-                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                            borderRadius: 2
+                            borderRadius: 2,
+                            border: '1px dashed #CCCCCC',
+                            backgroundColor: '#FAFAFA',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minHeight: '240px',
                           }}
                         >
-                          <Typography variant="body1" color="textSecondary">
-                            No hay plantillas disponibles.
+                          <CloudUploadIcon sx={{ fontSize: 60, color: GREEN, opacity: 0.7, mb: 2 }} />
+                          <Typography variant="h5" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
+                            No hay plantillas disponibles
+                          </Typography>
+                          <Typography variant="body1" sx={{ color: '#555555', maxWidth: '520px' }}>
+                            Crea plantillas en el backend o habilítalas para poder aplicarlas aquí.
                           </Typography>
                         </Paper>
                       </Grid>
                     ) : (
-                      Array.isArray(templates) && templates.map((template) => (
+                      templates.map((template: any) => (
                         <Grid item xs={12} md={4} key={template.id}>
                           <Card
                             sx={{
                               height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
                               borderRadius: 2,
+                              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+                              transition: 'all 0.3s ease-in-out',
+                              position: 'relative',
+                              overflow: 'visible',
                               border: '1px solid #eee',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
+                              },
+                              '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '4px',
+                                height: '100%',
+                                backgroundColor: GREEN,
+                                borderTopLeftRadius: 8,
+                                borderBottomLeftRadius: 8,
+                              },
                             }}
                           >
-                            <CardContent sx={{ flexGrow: 1 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            <CardContent sx={{ p: 3 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 1 }}>
                                 {template.name}
                               </Typography>
                               <Typography
                                 variant="body2"
-                                color="textSecondary"
-                                sx={{ mb: 2 }}
+                                color="text.secondary"
+                                sx={{
+                                  mb: 2,
+                                  height: '40px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                }}
                               >
                                 {template.description}
                               </Typography>
-                              <Typography variant="body2">
-                                {template.metrics?.length || 0} métricas incluidas
-                              </Typography>
+                              <Chip
+                                label={`${template.metrics?.length || 0} métricas`}
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                                  color: GREEN,
+                                  fontWeight: 500,
+                                  borderRadius: '16px',
+                                }}
+                              />
                             </CardContent>
-                            <CardActions>
+                            <CardActions sx={{ px: 3, pb: 2 }}>
                               <Button
                                 size="small"
-                                color="primary"
+                                variant="outlined"
                                 onClick={() => handleTemplateSelect(template)}
+                                sx={{
+                                  borderColor: GREEN,
+                                  color: GREEN,
+                                  textTransform: 'none',
+                                  '&:hover': {
+                                    borderColor: GREEN_HOVER,
+                                    backgroundColor: 'rgba(0, 179, 126, 0.04)',
+                                  },
+                                }}
                               >
                                 Aplicar plantilla
                               </Button>
@@ -931,20 +1083,81 @@ const MetricsConfigurationPage = () => {
           </>
         )}
 
-        {/* Template dialog */}
-        <Dialog
-          open={templateDialogOpen}
-          onClose={() => setTemplateDialogOpen(false)}
-        >
+        {/* Diálogo de configuración de métricas */}
+      <Dialog
+        open={configDialogOpen}
+        onClose={handleConfigDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Configurar métrica: {currentMetric?.name}
+        </DialogTitle>
+        <DialogContent>
+          {currentMetric && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Parámetros
+              </Typography>
+              
+              {Object.keys(currentMetric.parameters || {}).length === 0 ? (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Esta métrica no tiene parámetros configurables.
+                </Alert>
+              ) : (
+                <Grid container spacing={2}>
+                  {Object.entries(currentMetric.parameters || {}).map(([key, value]: [string, any]) => (
+                    <Grid item xs={12} sm={6} key={key}>
+                      <TextField
+                        fullWidth
+                        label={key}
+                        value={value}
+                        onChange={(e) => {
+                          const updatedMetric = { ...currentMetric };
+                          updatedMetric.parameters = { ...updatedMetric.parameters };
+                          updatedMetric.parameters[key] = e.target.value;
+                          setCurrentMetric(updatedMetric);
+                        }}
+                        variant="outlined"
+                        margin="normal"
+                        helperText={`Parámetro: ${key}`}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleConfigDialogClose} color="inherit">
+            Cancelar
+          </Button>
+          <Button 
+            onClick={() => handleConfigDialogSave(currentMetric)}
+            variant="contained"
+            sx={{ 
+              bgcolor: GREEN, 
+              '&:hover': { bgcolor: GREEN_HOVER } 
+            }}
+          >
+            Guardar configuración
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Diálogo de plantilla */}
+        <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)}>
           <DialogTitle>Aplicar plantilla</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              ¿Está seguro de que desea aplicar la plantilla "{selectedTemplate?.name}"? Esto sobrescribirá cualquier configuración existente para las métricas incluidas en la plantilla.
+              ¿Está seguro de que desea aplicar la plantilla "{selectedTemplate?.name}"? Esto sobrescribirá cualquier
+              configuración existente para las métricas incluidas en la plantilla.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setTemplateDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyTemplate} color="primary">
+            <Button onClick={applyTemplate} sx={{ color: GREEN }}>
               Aplicar
             </Button>
           </DialogActions>
