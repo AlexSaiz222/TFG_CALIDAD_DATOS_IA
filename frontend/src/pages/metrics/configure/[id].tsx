@@ -247,9 +247,9 @@ const MetricsConfigurationPage = () => {
                     console.error(errorMsg);
                     setError(errorMsg);
                   }
-                } catch (parseError) {
+                } catch (parseError: unknown) {
                   console.error('Error al parsear proyectos de localStorage:', parseError);
-                  setError(`Error al recuperar datos de caché: ${parseError.message}`);
+                  setError(`Error al recuperar datos de caché: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
                 }
               } else {
                 const errorMsg = `No se pudo cargar el proyecto con ID ${projectIdNum}. No hay datos en caché.`;
@@ -349,7 +349,7 @@ const MetricsConfigurationPage = () => {
 
         // Cargar configuración actual si existe
         if (project?.metrics_config && Array.isArray(project.metrics_config)) {
-          const selectedMetricsList = [];
+          const selectedMetricsList: typeof selectedMetrics = [];
           const updatedMetrics = metrics.map((metric) => {
             const existingConfig = project.metrics_config.find((m: any) => m.id === metric.id);
             if (existingConfig) {
