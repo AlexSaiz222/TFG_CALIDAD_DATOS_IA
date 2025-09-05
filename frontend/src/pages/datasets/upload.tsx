@@ -268,7 +268,29 @@ const DatasetUpload = () => {
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
             {steps.map((label) => (
               <Step key={label}>
-                <StepLabel>{label}</StepLabel>
+                <StepLabel
+                  sx={{
+                    // Círculo activo
+                    '& .MuiStepIcon-root.Mui-active': {
+                      color: '#00B37E',
+                    },
+                    // Círculo completado
+                    '& .MuiStepIcon-root.Mui-completed': {
+                      color: '#00B37E',
+                    },
+                    // Círculo inactivo
+                    '& .MuiStepIcon-root': {
+                      color: '#CCCCCC',
+                    },
+                    // Texto dentro del círculo (número)
+                    '& .MuiStepIcon-text': {
+                      fill: '#FFFFFF !important', // siempre blanco
+                      fontWeight: 'bold',         // en negrita
+                    },
+                  }}
+                >
+                  {label}
+                </StepLabel>
               </Step>
             ))}
           </Stepper>
