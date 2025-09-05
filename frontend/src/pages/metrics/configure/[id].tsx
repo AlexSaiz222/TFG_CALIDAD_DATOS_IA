@@ -469,7 +469,7 @@ const MetricsConfigurationPage = () => {
       // Llamada a la API con el formato correcto
       await metricsAPI.saveProjectMetricConfigs(pid, configToSave);
       // Actualización optimista del proyecto local
-      setProject(prev => prev ? { ...prev, metrics_config: configToSave.metrics_config } : prev);
+      setProject((prev: any) => prev ? { ...prev, metrics_config: configToSave.metrics_config } : prev);
       setSuccess('Configuración guardada correctamente');
 
       setTimeout(() => {
