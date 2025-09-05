@@ -203,6 +203,7 @@ const MetricsConfigurationPage = () => {
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
+    let projectPayload: any = null; // Variable hoisted to be accessible throughout the effect
 
     const fetchData = async () => {
       if (!projectIdNum && !useDevFallback) {
@@ -228,7 +229,7 @@ const MetricsConfigurationPage = () => {
             if (isMounted) {
               console.log('Proyecto cargado correctamente:', projectResponse.data);
               // Normaliza la respuesta del proyecto al guardarlo en estado
-              const projectPayload = projectResponse?.data?.data ?? projectResponse?.data;
+              projectPayload = projectResponse?.data?.data ?? projectResponse?.data;
               console.log('Payload normalizado del proyecto:', projectPayload);
               setProject(projectPayload);
             }
@@ -263,7 +264,7 @@ const MetricsConfigurationPage = () => {
           }
         } else if (useDevFallback && isMounted) {
           console.log('Usando proyecto de prueba para desarrollo');
-          setProject({
+          projectPayload = {
             id: 0,
             name: 'Proyecto de Prueba',
             description: 'Este es un proyecto de prueba para desarrollo',
@@ -271,7 +272,8 @@ const MetricsConfigurationPage = () => {
             updated_at: new Date().toISOString(),
             owner_id: 1,
             metrics_config: [],
-          });
+          };
+          setProject(projectPayload);
         }
 
         // Métricas
@@ -326,49 +328,46 @@ const MetricsConfigurationPage = () => {
           enabled: false,
           config: {},
         }));
-
-        if (isMounted) {
-          setMetrics(normalizedMetrics);
-          setFilteredMetrics(normalizedMetrics);
-        }
-
-        if (useDevFallback && isMounted) {
-          if (project && project.metrics_config && Array.isArray(project.metrics_config) && project.metrics_config.length > 0) {
-            const updatedMetrics = normalizedMetrics.map((metric: any) => {
-              const configuredMetric = project.metrics_config.find((m: any) => m.metric_id === metric.id);
-              if (configuredMetric) {
-                return {
-                  ...metric,
-                  enabled: true,
-                  config: configuredMetric.parameters || {},
-                };
-              }
-              return metric;
-            });
-            setMetrics(updatedMetrics);
-            setFilteredMetrics(updatedMetrics);
-          }
-        }
-
-        // Cargar configuración actual si existe
-        if (project?.metrics_config && Array.isArray(project.metrics_config)) {
-          const selectedMetricsList: typeof selectedMetrics = [];
-          const updatedMetrics = metrics.map((metric) => {
-            const existingConfig = project.metrics_config.find((m: any) => m.id === metric.id);
-            if (existingConfig) {
-              const configuredMetric = {
+        
+        // Rehidratación con config guardada en el proyecto (usar metric_id y la variable local normalizedMetrics)
+        const projectObj = projectPayload ?? project; // Usar projectPayload si existe, o project como fallback
+        let hydratedMetrics = normalizedMetrics;
+        let hydratedSelected: any[] = [];
+        if (projectObj?.metrics_config && Array.isArray(projectObj.metrics_config)) {
+          console.log('Rehidratando métricas con configuración del proyecto:', projectObj.metrics_config);
+          hydratedMetrics = normalizedMetrics.map((metric: any) => {
+            const cfg = projectObj.metrics_config.find(
+              (m: any) => (m.metric_id ?? m.id) === metric.id
+            );
+            if (cfg) {
+              console.log(`Encontrada configuración para métrica ${metric.id}:`, cfg);
+              const params = cfg.parameters ?? {};
+              const configured = {
                 ...metric,
-                parameters: existingConfig.parameters || metric.parameters,
+                enabled: true,
+                // Usa SIEMPRE 'parameters' como fuente de verdad
+                parameters: { ...metric.parameters, ...params },
+                // (si necesitas 'config' para UI, mantenla en sync)
+                config: { ...metric.parameters, ...params },
               };
-              selectedMetricsList.push(configuredMetric);
-              return configuredMetric;
+              hydratedSelected.push(configured);
+              return configured;
             }
             return metric;
           });
-          setMetrics(updatedMetrics);
-          setFilteredMetrics(updatedMetrics);
-          setSelectedMetrics(selectedMetricsList);
         }
+
+        if (isMounted) {
+          setMetrics(hydratedMetrics || normalizedMetrics);
+          setFilteredMetrics(hydratedMetrics || normalizedMetrics);
+          // Siempre setea; si está vacío, evitas arrastrar selección antigua
+          setSelectedMetrics(hydratedSelected);
+        }
+
+        // Eliminado el bloque redundante de useDevFallback que sobreescribía las métricas
+        // Ya se hizo la rehidratación correctamente arriba
+
+        // La rehidratación ahora se hace directamente después de cargar el proyecto
 
         // Plantillas
         try {
@@ -469,6 +468,8 @@ const MetricsConfigurationPage = () => {
       console.log('Guardando configuración de métricas para proyecto', pid);
       // Llamada a la API con el formato correcto
       await metricsAPI.saveProjectMetricConfigs(pid, configToSave);
+      // Actualización optimista del proyecto local
+      setProject(prev => prev ? { ...prev, metrics_config: configToSave.metrics_config } : prev);
       setSuccess('Configuración guardada correctamente');
 
       setTimeout(() => {
@@ -478,7 +479,7 @@ const MetricsConfigurationPage = () => {
       console.error('Error al guardar la configuración de métricas:', err);
       // Mejorar el mensaje de error para incluir más detalles
       const errorMessage = err.response?.status === 404 
-        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${pid}/metrics/config` 
+        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${project?.id ?? projectIdNum}/metrics/config` 
         : err.response?.data?.message || err.message || 'Error al guardar la configuración de métricas';
       
       setError(errorMessage);
@@ -525,7 +526,11 @@ const MetricsConfigurationPage = () => {
     }
     
     // Add metric to selectedMetrics sin abrir el modal de configuración
-    setSelectedMetrics([...selectedMetrics, { ...metric }]);
+    // Asegurarse de que tenga parameters y config
+    setSelectedMetrics([
+      ...selectedMetrics, 
+      { ...metric, parameters: metric.parameters ?? {}, config: metric.config ?? {} }
+    ]);
   };
   
   const handleRemoveMetric = (metricId: number) => {
@@ -543,8 +548,15 @@ const MetricsConfigurationPage = () => {
   
   const handleConfigDialogSave = (configuredMetric: any) => {
     // Update the metric in selectedMetrics
+    // Asegurarse de que parameters y config estén sincronizados
+    const updatedMetric = {
+      ...configuredMetric,
+      parameters: configuredMetric.parameters || {},
+      config: configuredMetric.config || {}
+    };
+    
     const updatedSelectedMetrics = selectedMetrics.map(metric => 
-      metric.id === configuredMetric.id ? { ...configuredMetric } : metric
+      metric.id === updatedMetric.id ? updatedMetric : metric
     );
     setSelectedMetrics(updatedSelectedMetrics);
     setConfigDialogOpen(false);
@@ -559,12 +571,14 @@ const MetricsConfigurationPage = () => {
     if (!selectedTemplate) return;
 
     const updatedMetrics = metrics.map((metric) => {
-      const templateMetric = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
-      if (templateMetric) {
+      const tmpl = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
+      if (tmpl) {
+        const params = tmpl.parameters || {};
         return {
           ...metric,
           enabled: true,
-          config: templateMetric.parameters || {},
+          parameters: { ...metric.parameters, ...params },
+          config: { ...metric.config, ...params }, // mantener ambas en sync
         };
       }
       return metric;
@@ -573,12 +587,14 @@ const MetricsConfigurationPage = () => {
     setMetrics(updatedMetrics);
 
     const updatedFilteredMetrics = filteredMetrics.map((metric) => {
-      const templateMetric = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
-      if (templateMetric) {
+      const tmpl = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
+      if (tmpl) {
+        const params = tmpl.parameters || {};
         return {
           ...metric,
           enabled: true,
-          config: templateMetric.parameters || {},
+          parameters: { ...metric.parameters, ...params },
+          config: { ...metric.config, ...params }, // mantener ambas en sync
         };
       }
       return metric;
