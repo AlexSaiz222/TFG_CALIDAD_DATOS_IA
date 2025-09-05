@@ -227,7 +227,10 @@ const MetricsConfigurationPage = () => {
             const projectResponse = await projectsAPI.getProject(projectIdNum);
             if (isMounted) {
               console.log('Proyecto cargado correctamente:', projectResponse.data);
-              setProject(projectResponse.data);
+              // Normaliza la respuesta del proyecto al guardarlo en estado
+              const projectPayload = projectResponse?.data?.data ?? projectResponse?.data;
+              console.log('Payload normalizado del proyecto:', projectPayload);
+              setProject(projectPayload);
             }
           } catch (projectError: any) {
             console.error('Error al cargar proyecto:', projectError);
@@ -455,8 +458,17 @@ const MetricsConfigurationPage = () => {
 
       console.log('Enviando configuración a la API:', JSON.stringify(configToSave));
       
+      // Usa un fallback seguro para el ID al guardar
+      const pid = project?.id ?? projectIdNum;
+      if (!pid) {
+        setError('No se pudo determinar el ID de proyecto para guardar la configuración.');
+        setSaving(false);
+        return;
+      }
+      
+      console.log('Guardando configuración de métricas para proyecto', pid);
       // Llamada a la API con el formato correcto
-      await metricsAPI.saveProjectMetricConfigs(project.id, configToSave);
+      await metricsAPI.saveProjectMetricConfigs(pid, configToSave);
       setSuccess('Configuración guardada correctamente');
 
       setTimeout(() => {
@@ -466,7 +478,7 @@ const MetricsConfigurationPage = () => {
       console.error('Error al guardar la configuración de métricas:', err);
       // Mejorar el mensaje de error para incluir más detalles
       const errorMessage = err.response?.status === 404 
-        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${project.id}/metrics/config` 
+        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${pid}/metrics/config` 
         : err.response?.data?.message || err.message || 'Error al guardar la configuración de métricas';
       
       setError(errorMessage);
