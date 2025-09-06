@@ -133,6 +133,77 @@ const ProjectDetail = () => {
         
         setProject(normalized);
 
+        // Función para normalizar métricas a un formato amigable para la UI
+        const normalizeMetrics = (arr: any[]) => (arr || []).map((m: any, idx: number) => {
+          // Preservar el nombre original de la métrica si existe
+          let metricName = m.name;
+          let metricDescription = m.description;
+          
+          // Identificar el tipo de métrica basado en el ID o nombre
+          const metricId = m.metric_id ?? m.id ?? idx;
+          const metricType = typeof m.type === 'string' ? m.type : '';
+          
+          // Si no hay nombre, intentar determinar el nombre basado en el tipo o ID
+          if (!metricName) {
+            // Nombres de métricas conocidas
+            const knownMetrics: Record<string, {name: string, description: string}> = {
+              'timeliness': {
+                name: 'timeliness',
+                description: 'Assesses if data is up-to-date'
+              },
+              'class_balance': {
+                name: 'class_balance',
+                description: 'Evaluates balance of target classes for classification tasks'
+              },
+              'feature_correlation': {
+                name: 'feature_correlation',
+                description: 'Measures correlation between features'
+              },
+              'drift': {
+                name: 'drift',
+                description: 'Detects data drift between training and production data'
+              }
+            };
+            
+            // Buscar por ID o nombre en métricas conocidas
+            const metricKey = String(metricId).toLowerCase();
+            if (knownMetrics[metricKey]) {
+              metricName = knownMetrics[metricKey].name;
+              metricDescription = knownMetrics[metricKey].description;
+            } else if (m.parameters) {
+              // Si no es una métrica conocida, intentar determinar por parámetros
+              if (m.parameters.threshold) {
+                metricName = `${metricType || 'Completitud'} (${m.parameters.threshold})`;
+                metricDescription = `Mide el porcentaje de valores no nulos en el dataset con un umbral de ${m.parameters.threshold}`;
+              } else if (m.parameters.columns && Array.isArray(m.parameters.columns)) {
+                metricName = metricType || 'Unicidad de Columnas';
+                metricDescription = `Verifica la unicidad de valores en columnas seleccionadas`;
+              } else if (m.parameters.method) {
+                metricName = `${metricType || m.parameters.method}`;
+                metricDescription = `Análisis usando el método ${m.parameters.method}`;
+              } else {
+                // Si no hay suficiente información, usar un nombre genérico
+                metricName = `Métrica ${metricId}`;
+              }
+            } else {
+              // Si no hay parámetros, usar un nombre genérico
+              metricName = `Métrica ${metricId}`;
+            }
+          }
+          
+          return {
+            id: m.id ?? m.metric_id ?? idx,
+            metric_id: m.metric_id ?? m.id ?? idx,
+            name: metricName,
+            description: metricDescription ?? 'Sin descripción',
+            parameters: m.parameters ?? {},
+            category: m.category ?? 'general',
+            created_at: m.created_at ?? new Date().toISOString(),
+            updated_at: m.updated_at ?? new Date().toISOString(),
+            type: m.type || metricType || 'general'
+          };
+        });
+
         // Cargar datasets asociados al proyecto
         try {
           const datasetsResponse = await datasetsAPI.getDatasets(projectId);
@@ -152,34 +223,106 @@ const ProjectDetail = () => {
           }
         }
 
+        // Cargar todas las métricas disponibles primero para tener la información completa
+        let availableMetrics: any[] = [];
+        try {
+          console.log('Cargando catálogo completo de métricas');
+          const allMetricsResponse = await metricsAPI.getMetrics();
+          if (allMetricsResponse && allMetricsResponse.data) {
+            if (Array.isArray(allMetricsResponse.data)) {
+              availableMetrics = allMetricsResponse.data;
+            } else if (allMetricsResponse.data.metrics && Array.isArray(allMetricsResponse.data.metrics)) {
+              availableMetrics = allMetricsResponse.data.metrics;
+            }
+            console.log('Catálogo de métricas cargado:', availableMetrics);
+          }
+        } catch (error) {
+          console.warn('Error al cargar el catálogo de métricas:', error);
+        }
+
         // Cargar métricas configuradas para el proyecto
         try {
           console.log('Solicitando métricas para el proyecto:', projectId);
           const metricsResponse = await metricsAPI.getProjectMetricConfigs(projectId);
           console.log('Respuesta de métricas recibida:', metricsResponse);
           
-          // Asegurar que metricsResponse es un objeto con propiedad data
-          const metricsData = metricsResponse && typeof metricsResponse === 'object' && 'data' in metricsResponse
+          // Obtener datos crudos de la API
+          const rawMetrics = metricsResponse && typeof metricsResponse === 'object' && 'data' in metricsResponse
             ? (metricsResponse.data as any)?.data ?? metricsResponse.data ?? []
             : [];
           
-          console.log('Datos de métricas procesados:', metricsData);
+          console.log('Datos de métricas procesados:', rawMetrics);
           
-          // Si no hay métricas, usar las métricas de ejemplo del proyecto
-          if (Array.isArray(metricsData) && metricsData.length === 0 && project.metrics_config && Array.isArray(project.metrics_config) && project.metrics_config.length > 0) {
-            console.log('Usando métricas del objeto proyecto:', project.metrics_config);
-            setMetrics(project.metrics_config);
+          // Enriquecer las métricas del proyecto con información del catálogo completo
+          const enrichedMetrics = Array.isArray(rawMetrics) ? rawMetrics.map(metric => {
+            const metricId = metric.metric_id ?? metric.id;
+            // Buscar la métrica en el catálogo completo
+            const fullMetricInfo = availableMetrics.find(m => 
+              (m.id === metricId || m.metric_id === metricId) || 
+              (typeof m.name === 'string' && typeof metric.name === 'string' && 
+               m.name.toLowerCase() === metric.name.toLowerCase())
+            );
+            
+            // Combinar la información
+            return {
+              ...metric,
+              name: fullMetricInfo?.name || metric.name || `Métrica ${metricId}`,
+              description: fullMetricInfo?.description || metric.description || 'Sin descripción',
+              category: fullMetricInfo?.category || metric.category || 'general',
+            };
+          }) : [];
+          
+          // Si no hay métricas enriquecidas, intentar usar las del proyecto
+          if (enrichedMetrics.length === 0 && Array.isArray(normalized.metrics_config) && normalized.metrics_config.length > 0) {
+            console.log('Usando métricas del objeto proyecto:', normalized.metrics_config);
+            const projectMetrics = normalized.metrics_config.map(metric => {
+              const metricId = metric.metric_id ?? metric.id;
+              // Buscar la métrica en el catálogo completo
+              const fullMetricInfo = availableMetrics.find(m => 
+                (m.id === metricId || m.metric_id === metricId) || 
+                (typeof m.name === 'string' && typeof metric.name === 'string' && 
+                 m.name.toLowerCase() === metric.name.toLowerCase())
+              );
+              
+              // Combinar la información
+              return {
+                ...metric,
+                name: fullMetricInfo?.name || metric.name || `Métrica ${metricId}`,
+                description: fullMetricInfo?.description || metric.description || 'Sin descripción',
+                category: fullMetricInfo?.category || metric.category || 'general',
+              };
+            });
+            setMetrics(projectMetrics);
           } else {
-            setMetrics(Array.isArray(metricsData) ? metricsData : []);
+            console.log('Métricas enriquecidas:', enrichedMetrics);
+            setMetrics(enrichedMetrics);
           }
         } catch (metricsError: any) {
           console.warn('Error al cargar métricas:', metricsError);
-          // Si es un error 404, simplemente consideramos que no hay métricas configuradas
-          if (metricsError?.response?.status === 404) {
-            console.log('No se encontró el endpoint de métricas, tratando como array vacío');
-            setMetrics([]);
+          // Si hay error, intentar usar las métricas del proyecto como fallback
+          if (Array.isArray(normalized.metrics_config) && normalized.metrics_config.length > 0) {
+            console.log('Usando métricas del objeto proyecto como fallback:', normalized.metrics_config);
+            const projectMetrics = normalized.metrics_config.map(metric => {
+              const metricId = metric.metric_id ?? metric.id;
+              // Buscar la métrica en el catálogo completo
+              const fullMetricInfo = availableMetrics.find(m => 
+                (m.id === metricId || m.metric_id === metricId) || 
+                (typeof m.name === 'string' && typeof metric.name === 'string' && 
+                 m.name.toLowerCase() === metric.name.toLowerCase())
+              );
+              
+              // Combinar la información
+              return {
+                ...metric,
+                name: fullMetricInfo?.name || metric.name || `Métrica ${metricId}`,
+                description: fullMetricInfo?.description || metric.description || 'Sin descripción',
+                category: fullMetricInfo?.category || metric.category || 'general',
+              };
+            });
+            setMetrics(projectMetrics);
           } else {
-            console.error('Error al cargar métricas:', metricsError?.message);
+            console.log('No se encontraron métricas en el proyecto ni en la API');
+            setMetrics([]);
           }
         }
 
