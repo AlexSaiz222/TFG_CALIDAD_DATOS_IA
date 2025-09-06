@@ -83,8 +83,21 @@ const NewProject = () => {
 
   return (
     <MainLayout>
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
+        mb: 4,
+        px: 3 // Add horizontal padding for small screens
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 3,
+          width: '100%',
+          maxWidth: 700 // Increased max width
+        }}>
           <IconButton 
             onClick={() => router.back()} 
             sx={{ mr: 2 }}
@@ -92,7 +105,7 @@ const NewProject = () => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
             New Project
           </Typography>
         </Box>
@@ -100,10 +113,12 @@ const NewProject = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 3,
+            p: { xs: 3, sm: 4 }, // Increased padding
             borderRadius: 2,
             border: '1px solid #EEEEEE',
-            maxWidth: 800,
+            width: '100%',
+            maxWidth: 700, // Increased max width
+            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)', // Slightly stronger shadow
           }}
         >
           {error && (
@@ -112,7 +127,7 @@ const NewProject = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <TextField
               fullWidth
               label="Project Name"
@@ -121,8 +136,10 @@ const NewProject = () => {
               onChange={handleChange}
               error={!!errors.name}
               helperText={errors.name}
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }}
               required
+              size="small"
+              variant="outlined"
             />
             
             <TextField
@@ -132,12 +149,19 @@ const NewProject = () => {
               value={formData.description}
               onChange={handleChange}
               multiline
-              rows={4}
-              sx={{ mb: 3 }}
+              rows={4} // Increased rows
+              sx={{ mb: 4 }}
               placeholder="Enter a description for your project (optional)"
+              size="small"
+              variant="outlined"
             />
             
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: 2,
+              mt: 2
+            }}>
               <Button
                 variant="outlined"
                 onClick={() => router.back()}
@@ -145,6 +169,8 @@ const NewProject = () => {
                 sx={{
                   borderColor: '#CCCCCC',
                   color: '#555555',
+                  px: 3,
+                  py: 1,
                   '&:hover': {
                     borderColor: '#AAAAAA',
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -160,12 +186,14 @@ const NewProject = () => {
                 sx={{
                   backgroundColor: '#00B37E',
                   color: '#FFFFFF',
+                  px: 3,
+                  py: 1,
                   '&:hover': {
                     backgroundColor: '#00A070',
                   },
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Project'}
+                {loading ? <CircularProgress size={20} color="inherit" /> : 'Create project'}
               </Button>
             </Box>
           </Box>
