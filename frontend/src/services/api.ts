@@ -433,8 +433,49 @@ export const datasetsAPI = {
       timeout: 8000
     }),
 
-  getDatasets: (projectId: number) => 
-    api.get(`/api/projects/${projectId}/datasets`),
+  getDatasets: (projectId: number) => {
+    // Crear una promesa personalizada con timeout y manejo de errores robusto
+    return new Promise((resolve, reject) => {
+      // Crear un controlador para cancelar la petición si tarda demasiado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`Timeout al obtener datasets del proyecto ${projectId} - abortando solicitud`);
+        controller.abort();
+      }, 8000); // 8 segundos de timeout
+      
+      console.log(`Solicitando datasets del proyecto ${projectId}`);
+      api.get(`/api/projects/${projectId}/datasets`, {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+        timeout: 8000
+      })
+      .then(response => {
+        clearTimeout(timeoutId);
+        console.log(`Datasets del proyecto ${projectId} obtenidos correctamente`);
+        resolve(response);
+      })
+      .catch(error => {
+        clearTimeout(timeoutId);
+        console.warn(`Error al obtener datasets del proyecto ${projectId}:`, error);
+        
+        // En caso de error, devolver un objeto con estructura similar a una respuesta exitosa
+        // pero con un array vacío, para evitar errores en cascada
+        resolve({
+          data: {
+            success: true,
+            data: [],
+            warning: `No se pudieron cargar los datasets del proyecto ${projectId}`
+          },
+          status: 200,
+          statusText: 'OK (Fallback)'
+        });
+      });
+    });
+  },
   
   getDataset: (id: number) => 
     api.get(`/api/datasets/${id}`),

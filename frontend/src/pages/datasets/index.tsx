@@ -106,140 +106,105 @@ const DatasetsList = () => {
   };
 
   useEffect(() => {
+    // Referencia para controlar si el componente está montado
+    const isMountedRef = { current: true };
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-
-      try {
-        // Intentar primero con el endpoint /api/datasets
-        try {
-          console.log('Intentando obtener datasets desde /api/datasets');
-          const datasetsResponse = await axios.get('/api/datasets', {
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0',
-            },
-            timeout: 8000
-          });
-          
-          // Normalize the response structure
-          const datasetsData = datasetsResponse?.data?.data ?? datasetsResponse?.data ?? [];
-          
-          if (Array.isArray(datasetsData) && datasetsData.length > 0) {
-            console.log('Datasets obtenidos correctamente desde /api/datasets');
-            setDatasets(datasetsData);
-            
-            // Extract unique project IDs
-            const uniqueIds = new Set<number>();
-            datasetsData.forEach(dataset => uniqueIds.add(dataset.project_id));
-            const projectIds = Array.from(uniqueIds);
-            
-            // Fetch project details for each unique project ID
-            const projectsMap: Record<number, Project> = {};
-            
-            await Promise.all(
-              projectIds.map(async (projectId) => {
-                try {
-                  const projectResponse = await projectsAPI.getProject(projectId);
-                  const projectData = projectResponse?.data?.data ?? projectResponse?.data ?? {};
-                  projectsMap[projectId] = projectData;
-                } catch (err) {
-                  console.warn(`Failed to fetch project ${projectId}:`, err);
-                  // Use a placeholder for failed project fetches
-                  projectsMap[projectId] = { id: projectId, name: `Project ${projectId}` } as Project;
-                }
-              })
-            );
-            
-            setProjects(projectsMap);
-            return; // Salir de la función si todo fue exitoso
-          } else {
-            console.warn('Respuesta de /api/datasets no es un array válido, intentando método alternativo');
-          }
-        } catch (error) {
-          console.warn('Error al obtener datasets desde /api/datasets, intentando método alternativo:', error);
-        }
+      
+      // Crear un controlador para cancelar peticiones
+      const controller = new AbortController();
+      
+      // Establecer un timeout global para toda la operación
+      const globalTimeoutId = setTimeout(() => {
+        console.log('Timeout global alcanzado, cancelando todas las peticiones pendientes');
+        controller.abort();
         
-        // MÉTODO ALTERNATIVO: Obtener todos los proyectos y luego los datasets de cada proyecto
-        console.log('Usando método alternativo para obtener datasets');
-        
-        // 1. Obtener todos los proyectos
-        const projectsResponse = await projectsAPI.getProjects();
-        let allProjects: Project[] = [];
-        
-        if (Array.isArray(projectsResponse)) {
-          allProjects = projectsResponse;
-        } else if (projectsResponse?.data) {
-          allProjects = Array.isArray(projectsResponse.data) ? projectsResponse.data : [];
-        }
-        
-        if (allProjects.length === 0) {
-          console.warn('No se encontraron proyectos, usando datos de ejemplo');
+        // Solo actualizar el estado si el componente sigue montado
+        if (isMountedRef.current) {
           setDatasets(exampleDatasets);
           setProjects(exampleProjects);
-          setError('No se pudieron cargar los proyectos. Mostrando datos de ejemplo.');
-          return;
+          setError('Se agotó el tiempo de espera. Mostrando datos de ejemplo.');
+          setLoading(false);
         }
+      }, 15000); // 15 segundos de timeout global
+
+      try {
+        // ESTRATEGIA Única: Usar datasetsAPI.getAllDatasets que es la que funciona
+        console.log('Obteniendo datasets con datasetsAPI.getAllDatasets');
+        const datasetsResponse = await datasetsAPI.getAllDatasets();
+        const datasetsData = datasetsResponse?.data?.data ?? datasetsResponse?.data ?? [];
         
-        // 2. Crear mapa de proyectos
-        const projectsMap: Record<number, Project> = {};
-        allProjects.forEach(project => {
-          projectsMap[project.id] = project;
-        });
+        // Solo continuar si el componente sigue montado
+        if (!isMountedRef.current) return;
         
-        // 3. Obtener datasets de cada proyecto
-        const allDatasets: Dataset[] = [];
-        
-        await Promise.all(
-          allProjects.map(async (project) => {
-            try {
-              const datasetsResponse = await axios.get(`/api/projects/${project.id}/datasets`, {
-                headers: {
-                  'Cache-Control': 'no-cache, no-store, must-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0',
-                },
-                timeout: 8000
-              });
-              
-              const projectDatasets = datasetsResponse?.data?.data ?? datasetsResponse?.data ?? [];
-              
-              if (Array.isArray(projectDatasets)) {
-                allDatasets.push(...projectDatasets);
+        if (Array.isArray(datasetsData) && datasetsData.length > 0) {
+          console.log(`Obtenidos ${datasetsData.length} datasets correctamente`);
+          setDatasets(datasetsData);
+          
+          // Extract unique project IDs
+          const uniqueIds = new Set<number>();
+          datasetsData.forEach(dataset => uniqueIds.add(dataset.project_id));
+          const projectIds = Array.from(uniqueIds);
+          
+          // Fetch project details for each unique project ID
+          const projectsMap: Record<number, Project> = {};
+          
+          await Promise.all(
+            projectIds.map(async (projectId) => {
+              try {
+                const projectResponse = await projectsAPI.getProject(projectId);
+                const projectData = projectResponse?.data?.data ?? projectResponse?.data ?? {};
+                projectsMap[projectId] = projectData;
+              } catch (err) {
+                console.warn(`Error al obtener detalles del proyecto ${projectId}:`, err);
+                // Use a placeholder for failed project fetches
+                projectsMap[projectId] = { id: projectId, name: `Project ${projectId}` } as Project;
               }
-            } catch (err) {
-              console.warn(`Error al obtener datasets del proyecto ${project.id}:`, err);
-            }
-          })
-        );
-        
-        if (allDatasets.length > 0) {
-          console.log(`Obtenidos ${allDatasets.length} datasets de ${allProjects.length} proyectos`);
-          setDatasets(allDatasets);
-          setProjects(projectsMap);
+            })
+          );
+          
+          // Solo actualizar el estado si el componente sigue montado
+          if (isMountedRef.current) {
+            setProjects(projectsMap);
+          }
         } else {
-          console.warn('No se encontraron datasets en ningún proyecto, usando datos de ejemplo');
+          console.warn('No se encontraron datasets, usando datos de ejemplo');
           setDatasets(exampleDatasets);
           setProjects(exampleProjects);
           setError('No se encontraron datasets en tus proyectos. Mostrando datos de ejemplo.');
         }
       } catch (err: any) {
-        console.error('Error fetching datasets:', err);
+        console.error('Error al obtener datasets:', err);
         
-        // Si hay un error 500 o cualquier otro error, usar datos de ejemplo
-        console.log('Usando datos de ejemplo debido al error');
-        setDatasets(exampleDatasets);
-        setProjects(exampleProjects);
-        
-        // Mostrar mensaje de error más amigable
-        setError('No se pudieron cargar los datasets del servidor. Mostrando datos de ejemplo para demostración.');
+        // Solo actualizar el estado si el componente sigue montado
+        if (isMountedRef.current) {
+          // Si hay un error, usar datos de ejemplo
+          console.log('Usando datos de ejemplo debido al error');
+          setDatasets(exampleDatasets);
+          setProjects(exampleProjects);
+          
+          // Mostrar mensaje de error más amigable
+          setError('No se pudieron cargar los datasets del servidor. Mostrando datos de ejemplo para demostración.');
+        }
       } finally {
-        setLoading(false);
+        // Limpiar el timeout global si aún no se ha disparado
+        clearTimeout(globalTimeoutId);
+        
+        // Solo actualizar el estado si el componente sigue montado
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+    
+    // Cleanup function para evitar actualizar el estado después de desmontar
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
