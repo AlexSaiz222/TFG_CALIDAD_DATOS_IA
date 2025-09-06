@@ -37,6 +37,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI, metricsAPI } from '../../services/api';
@@ -439,6 +440,9 @@ const ProjectDetail = () => {
       <Box sx={{ mb: 4 }}>
         {/* Cabecera */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <IconButton onClick={() => router.push('/projects')} sx={{ mr: 2 }}>
+            <ArrowBackIcon />
+          </IconButton>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
               {project.name}
