@@ -33,6 +33,7 @@ import {
   ChevronLeft as ChevronLeftIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
+  Dataset as DatasetIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
@@ -147,6 +148,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Projects', icon: <StorageIcon />, path: '/projects' },
+    { text: 'Datasets', icon: <DatasetIcon />, path: '/datasets' },
     { text: 'Evaluations', icon: <AssessmentIcon />, path: '/evaluations' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];

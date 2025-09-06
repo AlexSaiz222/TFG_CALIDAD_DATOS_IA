@@ -52,6 +52,9 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_object)
     
+    # Desactivar strict_slashes para evitar redirecciones 308
+    app.url_map.strict_slashes = False
+    
     # Asegurar que existe el directorio de logs
     ensure_log_directory()
     
@@ -102,7 +105,8 @@ def create_app(config_name=None):
         return jsonify({
             'success': False,
             'error': 'token_expired',
-            'message': 'El token ha expirado'
+            'message': 'El token ha expirado',
+            'data': []  # Incluir data vacío para compatibilidad con frontend
         }), 401
     
     @jwt.invalid_token_loader
@@ -110,7 +114,8 @@ def create_app(config_name=None):
         return jsonify({
             'success': False,
             'error': 'invalid_token',
-            'message': 'Token inválido'
+            'message': 'Token inválido',
+            'data': []  # Incluir data vacío para compatibilidad con frontend
         }), 401
         
     @jwt.unauthorized_loader
@@ -119,7 +124,8 @@ def create_app(config_name=None):
         return jsonify({
             'success': False,
             'error': 'authorization_required',
-            'message': 'Se requiere token de autorización'
+            'message': 'Se requiere token de autorización',
+            'data': []  # Incluir data vacío para compatibilidad con frontend
         }), 401
         
     @jwt.invalid_token_loader
@@ -128,7 +134,8 @@ def create_app(config_name=None):
         return jsonify({
             'success': False,
             'error': 'invalid_token',
-            'message': f'Token inválido: {error}'
+            'message': f'Token inválido: {error}',
+            'data': []  # Incluir data vacío para compatibilidad con frontend
         }), 401
         
     @jwt.token_verification_failed_loader
@@ -137,7 +144,8 @@ def create_app(config_name=None):
         return jsonify({
             'success': False,
             'error': 'token_verification_failed',
-            'message': 'La verificación del token ha fallado'
+            'message': 'La verificación del token ha fallado',
+            'data': []  # Incluir data vacío para compatibilidad con frontend
         }), 401
         
     # Nota: decode_error_loader no está disponible en esta versión de Flask-JWT-Extended
@@ -177,7 +185,8 @@ def create_app(config_name=None):
         return jsonify({
             "success": False,
             "error": "Internal server error",
-            "message": "Se ha producido un error inesperado"
+            "message": "Se ha producido un error inesperado",
+            "data": []  # Incluir data vacío para compatibilidad con frontend
         }), 500
     
     return app

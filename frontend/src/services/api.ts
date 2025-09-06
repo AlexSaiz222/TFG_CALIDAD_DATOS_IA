@@ -423,6 +423,16 @@ export const projectsAPI = {
 
 // Datasets API
 export const datasetsAPI = {
+  getAllDatasets: () => 
+    api.get('/api/datasets', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+      timeout: 8000
+    }),
+
   getDatasets: (projectId: number) => 
     api.get(`/api/projects/${projectId}/datasets`),
   
