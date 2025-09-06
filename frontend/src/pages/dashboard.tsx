@@ -540,7 +540,7 @@ function Dashboard() {
               padding: '6px 16px',
             }}
           >
-            View All Metrics
+            View all metrics
           </Button>
         </Box>
         

@@ -154,12 +154,24 @@ const ProjectDetail = () => {
 
         // Cargar métricas configuradas para el proyecto
         try {
+          console.log('Solicitando métricas para el proyecto:', projectId);
           const metricsResponse = await metricsAPI.getProjectMetricConfigs(projectId);
+          console.log('Respuesta de métricas recibida:', metricsResponse);
+          
           // Asegurar que metricsResponse es un objeto con propiedad data
           const metricsData = metricsResponse && typeof metricsResponse === 'object' && 'data' in metricsResponse
             ? (metricsResponse.data as any)?.data ?? metricsResponse.data ?? []
             : [];
-          setMetrics(Array.isArray(metricsData) ? metricsData : []);
+          
+          console.log('Datos de métricas procesados:', metricsData);
+          
+          // Si no hay métricas, usar las métricas de ejemplo del proyecto
+          if (Array.isArray(metricsData) && metricsData.length === 0 && project.metrics_config && Array.isArray(project.metrics_config) && project.metrics_config.length > 0) {
+            console.log('Usando métricas del objeto proyecto:', project.metrics_config);
+            setMetrics(project.metrics_config);
+          } else {
+            setMetrics(Array.isArray(metricsData) ? metricsData : []);
+          }
         } catch (metricsError: any) {
           console.warn('Error al cargar métricas:', metricsError);
           // Si es un error 404, simplemente consideramos que no hay métricas configuradas
@@ -340,20 +352,12 @@ const ProjectDetail = () => {
           }}
         >
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 500, color: '#1A1A1A' }}>
-            Información del Proyecto
+            Información del proyecto
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                ID del Proyecto
-              </Typography>
-              <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                {project.id}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="body2" sx={{ color: '#555555' }}>
-                Fecha de Creación
+                Fecha de creación
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {project.created_at ? new Date(project.created_at).toLocaleDateString() : '—'}
@@ -361,7 +365,7 @@ const ProjectDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Última Actualización
+                Última actualización
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {project.updated_at ? new Date(project.updated_at).toLocaleDateString() : '—'}
@@ -373,6 +377,14 @@ const ProjectDetail = () => {
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {datasets.length}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="body2" sx={{ color: '#555555' }}>
+                Métricas aplicadas
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {metrics.length}
               </Typography>
             </Grid>
           </Grid>
@@ -434,7 +446,7 @@ const ProjectDetail = () => {
                     <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Filas</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Columnas</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Fecha de Creación</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Fecha de creación</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
@@ -483,20 +495,6 @@ const ProjectDetail = () => {
               <Typography variant="body1" sx={{ color: '#555555', mb: 3 }}>
                 Añade un dataset para comenzar a evaluar la calidad de tus datos.
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAddDataset}
-                sx={{
-                  backgroundColor: GREEN,
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: GREEN_HOVER,
-                  },
-                }}
-              >
-                Añadir Dataset
-              </Button>
             </Box>
           )}
         </TabPanel>
@@ -532,7 +530,7 @@ const ProjectDetail = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                         <AssessmentIcon sx={{ color: GREEN }} />
                         <Typography variant="h6" sx={{ fontWeight: 500 }}>
-                          Métrica {metric.metric_id || metric.id}
+                          {metric.name || `Métrica ${metric.metric_id || metric.id}`}
                         </Typography>
                       </Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -572,20 +570,6 @@ const ProjectDetail = () => {
               <Typography variant="body1" sx={{ color: '#555555', mb: 3 }}>
                 Configura métricas para evaluar la calidad de tus datasets.
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<SettingsIcon />}
-                onClick={handleConfigureMetrics}
-                sx={{
-                  backgroundColor: GREEN,
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: GREEN_HOVER,
-                  },
-                }}
-              >
-                Configurar Métricas
-              </Button>
             </Box>
           )}
         </TabPanel>
