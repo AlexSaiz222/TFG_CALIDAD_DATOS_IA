@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -78,37 +78,119 @@ const DatasetDetail = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [previewColumns, setPreviewColumns] = useState<string[]>([]);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchDatasetData = async () => {
-      if (!datasetId) return;
+      // Check if datasetId is valid
+      if (datasetId === undefined || isNaN(datasetId)) {
+        console.error('Invalid dataset ID:', datasetId);
+        setLoading(false);
+        setError('ID de dataset inválido o no especificado.');
+        return;
+      }
+
+      // Evitar doble fetch en modo desarrollo (React Strict Mode)
+      if (fetchedRef.current) {
+        return;
+      }
+      fetchedRef.current = true;
 
       setLoading(true);
       setError(null);
+      setPreviewError(null);
 
       try {
+        console.log('Fetching dataset with ID:', datasetId);
+        
         // Fetch dataset details
         const datasetResponse = await datasetsAPI.getDataset(datasetId);
-        setDataset(datasetResponse.data);
+        
+        // Check if we got a valid response
+        if (!datasetResponse?.data) {
+          console.error('No data returned for dataset:', datasetId);
+          setError('No se pudo cargar la información del dataset.');
+          setLoading(false);
+          return;
+        }
+        
+        // Normalizar el objeto dataset para manejar diferentes formatos de respuesta
+        const raw = datasetResponse?.data?.data ?? datasetResponse?.data ?? {};
+        const normalized: Dataset = {
+          id: raw.id,
+          name: raw.name || 'Dataset sin nombre',
+          description: raw.description ?? '',
+          project_id: raw.project_id ?? raw.projectId,
+          file_path: raw.file_path ?? raw.filePath ?? '',
+          file_size: raw.file_size ?? raw.fileSize ?? 0,
+          row_count: raw.row_count ?? raw.rowCount ?? raw.rows ?? 0,
+          column_count: raw.column_count ?? raw.columnCount ?? (Array.isArray(raw.columns) ? raw.columns.length : 0),
+          schema: raw.schema ?? [],
+          created_at: raw.created_at ?? raw.createdAt ?? new Date().toISOString(),
+          updated_at: raw.updated_at ?? raw.updatedAt ?? new Date().toISOString(),
+          evaluation_count: raw.evaluation_count ?? raw.evaluationCount ?? 0
+        };
+        
+        setDataset(normalized);
 
         // Fetch evaluations for this dataset
-        const evaluationsResponse = await evaluationsAPI.getEvaluations(datasetId);
-        setEvaluations(evaluationsResponse.data);
-
-        // Fetch preview data
-        const previewResponse = await datasetsAPI.previewDataset(datasetId);
-        if (previewResponse.data && previewResponse.data.data) {
-          setPreviewData(previewResponse.data.data);
-          if (previewResponse.data.columns) {
-            setPreviewColumns(previewResponse.data.columns);
+        try {
+          const evaluationsResponse = await evaluationsAPI.getEvaluations(datasetId);
+          setEvaluations(evaluationsResponse?.data || []);
+          
+          // Fetch issues if there are evaluations
+          if (evaluationsResponse?.data?.length > 0) {
+            const latestEvaluation = evaluationsResponse.data[0];
+            try {
+              const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
+              setIssues(issuesResponse?.data || []);
+            } catch (issueError) {
+              console.warn('Error fetching issues:', issueError);
+              // Don't fail the whole page load for issues
+            }
+          }
+        } catch (evalError: any) {
+          console.warn('Error fetching evaluations:', evalError);
+          
+          // Si es un error 404, simplemente consideramos que no hay evaluaciones
+          if (evalError?.response?.status === 404) {
+            console.log('No evaluations endpoint found, treating as empty evaluations');
+            setEvaluations([]);
+          } else {
+            // Otro tipo de error, pero no bloqueamos la carga de la página
+            console.error('Error al cargar evaluaciones:', evalError?.message);
           }
         }
 
-        // Fetch issues if there are evaluations
-        if (evaluationsResponse.data.length > 0) {
-          const latestEvaluation = evaluationsResponse.data[0];
-          const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
-          setIssues(issuesResponse.data);
+        // Fetch preview data
+        try {
+          const previewResponse = await datasetsAPI.previewDataset(datasetId);
+          if (previewResponse?.data?.data) {
+            setPreviewData(previewResponse.data.data);
+            if (previewResponse.data.columns) {
+              setPreviewColumns(previewResponse.data.columns);
+            } else if (previewResponse.data.data.length > 0) {
+              // Si no hay columnas explícitas pero sí hay datos, usar las claves del primer objeto
+              setPreviewColumns(Object.keys(previewResponse.data.data[0] || {}));
+            }
+          }
+        } catch (previewError: any) {
+          console.warn('Error fetching preview data:', previewError);
+          
+          // Extraer mensaje de error para mostrar al usuario
+          const errorMessage = previewError?.response?.data?.message || 
+                              previewError?.message || 
+                              'No se pudo cargar la vista previa';
+          
+          // Si es un error de CSV sin columnas o vacío, mostrar mensaje más amigable
+          if (errorMessage.includes('No columns to parse') || 
+              errorMessage.includes('Error reading CSV')) {
+            setPreviewError('El archivo CSV podría estar vacío o tener un formato incorrecto. ' + 
+                          'Verifica que tenga encabezados y contenido válido.');
+          } else {
+            setPreviewError(errorMessage);
+          }
         }
 
         setLoading(false);
@@ -119,10 +201,15 @@ const DatasetDetail = () => {
       }
     };
 
-    if (datasetId) {
+    // Only fetch if router is ready and we have an ID
+    if (router.isReady && datasetId !== undefined) {
       fetchDatasetData();
+    } else if (router.isReady && (datasetId === undefined || isNaN(datasetId))) {
+      // If router is ready but ID is invalid, show error
+      setLoading(false);
+      setError('ID de dataset inválido o no especificado.');
     }
-  }, [datasetId]);
+  }, [datasetId, router.isReady]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -361,7 +448,7 @@ const DatasetDetail = () => {
                 Rows
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                {dataset.row_count.toLocaleString()}
+                {typeof dataset.row_count === 'number' ? dataset.row_count.toLocaleString() : '—'}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -369,7 +456,7 @@ const DatasetDetail = () => {
                 Columns
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                {dataset.column_count}
+                {typeof dataset.column_count === 'number' ? dataset.column_count : '—'}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -377,7 +464,7 @@ const DatasetDetail = () => {
                 Uploaded
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                {new Date(dataset.created_at).toLocaleDateString()}
+                {dataset.created_at ? new Date(dataset.created_at).toLocaleDateString() : '—'}
               </Typography>
             </Grid>
           </Grid>
@@ -412,6 +499,12 @@ const DatasetDetail = () => {
 
         {/* Preview Tab */}
         <TabPanel value={tabValue} index={0}>
+          {previewError ? (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              {previewError}
+            </Alert>
+          ) : null}
+          
           {previewData.length > 0 ? (
             <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
               <Table stickyHeader aria-label="dataset preview table" size="small">
@@ -440,7 +533,7 @@ const DatasetDetail = () => {
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ color: '#555555' }}>
-                No preview data available.
+                {previewError ? 'No se pudo cargar la vista previa del dataset.' : 'No hay datos de vista previa disponibles.'}
               </Typography>
             </Box>
           )}

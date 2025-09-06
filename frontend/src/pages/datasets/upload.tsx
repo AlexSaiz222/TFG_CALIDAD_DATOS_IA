@@ -222,11 +222,28 @@ const DatasetUpload = () => {
         formDataToSend.append('file', file);
       }
       
-      const response = await datasetsAPI.uploadDataset(formData.projectId, formDataToSend);
-      const newDataset = response.data;
+      // Log the request for debugging
+      console.log('Uploading dataset to project ID:', formData.projectId);
       
-      // Redirect to the dataset page
-      router.push(`/datasets/${newDataset.id}`);
+      const response = await datasetsAPI.uploadDataset(formData.projectId, formDataToSend);
+      console.log('uploadDataset response:', response);
+      
+      // Normalize the response structure to handle different API response formats
+      // This handles nested data structures like {data: {data: {...}}} or {data: {...}}
+      const payload = response?.data?.data ?? response?.data ?? response;
+      const datasetId = payload?.id ?? payload?.dataset?.id;
+      
+      if (!datasetId) {
+        console.error('Dataset ID not found in response:', response);
+        setError('Upload complete, pero no pude obtener el ID del dataset del servidor.');
+        setUploading(false);
+        return;
+      }
+      
+      console.log('Successfully extracted dataset ID:', datasetId);
+      
+      // Use replace instead of push to prevent the upload page from staying in history
+      router.replace(`/datasets/${datasetId}`);
     } catch (error: any) {
       console.error('Error uploading dataset:', error);
       setError(error.response?.data?.message || 'Failed to upload dataset. Please try again.');
