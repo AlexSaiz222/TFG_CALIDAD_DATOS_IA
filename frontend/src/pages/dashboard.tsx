@@ -511,7 +511,7 @@ function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Data Quality Metrics */}
+      {/* Data quality test */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ 
           display: 'flex', 
@@ -521,7 +521,7 @@ function Dashboard() {
         }}>
           <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#1A1A1A', display: 'flex', alignItems: 'center' }}>
             <TimelineIcon sx={{ mr: 1, color: '#00B37E' }} />
-            Data Quality Metrics
+            Data quality test
           </Typography>
           <Button
             variant="contained"

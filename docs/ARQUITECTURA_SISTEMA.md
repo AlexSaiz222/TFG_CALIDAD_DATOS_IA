@@ -401,8 +401,11 @@ La comunicación entre frontend y backend se realiza mediante una API RESTful co
 #### Métricas
 
 - `GET /api/metrics`: Listado de métricas disponibles
-- `GET /api/metric-templates`: Listado de plantillas de métricas
-- `POST /api/metric-templates`: Creación de plantilla personalizada
+- `GET /api/metrics/templates`: Listado de plantillas de métricas
+- `GET /api/metrics/templates/{id}`: Obtener una plantilla específica
+- `POST /api/metrics/templates`: Creación de plantilla personalizada
+- `PUT /api/metrics/templates/{id}`: Actualizar una plantilla existente
+- `DELETE /api/metrics/templates/{id}`: Eliminar una plantilla
 
 #### Evaluaciones
 

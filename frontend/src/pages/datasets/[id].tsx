@@ -37,7 +37,7 @@ import {
   HourglassEmpty as HourglassEmptyIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
-import { datasetsAPI, evaluationsAPI } from '../../services/api';
+import { datasetsAPI, evaluationsAPI, projectsAPI } from '../../services/api';
 import { Dataset, Evaluation, Issue } from '../../types';
 
 interface TabPanelProps {
@@ -79,6 +79,7 @@ const DatasetDetail = () => {
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [previewColumns, setPreviewColumns] = useState<string[]>([]);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string>('');
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -133,6 +134,22 @@ const DatasetDetail = () => {
         };
         
         setDataset(normalized);
+
+        // Fetch project details to get the project name
+        try {
+          if (normalized.project_id) {
+            const projectResponse = await projectsAPI.getProject(normalized.project_id);
+            if (projectResponse?.data) {
+              // Extract project name from response
+              const projectData = projectResponse.data.data || projectResponse.data;
+              setProjectName(projectData.name || `Project ${normalized.project_id}`);
+            }
+          }
+        } catch (projectError) {
+          console.warn('Error fetching project details:', projectError);
+          // Don't fail the whole page load if project details can't be fetched
+          setProjectName(`Project ${normalized.project_id}`);
+        }
 
         // Fetch evaluations for this dataset
         try {
@@ -439,8 +456,7 @@ const DatasetDetail = () => {
                 }}
                 onClick={() => router.push(`/projects/${dataset.project_id}`)}
               >
-                {/* Display project ID until project name is available */}
-                Project {dataset.project_id}
+                {projectName || `Project ${dataset.project_id}`}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>

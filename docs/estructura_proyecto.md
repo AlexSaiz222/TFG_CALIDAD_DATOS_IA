@@ -91,8 +91,22 @@ TFG_CALIDAD_DATOS_IA/
 
 #### Middleware
 - **middleware/error_handlers.py**: Manejo centralizado de errores HTTP y excepciones.
+  - Manejadores para errores HTTP estándar (400, 401, 403, 404, 405, 429)
+  - Manejo de errores de base de datos (SQLAlchemyError)
+  - Manejo de excepciones no capturadas con diferentes niveles de detalle según el entorno
+  - Respuestas JSON estandarizadas con campos success, error, message
+
 - **middleware/request_middleware.py**: Procesamiento de solicitudes y respuestas HTTP.
+  - Asignación de ID único a cada solicitud para seguimiento
+  - Registro de información contextual (IP, método, ruta, usuario)
+  - Propagación del ID de solicitud a través de los logs
+  - Inclusión del ID de solicitud en las cabeceras de respuesta
+
 - **middleware/performance_monitor.py**: Monitoreo de rendimiento y tiempos de respuesta.
+  - Medición de tiempo de respuesta para cada solicitud
+  - Detección de solicitudes lentas (configurable mediante umbral)
+  - Estadísticas por endpoint y ruta
+  - Decorador para monitorear funciones específicas
 
 #### Esquemas de Validación
 - **schemas/evaluation_schema.py**: Esquemas Marshmallow para validación de evaluaciones.

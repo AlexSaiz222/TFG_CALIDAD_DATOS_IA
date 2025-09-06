@@ -251,7 +251,7 @@ Content-Type: application/json
 
 ## Eliminación de Proyecto
 
-Elimina un proyecto y todos sus datasets asociados.
+Elimina un proyecto y todos sus datasets y evaluaciones asociados.
 
 **Endpoint:** `DELETE /api/projects/{project_id}`
 
@@ -281,6 +281,111 @@ Authorization: Bearer <access_token>
 - `401 Unauthorized`: Token de acceso inválido o expirado
 - `403 Forbidden`: No tiene permisos para eliminar este proyecto
 - `404 Not Found`: Proyecto no encontrado
+- `500 Internal Server Error`: Error al eliminar el proyecto
+
+### Implementación en el Backend
+
+```python
+@projects_bp.route('/<int:project_id>', methods=['DELETE'])
+@jwt_required()
+def delete_project(project_id):
+    user_id = get_jwt_identity()
+    
+    # Buscar proyecto
+    project = Project.query.get(project_id)
+    
+    if not project:
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'PROJECT_NOT_FOUND',
+                'message': 'Proyecto no encontrado'
+            }
+        }), 404
+    
+    # Verificar permisos
+    if project.owner_id != user_id:
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'FORBIDDEN',
+                'message': 'No tiene permisos para eliminar este proyecto'
+            }
+        }), 403
+    
+    try:
+        # Eliminar datasets asociados
+        for dataset in project.datasets:
+            db.session.delete(dataset)
+        
+        # Eliminar evaluaciones asociadas
+        evaluations = Evaluation.query.filter_by(project_id=project_id).all()
+        for evaluation in evaluations:
+            db.session.delete(evaluation)
+        
+        # Eliminar configuración de métricas
+        metrics_config = ProjectMetricsConfig.query.filter_by(project_id=project_id).first()
+        if metrics_config:
+            db.session.delete(metrics_config)
+        
+        # Eliminar colaboradores
+        collaborators = ProjectCollaborator.query.filter_by(project_id=project_id).all()
+        for collaborator in collaborators:
+            db.session.delete(collaborator)
+        
+        # Eliminar proyecto
+        db.session.delete(project)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Proyecto eliminado correctamente'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al eliminar proyecto {project_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'DELETE_ERROR',
+                'message': f"Error al eliminar el proyecto: {str(e)}"
+            }
+        }), 500
+```
+
+### Implementación en el Frontend
+
+La interfaz de usuario para la eliminación de proyectos incluye:
+
+1. Un botón "Delete" en la página de detalles del proyecto con el color rojo (#E5484D) para acciones destructivas
+2. Un diálogo de confirmación que advierte sobre la eliminación de todos los datasets y evaluaciones asociados
+3. Manejo de estados de carga y errores durante el proceso
+4. Redirección a la lista de proyectos tras una eliminación exitosa
+
+```typescript
+// Función para eliminar un proyecto
+const deleteProject = async () => {
+  setError(null); // Limpiar errores previos
+  setDeleting(true);
+  
+  try {
+    const response = await api.delete(`/api/projects/${project.id}`);
+    
+    if (response.data.success) {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+      toast.success("Proyecto eliminado correctamente");
+      router.push('/projects');
+    } else {
+      setError(response.data.error?.message || "Error al eliminar el proyecto");
+      setDeleting(false);
+    }
+  } catch (err: any) {
+    setError(err.response?.data?.error?.message || err.message || "Error al eliminar el proyecto");
+    setDeleting(false);
+  }
+};
+```
 
 ## Colaboradores del Proyecto
 

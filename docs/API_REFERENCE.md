@@ -85,7 +85,11 @@ La documentación detallada de cada grupo de endpoints se encuentra en archivos 
    - Listado de métricas disponibles
    - Detalles de métrica
    - Plantillas de métricas
-   - Creación de métricas personalizadas
+   - `GET /api/metrics/templates`: Listado de plantillas de métricas
+   - `GET /api/metrics/templates/{id}`: Obtener una plantilla específica
+   - `POST /api/metrics/templates`: Creación de plantilla personalizada
+   - `PUT /api/metrics/templates/{id}`: Actualizar una plantilla existente
+   - `DELETE /api/metrics/templates/{id}`: Eliminar una plantilla
 
 5. [Endpoints de Evaluaciones](./API_EVALUATIONS.md)
    - Creación de evaluación

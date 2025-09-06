@@ -538,6 +538,7 @@ def get_profile():
                 # Log de éxito
                 logger.info(f"Perfil de usuario obtenido con éxito para ID: {current_user_id_int}, username: {user.username}")
                 
+                # Estructura corregida: datos del usuario anidados dentro de "user" en el objeto "data"
                 return jsonify({
                     "success": True,
                     "data": {

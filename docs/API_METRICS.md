@@ -380,6 +380,391 @@ Content-Type: application/json
 - `403 Forbidden`: No tiene permisos para modificar este proyecto
 - `404 Not Found`: Proyecto o métrica no encontrada
 
+## Plantillas de Métricas
+
+### Listar Plantillas
+
+Obtiene la lista de todas las plantillas de métricas disponibles.
+
+**Endpoint:** `GET /api/metrics/templates`
+
+**Encabezados:**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Respuesta exitosa (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "templates": [
+      {
+        "id": 1,
+        "name": "Plantilla Básica",
+        "description": "Configuración básica de métricas de calidad",
+        "created_by": 1,
+        "created_at": "2023-08-15T10:30:45Z",
+        "metrics": [
+          {
+            "id": "completeness",
+            "parameters": {
+              "columns": ["nombre", "email"]
+            },
+            "thresholds": {
+              "warning": 0.9,
+              "error": 0.8
+            }
+          },
+          {
+            "id": "uniqueness",
+            "parameters": {
+              "columns": ["id", "email"]
+            },
+            "thresholds": {
+              "warning": 0.95,
+              "error": 0.9
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Plantilla Avanzada",
+        "description": "Configuración avanzada con múltiples métricas",
+        "created_by": 1,
+        "created_at": "2023-08-16T14:20:30Z",
+        "metrics": [
+          {
+            "id": "completeness",
+            "parameters": {
+              "columns": ["nombre", "email", "telefono"]
+            },
+            "thresholds": {
+              "warning": 0.95,
+              "error": 0.85
+            }
+          },
+          {
+            "id": "uniqueness",
+            "parameters": {
+              "columns": ["id", "email"]
+            },
+            "thresholds": {
+              "warning": 0.98,
+              "error": 0.95
+            }
+          },
+          {
+            "id": "consistency_pattern",
+            "parameters": {
+              "column": "email",
+              "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+            },
+            "thresholds": {
+              "warning": 0.95,
+              "error": 0.9
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "message": "Plantillas obtenidas correctamente"
+}
+```
+
+**Posibles errores:**
+
+- `401 Unauthorized`: Token de acceso inválido o expirado
+
+### Obtener Plantilla
+
+Obtiene los detalles de una plantilla específica.
+
+**Endpoint:** `GET /api/metrics/templates/{template_id}`
+
+**Encabezados:**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Parámetros de ruta:**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| template_id | integer | ID de la plantilla |
+
+**Respuesta exitosa (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "template": {
+      "id": 1,
+      "name": "Plantilla Básica",
+      "description": "Configuración básica de métricas de calidad",
+      "created_by": 1,
+      "created_at": "2023-08-15T10:30:45Z",
+      "metrics": [
+        {
+          "id": "completeness",
+          "parameters": {
+            "columns": ["nombre", "email"]
+          },
+          "thresholds": {
+            "warning": 0.9,
+            "error": 0.8
+          }
+        },
+        {
+          "id": "uniqueness",
+          "parameters": {
+            "columns": ["id", "email"]
+          },
+          "thresholds": {
+            "warning": 0.95,
+            "error": 0.9
+          }
+        }
+      ]
+    }
+  },
+  "message": "Plantilla obtenida correctamente"
+}
+```
+
+**Posibles errores:**
+
+- `401 Unauthorized`: Token de acceso inválido o expirado
+- `404 Not Found`: Plantilla no encontrada
+
+### Crear Plantilla
+
+Crea una nueva plantilla de métricas.
+
+**Endpoint:** `POST /api/metrics/templates`
+
+**Encabezados:**
+
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Cuerpo de la solicitud:**
+
+```json
+{
+  "name": "Nueva Plantilla",
+  "description": "Descripción de la nueva plantilla",
+  "metrics": [
+    {
+      "id": "completeness",
+      "parameters": {
+        "columns": ["nombre", "email"]
+      },
+      "thresholds": {
+        "warning": 0.9,
+        "error": 0.8
+      }
+    },
+    {
+      "id": "uniqueness",
+      "parameters": {
+        "columns": ["id"]
+      },
+      "thresholds": {
+        "warning": 0.98,
+        "error": 0.95
+      }
+    }
+  ]
+}
+```
+
+**Respuesta exitosa (201 Created):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "template": {
+      "id": 3,
+      "name": "Nueva Plantilla",
+      "description": "Descripción de la nueva plantilla",
+      "created_by": 1,
+      "created_at": "2023-08-17T09:45:30Z",
+      "metrics": [
+        {
+          "id": "completeness",
+          "parameters": {
+            "columns": ["nombre", "email"]
+          },
+          "thresholds": {
+            "warning": 0.9,
+            "error": 0.8
+          }
+        },
+        {
+          "id": "uniqueness",
+          "parameters": {
+            "columns": ["id"]
+          },
+          "thresholds": {
+            "warning": 0.98,
+            "error": 0.95
+          }
+        }
+      ]
+    }
+  },
+  "message": "Plantilla creada correctamente"
+}
+```
+
+**Posibles errores:**
+
+- `400 Bad Request`: Datos de plantilla inválidos
+- `401 Unauthorized`: Token de acceso inválido o expirado
+- `409 Conflict`: Ya existe una plantilla con el mismo nombre
+
+### Actualizar Plantilla
+
+Actualiza una plantilla de métricas existente.
+
+**Endpoint:** `PUT /api/metrics/templates/{template_id}`
+
+**Encabezados:**
+
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Parámetros de ruta:**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| template_id | integer | ID de la plantilla |
+
+**Cuerpo de la solicitud:**
+
+```json
+{
+  "name": "Plantilla Actualizada",
+  "description": "Descripción actualizada",
+  "metrics": [
+    {
+      "id": "completeness",
+      "parameters": {
+        "columns": ["nombre", "email", "telefono"]
+      },
+      "thresholds": {
+        "warning": 0.92,
+        "error": 0.85
+      }
+    },
+    {
+      "id": "uniqueness",
+      "parameters": {
+        "columns": ["id", "codigo_cliente"]
+      },
+      "thresholds": {
+        "warning": 0.99,
+        "error": 0.97
+      }
+    }
+  ]
+}
+```
+
+**Respuesta exitosa (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "template": {
+      "id": 1,
+      "name": "Plantilla Actualizada",
+      "description": "Descripción actualizada",
+      "created_by": 1,
+      "created_at": "2023-08-15T10:30:45Z",
+      "updated_at": "2023-08-17T11:20:15Z",
+      "metrics": [
+        {
+          "id": "completeness",
+          "parameters": {
+            "columns": ["nombre", "email", "telefono"]
+          },
+          "thresholds": {
+            "warning": 0.92,
+            "error": 0.85
+          }
+        },
+        {
+          "id": "uniqueness",
+          "parameters": {
+            "columns": ["id", "codigo_cliente"]
+          },
+          "thresholds": {
+            "warning": 0.99,
+            "error": 0.97
+          }
+        }
+      ]
+    }
+  },
+  "message": "Plantilla actualizada correctamente"
+}
+```
+
+**Posibles errores:**
+
+- `400 Bad Request`: Datos de plantilla inválidos
+- `401 Unauthorized`: Token de acceso inválido o expirado
+- `403 Forbidden`: No tiene permisos para modificar esta plantilla
+- `404 Not Found`: Plantilla no encontrada
+- `409 Conflict`: Ya existe otra plantilla con el mismo nombre
+
+### Eliminar Plantilla
+
+Elimina una plantilla de métricas.
+
+**Endpoint:** `DELETE /api/metrics/templates/{template_id}`
+
+**Encabezados:**
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Parámetros de ruta:**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| template_id | integer | ID de la plantilla |
+
+**Respuesta exitosa (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Plantilla eliminada correctamente"
+}
+```
+
+**Posibles errores:**
+
+- `401 Unauthorized`: Token de acceso inválido o expirado
+- `403 Forbidden`: No tiene permisos para eliminar esta plantilla
+- `404 Not Found`: Plantilla no encontrada
+
 ## Validación de Configuración de Métricas
 
 Valida una configuración de métricas antes de guardarla.

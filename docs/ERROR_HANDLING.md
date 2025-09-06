@@ -182,11 +182,120 @@ logger.critical(f"Error crítico en la base de datos: {str(e)}")
 
 ## Middleware para Manejo Centralizado de Errores
 
-El sistema utiliza middleware para manejar errores de manera centralizada:
+El sistema utiliza middleware para manejar errores de manera centralizada y mejorar el rendimiento y la trazabilidad de las solicitudes:
 
-- `error_handlers.py`: Maneja excepciones no capturadas y las convierte en respuestas JSON consistentes
-- `performance_monitor.py`: Registra tiempos de ejecución y métricas de rendimiento
-- `request_middleware.py`: Asigna ID único a cada solicitud para seguimiento
+### Error Handlers (error_handlers.py)
+
+Maneja excepciones no capturadas y las convierte en respuestas JSON consistentes. Incluye manejadores para:
+
+- Errores HTTP estándar (400, 401, 403, 404, 405, 429)
+- Errores de base de datos (SQLAlchemyError)
+- Excepciones no manejadas
+- Excepciones HTTP genéricas
+
+Ejemplo de implementación:
+
+```python
+@app.errorhandler(404)
+def not_found_error(error):
+    """Maneja errores 404 - Recurso no encontrado"""
+    logger.info(f"Recurso no encontrado: {error}")
+    return jsonify({
+        "success": False,
+        "error": "Recurso no encontrado",
+        "message": str(error)
+    }), 404
+
+@app.errorhandler(SQLAlchemyError)
+def database_error(error):
+    """Maneja errores de base de datos"""
+    logger.error(f"Error de base de datos: {error}", exc_info=True)
+    return jsonify({
+        "success": False,
+        "error": "Error de base de datos",
+        "message": "Ha ocurrido un error al procesar la solicitud en la base de datos"
+    }), 500
+```
+
+### Monitor de Rendimiento (performance_monitor.py)
+
+Registra tiempos de ejecución y métricas de rendimiento para identificar cuellos de botella. Funcionalidades:
+
+- Medición de tiempo de respuesta para cada solicitud
+- Detección de solicitudes lentas (configurable mediante umbral)
+- Estadísticas por endpoint y ruta
+- Decorador para monitorear funciones específicas
+
+Ejemplo de implementación:
+
+```python
+@app.after_request
+def log_request_info(response):
+    """Registra información de rendimiento después de cada solicitud."""
+    if hasattr(g, 'start_time'):
+        # Calcular duración
+        duration = time.time() - g.start_time
+        duration_ms = round(duration * 1000, 2)
+        
+        # Obtener información de la ruta
+        endpoint = request.endpoint
+        method = request.method
+        status_code = response.status_code
+        path = request.path
+        
+        # Registrar métricas
+        _request_metrics[endpoint].append(duration_ms)
+        
+        # Registrar en log si la duración excede el umbral
+        threshold_ms = current_app.config.get('SLOW_REQUEST_THRESHOLD_MS', 500)
+        if duration_ms > threshold_ms:
+            logger.warning(f"Solicitud lenta detectada: {method} {path} - {duration_ms}ms")
+        
+        # Añadir header con tiempo de respuesta
+        response.headers['X-Response-Time'] = f"{duration_ms}ms"
+    
+    return response
+```
+
+### Middleware de Solicitud (request_middleware.py)
+
+Asigna un ID único a cada solicitud para facilitar el seguimiento y la depuración. Funcionalidades:
+
+- Generación de ID único para cada solicitud (UUID)
+- Registro de información contextual (IP, método, ruta, agente de usuario)
+- Propagación del ID de solicitud a través de los logs
+- Inclusión del ID de solicitud en las cabeceras de respuesta
+
+Ejemplo de implementación:
+
+```python
+@app.before_request
+def process_request():
+    """Procesa la solicitud entrante y asigna un ID único"""
+    request_id = str(uuid.uuid4())
+    g.request_id = request_id
+    
+    # Configurar contexto de logging
+    logger_adapter = logging.LoggerAdapter(
+        logger, {
+            'request_id': request_id,
+            'user_id': get_jwt_identity() if verify_jwt_in_request(optional=True) else None,
+            'ip': request.remote_addr,
+            'method': request.method,
+            'path': request.path
+        }
+    )
+    g.logger = logger_adapter
+    
+    g.logger.info(f"Solicitud iniciada: {request.method} {request.path}")
+
+@app.after_request
+def add_request_id(response):
+    """Añade el ID de solicitud a la respuesta"""
+    if hasattr(g, 'request_id'):
+        response.headers['X-Request-ID'] = g.request_id
+    return response
+```
 
 ## Integración con el Frontend
 
