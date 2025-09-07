@@ -253,8 +253,21 @@ const DatasetUpload = () => {
 
   return (
     <MainLayout>
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ 
+        mb: 4, 
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
+        px: 2
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 3,
+          width: '100%',
+          maxWidth: 800
+        }}>
           <IconButton 
             onClick={() => router.back()} 
             sx={{ mr: 2 }}
@@ -262,7 +275,7 @@ const DatasetUpload = () => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
             Upload Dataset
           </Typography>
         </Box>
@@ -274,6 +287,7 @@ const DatasetUpload = () => {
             borderRadius: 2,
             border: '1px solid #EEEEEE',
             maxWidth: 800,
+            width: '100%',
           }}
         >
           {error && (
@@ -365,12 +379,17 @@ const DatasetUpload = () => {
                     border: '2px dashed',
                     borderColor: isDragActive ? '#00B37E' : errors.file ? '#E5484D' : '#CCCCCC',
                     borderRadius: 2,
-                    p: 4,
+                    p: 3, // Reduced padding
                     mb: 3,
                     textAlign: 'center',
                     backgroundColor: isDragActive ? 'rgba(0, 179, 126, 0.05)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease-in-out',
+                    height: 'auto', // Allow height to adjust to content
+                    minHeight: '100px', // Set minimum height
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
                     '&:hover': {
                       borderColor: '#00B37E',
                       backgroundColor: 'rgba(0, 179, 126, 0.05)',
@@ -419,7 +438,7 @@ const DatasetUpload = () => {
                         fontFamily: 'monospace',
                         fontSize: '0.875rem',
                         overflow: 'auto',
-                        maxHeight: '200px',
+                        maxHeight: '150px', // Reduced height
                       }}
                     >
                       <pre style={{ margin: 0 }}>{filePreview}</pre>
@@ -511,7 +530,7 @@ const DatasetUpload = () => {
                         fontFamily: 'monospace',
                         fontSize: '0.875rem',
                         overflow: 'auto',
-                        maxHeight: '200px',
+                        maxHeight: '150px', // Reduced height
                       }}
                     >
                       <pre style={{ margin: 0 }}>{filePreview}</pre>
