@@ -2,9 +2,21 @@ import pandas as pd
 import numpy as np
 import io
 import json
+import os
+import csv
+import gzip
+import logging
 from tempfile import NamedTemporaryFile
+from werkzeug.datastructures import FileStorage
 
 from services.minio_service import MinioService
+
+# Magic bytes for file format detection
+XLSX_MAGIC = b'PK\x03\x04'
+GZIP_MAGIC = b'\x1f\x8b'
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 class DatasetService:
     """Service for processing and analyzing datasets"""
@@ -13,7 +25,90 @@ class DatasetService:
         """Initialize dataset service"""
         self.minio_service = MinioService()
     
-    def process_dataset(self, file_obj, project_id):
+    def _read_csv_robust(self, raw_bytes):
+        """Read CSV data with robust handling of delimiters, encodings and file formats
+        
+        Args:
+            raw_bytes: Raw bytes of the CSV file
+            
+        Returns:
+            pandas.DataFrame: Parsed DataFrame
+        """
+        # Log the size of the input for debugging
+        logger.debug(f"CSV parsing input bytes: {len(raw_bytes)}")
+        if len(raw_bytes) == 0:
+            raise Exception("El archivo en almacenamiento está vacío (0 bytes).")
+            
+        # Log the first bytes for debugging
+        logger.debug(f"CSV first bytes: {repr(raw_bytes[:200])}")
+        
+        # 0) Detect incorrect formats
+        if raw_bytes.startswith(XLSX_MAGIC):
+            raise Exception("El archivo parece ser un Excel (.xlsx). Sube un CSV, no un XLSX.")
+        if raw_bytes.startswith(GZIP_MAGIC):
+            try:
+                logger.debug("Detected GZIP format, attempting to decompress")
+                raw_bytes = gzip.decompress(raw_bytes)
+                logger.debug(f"Decompressed size: {len(raw_bytes)}")
+            except Exception as e:
+                raise Exception(f"El archivo parece estar comprimido (gzip) pero no se pudo descomprimir: {e}")
+        
+        # 1) Try to detect delimiter with CSV Sniffer using UTF-8 encoding
+        sep_detected = None
+        try:
+            head = raw_bytes[:8192].decode('utf-8', errors='ignore')
+            dialect = csv.Sniffer().sniff(head, delimiters=[',', ';', '\t', '|'])
+            sep_detected = dialect.delimiter
+            logger.debug(f"Detected separator: '{sep_detected}'")
+        except Exception as e:
+            logger.debug(f"Delimiter detection failed: {e}, will use inference")
+            sep_detected = None  # Let pandas infer the separator
+        
+        # 2) Matrix of attempts: encodings x separators x engines
+        encodings = ('utf-8', 'utf-8-sig', 'cp1252', 'latin-1')
+        seps = [sep_detected, None, ',', ';', '\t', '|']  # None => inference
+        engines = ('python', 'c')
+        
+        last_err = None
+        for enc in encodings:
+            for sep in seps:
+                for eng in engines:
+                    try:
+                        logger.debug(f"Trying: encoding={enc}, sep={sep}, engine={eng}")
+                        df = pd.read_csv(io.BytesIO(raw_bytes),
+                                        sep=sep,
+                                        encoding=enc,
+                                        engine=eng,
+                                        skip_blank_lines=True)
+                        
+                        # If no columns detected, try with header=None (first row as headers)
+                        if df.shape[1] == 0:
+                            logger.debug("No columns detected, trying with header=None")
+                            df2 = pd.read_csv(io.BytesIO(raw_bytes),
+                                            sep=sep,
+                                            encoding=enc,
+                                            engine=eng,
+                                            header=None,
+                                            skip_blank_lines=True)
+                            if df2.shape[0] > 0:
+                                df2.columns = df2.iloc[0].astype(str)
+                                df = df2.iloc[1:].reset_index(drop=True)
+                                logger.debug(f"Used first row as headers, now columns: {list(df.columns)}")
+                        
+                        # If still no columns, force error to try next combination
+                        if df.shape[1] == 0:
+                            raise ValueError("Sin columnas detectadas con esta combinación.")
+                        
+                        logger.debug(f"Successfully parsed CSV: {df.shape[0]} rows, {df.shape[1]} columns")
+                        return df
+                    except Exception as e:
+                        last_err = e
+                        continue
+        
+        # 3) If we get here, parsing failed with all combinations
+        raise Exception(f"Failed to parse CSV tras múltiples intentos: {last_err}")
+    
+    def process_dataset(self, file_obj: FileStorage, project_id):
         """Process a dataset file and extract metadata
         
         Args:
@@ -28,9 +123,16 @@ class DatasetService:
             file_obj.save(temp_file.name)
             temp_file_path = temp_file.name
         
-        # Read dataset with pandas
+        # Read dataset with robust CSV parsing
         try:
-            df = pd.read_csv(temp_file_path)
+            # Read the raw bytes from the temporary file
+            with open(temp_file_path, 'rb') as f:
+                raw = f.read()
+            
+            logger.debug(f"Processing dataset: file size = {len(raw)} bytes")
+            
+            # Parse the CSV with robust handling
+            df = self._read_csv_robust(raw)
         except Exception as e:
             raise Exception(f"Error reading CSV file: {str(e)}")
         
@@ -65,16 +167,34 @@ class DatasetService:
             
             schema.append(column_info)
         
-        # Upload file to MinIO
-        file_obj.seek(0)
-        file_path = self.minio_service.upload_file(file_obj, 'text/csv')
+        # Add metadata about detected separator
+        schema_meta = {
+            "detected_separator": getattr(self, "_last_separator", "inferred")
+        }
+        
+        # Get correct file size from the temporary file
+        file_size = os.path.getsize(temp_file_path)
+        
+        # Upload raw bytes to MinIO instead of using the stream
+        # This ensures we're uploading exactly what we successfully parsed
+        try:
+            # Check if MinioService has upload_bytes method
+            if hasattr(self.minio_service, 'upload_bytes'):
+                file_path = self.minio_service.upload_bytes(raw, 'text/csv')
+            else:
+                # Fallback to the original method if upload_bytes is not available
+                file_obj.stream.seek(0)
+                file_path = self.minio_service.upload_file(file_obj, 'text/csv')
+        except Exception as e:
+            raise Exception(f"Error uploading file to storage: {str(e)}")
         
         return {
             'file_path': file_path,
-            'file_size': int(file_obj.tell()),
+            'file_size': int(file_size),
             'row_count': int(row_count),
             'column_count': int(column_count),
-            'schema': schema
+            'schema': schema,
+            'schema_meta': schema_meta
         }
     
     def get_dataset_preview(self, file_path, rows=100):
@@ -90,9 +210,16 @@ class DatasetService:
         # Download file from MinIO
         file_data = self.minio_service.download_file(file_path)
         
-        # Read dataset with pandas
+        # Check if file is empty
+        if not file_data or len(file_data) == 0:
+            raise Exception("El archivo en almacenamiento está vacío (0 bytes).")
+        
+        # Log the first bytes for debugging
+        logger.debug(f"Preview first bytes: {repr(file_data[:200])}")
+        
+        # Read dataset with robust CSV parsing
         try:
-            df = pd.read_csv(io.BytesIO(file_data))
+            df = self._read_csv_robust(file_data)
         except Exception as e:
             raise Exception(f"Error reading CSV file: {str(e)}")
         
@@ -116,9 +243,9 @@ class DatasetService:
         # Download file from MinIO
         file_data = self.minio_service.download_file(file_path)
         
-        # Read dataset with pandas
+        # Read dataset with robust CSV parsing
         try:
-            df = pd.read_csv(io.BytesIO(file_data))
+            df = self._read_csv_robust(file_data)
         except Exception as e:
             raise Exception(f"Error reading CSV file: {str(e)}")
         
@@ -186,3 +313,23 @@ class DatasetService:
             'bins': [float(x) for x in bin_edges[:-1]],
             'counts': [int(x) for x in counts]
         }
+        
+    def get_dataset_columns(self, file_path):
+        """Get column names from a dataset
+        
+        Args:
+            file_path: Path to the dataset file
+            
+        Returns:
+            list: Column names
+        """
+        # Download file from MinIO
+        file_data = self.minio_service.download_file(file_path)
+        
+        # Read dataset with robust CSV parsing
+        try:
+            df = self._read_csv_robust(file_data)
+            return list(df.columns)
+        except Exception as e:
+            raise Exception(f"Error reading CSV file: {str(e)}")
+

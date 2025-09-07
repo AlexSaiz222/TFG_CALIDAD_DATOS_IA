@@ -685,17 +685,23 @@ def preview_dataset(dataset_id):
             # Get dataset preview
             preview_data = dataset_service.get_dataset_preview(dataset.file_path)
             
-            # Asegurar que el esquema sea serializable
-            schema = dataset.schema
-            if schema is None:
-                schema = {}
+            # Get column names from the first row or from the dataset service
+            columns = []
+            if preview_data and len(preview_data) > 0:
+                columns = list(preview_data[0].keys())
+            else:
+                # Try to get columns directly from the dataset
+                try:
+                    columns = dataset_service.get_dataset_columns(dataset.file_path)
+                except Exception as column_error:
+                    logger.warning(f"Could not get columns for dataset {dataset_id}: {str(column_error)}")
             
+            # Return data in the format expected by the frontend
+            # The frontend expects: { data: [...rows], columns: [...] }
             return jsonify({
                 "success": True,
-                "data": {
-                    "preview": preview_data,
-                    "schema": schema
-                }
+                "data": preview_data,
+                "columns": columns
             }), 200
         except FileNotFoundError:
             logger.error(f"Archivo no encontrado para dataset {dataset_id}: {dataset.file_path}")
@@ -713,6 +719,75 @@ def preview_dataset(dataset_id):
             }), 500
     except Exception as e:
         logger.error(f"Error inesperado al obtener vista previa del dataset {dataset_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "server_error",
+            "message": f"Error del servidor: {str(e)}"
+        }), 500
+
+@datasets_bp.route('/<int:dataset_id>/evaluations', methods=['GET'])
+@jwt_required()
+def list_dataset_evaluations(dataset_id):
+    """Get all evaluations for a specific dataset"""
+    try:
+        # Obtener y convertir identidad del token a int
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            logger.error(f"ID de usuario inválido en token: {current_user_id}")
+            return jsonify({
+                "success": False,
+                "error": "invalid_token_identity",
+                "message": "ID de usuario inválido en el token"
+            }), 401
+        
+        # Get dataset by ID
+        dataset = Dataset.query.get(dataset_id)
+        
+        # Check if dataset exists
+        if not dataset:
+            logger.warning(f"Dataset no encontrado para evaluaciones: {dataset_id}")
+            return jsonify({
+                "success": False,
+                "error": "dataset_not_found",
+                "message": f"No se encontró el dataset con ID {dataset_id}"
+            }), 404
+        
+        # Check if user has access to the dataset's project
+        try:
+            project = Project.query.get(dataset.project_id)
+            if not project:
+                logger.error(f"Proyecto no encontrado para dataset {dataset_id}: {dataset.project_id}")
+                return jsonify({
+                    "success": False,
+                    "error": "project_not_found",
+                    "message": "No se encontró el proyecto asociado al dataset"
+                }), 404
+                
+            if project.owner_id != current_user_id_int:
+                logger.warning(f"Acceso no autorizado a las evaluaciones del dataset {dataset_id} por usuario {current_user_id}")
+                return jsonify({
+                    "success": False,
+                    "error": "unauthorized_access",
+                    "message": "No tiene permiso para acceder a este dataset"
+                }), 403
+        except Exception as e:
+            logger.error(f"Error al verificar permisos para evaluaciones del dataset {dataset_id}: {str(e)}")
+            return jsonify({
+                "success": False,
+                "error": "permission_error",
+                "message": f"Error al verificar permisos: {str(e)}"
+            }), 500
+        
+        # For now, return an empty array as a stub
+        # This will be replaced with actual evaluations when that functionality is implemented
+        return jsonify({
+            "success": True,
+            "data": []
+        }), 200
+    except Exception as e:
+        logger.error(f"Error inesperado al obtener evaluaciones del dataset {dataset_id}: {str(e)}")
         return jsonify({
             "success": False,
             "error": "server_error",
