@@ -1,4 +1,5 @@
 import os
+import io
 from minio import Minio
 from minio.error import S3Error
 from flask import current_app
@@ -41,16 +42,26 @@ class MinioService:
         """
         client = self._get_client()
         
+        # If content_length is not available, read to memory and delegate to upload_bytes
+        if not getattr(file_obj, "content_length", None):
+            # Rewind, read and upload as bytes
+            file_obj.stream.seek(0)
+            raw = file_obj.read()
+            return self.upload_bytes(raw, content_type)
+        
         # Generate unique filename
         file_extension = os.path.splitext(file_obj.filename)[1]
         object_name = f"{uuid.uuid4()}{file_extension}"
         
         try:
+            # Ensure stream is at the beginning
+            file_obj.stream.seek(0)
+            
             # Upload file
             client.put_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
-                data=file_obj,
+                data=file_obj.stream,
                 length=file_obj.content_length,
                 content_type=content_type
             )
@@ -70,6 +81,7 @@ class MinioService:
             bytes: File content
         """
         client = self._get_client()
+        response = None
         
         try:
             # Download file
@@ -78,15 +90,52 @@ class MinioService:
                 object_name=object_name
             )
             
-            return response.data
+            # Read all bytes from the response stream
+            data = response.read()
+            return data
         
         except S3Error as e:
             raise Exception(f"Error downloading file from MinIO: {str(e)}")
         
         finally:
-            if 'response' in locals():
-                response.close()
-                response.release_conn()
+            if response is not None:
+                try:
+                    response.close()
+                finally:
+                    response.release_conn()
+    
+    def upload_bytes(self, data_bytes, content_type='application/octet-stream'):
+        """Upload raw bytes to MinIO storage
+        
+        Args:
+            data_bytes: Raw bytes to upload
+            content_type: MIME type of the file
+            
+        Returns:
+            str: Path to the uploaded file
+        """
+        client = self._get_client()
+        
+        # Generate unique filename
+        object_name = f"{uuid.uuid4()}.csv"  # Assuming CSV for dataset service
+        
+        try:
+            # Create BytesIO object from raw bytes
+            data_stream = io.BytesIO(data_bytes)
+            
+            # Upload bytes
+            client.put_object(
+                bucket_name=self.bucket_name,
+                object_name=object_name,
+                data=data_stream,
+                length=len(data_bytes),
+                content_type=content_type
+            )
+            
+            return object_name
+        
+        except S3Error as e:
+            raise Exception(f"Error uploading bytes to MinIO: {str(e)}")
     
     def delete_file(self, object_name):
         """Delete a file from MinIO storage

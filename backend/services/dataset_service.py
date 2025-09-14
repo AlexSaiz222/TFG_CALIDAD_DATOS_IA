@@ -210,6 +210,19 @@ class DatasetService:
         # Download file from MinIO
         file_data = self.minio_service.download_file(file_path)
         
+        # Process the downloaded data
+        return self.get_preview_from_bytes(file_data, rows)
+    
+    def get_preview_from_bytes(self, file_data, rows=100):
+        """Get a preview of the dataset from raw bytes
+        
+        Args:
+            file_data: Raw bytes of the dataset file
+            rows: Number of rows to preview
+            
+        Returns:
+            list: Preview data as list of dictionaries
+        """
         # Check if file is empty
         if not file_data or len(file_data) == 0:
             raise Exception("El archivo en almacenamiento está vacío (0 bytes).")

@@ -225,7 +225,36 @@ def upload_project_dataset(project_id):
     
     try:
         # Process and upload dataset
-        dataset_info = dataset_service.process_dataset(file, project_id)
+        try:
+            dataset_info = dataset_service.process_dataset(file, project_id)
+        except Exception as csv_error:
+            # Handle CSV parsing errors with user-friendly messages
+            error_msg = str(csv_error)
+            logger.error(f"Error processing CSV file: {error_msg}")
+            
+            # Translate common errors to user-friendly messages
+            user_msg = None
+            if "xlsx" in error_msg.lower():
+                user_msg = "El archivo parece ser un Excel (.xlsx). Convierte a CSV antes de subir."
+            elif "gzip" in error_msg.lower():
+                user_msg = "El archivo está comprimido (gzip). Sube el CSV descomprimido."
+            elif "0 bytes" in error_msg.lower() or "empty" in error_msg.lower() or "vacío" in error_msg.lower():
+                user_msg = "El archivo del dataset está vacío. Vuelve a subir un CSV con contenido."
+            elif "No columns to parse" in error_msg or "Sin columnas" in error_msg:
+                user_msg = "No se detectaron columnas. Verifica que el CSV tenga encabezados y separadores válidos."
+            elif "Failed to parse CSV" in error_msg:
+                user_msg = "No se pudo analizar el CSV. Verifica que el formato sea correcto y que use separadores estándar (coma, punto y coma, tabulador)."
+            elif "encoding" in error_msg.lower() or "codec" in error_msg.lower():
+                user_msg = "Problema con la codificación del archivo. Intenta guardar el CSV con codificación UTF-8."
+            else:
+                # Default message for other errors
+                user_msg = f"Error al procesar el dataset: {error_msg}"
+            
+            return jsonify({
+                "success": False,
+                "error": "CSV Processing Error",
+                "message": user_msg
+            }), 400  # 400 Bad Request is more appropriate for invalid file format
         
         # Create new dataset record
         new_dataset = Dataset(
@@ -238,6 +267,10 @@ def upload_project_dataset(project_id):
             column_count=dataset_info['column_count'],
             schema=dataset_info['schema']
         )
+        
+        # Add schema_meta if available
+        if 'schema_meta' in dataset_info:
+            new_dataset.schema_meta = dataset_info['schema_meta']
         
         try:
             # Save dataset to database
@@ -278,6 +311,7 @@ def upload_project_dataset(project_id):
             }), 500
     
     except Exception as e:
+        logger.error(f"Error inesperado al procesar dataset: {str(e)}")
         return jsonify({
             "success": False,
             "error": "Server Error",
@@ -682,17 +716,32 @@ def preview_dataset(dataset_id):
             }), 500
         
         try:
-            # Get dataset preview
-            preview_data = dataset_service.get_dataset_preview(dataset.file_path)
+            logger.info(f"Requesting preview for dataset {dataset_id} with file_path: {dataset.file_path}")
+            
+            # Download file from MinIO and log size
+            file_data = dataset_service.minio_service.download_file(dataset.file_path)
+            logger.debug(f"Downloaded {len(file_data)} bytes from MinIO for dataset {dataset_id}")
+            
+            # Log a sample of the first bytes for debugging
+            if len(file_data) > 0:
+                logger.debug(f"First 100 bytes: {repr(file_data[:100])}")
+            else:
+                logger.warning(f"Downloaded file for dataset {dataset_id} is empty (0 bytes)")
+            
+            # Process the downloaded data directly without downloading again
+            preview_data = dataset_service.get_preview_from_bytes(file_data)
+            logger.info(f"Successfully generated preview for dataset {dataset_id}: {len(preview_data)} rows")
             
             # Get column names from the first row or from the dataset service
             columns = []
             if preview_data and len(preview_data) > 0:
                 columns = list(preview_data[0].keys())
+                logger.debug(f"Columns from preview: {columns}")
             else:
                 # Try to get columns directly from the dataset
                 try:
                     columns = dataset_service.get_dataset_columns(dataset.file_path)
+                    logger.debug(f"Columns from dataset_service: {columns}")
                 except Exception as column_error:
                     logger.warning(f"Could not get columns for dataset {dataset_id}: {str(column_error)}")
             
@@ -711,11 +760,34 @@ def preview_dataset(dataset_id):
                 "message": "El archivo del dataset no se encuentra en el almacenamiento"
             }), 404
         except Exception as e:
+            # Log the full error for debugging
             logger.error(f"Error al obtener vista previa del dataset {dataset_id}: {str(e)}")
+            
+            # Translate common errors to user-friendly messages
+            error_msg = str(e)
+            user_msg = None
+            
+            # Check for specific error patterns and provide friendly messages
+            if "xlsx" in error_msg.lower():
+                user_msg = "El archivo parece ser un Excel (.xlsx). Convierte a CSV antes de subir."
+            elif "gzip" in error_msg.lower():
+                user_msg = "El archivo está comprimido (gzip). Sube el CSV descomprimido."
+            elif "0 bytes" in error_msg.lower() or "empty" in error_msg.lower() or "vacío" in error_msg.lower():
+                user_msg = "El archivo del dataset está vacío. Vuelve a subir un CSV con contenido."
+            elif "No columns to parse" in error_msg or "Sin columnas" in error_msg:
+                user_msg = "No se detectaron columnas. Verifica que el CSV tenga encabezados y separadores válidos."
+            elif "Failed to parse CSV" in error_msg:
+                user_msg = "No se pudo analizar el CSV. Verifica que el formato sea correcto y que use separadores estándar (coma, punto y coma, tabulador)."
+            elif "encoding" in error_msg.lower() or "codec" in error_msg.lower():
+                user_msg = "Problema con la codificación del archivo. Intenta guardar el CSV con codificación UTF-8."
+            else:
+                # Default message for other errors
+                user_msg = f"Error al obtener vista previa: {error_msg}"
+            
             return jsonify({
                 "success": False,
                 "error": "preview_error",
-                "message": f"Error al obtener vista previa: {str(e)}"
+                "message": user_msg
             }), 500
     except Exception as e:
         logger.error(f"Error inesperado al obtener vista previa del dataset {dataset_id}: {str(e)}")
