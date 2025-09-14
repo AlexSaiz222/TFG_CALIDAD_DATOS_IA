@@ -29,28 +29,31 @@ def run_evaluation(self, evaluation_id):
     
     try:
         # Actualizar estado de la evaluación a "processing"
-        _update_evaluation_status(evaluation_id, "processing", progress=0)
+        _update_evaluation_status(evaluation_id, "processing", progress=0, 
+                                current_step="Iniciando evaluación")
         
-        # Obtener evaluación y dataset
+        # Crear servicio de evaluación
+        evaluation_service = EvaluationService()
+        
+        # Obtener evaluación para verificar métricas configuradas
         evaluation = Evaluation.query.get(evaluation_id)
         if not evaluation:
             logger.error(f"Evaluación no encontrada: {evaluation_id}")
             return {"success": False, "error": "Evaluación no encontrada"}
         
+        # Verificar que existe el dataset
         dataset = Dataset.query.get(evaluation.dataset_id)
         if not dataset:
-            logger.error(f"Dataset no encontrado: {evaluation.dataset_id}")
-            _update_evaluation_status(evaluation_id, "failed", error="Dataset no encontrado")
-            return {"success": False, "error": "Dataset no encontrado"}
-        
-        # Crear servicio de evaluación
-        evaluation_service = EvaluationService()
+            error_msg = f"Dataset no encontrado: {evaluation.dataset_id}"
+            logger.error(error_msg)
+            _update_evaluation_status(evaluation_id, "failed", error=error_msg)
+            return {"success": False, "error": error_msg}
         
         # Actualizar progreso
         _update_evaluation_status(evaluation_id, "processing", progress=10, 
-                                 current_step="Preparando datos para evaluación")
+                                current_step="Preparando datos para evaluación")
         
-        # Ejecutar evaluación con actualizaciones de progreso
+        # Extraer información de métricas para mostrar progreso
         metrics = evaluation.metrics_config.get('metrics', [])
         total_metrics = len(metrics)
         
@@ -63,44 +66,43 @@ def run_evaluation(self, evaluation_id):
                 current_step="No hay métricas configuradas, continuando con evaluación básica"
             )
         else:
-            for i, metric in enumerate(metrics):
-                # Actualizar progreso
-                progress = 10 + int(80 * ((i + 1) / total_metrics))
-                metric_name = metric.get('name', metric.get('id', 'desconocida'))
-                
-                _update_evaluation_status(
-                    evaluation_id, 
-                    "processing", 
-                    progress=progress,
-                    current_step=f"Evaluando métrica: {metric_name} ({i+1}/{total_metrics})"
-                )
-                
-                # Simular tiempo de procesamiento para métricas complejas
-                # En producción, esto sería el tiempo real de procesamiento
-                if metric.get('id') in ['outliers', 'correlation']:
-                    time.sleep(2)
-                    
-                logger.debug(f"Métrica {metric_name} evaluada para evaluación {evaluation_id}")
+            # Actualizar progreso antes de iniciar el procesamiento real
+            _update_evaluation_status(
+                evaluation_id, 
+                "processing", 
+                progress=20,
+                current_step=f"Cargando dataset para evaluación"
+            )
         
         # Ejecutar evaluación real
-        result = evaluation_service.run_evaluation(evaluation)
+        # Pasamos el ID en lugar del objeto para evitar problemas de sesión
+        result = evaluation_service.run_evaluation(evaluation_id)
         
-        # Actualizar progreso
-        _update_evaluation_status(evaluation_id, "processing", progress=90, 
-                                 current_step="Finalizando evaluación")
-        
-        # Actualizar estado final
+        # Verificar resultado
         if result.get('success', False):
-            _update_evaluation_status(evaluation_id, "completed", progress=100)
-            logger.info(f"Evaluación completada con éxito: {evaluation_id}")
+            quality_score = result.get('quality_score', 0.0)
+            issues_count = result.get('issues_count', 0)
+            
+            # La evaluación ya está marcada como completada por el servicio
+            # Solo actualizamos el mensaje de progreso para mayor claridad
+            _update_evaluation_status(
+                evaluation_id, 
+                "completed", 
+                progress=100,
+                current_step=f"Evaluación completada con puntuación {quality_score:.2f}"
+            )
+            
+            logger.info(f"Evaluación {evaluation_id} completada con éxito. Puntuación: {quality_score:.2f}, Issues: {issues_count}")
             return {
                 "success": True, 
                 "evaluation_id": evaluation_id,
-                "quality_score": evaluation.quality_score
+                "quality_score": quality_score,
+                "issues_count": issues_count
             }
         else:
+            # La evaluación ya está marcada como fallida por el servicio
+            # Solo registramos el error para mayor claridad
             error_msg = result.get('error', 'Error desconocido durante la evaluación')
-            _update_evaluation_status(evaluation_id, "failed", error=error_msg)
             logger.error(f"Error en evaluación {evaluation_id}: {error_msg}")
             return {"success": False, "error": error_msg}
             

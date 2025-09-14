@@ -56,6 +56,19 @@ class EvaluationFilterSchema(Schema):
     page = fields.Integer(strict=True, validate=validate.Range(min=1), default=1)
     per_page = fields.Integer(strict=True, validate=validate.Range(min=1, max=100), default=20)
 
+class CompareEvaluationsSchema(Schema):
+    """Esquema para validar parámetros de comparación de evaluaciones"""
+    evaluation_id_1 = fields.Integer(strict=True, required=True, validate=validate.Range(min=1))
+    evaluation_id_2 = fields.Integer(strict=True, required=True, validate=validate.Range(min=1))
+    
+    @validates('evaluation_id_2')
+    def validate_different_ids(self, value, **kwargs):
+        """Valida que los IDs de evaluación sean diferentes"""
+        evaluation_id_1 = kwargs.get('data', {}).get('evaluation_id_1')
+        if evaluation_id_1 and value == evaluation_id_1:
+            raise ValidationError("Los IDs de evaluación deben ser diferentes")
+
 # Instancias de esquemas para uso directo
 create_evaluation_schema = CreateEvaluationSchema()
 evaluation_filter_schema = EvaluationFilterSchema()
+compare_evaluations_schema = CompareEvaluationsSchema()
