@@ -437,7 +437,7 @@ const DatasetDetail = () => {
                 },
               }}
             >
-              {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run Evaluation'}
+              {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
             </Button>
           </Box>
         </Box>
@@ -652,7 +652,7 @@ const DatasetDetail = () => {
                   },
                 }}
               >
-                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run Evaluation'}
+                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'run Evaluation'}
               </Button>
             </Box>
           )}
@@ -718,7 +718,7 @@ const DatasetDetail = () => {
                     },
                   }}
                 >
-                  {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run Evaluation'}
+                  {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
                 </Button>
               )}
             </Box>
