@@ -42,6 +42,17 @@ def get_evaluations():
               o código HTTP 500 si error
     """
     current_user_id = get_jwt_identity()
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
     logger.debug(f"Usuario {current_user_id} solicitando lista de evaluaciones")
     
     try:
@@ -139,6 +150,28 @@ def get_evaluation(evaluation_id):
     """
     current_user_id = get_jwt_identity()
     
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
+    
     # Get evaluation by ID
     evaluation = Evaluation.query.get(evaluation_id)
     
@@ -153,7 +186,7 @@ def get_evaluation(evaluation_id):
     # Check if user has access to the evaluation's dataset
     dataset = Dataset.query.get(evaluation.dataset_id)
     project = Project.query.get(dataset.project_id)
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         return jsonify({
             "success": False,
             "error": "Acceso no autorizado",
@@ -196,6 +229,17 @@ def get_evaluation_status(evaluation_id):
     """
     current_user_id = get_jwt_identity()
     
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
+    
     # Get evaluation by ID
     evaluation = Evaluation.query.get(evaluation_id)
     
@@ -210,7 +254,7 @@ def get_evaluation_status(evaluation_id):
     # Check if user has access to the evaluation's dataset
     dataset = Dataset.query.get(evaluation.dataset_id)
     project = Project.query.get(dataset.project_id)
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         return jsonify({
             "success": False,
             "error": "Acceso no autorizado",
@@ -272,6 +316,17 @@ def create_evaluation(dataset_id):
             - 500: Si ocurre un error al iniciar la evaluación
     """
     current_user_id = get_jwt_identity()
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
     logger.info(f"Usuario {current_user_id} solicitando nueva evaluación para dataset {dataset_id}")
     
     # Verificar que el dataset existe y el usuario tiene acceso
@@ -286,7 +341,7 @@ def create_evaluation(dataset_id):
     
     # Verificar permisos de acceso
     project = Project.query.get(dataset.project_id)
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         logger.warning(f"Usuario {current_user_id} intentó acceder al dataset {dataset_id} sin permisos")
         return jsonify({
             "success": False,
@@ -403,6 +458,17 @@ def get_evaluation_issues(evaluation_id):
             - 403: Si el usuario no tiene permisos para acceder
     """
     current_user_id = get_jwt_identity()
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
     logger.debug(f"Usuario {current_user_id} solicitando issues para evaluación {evaluation_id}")
     
     # Get evaluation by ID
@@ -420,7 +486,7 @@ def get_evaluation_issues(evaluation_id):
     # Check if user has access to the evaluation's dataset
     dataset = Dataset.query.get(evaluation.dataset_id)
     project = Project.query.get(dataset.project_id)
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         logger.warning(f"Acceso no autorizado a evaluación {evaluation_id} por usuario {current_user_id}")
         return jsonify({
             "success": False,
@@ -483,6 +549,17 @@ def delete_evaluation(evaluation_id):
             - 500: Si ocurre un error durante la eliminación
     """
     current_user_id = get_jwt_identity()
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
     logger.info(f"Usuario {current_user_id} solicitando eliminar evaluación {evaluation_id}")
     
     # Get evaluation by ID
@@ -500,7 +577,7 @@ def delete_evaluation(evaluation_id):
     # Check if user has access to the evaluation's dataset
     dataset = Dataset.query.get(evaluation.dataset_id)
     project = Project.query.get(dataset.project_id)
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         logger.warning(f"Acceso no autorizado para eliminar evaluación {evaluation_id} por usuario {current_user_id}")
         return jsonify({
             "success": False,
@@ -555,6 +632,17 @@ def compare_evaluations():
             - 404: Si alguna evaluación no existe
     """
     current_user_id = get_jwt_identity()
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
     logger.debug(f"Usuario {current_user_id} solicitando comparación de evaluaciones")
     
     try:
@@ -765,6 +853,17 @@ def export_evaluation(evaluation_id):
         tuple: Archivo descargable en el formato solicitado o respuesta de error
     """
     current_user_id = get_jwt_identity()
+    
+    # Convertir ID de usuario a entero para comparación correcta
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
     logger.info(f"Usuario {current_user_id} solicitando exportar evaluación {evaluation_id}")
     
     # Get evaluation by ID
@@ -791,7 +890,7 @@ def export_evaluation(evaluation_id):
     # Check if user has access to the evaluation's dataset
     dataset = Dataset.query.get(evaluation.dataset_id)
     project = Project.query.get(dataset.project_id)
-    if project.owner_id != current_user_id:
+    if project.owner_id != current_user_id_int:
         logger.warning(f"Acceso no autorizado para exportar evaluación {evaluation_id} por usuario {current_user_id}")
         return jsonify({
             "success": False,
