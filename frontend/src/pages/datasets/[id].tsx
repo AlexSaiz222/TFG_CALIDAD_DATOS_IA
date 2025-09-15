@@ -154,14 +154,18 @@ const DatasetDetail = () => {
         // Fetch evaluations for this dataset
         try {
           const evaluationsResponse = await evaluationsAPI.getEvaluations(datasetId);
-          setEvaluations(evaluationsResponse?.data || []);
+          // Extraer las evaluaciones de la estructura de respuesta
+          const evaluationsData = evaluationsResponse?.data?.data || evaluationsResponse?.data || [];
+          setEvaluations(Array.isArray(evaluationsData) ? evaluationsData : []);
           
           // Fetch issues if there are evaluations
-          if (evaluationsResponse?.data?.length > 0) {
-            const latestEvaluation = evaluationsResponse.data[0];
+          if (Array.isArray(evaluationsData) && evaluationsData.length > 0) {
+            const latestEvaluation = evaluationsData[0];
             try {
               const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
-              setIssues(issuesResponse?.data || []);
+              // Extraer las issues de la estructura de respuesta
+              const issuesData = issuesResponse?.data?.data || issuesResponse?.data || [];
+              setIssues(Array.isArray(issuesData) ? issuesData : []);
             } catch (issueError) {
               console.warn('Error fetching issues:', issueError);
               // Don't fail the whole page load for issues
@@ -266,16 +270,23 @@ const DatasetDetail = () => {
     try {
       // Pass an empty metrics config as the second parameter
       const response = await evaluationsAPI.createEvaluation(dataset.id, {});
-      const newEvaluation = response.data;
+      
+      // Extraer la evaluación de la estructura de respuesta
+      // La respuesta tiene formato: { success: true, data: { evaluation: {...} } }
+      const newEvaluation = response.data?.data?.evaluation || response.data;
+      
+      console.log('Evaluation response:', response.data);
+      console.log('Extracted evaluation:', newEvaluation);
       
       // Add the new evaluation to the list
-      setEvaluations([newEvaluation, ...evaluations]);
+      setEvaluations(prev => [newEvaluation, ...prev]);
       
       // Poll for evaluation status
       const pollInterval = setInterval(async () => {
         try {
           const statusResponse = await evaluationsAPI.getEvaluation(newEvaluation.id);
-          const updatedEvaluation = statusResponse.data;
+          // Extraer la evaluación de la estructura de respuesta
+          const updatedEvaluation = statusResponse.data?.data?.evaluation || statusResponse.data;
           
           // Update the evaluation in the list
           setEvaluations(prev => 
@@ -289,7 +300,9 @@ const DatasetDetail = () => {
             
             if (updatedEvaluation.status === 'completed') {
               const issuesResponse = await evaluationsAPI.getIssues(updatedEvaluation.id);
-              setIssues(issuesResponse.data);
+              // Extraer las issues de la estructura de respuesta
+              const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
+              setIssues(issuesData);
               
               // Switch to the Issues tab
               setTabValue(2);

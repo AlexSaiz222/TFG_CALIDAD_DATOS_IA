@@ -1115,50 +1115,83 @@ def create_dataset_evaluation(dataset_id):
                 "details": err.messages
             }), 400
         
-        # Crear nueva evaluación
-        new_evaluation = Evaluation(
-            dataset_id=dataset_id,
-            status='pending',
-            metrics_config={
-                'metrics': metrics,
-                'options': options
-            },
-            progress=0,
-            current_step="Inicializando evaluación",
-            created_at=datetime.utcnow()
+        # Crear nueva evaluación usando SQL directo para evitar problemas con task_id
+        import json
+        from sqlalchemy import text
+        
+        # Preparar datos para la inserción
+        metrics_json = json.dumps({
+            'metrics': metrics,
+            'options': options
+        })
+        now = datetime.utcnow()
+        
+        # Ejecutar SQL directo para insertar la evaluación con solo los campos que existen en la BD
+        sql = text("""
+            INSERT INTO evaluations 
+            (dataset_id, status, metrics_config, created_at, updated_at) 
+            VALUES (:dataset_id, :status, :metrics_config, :created_at, :updated_at) 
+            RETURNING id
+        """)
+        
+        result = db.session.execute(
+            sql, 
+            {
+                'dataset_id': dataset_id,
+                'status': 'pending',
+                'metrics_config': metrics_json,
+                'created_at': now,
+                'updated_at': now
+            }
         )
         
-        # Guardar evaluación en la base de datos
-        db.session.add(new_evaluation)
+        # Obtener el ID de la evaluación creada
+        evaluation_id = result.scalar()
         db.session.commit()
+        
+        # Cargar la evaluación creada
+        new_evaluation = Evaluation.query.get(evaluation_id)
         logger.debug(f"Nueva evaluación creada con ID {new_evaluation.id}")
         
         try:
             # Crear una evaluación simple sin Celery para evitar problemas de integración
             # En una implementación completa, esto se haría con Celery
             
-            # Actualizar timestamp de inicio
-            new_evaluation.started_at = datetime.utcnow()
+            # Actualizar timestamp de inicio y estado usando SQL directo
+            now = datetime.utcnow()
+            sql_update = text("""
+                UPDATE evaluations 
+                SET started_at = :started_at, status = 'processing'
+                WHERE id = :id
+            """)
+            
+            db.session.execute(sql_update, {'started_at': now, 'id': new_evaluation.id})
             db.session.commit()
             
             # Ejecutar evaluación directamente (sin Celery)
             try:
-                # Actualizar estado a processing
-                new_evaluation.status = 'processing'
-                new_evaluation.progress = 10
-                new_evaluation.current_step = "Procesando evaluación"
+                # Simular una evaluación exitosa
+                now = datetime.utcnow()
+                sql_complete = text("""
+                    UPDATE evaluations 
+                    SET status = 'completed', completed_at = :completed_at
+                    WHERE id = :id
+                """)
+                
+                db.session.execute(sql_complete, {'completed_at': now, 'id': new_evaluation.id})
                 db.session.commit()
                 
-                # Simular una evaluación exitosa
-                new_evaluation.status = 'completed'
-                new_evaluation.progress = 100
-                new_evaluation.completed_at = datetime.utcnow()
-                new_evaluation.current_step = "Evaluación completada"
-                db.session.commit()
+                # Recargar la evaluación para tener los datos actualizados
+                new_evaluation = Evaluation.query.get(new_evaluation.id)
             except Exception as eval_error:
                 logger.error(f"Error al ejecutar evaluación: {str(eval_error)}")
-                new_evaluation.status = 'failed'
-                new_evaluation.error = str(eval_error)
+                # Actualizar estado a fallido usando SQL directo
+                sql_failed = text("""
+                    UPDATE evaluations 
+                    SET status = 'failed'
+                    WHERE id = :id
+                """)
+                db.session.execute(sql_failed, {'id': new_evaluation.id})
                 db.session.commit()
             
             # Devolver respuesta con información de la evaluación creada
@@ -1189,10 +1222,18 @@ def create_dataset_evaluation(dataset_id):
         except Exception as e:
             # Registrar error y actualizar estado de la evaluación
             db.session.rollback()
-            new_evaluation.status = 'failed'
-            new_evaluation.error = str(e)
-            db.session.add(new_evaluation)
-            db.session.commit()
+            # Actualizar estado a fallido usando SQL directo
+            try:
+                sql_failed = text("""
+                    UPDATE evaluations 
+                    SET status = 'failed'
+                    WHERE id = :id
+                """)
+                db.session.execute(sql_failed, {'id': new_evaluation.id})
+                db.session.commit()
+            except Exception as db_error:
+                logger.error(f"Error al actualizar estado de evaluación: {str(db_error)}")
+                # No hacer nada más, ya que la evaluación podría no existir
             
             return jsonify({
                 "success": False,
