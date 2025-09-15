@@ -54,6 +54,12 @@ venv.bak/
 instance/
 .webassets-cache
 
+# Celery
+celerybeat-schedule
+celerybeat.pid
+celery.log
+celery.pid
+
 # Database
 *.sqlite
 *.db

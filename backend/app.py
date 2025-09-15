@@ -8,7 +8,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 
-from config_module import get_config  # Importando desde config.py
+from config import get_config  # Importando desde el paquete config
 from extensions import db
 from api.routes import register_routes
 from config.logging_config import setup_logging

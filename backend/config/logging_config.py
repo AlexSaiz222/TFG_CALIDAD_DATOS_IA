@@ -95,8 +95,6 @@ def configure_production_logging(app):
     Args:
         app: Instancia de Flask
     """
-    # Aquí se podría configurar logging a archivos rotados, servicios como Sentry, etc.
-    # Por ahora, simplemente configuramos un handler básico
     
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter(
