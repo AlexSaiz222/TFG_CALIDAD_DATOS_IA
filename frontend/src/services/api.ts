@@ -973,8 +973,12 @@ export const evaluationsAPI = {
   getEvaluation: (id: number) => 
     api.get(`/api/evaluations/${id}`),
   
-  createEvaluation: (datasetId: number, metricsConfig: any) => 
-    api.post(`/api/datasets/${datasetId}/evaluations`, { metrics_config: metricsConfig }),
+  createEvaluation: (datasetId: number, metricsConfig: any) => {
+    // El backend espera un objeto con la propiedad metrics_config que contiene un objeto con la propiedad metrics
+    const formattedData = { metrics_config: { metrics: metricsConfig } };
+    console.log('API createEvaluation - Datos enviados:', formattedData);
+    return api.post(`/api/datasets/${datasetId}/evaluations`, formattedData);
+  },
   
   getIssues: (evaluationId: number) => 
     api.get(`/api/evaluations/${evaluationId}/issues`),
@@ -984,15 +988,33 @@ export const evaluationsAPI = {
     try {
       // First get the dataset to find the project ID
       const datasetResponse = await datasetsAPI.getDataset(datasetId);
-      const dataset = datasetResponse?.data;
       
-      if (!dataset || !dataset.project_id) {
+      // Extract dataset from the response, handling different response structures
+      let dataset;
+      if (datasetResponse?.data?.data) {
+        // Handle nested data structure: { data: { data: { ... } } }
+        dataset = datasetResponse.data.data;
+      } else if (datasetResponse?.data) {
+        // Handle direct data structure: { data: { ... } }
+        dataset = datasetResponse.data;
+      }
+      
+      // Check for project_id in different possible locations
+      let projectId = null;
+      if (dataset?.project_id) {
+        projectId = dataset.project_id;
+      } else if (dataset?.project?.id) {
+        projectId = dataset.project.id;
+      }
+      
+      if (!projectId) {
         console.error('Could not find project ID for dataset', datasetId);
         return { metrics: [], projectId: null };
       }
       
-      // Now get the project's metric configurations
-      const projectId = dataset.project_id;
+      console.log('Found project ID for dataset:', projectId);
+      
+      // Get the project's metric configurations
       const metricsResponse = await metricsAPI.getProjectMetricConfigs(projectId);
       
       // Process the response to ensure we have a consistent format

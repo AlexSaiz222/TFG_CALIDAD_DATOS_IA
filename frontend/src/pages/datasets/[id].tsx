@@ -213,6 +213,7 @@ const DatasetDetail = () => {
               // Ensure issues is always an array
               const normalizedIssues = Array.isArray(issuesData) ? issuesData : [];
               
+              setError(null);
               // Add metric names to issues if available
               const issuesWithMetricNames = normalizedIssues.map(issue => {
                 if (issue.metric_id && metricNames.length > 0) {
@@ -331,59 +332,123 @@ const DatasetDetail = () => {
       return;
     }
     
+    // Validate metrics before sending them to the backend
+    console.log('Validando métricas:', projectMetrics);
+    
+    // Verificar si las métricas ya tienen el formato correcto (metric_id)
+    let validMetrics: any[] = [];
+    
+    if (projectMetrics.length > 0 && projectMetrics[0].metric_id) {
+      // Si ya tienen el formato correcto, usarlas directamente
+      console.log('Las métricas ya tienen el formato correcto con metric_id');
+      validMetrics = projectMetrics;
+    } else {
+      // Si tienen el formato id, convertirlas
+      validMetrics = projectMetrics.filter(metric => {
+        // Ensure each metric has an id
+        const isValid = metric && (metric.id || metric.metric_id) && 
+                      (typeof metric.id === 'number' || typeof metric.metric_id === 'number');
+        if (!isValid) {
+          console.log('Métrica inválida:', metric);
+        }
+        return isValid;
+      });
+    }
+    
+    console.log('Métricas válidas:', validMetrics);
+    
+    if (validMetrics.length === 0) {
+      console.error('No se encontraron métricas válidas después de la validación');
+      setError('No hay métricas válidas configuradas.');
+      setNoMetricsDialogOpen(true);
+      return;
+    }
+    
     setRunningEvaluation(true);
     setError(null);
     
     try {
-      // Pass the project metrics configuration
-      const response = await evaluationsAPI.createEvaluation(dataset.id, { metrics: projectMetrics });
+      // Format metrics correctly for the backend
+      // El backend espera nombres de métricas como strings, no IDs numéricos
+      // Usamos solo métricas que existen en el catálogo
+      const metricsConfig = [];
+      
+      // Recorrer las métricas válidas y buscar su nombre en el catálogo de métricas
+      for (const metric of validMetrics) {
+        const metricId = Number(metric.metric_id || metric.id);
+        // Buscar la métrica en el catálogo por su ID
+        const catalogMetric = metricNames.find(m => m.id === metricId);
+        
+        if (catalogMetric) {
+          // Solo agregar métricas que existen en el catálogo
+          metricsConfig.push({
+            id: catalogMetric.name.toLowerCase(), // Usar el nombre de la métrica, no el ID
+            parameters: metric.parameters || {}
+          });
+        }
+      }
+      
+      // Si no hay métricas válidas después de la validación, mostrar error
+      if (metricsConfig.length === 0) {
+        throw new Error('No se encontraron métricas válidas en el catálogo');
+      }
+      
+      console.log('Formato final de métricas enviado al backend:', metricsConfig);
+      
+      // Pass the validated metrics configuration
+      const response = await evaluationsAPI.createEvaluation(dataset.id, metricsConfig);
       
       // Extraer la evaluación de la estructura de respuesta
-      // La respuesta tiene formato: { success: true, data: { evaluation: {...} } }
       const newEvaluation = response.data?.data?.evaluation || response.data;
       
       console.log('Evaluation response:', response.data);
       console.log('Extracted evaluation:', newEvaluation);
       
       // Add the new evaluation to the list
-      setEvaluations(prev => [newEvaluation, ...prev]);
-      
-      // Poll for evaluation status
-      const pollInterval = setInterval(async () => {
-        try {
-          const statusResponse = await evaluationsAPI.getEvaluation(newEvaluation.id);
-          // Extraer la evaluación de la estructura de respuesta
-          const updatedEvaluation = statusResponse.data?.data?.evaluation || statusResponse.data;
-          
-          // Update the evaluation in the list
-          setEvaluations(prev => 
-            prev.map(evaluation => evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation)
-          );
-          
-          // If evaluation is complete, fetch issues and stop polling
-          if (updatedEvaluation.status === 'completed' || updatedEvaluation.status === 'failed') {
+      if (newEvaluation) {
+        setEvaluations(prev => [newEvaluation, ...prev]);
+        
+        // Poll for evaluation status
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusResponse = await evaluationsAPI.getEvaluation(newEvaluation.id);
+            // Extraer la evaluación de la estructura de respuesta
+            const updatedEvaluation = statusResponse.data?.data?.evaluation || statusResponse.data;
+            
+            // Update the evaluation in the list
+            setEvaluations(prev => 
+              prev.map(evaluation => evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation)
+            );
+            
+            // If evaluation is complete, fetch issues and stop polling
+            if (updatedEvaluation.status === 'completed' || updatedEvaluation.status === 'failed') {
+              clearInterval(pollInterval);
+              setRunningEvaluation(false);
+              
+              if (updatedEvaluation.status === 'completed') {
+                const issuesResponse = await evaluationsAPI.getIssues(updatedEvaluation.id);
+                // Extraer las issues de la estructura de respuesta
+                const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
+                setIssues(issuesData);
+                
+                // Switch to the Issues tab
+                setTabValue(2);
+              }
+            }
+          } catch (error) {
+            console.error('Error polling evaluation status:', error);
             clearInterval(pollInterval);
             setRunningEvaluation(false);
-            
-            if (updatedEvaluation.status === 'completed') {
-              const issuesResponse = await evaluationsAPI.getIssues(updatedEvaluation.id);
-              // Extraer las issues de la estructura de respuesta
-              const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
-              setIssues(issuesData);
-              
-              // Switch to the Issues tab
-              setTabValue(2);
-            }
           }
-        } catch (error) {
-          console.error('Error polling evaluation status:', error);
-          clearInterval(pollInterval);
-          setRunningEvaluation(false);
-        }
-      }, 2000); // Poll every 2 seconds
+        }, 2000); // Poll every 2 seconds
+      } else {
+        console.error('No se pudo extraer la evaluación de la respuesta');
+        setRunningEvaluation(false);
+        setError('Error al crear la evaluación: respuesta inválida del servidor');
+      }
     } catch (error: any) {
       console.error('Error running evaluation:', error);
-      setError(error.response?.data?.message || 'Failed to run evaluation. Please try again.');
+      setError(error.response?.data?.message || error.response?.data?.error || 'Failed to run evaluation. Please try again.');
       setRunningEvaluation(false);
     }
   };
