@@ -194,5 +194,13 @@ def create_app(config_name=None):
 # Crear la aplicación Flask
 app = create_app()
 
+# Configurar Celery con la aplicación Flask
+from celery_app import configure_celery
+celery = configure_celery(app)
+
+# Inicializar el watchdog de evaluaciones
+from middleware.evaluation_watchdog import watchdog
+watchdog.init_app(app)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=app.config['DEBUG'])

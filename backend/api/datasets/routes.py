@@ -1149,50 +1149,43 @@ def create_dataset_evaluation(dataset_id):
         evaluation_id = result.scalar()
         db.session.commit()
         
-        # Cargar la evaluación creada
-        new_evaluation = Evaluation.query.get(evaluation_id)
-        logger.debug(f"Nueva evaluación creada con ID {new_evaluation.id}")
-        
         try:
-            # Crear una evaluación simple sin Celery para evitar problemas de integración
-            # En una implementación completa, esto se haría con Celery
+            # Ejecutar la evaluación directamente sin Celery ni hilos para garantizar que se complete
+            from services.evaluation_service import EvaluationService
             
-            # Actualizar timestamp de inicio y estado usando SQL directo
+            # Crear instancia del servicio de evaluación
+            evaluation_service = EvaluationService()
+            
+            # Actualizar estado a "processing"
+            from sqlalchemy import text
             now = datetime.utcnow()
-            sql_update = text("""
+            update_sql = text("""
                 UPDATE evaluations 
-                SET started_at = :started_at, status = 'processing'
+                SET status = 'processing', started_at = :started_at
                 WHERE id = :id
             """)
             
-            db.session.execute(sql_update, {'started_at': now, 'id': new_evaluation.id})
+            db.session.execute(update_sql, {'id': evaluation_id, 'started_at': now})
             db.session.commit()
             
-            # Ejecutar evaluación directamente (sin Celery)
-            try:
-                # Simular una evaluación exitosa
-                now = datetime.utcnow()
-                sql_complete = text("""
-                    UPDATE evaluations 
-                    SET status = 'completed', completed_at = :completed_at
-                    WHERE id = :id
-                """)
+            # Ejecutar evaluación directamente de forma síncrona
+            logger.info(f"Ejecutando evaluación {evaluation_id} de forma síncrona")
+            result = evaluation_service.run_evaluation(evaluation_id)
+            
+            if not result.get('success', False):
+                logger.error(f"Error en evaluación {evaluation_id}: {result.get('error', 'Error desconocido')}")
+                return jsonify({
+                    "success": False,
+                    "error": "Error al ejecutar evaluación",
+                    "message": result.get('error', 'Error desconocido')
+                }), 500
                 
-                db.session.execute(sql_complete, {'completed_at': now, 'id': new_evaluation.id})
-                db.session.commit()
-                
-                # Recargar la evaluación para tener los datos actualizados
-                new_evaluation = Evaluation.query.get(new_evaluation.id)
-            except Exception as eval_error:
-                logger.error(f"Error al ejecutar evaluación: {str(eval_error)}")
-                # Actualizar estado a fallido usando SQL directo
-                sql_failed = text("""
-                    UPDATE evaluations 
-                    SET status = 'failed'
-                    WHERE id = :id
-                """)
-                db.session.execute(sql_failed, {'id': new_evaluation.id})
-                db.session.commit()
+            logger.info(f"Evaluación {evaluation_id} completada con éxito")
+            
+            # La evaluación ya está completada, no hay necesidad de polling
+            
+            # Recargar la evaluación para tener los datos actualizados
+            new_evaluation = Evaluation.query.get(evaluation_id)
             
             # Devolver respuesta con información de la evaluación creada
             try:

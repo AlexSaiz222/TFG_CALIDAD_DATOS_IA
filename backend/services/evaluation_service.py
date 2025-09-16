@@ -19,20 +19,34 @@ class EvaluationService:
         self.minio_service = MinioService()
     
     def run_evaluation(self, evaluation_id):
-        """Run a data quality evaluation
+        """Run evaluation for the given evaluation ID
         
         Args:
             evaluation_id: ID of the evaluation to run
             
         Returns:
-            dict: Result of the evaluation with success status and quality score
+            dict: Result of the evaluation
         """
-        # Get evaluation from database
-        evaluation = Evaluation.query.get(evaluation_id)
-        if not evaluation:
-            raise Exception("Evaluation not found")
-        
         try:
+            # Get evaluation
+            evaluation = Evaluation.query.get(evaluation_id)
+            if not evaluation:
+                return {
+                    'success': False,
+                    'error': f"Evaluation {evaluation_id} not found"
+                }
+            
+            # Get metrics mapping for ID lookup
+            metrics_map = {}
+            all_metrics = Metric.query.all()
+            for metric in all_metrics:
+                metrics_map[metric.name] = metric.id
+            
+            # Update evaluation status
+            evaluation.status = 'processing'
+            evaluation.started_at = datetime.utcnow()
+            db.session.commit()
+            
             # Get dataset
             dataset = Dataset.query.get(evaluation.dataset_id)
             if not dataset:
@@ -96,7 +110,7 @@ class EvaluationService:
                         # Create issue
                         issues.append({
                             'evaluation_id': evaluation.id,
-                            'metric_id': metric_id,
+                            'metric_id': metrics_map.get(metric_id),
                             'severity': 'high' if completeness < 0.8 else 'medium',
                             'description': f"Dataset completeness ({completeness:.2%}) is below threshold ({completeness_threshold:.2%})",
                             'affected_columns': problem_columns
@@ -118,8 +132,19 @@ class EvaluationService:
                         else:
                             uniqueness = 1.0  # Default if no valid columns specified
                     else:
-                        # Calculate for entire dataset (row-wise)
+                        # Calculate for entire dataset (row-wise) and also check column-level uniqueness
                         uniqueness = len(df.drop_duplicates()) / len(df) if len(df) > 0 else 1.0
+                        
+                        # Check column-level uniqueness for potential issues
+                        column_uniqueness_issues = []
+                        for col in df.columns:
+                            col_uniqueness = df[col].nunique() / len(df) if len(df) > 0 else 1.0
+                            if col_uniqueness < 0.3 and len(df) > 10:  # Only flag low uniqueness for non-trivial datasets
+                                column_uniqueness_issues.append({
+                                    'column': col,
+                                    'uniqueness': float(col_uniqueness),
+                                    'duplicate_count': int(len(df) - df[col].nunique())
+                                })
                     
                     results['uniqueness'] = uniqueness
                     processed_metrics.append('uniqueness')
@@ -127,6 +152,16 @@ class EvaluationService:
                     
                     # Check uniqueness threshold
                     uniqueness_threshold = parameters.get('threshold', 1.0)
+                    
+                    # Always check for column-level uniqueness issues
+                    if column_uniqueness_issues:
+                        issues.append({
+                            'evaluation_id': evaluation.id,
+                            'metric_id': metrics_map.get(metric_id),
+                            'severity': 'medium',
+                            'description': f"Low column uniqueness detected in {len(column_uniqueness_issues)} columns",
+                            'affected_columns': column_uniqueness_issues
+                        })
                     
                     if uniqueness < uniqueness_threshold:
                         # Find duplicate rows or values
@@ -142,7 +177,7 @@ class EvaluationService:
                             if duplicate_info:
                                 issues.append({
                                     'evaluation_id': evaluation.id,
-                                    'metric_id': metric_id,
+                                    'metric_id': metrics_map.get(metric_id),
                                     'severity': 'high' if uniqueness < 0.9 else 'medium',
                                     'description': f"Columns contain duplicate values",
                                     'affected_columns': [{'column': col, 'duplicate_count': count} 
@@ -156,7 +191,7 @@ class EvaluationService:
                             if duplicate_count > 0:
                                 issues.append({
                                     'evaluation_id': evaluation.id,
-                                    'metric_id': metric_id,
+                                    'metric_id': metrics_map.get(metric_id),
                                     'severity': 'high' if uniqueness < 0.9 else 'medium',
                                     'description': f"Dataset contains {duplicate_count} duplicate rows ({(1-uniqueness):.2%} of total)",
                                     'affected_rows': {
@@ -165,7 +200,7 @@ class EvaluationService:
                                     }
                                 })
                 
-                elif metric_id == 'consistency_pattern':
+                elif metric_id == 'consistency' or metric_id == 'consistency_pattern':
                     # Check pattern consistency
                     column = parameters.get('column')
                     pattern = parameters.get('pattern')
@@ -200,7 +235,7 @@ class EvaluationService:
                             if consistency_score < consistency_threshold:
                                 issues.append({
                                     'evaluation_id': evaluation.id,
-                                    'metric_id': metric_id,
+                                    'metric_id': metrics_map.get(metric_id),
                                     'severity': 'high' if consistency_score < 0.8 else 'medium',
                                     'description': f"Column '{column}' has {invalid_count} values that don't match pattern '{pattern}'",
                                     'affected_columns': [{'column': column, 'invalid_count': invalid_count}],
@@ -213,7 +248,7 @@ class EvaluationService:
                         except re.error:
                             issues.append({
                                 'evaluation_id': evaluation.id,
-                                'metric_id': metric_id,
+                                'metric_id': metrics_map.get(metric_id),
                                 'severity': 'high',
                                 'description': f"Invalid regex pattern '{pattern}' for column '{column}'"
                             })
@@ -237,7 +272,7 @@ class EvaluationService:
                             if outliers['count'] > 0:
                                 issues.append({
                                     'evaluation_id': evaluation.id,
-                                    'metric_id': metric_id,
+                                    'metric_id': metrics_map.get(metric_id),
                                     'severity': 'medium',
                                     'description': f"Column '{column}' contains {outliers['count']} outliers",
                                     'affected_columns': [{'column': column, 'outlier_count': outliers['count']}]
@@ -256,11 +291,24 @@ class EvaluationService:
             # Calculate column-level metrics for all columns
             column_metrics = {}
             for column in df.columns:
+                completeness = 1 - df[column].isna().mean()
+                uniqueness = df[column].nunique() / len(df) if len(df) > 0 else 1
+                
                 column_metrics[column] = {
-                    'completeness': 1 - df[column].isna().mean(),
-                    'uniqueness': df[column].nunique() / len(df) if len(df) > 0 else 1,
+                    'completeness': completeness,
+                    'uniqueness': uniqueness,
                     'type': str(df[column].dtype)
                 }
+                
+                # Generate issues for individual columns with low completeness
+                if completeness < 0.98 and 'completeness' in processed_metrics:
+                    issues.append({
+                        'evaluation_id': evaluation.id,
+                        'metric_id': metrics_map.get('completeness'),
+                        'severity': 'high' if completeness < 0.9 else 'medium',
+                        'description': f"Column '{column}' has low completeness ({completeness:.2%})",
+                        'affected_columns': [{'column': column, 'null_rate': float(1 - completeness)}]
+                    })
                 
                 # Add statistics based on data type
                 if pd.api.types.is_numeric_dtype(df[column]):
@@ -291,6 +339,23 @@ class EvaluationService:
             
             # Save evaluation results to database
             db.session.commit()
+            
+            # Check for data type consistency issues
+            if 'consistency' in processed_metrics or len(processed_metrics) > 0:
+                # Check for inconsistent data types that might indicate problems
+                numeric_columns = df.select_dtypes(include=['number']).columns.tolist()
+                for col in numeric_columns:
+                    # Check if there are potential string values stored as numbers
+                    if col in df.columns and len(df) > 0:
+                        # Check for suspicious integer values in columns that should be categorical
+                        if df[col].dtype == 'int64' and df[col].nunique() < 10 and len(df) > 20:
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get('consistency'),
+                                'severity': 'low',
+                                'description': f"Column '{col}' might be categorical but stored as numeric",
+                                'affected_columns': [{'column': col}]
+                            })
             
             # Create issues in database
             for issue_data in issues:

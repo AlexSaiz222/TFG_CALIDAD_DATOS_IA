@@ -13,7 +13,7 @@ from services.evaluation_service import EvaluationService
 # Configurar logger específico para tareas
 logger = get_task_logger(__name__)
 
-@shared_task(bind=True, name='tasks.run_evaluation')
+@shared_task(bind=True, name='tasks.run_evaluation', max_retries=3, default_retry_delay=60, acks_late=True, reject_on_worker_lost=True)
 def run_evaluation(self, evaluation_id):
     """
     Tarea asíncrona para ejecutar una evaluación de calidad de datos
@@ -28,18 +28,24 @@ def run_evaluation(self, evaluation_id):
     logger.info(f"Iniciando evaluación asíncrona ID: {evaluation_id}")
     
     try:
-        # Actualizar estado de la evaluación a "processing"
+        logger.info(f"Iniciando procesamiento de evaluación {evaluation_id} con task_id {self.request.id}")
+        
+        # Actualizar estado de la evaluación a "processing" y guardar task_id
         _update_evaluation_status(evaluation_id, "processing", progress=0, 
-                                current_step="Iniciando evaluación")
+                                current_step="Iniciando evaluación", task_id=self.request.id)
         
         # Crear servicio de evaluación
+        logger.debug(f"Creando servicio de evaluación para {evaluation_id}")
         evaluation_service = EvaluationService()
         
         # Obtener evaluación para verificar métricas configuradas
+        logger.debug(f"Obteniendo datos de evaluación {evaluation_id}")
         evaluation = Evaluation.query.get(evaluation_id)
         if not evaluation:
-            logger.error(f"Evaluación no encontrada: {evaluation_id}")
-            return {"success": False, "error": "Evaluación no encontrada"}
+            error_msg = f"Evaluación no encontrada: {evaluation_id}"
+            logger.error(error_msg)
+            _update_evaluation_status(evaluation_id, "failed", error=error_msg)
+            return {"success": False, "error": error_msg}
         
         # Verificar que existe el dataset
         dataset = Dataset.query.get(evaluation.dataset_id)
@@ -119,7 +125,7 @@ def run_evaluation(self, evaluation_id):
         return {"success": False, "error": error_msg}
 
 
-def _update_evaluation_status(evaluation_id, status, progress=None, current_step=None, error=None):
+def _update_evaluation_status(evaluation_id, status, progress=None, current_step=None, error=None, task_id=None):
     """
     Actualiza el estado de una evaluación en la base de datos de forma segura.
     
@@ -171,6 +177,10 @@ def _update_evaluation_status(evaluation_id, status, progress=None, current_step
             
         if error is not None:
             evaluation.error = error
+            
+        if task_id is not None:
+            evaluation.task_id = task_id
+            logger.debug(f"Actualizado task_id para evaluación {evaluation_id}: {task_id}")
         
         # Actualizar timestamps según el estado
         now = datetime.utcnow()
