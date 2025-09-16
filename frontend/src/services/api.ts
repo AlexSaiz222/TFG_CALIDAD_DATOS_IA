@@ -978,6 +978,82 @@ export const evaluationsAPI = {
   
   getIssues: (evaluationId: number) => 
     api.get(`/api/evaluations/${evaluationId}/issues`),
+    
+  // Get project metric configurations for a dataset
+  getProjectMetricsForDataset: async (datasetId: number) => {
+    try {
+      // First get the dataset to find the project ID
+      const datasetResponse = await datasetsAPI.getDataset(datasetId);
+      const dataset = datasetResponse?.data;
+      
+      if (!dataset || !dataset.project_id) {
+        console.error('Could not find project ID for dataset', datasetId);
+        return { metrics: [], projectId: null };
+      }
+      
+      // Now get the project's metric configurations
+      const projectId = dataset.project_id;
+      const metricsResponse = await metricsAPI.getProjectMetricConfigs(projectId);
+      
+      // Process the response to ensure we have a consistent format
+      let metricsConfig: any[] = [];
+      
+      const responseData = metricsResponse as any;
+      if (Array.isArray(responseData.data)) {
+        metricsConfig = responseData.data;
+      } else if (responseData.data && responseData.data.metrics_config && 
+                Array.isArray(responseData.data.metrics_config)) {
+        metricsConfig = responseData.data.metrics_config;
+      }
+      
+      return { metrics: metricsConfig, projectId };
+    } catch (error) {
+      console.error('Error getting project metrics for dataset:', error);
+      return { metrics: [], projectId: null };
+    }
+  },
+    
+  // Get metric names for issues display
+  getMetricNames: async () => {
+    try {
+      // Try to get metrics from the API
+      const metricsResponse = await metricsAPI.getMetrics();
+      const metrics = metricsResponse.data || [];
+      
+      // Create a mapping of metric IDs to names
+      const metricMap = metrics.map((metric: any) => ({
+        id: metric.id,
+        name: metric.name
+      }));
+      
+      // If no metrics found, add default ones
+      if (metricMap.length === 0) {
+        return [
+          { id: 1, name: 'Completeness' },
+          { id: 2, name: 'Uniqueness' },
+          { id: 3, name: 'Consistency' },
+          { id: 4, name: 'Accuracy' },
+          { id: 5, name: 'Timeliness' },
+          { id: 6, name: 'Distribution' },
+          { id: 7, name: 'Outliers' }
+        ];
+      }
+      
+      return metricMap;
+    } catch (error) {
+      console.error('Error fetching metric names:', error);
+      // Return default metrics in case of error
+      return [
+        { id: 1, name: 'Completeness' },
+        { id: 2, name: 'Uniqueness' },
+        { id: 3, name: 'Consistency' },
+        { id: 4, name: 'Accuracy' },
+        { id: 5, name: 'Timeliness' },
+        { id: 6, name: 'Distribution' },
+        { id: 7, name: 'Outliers' }
+      ];
+    }
+  }
 };
 
 export default api;

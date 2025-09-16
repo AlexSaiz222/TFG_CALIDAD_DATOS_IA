@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Link,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -39,6 +40,7 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI, evaluationsAPI, projectsAPI } from '../../services/api';
 import { Dataset, Evaluation, Issue } from '../../types';
+import IssueList from '../../components/issues/IssueList';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -80,6 +82,11 @@ const DatasetDetail = () => {
   const [previewColumns, setPreviewColumns] = useState<string[]>([]);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
+  const [metricNames, setMetricNames] = useState<{id: number, name: string}[]>([]);
+  const [loadingIssues, setLoadingIssues] = useState(false);
+  const [noMetricsDialogOpen, setNoMetricsDialogOpen] = useState(false);
+  const [projectId, setProjectId] = useState<number | null>(null);
+  const [projectMetrics, setProjectMetrics] = useState<any[]>([]);
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -101,6 +108,32 @@ const DatasetDetail = () => {
       setLoading(true);
       setError(null);
       setPreviewError(null);
+      
+      // Fetch metric names for issues display
+      try {
+        const metricNamesData = await evaluationsAPI.getMetricNames();
+        setMetricNames(metricNamesData);
+      } catch (error) {
+        console.warn('Error fetching metric names:', error);
+        // Use default metrics if there's an error
+        setMetricNames([
+          { id: 1, name: 'Completeness' },
+          { id: 2, name: 'Uniqueness' },
+          { id: 3, name: 'Consistency' },
+        ]);
+      }
+      
+      // Fetch project metrics configuration
+      try {
+        const projectMetricsData = await evaluationsAPI.getProjectMetricsForDataset(datasetId);
+        setProjectMetrics(projectMetricsData.metrics);
+        if (projectMetricsData.projectId) {
+          setProjectId(projectMetricsData.projectId);
+        }
+      } catch (error) {
+        console.warn('Error fetching project metrics configuration:', error);
+        setProjectMetrics([]);
+      }
 
       try {
         console.log('Fetching dataset with ID:', datasetId);
@@ -161,14 +194,42 @@ const DatasetDetail = () => {
           // Fetch issues if there are evaluations
           if (Array.isArray(evaluationsData) && evaluationsData.length > 0) {
             const latestEvaluation = evaluationsData[0];
+            setLoadingIssues(true);
             try {
               const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
               // Extraer las issues de la estructura de respuesta
-              const issuesData = issuesResponse?.data?.data || issuesResponse?.data || [];
-              setIssues(Array.isArray(issuesData) ? issuesData : []);
+              let issuesData;
+              
+              if (issuesResponse?.data?.data?.issues) {
+                issuesData = issuesResponse.data.data.issues;
+              } else if (issuesResponse?.data?.issues) {
+                issuesData = issuesResponse.data.issues;
+              } else if (issuesResponse?.data?.data) {
+                issuesData = issuesResponse.data.data;
+              } else {
+                issuesData = issuesResponse?.data || [];
+              }
+              
+              // Ensure issues is always an array
+              const normalizedIssues = Array.isArray(issuesData) ? issuesData : [];
+              
+              // Add metric names to issues if available
+              const issuesWithMetricNames = normalizedIssues.map(issue => {
+                if (issue.metric_id && metricNames.length > 0) {
+                  const metric = metricNames.find(m => m.id === issue.metric_id);
+                  if (metric) {
+                    return { ...issue, metric_name: metric.name };
+                  }
+                }
+                return issue;
+              });
+              
+              setIssues(issuesWithMetricNames);
             } catch (issueError) {
               console.warn('Error fetching issues:', issueError);
               // Don't fail the whole page load for issues
+            } finally {
+              setLoadingIssues(false);
             }
           }
         } catch (evalError: any) {
@@ -264,12 +325,18 @@ const DatasetDetail = () => {
   const handleRunEvaluation = async () => {
     if (!dataset) return;
     
+    // Check if there are metrics configured for this project
+    if (!projectMetrics || projectMetrics.length === 0) {
+      setNoMetricsDialogOpen(true);
+      return;
+    }
+    
     setRunningEvaluation(true);
     setError(null);
     
     try {
-      // Pass an empty metrics config as the second parameter
-      const response = await evaluationsAPI.createEvaluation(dataset.id, {});
+      // Pass the project metrics configuration
+      const response = await evaluationsAPI.createEvaluation(dataset.id, { metrics: projectMetrics });
       
       // Extraer la evaluación de la estructura de respuesta
       // La respuesta tiene formato: { success: true, data: { evaluation: {...} } }
@@ -652,7 +719,7 @@ const DatasetDetail = () => {
                   },
                 }}
               >
-                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'run Evaluation'}
+                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
               </Button>
             </Box>
           )}
@@ -660,43 +727,12 @@ const DatasetDetail = () => {
 
         {/* Issues Tab */}
         <TabPanel value={tabValue} index={2}>
-          {issues.length > 0 ? (
-            <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
-              <Table aria-label="issues table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Severity</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Column</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {issues.map((issue) => (
-                    <TableRow key={issue.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {getIssueSeverityIcon(issue.severity)}
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              textTransform: 'capitalize',
-                              color: issue.severity === 'high' ? '#E5484D' : 
-                                     issue.severity === 'medium' ? '#FFB800' : '#00B37E'
-                            }}
-                          >
-                            {issue.severity}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{issue.metric_id ? `Metric ${issue.metric_id}` : 'System'}</TableCell>
-                      <TableCell>{issue.affected_columns && issue.affected_columns.length > 0 ? issue.affected_columns[0] : 'N/A'}</TableCell>
-                      <TableCell>{issue.description}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          {loadingIssues ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : issues.length > 0 ? (
+            <IssueList issues={issues} metrics={metricNames} />
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
@@ -729,30 +765,86 @@ const DatasetDetail = () => {
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
-          {"Delete Dataset?"}
-        </DialogTitle>
+        <DialogTitle id="delete-dialog-title">Delete dataset</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete the dataset "{dataset.name}"? This action cannot be undone and will delete all associated evaluations and issues.
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this dataset? This action cannot be undone and will also
+            delete all evaluations and issues associated with this dataset.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
             Cancel
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            autoFocus
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             disabled={deleteLoading}
+            startIcon={deleteLoading ? <CircularProgress size={20} /> : null}
           >
-            {deleteLoading ? <CircularProgress size={24} /> : 'Delete'}
+            Delete
           </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* No Metrics Configured Dialog */}
+      <Dialog
+        open={noMetricsDialogOpen}
+        onClose={() => setNoMetricsDialogOpen(false)}
+        aria-labelledby="no-metrics-dialog-title"
+        aria-describedby="no-metrics-dialog-description"
+      >
+        <DialogTitle id="no-metrics-dialog-title">No metrics configured</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="no-metrics-dialog-description">
+            No hay métricas configuradas para este proyecto. Debes configurar al menos una métrica antes de ejecutar una evaluación.
+          </DialogContentText>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body1" gutterBottom>
+              Para configurar métricas:
+            </Typography>
+            <ol>
+              <li>
+                <Typography variant="body2" gutterBottom>
+                  Ve a la página del proyecto
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2" gutterBottom>
+                  Haz clic en "Configurar Métricas"
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2" gutterBottom>
+                  Selecciona las métricas que deseas aplicar
+                </Typography>
+              </li>
+            </ol>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNoMetricsDialogOpen(false)} color="primary">
+            Cerrar
+          </Button>
+          {projectId && (
+            <Button
+              onClick={() => router.push(`/projects/${projectId}`)}
+              variant="contained"
+              sx={{
+                backgroundColor: '#00B37E',
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: '#00A070',
+                },
+              }}
+            >
+              Ir al proyecto
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </MainLayout>

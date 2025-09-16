@@ -121,13 +121,29 @@ export interface ColumnMetrics {
   };
 }
 
+export interface AffectedColumn {
+  column: string;
+  null_rate?: number;
+  duplicate_count?: number;
+  outlier_count?: number;
+  invalid_count?: number;
+  uniqueness?: number;
+}
+
+export interface AffectedRows {
+  count: number;
+  sample?: any[];
+}
+
 export interface Issue {
   id: number;
   evaluation_id: number;
   metric_id?: number;
+  metric_name?: string;
   severity: 'low' | 'medium' | 'high';
   description: string;
-  affected_columns?: any[];
-  affected_rows?: any;
+  affected_columns?: AffectedColumn[];
+  affected_rows?: AffectedRows;
+  details?: Record<string, any>;
   created_at: string;
 }
