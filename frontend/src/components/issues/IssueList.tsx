@@ -70,10 +70,19 @@ const IssueList: React.FC<IssueListProps> = ({ issues, metrics }) => {
     }
   };
 
-  const getMetricName = (metricId: number | undefined) => {
-    if (!metricId) return 'Unknown';
-    const metric = metrics.find(m => m.id === metricId);
-    return metric ? metric.name : `Metric ${metricId}`;
+  const getMetricName = (metricId: number | undefined, metricName?: string) => {
+    // Si ya tenemos un nombre de métrica, usarlo directamente
+    if (metricName) return metricName;
+    
+    // Si tenemos un ID de métrica, intentar encontrarlo en el catálogo
+    if (metricId) {
+      const metric = metrics.find(m => m.id === metricId);
+      if (metric) return metric.name;
+      return `Metric ${metricId}`;
+    }
+    
+    // Si no se puede determinar, devolver Unknown
+    return 'Unknown';
   };
 
   const getAffectedColumnsText = (issue: Issue) => {
@@ -215,7 +224,7 @@ const IssueList: React.FC<IssueListProps> = ({ issues, metrics }) => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      {issue.metric_name || getMetricName(issue.metric_id)}
+                      {getMetricName(issue.metric_id, issue.metric_name)}
                     </TableCell>
                     <TableCell>
                       <Typography

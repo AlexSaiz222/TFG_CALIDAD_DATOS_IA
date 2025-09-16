@@ -369,20 +369,16 @@ const DatasetDetail = () => {
     
     try {
       // Format metrics correctly for the backend
-      // El backend espera nombres de métricas como strings, no IDs numéricos
-      // Usamos solo métricas que existen en el catálogo
       const metricsConfig = [];
       
       // Recorrer las métricas válidas y buscar su nombre en el catálogo de métricas
       for (const metric of validMetrics) {
         const metricId = Number(metric.metric_id || metric.id);
-        // Buscar la métrica en el catálogo por su ID
         const catalogMetric = metricNames.find(m => m.id === metricId);
         
         if (catalogMetric) {
-          // Solo agregar métricas que existen en el catálogo
           metricsConfig.push({
-            id: catalogMetric.name.toLowerCase(), // Usar el nombre de la métrica, no el ID
+            id: catalogMetric.name.toLowerCase(),
             parameters: metric.parameters || {}
           });
         }
@@ -738,14 +734,51 @@ const DatasetDetail = () => {
                           variant="outlined"
                           onClick={() => {
                             // Fetch issues for this evaluation
+                            setLoadingIssues(true);
                             evaluationsAPI.getIssues(evaluation.id)
                               .then(response => {
-                                setIssues(response.data);
+                                // Extraer las issues de la estructura de respuesta
+                                let issuesData;
+                                
+                                if (response?.data?.data?.issues) {
+                                  issuesData = response.data.data.issues;
+                                } else if (response?.data?.issues) {
+                                  issuesData = response.data.issues;
+                                } else if (response?.data?.data) {
+                                  issuesData = response.data.data;
+                                } else {
+                                  issuesData = response?.data || [];
+                                }
+                                
+                                // Ensure issues is always an array
+                                const normalizedIssues = Array.isArray(issuesData) ? issuesData : [];
+                                
+                                console.log('Issues obtenidos del backend:', normalizedIssues);
+                                console.log('Catálogo de métricas disponible:', metricNames);
+                                
+                                // Add metric names to issues if available
+                                const issuesWithMetricNames = normalizedIssues.map(issue => {
+                                  console.log('Procesando issue:', issue);
+                                  if (issue.metric_id && metricNames.length > 0) {
+                                    const metric = metricNames.find(m => m.id === issue.metric_id);
+                                    console.log('Métrica encontrada para ID', issue.metric_id, ':', metric);
+                                    if (metric) {
+                                      return { ...issue, metric_name: metric.name };
+                                    }
+                                  }
+                                  return issue;
+                                });
+                                
+                                console.log('Issues con nombres de métricas:', issuesWithMetricNames);
+                                
+                                setIssues(issuesWithMetricNames);
                                 setTabValue(2); // Switch to Issues tab
+                                setLoadingIssues(false);
                               })
                               .catch(error => {
                                 console.error('Error fetching issues:', error);
                                 setError('Failed to fetch issues for this evaluation.');
+                                setLoadingIssues(false);
                               });
                           }}
                           disabled={evaluation.status !== 'completed'}

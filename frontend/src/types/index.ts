@@ -146,4 +146,5 @@ export interface Issue {
   affected_rows?: AffectedRows;
   details?: Record<string, any>;
   created_at: string;
+  timestamp?: string; // Campo adicional para compatibilidad con diferentes formatos de fecha
 }

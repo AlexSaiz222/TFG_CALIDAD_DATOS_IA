@@ -86,7 +86,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
             Metric
           </Typography>
           <Typography variant="body1">
-            {issue.metric_name || `Metric ID: ${issue.metric_id || 'Unknown'}`}
+            {issue.metric_name || (issue.metric_id ? `Metric ID: ${issue.metric_id}` : 'Unknown')}
           </Typography>
         </Grid>
         <Grid item xs={12} md={6}>
@@ -96,7 +96,11 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
           <Typography variant="body1">
             {issue.created_at && !isNaN(new Date(issue.created_at).getTime()) 
               ? new Date(issue.created_at).toLocaleString() 
-              : 'Fecha no disponible'}
+              : issue.timestamp && !isNaN(new Date(issue.timestamp).getTime())
+                ? new Date(issue.timestamp).toLocaleString()
+                : issue.evaluation_id 
+                  ? `Evaluación #${issue.evaluation_id}` 
+                  : 'Fecha no disponible'}
           </Typography>
         </Grid>
       </Grid>
