@@ -38,7 +38,7 @@ import {
   HourglassEmpty as HourglassEmptyIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
-import { datasetsAPI, evaluationsAPI, projectsAPI } from '../../services/api';
+import { datasetsAPI, evaluationsAPI, projectsAPI, metricsAPI } from '../../services/api';
 import { Dataset, Evaluation, Issue } from '../../types';
 import IssueList from '../../components/issues/IssueList';
 
@@ -109,10 +109,72 @@ const DatasetDetail = () => {
       setError(null);
       setPreviewError(null);
       
+      // Función para obtener el catálogo de métricas
+      const fetchMetricCatalog = async () => {
+        try {
+          console.log('Obteniendo métricas desde la API...');
+          // Usar la API correcta importada en la parte superior del archivo
+          const response = await metricsAPI.getMetrics();
+          console.log('Respuesta de getMetrics:', response);
+          
+          // Procesar la respuesta para extraer las métricas
+          let metricsData = [];
+          if (response && response.data) {
+            if (Array.isArray(response.data)) {
+              metricsData = response.data;
+            } else if (response.data.data && Array.isArray(response.data.data)) {
+              metricsData = response.data.data;
+            } else if (response.data.metrics && Array.isArray(response.data.metrics)) {
+              metricsData = response.data.metrics;
+            } else if (typeof response.data === 'object') {
+              // Buscar cualquier propiedad de array que pueda contener métricas
+              const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
+              if (possibleArrays.length > 0) {
+                metricsData = possibleArrays[0];
+              }
+            }
+          }
+          
+          console.log('Métricas obtenidas de la API:', metricsData);
+          
+          // Si no se encontraron métricas, mostrar un mensaje de error
+          if (!metricsData || metricsData.length === 0) {
+            console.warn('No se encontraron métricas en la API');
+          }
+          
+          setMetricNames(metricsData);
+          return metricsData;
+        } catch (error) {
+          console.error('Error fetching metrics:', error);
+          setMetricNames([]);
+          return [];
+        }
+      };
+  
+      // Función para buscar una métrica por su nombre o ID
+      const findMetricByNameOrId = (nameOrId: string | number | undefined) => {
+        if (!nameOrId) return null;
+        
+        // Si es un número, buscar por ID
+        if (typeof nameOrId === 'number') {
+          return metricNames.find(m => m.id === nameOrId);
+        }
+        
+        // Si es un string, buscar por nombre (case insensitive)
+        if (typeof nameOrId === 'string') {
+          const lowerName = nameOrId.toLowerCase();
+          return metricNames.find(m => 
+            m.name.toLowerCase() === lowerName || 
+            String(m.id).toLowerCase() === lowerName
+          );
+        }
+        
+        return null;
+      };
+
       // Fetch metric names for issues display
       try {
-        const metricNamesData = await evaluationsAPI.getMetricNames();
-        setMetricNames(metricNamesData);
+        const metricNamesData = await fetchMetricCatalog();
       } catch (error) {
         console.warn('Error fetching metric names:', error);
         // Use default metrics if there's an error
@@ -343,15 +405,36 @@ const DatasetDetail = () => {
         const normalizedIssues = Array.isArray(issuesData) ? issuesData : [];
         console.log('Issues recargados:', normalizedIssues);
         
-        // Add metric names to issues if available
+        // Add metric names to issues if available and ensure affected_columns is properly formatted
         const issuesWithMetricNames = normalizedIssues.map(issue => {
+          let updatedIssue = { ...issue };
+          
+          // Agregar nombre de métrica
           if (issue.metric_id && metricNames.length > 0) {
             const metric = metricNames.find(m => m.id === issue.metric_id);
+            console.log('Métrica encontrada para ID', issue.metric_id, ':', metric);
             if (metric) {
-              return { ...issue, metric_name: metric.name };
+              updatedIssue.metric_name = metric.name;
             }
           }
-          return issue;
+          
+          // Asegurarse de que affected_columns sea un array válido
+          if (issue.affected_columns) {
+            // Si es un string, intentar parsearlo como JSON
+            if (typeof issue.affected_columns === 'string') {
+              try {
+                updatedIssue.affected_columns = JSON.parse(issue.affected_columns);
+              } catch (e) {
+                console.error('Error al parsear affected_columns:', e);
+              }
+            }
+            // Si no es un array, convertirlo a array
+            if (!Array.isArray(updatedIssue.affected_columns)) {
+              updatedIssue.affected_columns = [];
+            }
+          }
+          
+          return updatedIssue;
         });
         
         setIssues(issuesWithMetricNames);
@@ -860,17 +943,37 @@ const DatasetDetail = () => {
                                 console.log('Issues obtenidos del backend:', normalizedIssues);
                                 console.log('Catálogo de métricas disponible:', metricNames);
                                 
-                                // Add metric names to issues if available
+                                // Add metric names to issues if available and ensure affected_columns is properly formatted
                                 const issuesWithMetricNames = normalizedIssues.map(issue => {
                                   console.log('Procesando issue:', issue);
+                                  let updatedIssue = { ...issue };
+                                  
+                                  // Agregar nombre de métrica
                                   if (issue.metric_id && metricNames.length > 0) {
                                     const metric = metricNames.find(m => m.id === issue.metric_id);
                                     console.log('Métrica encontrada para ID', issue.metric_id, ':', metric);
                                     if (metric) {
-                                      return { ...issue, metric_name: metric.name };
+                                      updatedIssue.metric_name = metric.name;
                                     }
                                   }
-                                  return issue;
+                                  
+                                  // Asegurarse de que affected_columns sea un array válido
+                                  if (issue.affected_columns) {
+                                    // Si es un string, intentar parsearlo como JSON
+                                    if (typeof issue.affected_columns === 'string') {
+                                      try {
+                                        updatedIssue.affected_columns = JSON.parse(issue.affected_columns);
+                                      } catch (e) {
+                                        console.error('Error al parsear affected_columns:', e);
+                                      }
+                                    }
+                                    // Si no es un array, convertirlo a array
+                                    if (!Array.isArray(updatedIssue.affected_columns)) {
+                                      updatedIssue.affected_columns = [];
+                                    }
+                                  }
+                                  
+                                  return updatedIssue;
                                 });
                                 
                                 console.log('Issues con nombres de métricas:', issuesWithMetricNames);

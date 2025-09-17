@@ -105,7 +105,8 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
         </Grid>
       </Grid>
 
-      {issue.affected_columns && Array.isArray(issue.affected_columns) && issue.affected_columns.length > 0 && (
+      {/* Procesamiento mejorado de affected_columns para manejar diferentes formatos */}
+      {issue.affected_columns && (typeof issue.affected_columns === 'string' ? issue.affected_columns !== 'None' : true) && (Array.isArray(issue.affected_columns) ? issue.affected_columns.length > 0 : true) && (
         <>
           <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>
             Affected Columns
@@ -115,55 +116,118 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>Column</TableCell>
-                  {issue.affected_columns.some(col => col.null_rate !== undefined) && (
-                    <TableCell sx={{ fontWeight: 600 }}>Null Rate</TableCell>
-                  )}
-                  {issue.affected_columns.some(col => col.duplicate_count !== undefined) && (
-                    <TableCell sx={{ fontWeight: 600 }}>Duplicates</TableCell>
-                  )}
-                  {issue.affected_columns.some(col => col.outlier_count !== undefined) && (
-                    <TableCell sx={{ fontWeight: 600 }}>Outliers</TableCell>
-                  )}
-                  {issue.affected_columns.some(col => col.invalid_count !== undefined) && (
-                    <TableCell sx={{ fontWeight: 600 }}>Invalid Values</TableCell>
-                  )}
-                  {issue.affected_columns.some(col => col.uniqueness !== undefined) && (
-                    <TableCell sx={{ fontWeight: 600 }}>Uniqueness</TableCell>
-                  )}
+                  {(() => {
+                    try {
+                      // Normalizar columnas para verificar propiedades
+                      let cols = Array.isArray(issue.affected_columns) ? issue.affected_columns : 
+                        typeof issue.affected_columns === 'string' ? 
+                          JSON.parse(issue.affected_columns) : 
+                          [issue.affected_columns];
+                      
+                      // Verificar propiedades
+                      const hasNullRate = cols.some((col: any) => col && col.null_rate !== undefined);
+                      const hasDuplicates = cols.some((col: any) => col && col.duplicate_count !== undefined);
+                      const hasOutliers = cols.some((col: any) => col && col.outlier_count !== undefined);
+                      const hasInvalid = cols.some((col: any) => col && col.invalid_count !== undefined);
+                      const hasUniqueness = cols.some((col: any) => col && col.uniqueness !== undefined);
+                      
+                      // Renderizar encabezados
+                      return (
+                        <>
+                          {hasNullRate && <TableCell sx={{ fontWeight: 600 }}>Null Rate</TableCell>}
+                          {hasDuplicates && <TableCell sx={{ fontWeight: 600 }}>Duplicates</TableCell>}
+                          {hasOutliers && <TableCell sx={{ fontWeight: 600 }}>Outliers</TableCell>}
+                          {hasInvalid && <TableCell sx={{ fontWeight: 600 }}>Invalid Values</TableCell>}
+                          {hasUniqueness && <TableCell sx={{ fontWeight: 600 }}>Uniqueness</TableCell>}
+                        </>
+                      );
+                    } catch (e) {
+                      console.error('Error processing table headers:', e);
+                      return null;
+                    }
+                  })()}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {issue.affected_columns.map((column: any, index: number) => {
+                {/* Procesamiento mejorado para manejar diferentes formatos de affected_columns */}
+                {(() => {
+                  try {
+                    // Intentar normalizar el formato de affected_columns
+                    let normalizedColumns;
+                    if (Array.isArray(issue.affected_columns)) {
+                      normalizedColumns = issue.affected_columns;
+                    } else if (typeof issue.affected_columns === 'string') {
+                      try {
+                        normalizedColumns = JSON.parse(issue.affected_columns);
+                      } catch (e) {
+                        console.error('Error parsing affected_columns string:', e);
+                        normalizedColumns = [{column: String(issue.affected_columns)}];
+                      }
+                    } else if (issue.affected_columns && typeof issue.affected_columns === 'object') {
+                      normalizedColumns = [issue.affected_columns];
+                    } else {
+                      normalizedColumns = [];
+                    }
+                    return normalizedColumns;
+                  } catch (e) {
+                    console.error('Error processing affected_columns:', e);
+                    return [];
+                  }
+                })().map((column: any, index: number) => {
                   // Asegurarse de que column es un objeto
                   const columnObj = typeof column === 'object' ? column : { column: String(column) };
                   return (
                   <TableRow key={index}>
                     <TableCell>{columnObj.column || `Columna ${index + 1}`}</TableCell>
-                    {issue.affected_columns!.some(col => col.null_rate !== undefined) && (
-                      <TableCell>
-                        {columnObj.null_rate !== undefined ? `${(columnObj.null_rate * 100).toFixed(2)}%` : '-'}
-                      </TableCell>
-                    )}
-                    {issue.affected_columns!.some(col => col.duplicate_count !== undefined) && (
-                      <TableCell>
-                        {columnObj.duplicate_count !== undefined ? columnObj.duplicate_count : '-'}
-                      </TableCell>
-                    )}
-                    {issue.affected_columns!.some(col => col.outlier_count !== undefined) && (
-                      <TableCell>
-                        {columnObj.outlier_count !== undefined ? columnObj.outlier_count : '-'}
-                      </TableCell>
-                    )}
-                    {issue.affected_columns!.some(col => col.invalid_count !== undefined) && (
-                      <TableCell>
-                        {columnObj.invalid_count !== undefined ? columnObj.invalid_count : '-'}
-                      </TableCell>
-                    )}
-                    {issue.affected_columns!.some(col => col.uniqueness !== undefined) && (
-                      <TableCell>
-                        {columnObj.uniqueness !== undefined ? `${(columnObj.uniqueness * 100).toFixed(2)}%` : '-'}
-                      </TableCell>
-                    )}
+                    {(() => {
+                      try {
+                        // Normalizar columnas para verificar propiedades
+                        let cols = Array.isArray(issue.affected_columns) ? issue.affected_columns : 
+                          typeof issue.affected_columns === 'string' ? 
+                            JSON.parse(issue.affected_columns) : 
+                            [issue.affected_columns];
+                        
+                        // Verificar propiedades
+                        const hasNullRate = cols.some((col: any) => col && col.null_rate !== undefined);
+                        const hasDuplicates = cols.some((col: any) => col && col.duplicate_count !== undefined);
+                        const hasOutliers = cols.some((col: any) => col && col.outlier_count !== undefined);
+                        const hasInvalid = cols.some((col: any) => col && col.invalid_count !== undefined);
+                        const hasUniqueness = cols.some((col: any) => col && col.uniqueness !== undefined);
+                        
+                        return (
+                          <>
+                            {hasNullRate && (
+                              <TableCell>
+                                {columnObj.null_rate !== undefined ? `${(columnObj.null_rate * 100).toFixed(2)}%` : '-'}
+                              </TableCell>
+                            )}
+                            {hasDuplicates && (
+                              <TableCell>
+                                {columnObj.duplicate_count !== undefined ? columnObj.duplicate_count : '-'}
+                              </TableCell>
+                            )}
+                            {hasOutliers && (
+                              <TableCell>
+                                {columnObj.outlier_count !== undefined ? columnObj.outlier_count : '-'}
+                              </TableCell>
+                            )}
+                            {hasInvalid && (
+                              <TableCell>
+                                {columnObj.invalid_count !== undefined ? columnObj.invalid_count : '-'}
+                              </TableCell>
+                            )}
+                            {hasUniqueness && (
+                              <TableCell>
+                                {columnObj.uniqueness !== undefined ? `${(columnObj.uniqueness * 100).toFixed(2)}%` : '-'}
+                              </TableCell>
+                            )}
+                          </>
+                        );
+                      } catch (e) {
+                        console.error('Error processing table cells:', e);
+                        return null;
+                      }
+                    })()}
                   </TableRow>
                 );
                 })}
