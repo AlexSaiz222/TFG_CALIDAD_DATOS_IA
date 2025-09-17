@@ -294,8 +294,52 @@ const DatasetDetail = () => {
     }
   }, [datasetId, router.isReady]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = async (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    
+    // Si cambiamos a la pestaña de Issues y hay evaluaciones, recargar los issues
+    if (newValue === 2 && evaluations.length > 0) {
+      setLoadingIssues(true);
+      try {
+        const latestEvaluation = evaluations[0];
+        const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
+        console.log('Recargando issues para evaluación:', latestEvaluation.id);
+        
+        // Extraer las issues de la estructura de respuesta
+        let issuesData;
+        
+        if (issuesResponse?.data?.data?.issues) {
+          issuesData = issuesResponse.data.data.issues;
+        } else if (issuesResponse?.data?.issues) {
+          issuesData = issuesResponse.data.issues;
+        } else if (issuesResponse?.data?.data) {
+          issuesData = issuesResponse.data.data;
+        } else {
+          issuesData = issuesResponse?.data || [];
+        }
+        
+        // Ensure issues is always an array
+        const normalizedIssues = Array.isArray(issuesData) ? issuesData : [];
+        console.log('Issues recargados:', normalizedIssues);
+        
+        // Add metric names to issues if available
+        const issuesWithMetricNames = normalizedIssues.map(issue => {
+          if (issue.metric_id && metricNames.length > 0) {
+            const metric = metricNames.find(m => m.id === issue.metric_id);
+            if (metric) {
+              return { ...issue, metric_name: metric.name };
+            }
+          }
+          return issue;
+        });
+        
+        setIssues(issuesWithMetricNames);
+      } catch (error) {
+        console.error('Error al recargar issues:', error);
+      } finally {
+        setLoadingIssues(false);
+      }
+    }
   };
 
   const handleDeleteClick = () => {
@@ -422,13 +466,35 @@ const DatasetDetail = () => {
               setRunningEvaluation(false);
               
               if (updatedEvaluation.status === 'completed') {
-                const issuesResponse = await evaluationsAPI.getIssues(updatedEvaluation.id);
-                // Extraer las issues de la estructura de respuesta
-                const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
-                setIssues(issuesData);
-                
-                // Switch to the Issues tab
-                setTabValue(2);
+                try {
+                  const issuesResponse = await evaluationsAPI.getIssues(updatedEvaluation.id);
+                  console.log('Issues response:', issuesResponse);
+                  
+                  // Extraer las issues de la estructura de respuesta con mejor manejo
+                  let issuesData;
+                  if (issuesResponse?.data?.data?.issues) {
+                    issuesData = issuesResponse.data.data.issues;
+                  } else if (issuesResponse?.data?.issues) {
+                    issuesData = issuesResponse.data.issues;
+                  } else if (issuesResponse?.data?.data) {
+                    issuesData = issuesResponse.data.data;
+                  } else {
+                    issuesData = issuesResponse?.data || [];
+                  }
+                  
+                  // Asegurar que issues sea siempre un array
+                  const normalizedIssues = Array.isArray(issuesData) ? issuesData : [];
+                  console.log('Issues procesados:', normalizedIssues);
+                  
+                  // Esperar un momento para asegurar que los issues se hayan guardado en la base de datos
+                  setTimeout(() => {
+                    setIssues(normalizedIssues);
+                    // Switch to the Issues tab
+                    setTabValue(2);
+                  }, 1000);
+                } catch (issueError) {
+                  console.error('Error al obtener issues:', issueError);
+                }
               }
             }
           } catch (error) {
