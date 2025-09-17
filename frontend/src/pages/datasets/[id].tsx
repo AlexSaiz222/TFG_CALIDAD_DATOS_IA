@@ -189,11 +189,24 @@ const DatasetDetail = () => {
           const evaluationsResponse = await evaluationsAPI.getEvaluations(datasetId);
           // Extraer las evaluaciones de la estructura de respuesta
           const evaluationsData = evaluationsResponse?.data?.data || evaluationsResponse?.data || [];
-          setEvaluations(Array.isArray(evaluationsData) ? evaluationsData : []);
+          
+          // Asegurarse de que las evaluaciones estén ordenadas de más reciente a más antigua
+          const sortedEvaluations = Array.isArray(evaluationsData) 
+            ? [...evaluationsData].sort((a, b) => {
+                // Ordenar por fecha de creación descendente (más reciente primero)
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+                return dateB - dateA;
+              })
+            : [];
+          
+          console.log('Evaluaciones ordenadas:', sortedEvaluations);
+          setEvaluations(sortedEvaluations);
           
           // Fetch issues if there are evaluations
-          if (Array.isArray(evaluationsData) && evaluationsData.length > 0) {
-            const latestEvaluation = evaluationsData[0];
+          if (sortedEvaluations.length > 0) {
+            const latestEvaluation = sortedEvaluations[0]; // Usar la evaluación más reciente
+            console.log('Cargando issues de la evaluación más reciente:', latestEvaluation.id);
             setLoadingIssues(true);
             try {
               const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
@@ -301,7 +314,15 @@ const DatasetDetail = () => {
     if (newValue === 2 && evaluations.length > 0) {
       setLoadingIssues(true);
       try {
-        const latestEvaluation = evaluations[0];
+        // Ordenar las evaluaciones para asegurarnos de usar la más reciente
+        const sortedEvals = [...evaluations].sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          return dateB - dateA;
+        });
+        
+        const latestEvaluation = sortedEvals[0];
+        console.log('Recargando issues para la evaluación más reciente:', latestEvaluation.id);
         const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
         console.log('Recargando issues para evaluación:', latestEvaluation.id);
         
@@ -446,7 +467,15 @@ const DatasetDetail = () => {
       
       // Add the new evaluation to the list
       if (newEvaluation) {
-        setEvaluations(prev => [newEvaluation, ...prev]);
+        // Añadir la nueva evaluación y ordenar por fecha de creación (más reciente primero)
+        setEvaluations(prev => {
+          const updatedEvaluations = [newEvaluation, ...prev];
+          return updatedEvaluations.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA;
+          });
+        });
         
         // Poll for evaluation status
         const pollInterval = setInterval(async () => {
@@ -455,10 +484,19 @@ const DatasetDetail = () => {
             // Extraer la evaluación de la estructura de respuesta
             const updatedEvaluation = statusResponse.data?.data?.evaluation || statusResponse.data;
             
-            // Update the evaluation in the list
-            setEvaluations(prev => 
-              prev.map(evaluation => evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation)
-            );
+            // Update the evaluation in the list and mantener el orden
+            setEvaluations(prev => {
+              const updatedList = prev.map(evaluation => 
+                evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation
+              );
+              
+              // Mantener el orden por fecha de creación (más reciente primero)
+              return updatedList.sort((a, b) => {
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+                return dateB - dateA;
+              });
+            });
             
             // If evaluation is complete, fetch issues and stop polling
             if (updatedEvaluation.status === 'completed' || updatedEvaluation.status === 'failed') {

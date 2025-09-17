@@ -305,7 +305,7 @@ const IssueList: React.FC<IssueListProps> = ({ issues, metrics }) => {
             }
           }}
         >
-          Issue Details
+          Issue details
           <IconButton onClick={() => setSelectedIssue(null)}>
             <CloseIcon />
           </IconButton>
