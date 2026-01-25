@@ -13,6 +13,30 @@ from services.evaluation_service import EvaluationService
 # Configurar logger específico para tareas
 logger = get_task_logger(__name__)
 
+def get_flask_app():
+    """Obtener la instancia de la aplicación Flask para el contexto"""
+    import os
+    import sys
+    
+    # Asegurar que el directorio backend está en el path
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if backend_dir not in sys.path:
+        sys.path.insert(0, backend_dir)
+    
+    from flask import Flask
+    from config import get_config
+    from extensions import db
+    
+    # Crear una aplicación Flask mínima para el contexto
+    app = Flask(__name__)
+    config_object = get_config()
+    app.config.from_object(config_object)
+    
+    # Inicializar extensiones
+    db.init_app(app)
+    
+    return app
+
 @shared_task(bind=True, name='tasks.run_evaluation', max_retries=3, default_retry_delay=60, acks_late=True, reject_on_worker_lost=True)
 def run_evaluation(self, evaluation_id):
     """
@@ -27,12 +51,20 @@ def run_evaluation(self, evaluation_id):
     """
     logger.info(f"Iniciando evaluación asíncrona ID: {evaluation_id}")
     
+    # Obtener contexto de la aplicación Flask
+    app = get_flask_app()
+    
+    with app.app_context():
+        return _run_evaluation_impl(self, evaluation_id)
+
+def _run_evaluation_impl(task_self, evaluation_id):
+    """Implementación real de la evaluación dentro del contexto de Flask"""
     try:
-        logger.info(f"Iniciando procesamiento de evaluación {evaluation_id} con task_id {self.request.id}")
+        logger.info(f"Iniciando procesamiento de evaluación {evaluation_id} con task_id {task_self.request.id}")
         
         # Actualizar estado de la evaluación a "processing" y guardar task_id
         _update_evaluation_status(evaluation_id, "processing", progress=0, 
-                                current_step="Iniciando evaluación", task_id=self.request.id)
+                                current_step="Iniciando evaluación", task_id=task_self.request.id)
         
         # Crear servicio de evaluación
         logger.debug(f"Creando servicio de evaluación para {evaluation_id}")

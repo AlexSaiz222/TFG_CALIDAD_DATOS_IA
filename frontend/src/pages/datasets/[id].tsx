@@ -7,6 +7,7 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  LinearProgress,
   Alert,
   Paper,
   Divider,
@@ -26,6 +27,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Tooltip,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -232,6 +234,85 @@ const DatasetDetail = () => {
     }
   }, [datasetId, router.isReady]);
 
+  // Ref para mantener las evaluaciones actualizadas sin causar re-renders del useEffect
+  const evaluationsRef = useRef(evaluations);
+  evaluationsRef.current = evaluations;
+
+  // Polling automático para evaluaciones en proceso
+  useEffect(() => {
+    // Verificar si hay evaluaciones pendientes o en proceso
+    const hasPendingEvaluations = evaluations.some(
+      (e: Evaluation) => e.status === 'pending' || e.status === 'processing'
+    );
+
+    if (!hasPendingEvaluations) return;
+
+    // Hacer polling cada 3 segundos (más lento para evitar sobrecarga)
+    const pollInterval = setInterval(async () => {
+      const currentEvaluations = evaluationsRef.current;
+      const pendingIds = currentEvaluations
+        .filter((e: Evaluation) => e.status === 'pending' || e.status === 'processing')
+        .map((e: Evaluation) => e.id);
+
+      if (pendingIds.length === 0) {
+        clearInterval(pollInterval);
+        return;
+      }
+
+      try {
+        // Actualizar el estado de cada evaluación pendiente
+        for (const evalId of pendingIds) {
+          try {
+            const statusResponse = await evaluationsAPI.getEvaluationStatus(evalId);
+            // La respuesta tiene estructura: { success, data: { status: { status, progress, current_step, ... } } }
+            const statusData = statusResponse.data?.data?.status || statusResponse.data?.data || statusResponse.data;
+            
+            console.log(`Polling evaluation ${evalId}:`, statusData);
+            
+            setEvaluations((prev: Evaluation[]) => prev.map((evaluation: Evaluation) => {
+              if (evaluation.id === evalId) {
+                const newStatus = statusData.status;
+                const wasCompleted = evaluation.status !== 'completed' && newStatus === 'completed';
+                const wasFailed = evaluation.status !== 'failed' && newStatus === 'failed';
+                
+                if (wasCompleted || wasFailed) {
+                  setRunningEvaluation(false);
+                }
+                
+                if (wasCompleted) {
+                  // Cargar issues cuando se complete
+                  evaluationsAPI.getIssues(evalId)
+                    .then(issuesResponse => {
+                      const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
+                      setIssues(issuesData);
+                    })
+                    .catch(err => console.warn('Error fetching issues:', err));
+                }
+                
+                return {
+                  ...evaluation,
+                  status: statusData.status,
+                  progress: statusData.progress,
+                  current_step: statusData.current_step,
+                  completed_at: statusData.completed_at,
+                  started_at: statusData.started_at,
+                  error: statusData.error,
+                };
+              }
+              return evaluation;
+            }));
+          } catch (err) {
+            console.warn(`Error polling evaluation ${evalId}:`, err);
+          }
+        }
+      } catch (error) {
+        console.error('Error in evaluation polling:', error);
+      }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [evaluations.filter((e: Evaluation) => e.status === 'pending' || e.status === 'processing').length]);
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
@@ -278,42 +359,10 @@ const DatasetDetail = () => {
       console.log('Evaluation response:', response.data);
       console.log('Extracted evaluation:', newEvaluation);
       
-      // Add the new evaluation to the list
-      setEvaluations(prev => [newEvaluation, ...prev]);
+      // Add the new evaluation to the list - el useEffect de polling se encargará de actualizar el estado
+      setEvaluations((prev: Evaluation[]) => [newEvaluation, ...prev]);
       
-      // Poll for evaluation status
-      const pollInterval = setInterval(async () => {
-        try {
-          const statusResponse = await evaluationsAPI.getEvaluation(newEvaluation.id);
-          // Extraer la evaluación de la estructura de respuesta
-          const updatedEvaluation = statusResponse.data?.data?.evaluation || statusResponse.data;
-          
-          // Update the evaluation in the list
-          setEvaluations(prev => 
-            prev.map(evaluation => evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation)
-          );
-          
-          // If evaluation is complete, fetch issues and stop polling
-          if (updatedEvaluation.status === 'completed' || updatedEvaluation.status === 'failed') {
-            clearInterval(pollInterval);
-            setRunningEvaluation(false);
-            
-            if (updatedEvaluation.status === 'completed') {
-              const issuesResponse = await evaluationsAPI.getIssues(updatedEvaluation.id);
-              // Extraer las issues de la estructura de respuesta
-              const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
-              setIssues(issuesData);
-              
-              // Switch to the Issues tab
-              setTabValue(2);
-            }
-          }
-        } catch (error) {
-          console.error('Error polling evaluation status:', error);
-          clearInterval(pollInterval);
-          setRunningEvaluation(false);
-        }
-      }, 2000); // Poll every 2 seconds
+      // No necesitamos polling aquí - el useEffect de polling automático se encarga de todo
     } catch (error: any) {
       console.error('Error running evaluation:', error);
       setError(error.response?.data?.message || 'Failed to run evaluation. Please try again.');
@@ -578,7 +627,7 @@ const DatasetDetail = () => {
                     <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Completed</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Duration</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Issues</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                   </TableRow>
@@ -588,16 +637,82 @@ const DatasetDetail = () => {
                     <TableRow key={evaluation.id} hover>
                       <TableCell>{evaluation.id}</TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {getStatusIcon(evaluation.status)}
-                          <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-                            {evaluation.status}
-                          </Typography>
-                        </Box>
+                        {(evaluation.status === 'pending' || evaluation.status === 'processing') ? (
+                          <Tooltip title={evaluation.current_step || (evaluation.status === 'pending' ? 'Esperando worker de Celery...' : 'Procesando...')} arrow>
+                            <Box sx={{ minWidth: 200 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                {evaluation.status === 'pending' ? (
+                                  <CircularProgress size={16} sx={{ color: '#FFB800' }} />
+                                ) : (
+                                  <HourglassEmptyIcon sx={{ color: '#00B37E', fontSize: 18 }} />
+                                )}
+                                <Typography variant="body2" sx={{ 
+                                  fontWeight: 500,
+                                  color: evaluation.status === 'pending' ? '#FFB800' : '#00B37E' 
+                                }}>
+                                  {evaluation.status === 'pending' ? 'En cola' : 'Procesando'}
+                                </Typography>
+                                {evaluation.status === 'processing' && (
+                                  <Typography variant="body2" sx={{ color: '#666', ml: 'auto' }}>
+                                    {evaluation.progress || 0}%
+                                  </Typography>
+                                )}
+                              </Box>
+                              <LinearProgress 
+                                variant={evaluation.status === 'pending' ? 'indeterminate' : 'determinate'}
+                                value={evaluation.progress || 0}
+                                sx={{
+                                  height: 6,
+                                  borderRadius: 3,
+                                  backgroundColor: '#E0E0E0',
+                                  '& .MuiLinearProgress-bar': {
+                                    borderRadius: 3,
+                                    backgroundColor: evaluation.status === 'pending' ? '#FFB800' : '#00B37E',
+                                  },
+                                }}
+                              />
+                              <Typography variant="caption" sx={{ color: '#888', display: 'block', mt: 0.5, fontSize: '0.7rem' }}>
+                                {evaluation.current_step || (evaluation.status === 'pending' ? 'Esperando en cola...' : 'Procesando...')}
+                              </Typography>
+                            </Box>
+                          </Tooltip>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {getStatusIcon(evaluation.status)}
+                            <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                              {evaluation.status}
+                            </Typography>
+                          </Box>
+                        )}
                       </TableCell>
                       <TableCell>{new Date(evaluation.created_at).toLocaleString()}</TableCell>
                       <TableCell>
-                        {evaluation.completed_at ? new Date(evaluation.completed_at).toLocaleString() : '-'}
+                        {(() => {
+                          if (evaluation.status === 'completed' && evaluation.started_at && evaluation.completed_at) {
+                            const start = new Date(evaluation.started_at).getTime();
+                            const end = new Date(evaluation.completed_at).getTime();
+                            const durationMs = end - start;
+                            const seconds = Math.floor(durationMs / 1000);
+                            const minutes = Math.floor(seconds / 60);
+                            const remainingSeconds = seconds % 60;
+                            if (minutes > 0) {
+                              return `${minutes}m ${remainingSeconds}s`;
+                            }
+                            return `${seconds}s`;
+                          } else if (evaluation.status === 'processing' && evaluation.started_at) {
+                            const start = new Date(evaluation.started_at).getTime();
+                            const now = Date.now();
+                            const durationMs = now - start;
+                            const seconds = Math.floor(durationMs / 1000);
+                            const minutes = Math.floor(seconds / 60);
+                            const remainingSeconds = seconds % 60;
+                            if (minutes > 0) {
+                              return `${minutes}m ${remainingSeconds}s...`;
+                            }
+                            return `${seconds}s...`;
+                          }
+                          return '-';
+                        })()}
                       </TableCell>
                       <TableCell>{evaluation.issue_count || 0}</TableCell>
                       <TableCell>

@@ -2,6 +2,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import io
+import logging
 
 from extensions import db
 from models.evaluation import Evaluation, Issue
@@ -10,6 +11,8 @@ from models.metric import Metric
 from services.dataset_service import DatasetService
 from services.minio_service import MinioService
 
+logger = logging.getLogger(__name__)
+
 class EvaluationService:
     """Service for running data quality evaluations"""
     
@@ -17,6 +20,32 @@ class EvaluationService:
         """Initialize evaluation service"""
         self.dataset_service = DatasetService()
         self.minio_service = MinioService()
+    
+    def _update_progress(self, evaluation_id, progress, current_step):
+        """Update evaluation progress in the database using direct SQL update
+        
+        Args:
+            evaluation_id: ID of the evaluation
+            progress: Progress percentage (0-100)
+            current_step: Description of current step
+        """
+        try:
+            # Use direct SQL update to avoid session caching issues in Celery
+            from sqlalchemy import text
+            progress_value = min(99, max(0, progress))  # Cap at 99 until complete
+            
+            logger.info(f"[PROGRESS] Updating evaluation {evaluation_id}: {progress_value}% - {current_step}")
+            
+            result = db.session.execute(
+                text("UPDATE evaluations SET progress = :progress, current_step = :step, status = 'processing' WHERE id = :id"),
+                {"progress": progress_value, "step": current_step, "id": evaluation_id}
+            )
+            db.session.commit()
+            
+            logger.info(f"[PROGRESS] Updated evaluation {evaluation_id}: rows affected = {result.rowcount}")
+        except Exception as e:
+            logger.error(f"[PROGRESS] Failed to update progress for evaluation {evaluation_id}: {e}")
+            db.session.rollback()
     
     def run_evaluation(self, evaluation_id):
         """Run evaluation for the given evaluation ID
@@ -42,21 +71,25 @@ class EvaluationService:
             for metric in all_metrics:
                 metrics_map[metric.name] = metric.id
             
-            # Update evaluation status
-            evaluation.status = 'processing'
-            evaluation.started_at = datetime.utcnow()
-            db.session.commit()
+            # Update evaluation status using direct SQL to ensure it persists
+            self._update_progress(evaluation_id, 5, "Iniciando evaluación...")
             
             # Get dataset
             dataset = Dataset.query.get(evaluation.dataset_id)
             if not dataset:
                 raise Exception("Dataset not found")
             
+            self._update_progress(evaluation_id, 10, "Descargando dataset...")
+            
             # Download dataset from MinIO
             file_data = self.minio_service.download_file(dataset.file_path)
             
+            self._update_progress(evaluation_id, 20, "Leyendo datos del dataset...")
+            
             # Read dataset with pandas
             df = pd.read_csv(io.BytesIO(file_data))
+            
+            self._update_progress(evaluation_id, 25, "Preparando análisis de métricas...")
             
             # Run metrics based on configuration
             results = {}
@@ -64,16 +97,22 @@ class EvaluationService:
             
             # Get metrics configuration
             metrics_config = evaluation.metrics_config.get('metrics', [])
+            total_metrics = len(metrics_config) if metrics_config else 1
             
             # Track processed metrics for quality score calculation
             processed_metrics = []
             metric_scores = []
             
             # Process each configured metric
-            for metric_config in metrics_config:
+            for metric_index, metric_config in enumerate(metrics_config):
+                # Calculate progress: 25% to 70% for metrics processing
+                metric_progress = 25 + int(((metric_index + 1) / total_metrics) * 45)
                 metric_id = metric_config.get('id')
                 parameters = metric_config.get('parameters', {})
                 weight = metric_config.get('weight', 1.0)
+                
+                # Update progress for current metric
+                self._update_progress(evaluation_id, metric_progress, f"Analizando métrica: {metric_id}...")
                 
                 if metric_id == 'completeness':
                     # Calculate completeness (percentage of non-null values)
@@ -288,9 +327,16 @@ class EvaluationService:
                         processed_metrics.append('outliers')
                         metric_scores.append(outlier_score * weight)
             
+            self._update_progress(evaluation_id, 75, "Analizando métricas por columna...")
+            
             # Calculate column-level metrics for all columns
             column_metrics = {}
-            for column in df.columns:
+            total_columns = len(df.columns)
+            for col_index, column in enumerate(df.columns):
+                # Update progress: 75% to 90% for column analysis
+                if col_index % max(1, total_columns // 5) == 0:  # Update every 20% of columns
+                    col_progress = 75 + int((col_index / total_columns) * 15)
+                    self._update_progress(evaluation_id, col_progress, f"Analizando columna: {column}...")
                 completeness = 1 - df[column].isna().mean()
                 uniqueness = df[column].nunique() / len(df) if len(df) > 0 else 1
                 
@@ -321,8 +367,12 @@ class EvaluationService:
                         'histogram': self._generate_histogram(df[column])
                     })
             
+            self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...")
+            
             # Calculate overall quality score
             quality_score = sum(metric_scores) / len(metric_scores) if metric_scores else 0.0
+            
+            self._update_progress(evaluation_id, 95, "Guardando resultados...")
             
             # Update evaluation with results
             evaluation.results = {
