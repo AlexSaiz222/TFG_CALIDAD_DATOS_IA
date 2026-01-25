@@ -20,6 +20,7 @@ EXPOSE 5000
 
 # Create entrypoint script
 COPY entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Run the application
