@@ -970,14 +970,34 @@ export const evaluationsAPI = {
   getEvaluations: (datasetId: number) => 
     api.get(`/api/datasets/${datasetId}/evaluations`),
   
+  getAllEvaluations: (params?: { page?: number; per_page?: number; status?: string; dataset_id?: number }) => 
+    api.get('/api/evaluations', { params }),
+  
   getEvaluation: (id: number) => 
     api.get(`/api/evaluations/${id}`),
   
+  getEvaluationStatus: (id: number) => 
+    api.get(`/api/evaluations/${id}/status`),
+  
   createEvaluation: (datasetId: number, metricsConfig: any) => 
-    api.post(`/api/datasets/${datasetId}/evaluations`, { metrics_config: metricsConfig }),
+    api.post(`/api/evaluations/datasets/${datasetId}`, { 
+      metrics: Array.isArray(metricsConfig?.metrics) ? metricsConfig.metrics : [
+        { id: 'completeness', parameters: { threshold: 0.95 } },
+        { id: 'uniqueness', parameters: { threshold: 1.0 } }
+      ],
+      options: metricsConfig?.options || {}
+    }),
   
   getIssues: (evaluationId: number) => 
     api.get(`/api/evaluations/${evaluationId}/issues`),
+  
+  deleteEvaluation: (id: number) => 
+    api.delete(`/api/evaluations/${id}`),
+  
+  compareEvaluations: (evaluationId1: number, evaluationId2: number) => 
+    api.get(`/api/evaluations/compare`, { 
+      params: { evaluation_id_1: evaluationId1, evaluation_id_2: evaluationId2 } 
+    }),
 };
 
 export default api;

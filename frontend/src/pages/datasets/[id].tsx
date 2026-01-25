@@ -603,6 +603,22 @@ const DatasetDetail = () => {
                       <TableCell>
                         <Button
                           size="small"
+                          variant="contained"
+                          onClick={() => router.push(`/evaluations/${evaluation.id}`)}
+                          disabled={evaluation.status !== 'completed'}
+                          sx={{
+                            backgroundColor: '#00B37E',
+                            color: '#FFFFFF',
+                            mr: 1,
+                            '&:hover': {
+                              backgroundColor: '#00A070',
+                            },
+                          }}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          size="small"
                           variant="outlined"
                           onClick={() => {
                             // Fetch issues for this evaluation

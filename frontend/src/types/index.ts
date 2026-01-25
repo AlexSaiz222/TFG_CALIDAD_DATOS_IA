@@ -86,10 +86,14 @@ export interface MetricConfig {
 export interface Evaluation {
   id: number;
   dataset_id: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  metrics_config: MetricConfig[];
+  status: 'pending' | 'processing' | 'running' | 'completed' | 'failed';
+  metrics_config: { metrics: MetricConfig[]; options?: Record<string, any> } | MetricConfig[];
   results?: EvaluationResults;
   quality_score?: number;
+  progress?: number;
+  current_step?: string;
+  task_id?: string;
+  error?: string;
   started_at?: string;
   completed_at?: string;
   created_at: string;
@@ -99,11 +103,19 @@ export interface Evaluation {
 
 export interface EvaluationResults {
   overall: {
-    completeness: number;
-    uniqueness: number;
     quality_score: number;
+    metrics_processed?: string[];
+    completeness?: number;
+    uniqueness?: number;
+    outliers?: Record<string, OutlierInfo>;
+    [key: string]: any;
   };
   column_metrics: Record<string, ColumnMetrics>;
+}
+
+export interface OutlierInfo {
+  count: number;
+  indices: number[];
 }
 
 export interface ColumnMetrics {
