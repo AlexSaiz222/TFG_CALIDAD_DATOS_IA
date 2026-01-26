@@ -448,7 +448,12 @@ const EvaluationDetail = () => {
                             <TableCell>{issue.description}</TableCell>
                             <TableCell>
                               {issue.affected_columns && issue.affected_columns.length > 0
-                                ? issue.affected_columns.map((col: any) => col.column || col).join(', ')
+                                ? issue.affected_columns.map((col: any) => {
+                                    if (typeof col === 'string') return col;
+                                    if (col.column) return col.column;
+                                    if (col.name) return col.name;
+                                    return JSON.stringify(col);
+                                  }).join(', ')
                                 : '—'}
                             </TableCell>
                           </TableRow>

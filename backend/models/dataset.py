@@ -24,6 +24,7 @@ class Dataset(db.Model):
     
     # Relationships
     evaluations = db.relationship('Evaluation', backref='dataset', lazy=True, cascade='all, delete-orphan')
+    analysis_runs = db.relationship('AnalysisRun', backref='dataset', lazy='dynamic')
     
     def __repr__(self):
         return f'<Dataset {self.name}>'

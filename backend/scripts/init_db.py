@@ -19,6 +19,7 @@ from models.user import User
 from models.project import Project
 from models.dataset import Dataset
 from models.evaluation import Evaluation, Issue
+from models.analysis import AnalysisRun, QualityGate, DataQualityIssue
 from config import config
 
 # Cargar variables de entorno

@@ -23,11 +23,11 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
   const getSize = (): { width: number; thickness: number; fontSize: string } => {
     switch (size) {
       case 'small':
-        return { width: 80, thickness: 6, fontSize: '1.25rem' };
+        return { width: 80, thickness: 6, fontSize: '1rem' };
       case 'large':
-        return { width: 180, thickness: 10, fontSize: '2.5rem' };
+        return { width: 180, thickness: 10, fontSize: '1.75rem' };
       default:
-        return { width: 120, thickness: 8, fontSize: '1.75rem' };
+        return { width: 120, thickness: 8, fontSize: '1.25rem' };
     }
   };
 
