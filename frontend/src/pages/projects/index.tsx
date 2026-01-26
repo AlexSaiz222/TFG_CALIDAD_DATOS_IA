@@ -29,9 +29,10 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
+import QualityGateBadge from '../../components/QualityGateBadge';
 import { useAuth } from '../../contexts/AuthContext';
-import { projectsAPI } from '../../services/api';
-import { Project } from '../../types';
+import { projectsAPI, analysisAPI } from '../../services/api';
+import { Project, AnalysisRun } from '../../types';
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -43,6 +44,7 @@ const Projects = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [projectAnalysis, setProjectAnalysis] = useState<Record<number, AnalysisRun | null>>({});
   
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -62,6 +64,23 @@ const Projects = () => {
         setProjects(response);
         setFilteredProjects(response);
         setLoading(false);
+        
+        // Fetch latest analysis for each project
+        const analysisPromises = response.map(async (project: Project) => {
+          try {
+            const analysis = await analysisAPI.getLatestAnalysisRun(project.id);
+            return { projectId: project.id, analysis };
+          } catch {
+            return { projectId: project.id, analysis: null };
+          }
+        });
+        
+        const analysisResults = await Promise.all(analysisPromises);
+        const analysisMap: Record<number, AnalysisRun | null> = {};
+        analysisResults.forEach(({ projectId, analysis }) => {
+          analysisMap[projectId] = analysis;
+        });
+        setProjectAnalysis(analysisMap);
       } catch (error) {
         console.error('Error fetching projects:', error);
         setError('Failed to load projects. Please try again later.');
@@ -255,6 +274,33 @@ const Projects = () => {
                     >
                       {project.description || 'No description'}
                     </Typography>
+                    
+                    {/* Quality Gate Badge - Sonar-Lite */}
+                    <Box 
+                      sx={{ 
+                        mb: 2,
+                        cursor: projectAnalysis[project.id] ? 'pointer' : 'default',
+                        '&:hover': projectAnalysis[project.id] ? {
+                          opacity: 0.8,
+                        } : {},
+                      }}
+                      onClick={(e) => {
+                        if (projectAnalysis[project.id]) {
+                          e.stopPropagation();
+                          router.push(`/projects/${project.id}/runs/${projectAnalysis[project.id]?.id}`);
+                        }
+                      }}
+                    >
+                      <QualityGateBadge
+                        status={projectAnalysis[project.id]?.quality_gate_status}
+                        newIssuesCount={projectAnalysis[project.id]?.new_issues_count || 0}
+                        fixedIssuesCount={projectAnalysis[project.id]?.fixed_issues_count || 0}
+                        size="small"
+                        showLabel={true}
+                        showIssuesCounts={true}
+                      />
+                    </Box>
+                    
                     <Divider sx={{ my: 1 }} />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="body2" sx={{ color: '#555555' }}>

@@ -965,6 +965,31 @@ export const metricsAPI = {
     }),
 };
 
+// Analysis Runs API (Sonar-Lite)
+export const analysisAPI = {
+  getProjectAnalysisRuns: (projectId: number) =>
+    api.get(`/api/projects/${projectId}/analysis-runs`),
+  
+  getLatestAnalysisRun: async (projectId: number) => {
+    try {
+      const response = await api.get(`/api/projects/${projectId}/analysis-runs/latest`);
+      return response.data;
+    } catch (error: any) {
+      // If no analysis exists yet, return null instead of throwing
+      if (error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+  
+  getAnalysisRun: (runId: number) =>
+    api.get(`/api/analysis-runs/${runId}`),
+  
+  getAnalysisRunIssues: (runId: number, params?: { is_new?: boolean; severity?: string }) =>
+    api.get(`/api/analysis-runs/${runId}/issues`, { params }),
+};
+
 // Evaluations API
 export const evaluationsAPI = {
   getEvaluations: (datasetId: number) => 

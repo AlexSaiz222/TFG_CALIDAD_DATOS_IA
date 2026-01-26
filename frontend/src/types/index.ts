@@ -143,3 +143,50 @@ export interface Issue {
   affected_rows?: any;
   created_at: string;
 }
+
+// Sonar-Lite Architecture Types
+export type QualityGateStatus = 'PASSED' | 'FAILED' | 'WARNING';
+export type AnalysisStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export interface AnalysisRun {
+  id: number;
+  project_id: number;
+  dataset_id?: number;
+  status: AnalysisStatus;
+  quality_gate_status?: QualityGateStatus;
+  quality_score?: number;
+  critical_issues_count: number;
+  total_issues_count: number;
+  baseline_analysis_id?: number;
+  new_issues_count: number;
+  fixed_issues_count: number;
+  recurrent_issues_count: number;
+  metrics_config?: any;
+  results?: any;
+  task_id?: string;
+  progress: number;
+  current_step?: string;
+  error_message?: string;
+  created_at: string;
+  updated_at: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+export interface DataQualityIssue {
+  id: number;
+  analysis_run_id: number;
+  metric_id?: number;
+  fingerprint?: string;
+  issue_type: string;
+  severity: 'critical' | 'major' | 'minor' | 'info';
+  description: string;
+  affected_columns?: any[];
+  affected_rows?: any;
+  affected_row_count: number;
+  is_new: boolean;
+  rule_key?: string;
+  actual_value?: string;
+  expected_value?: string;
+  created_at: string;
+}

@@ -65,22 +65,22 @@ Migración del sistema de evaluación de calidad de datos a una arquitectura tip
 ---
 
 ### Tarea 2: Comparación con Baseline ⏳ PENDIENTE
-- [ ] Implementar `_compare_issues_with_baseline(analysis_run, baseline_run)`
-- [ ] Obtener fingerprints del baseline (análisis anterior)
-- [ ] Marcar issues como `is_new=True/False`
-- [ ] Calcular `new_issues_count` (issues nuevos)
-- [ ] Calcular `fixed_issues_count` (issues resueltos)
-- [ ] Integrar en flujo de finalización
+- [X] Implementar `_compare_issues_with_baseline(analysis_run, baseline_run)`
+- [X] Obtener fingerprints del baseline (análisis anterior)
+- [X] Marcar issues como `is_new=True/False`
+- [X] Calcular `new_issues_count` (issues nuevos)
+- [X] Calcular `fixed_issues_count` (issues resueltos)
+- [X] Integrar en flujo de finalización
 
 **Archivos:** `backend/services/evaluation_service.py`
 
 ---
 
 ### Tarea 3: Selección Automática de Baseline ⏳ PENDIENTE
-- [ ] Implementar `_get_baseline_for_project(project_id)`
-- [ ] Buscar último `AnalysisRun` COMPLETED del proyecto
-- [ ] Asignar `baseline_analysis_id` al nuevo run
-- [ ] Manejar caso sin baseline (primer análisis)
+- [X] Implementar `_get_baseline_for_project(project_id)`
+- [X] Buscar último `AnalysisRun` COMPLETED del proyecto
+- [X] Asignar `baseline_analysis_id` al nuevo run
+- [X] Manejar caso sin baseline (primer análisis)
 
 **Archivos:** `backend/services/evaluation_service.py`
 
@@ -89,9 +89,9 @@ Migración del sistema de evaluación de calidad de datos a una arquitectura tip
 ## Fase 3: Frontend Integration ⏳
 
 ### Tarea 1: Componente Quality Gate Badge ⏳ PENDIENTE
-- [ ] Crear componente visual para PASSED/FAILED/WARNING
-- [ ] Mostrar en dashboard de proyecto
-- [ ] Colores: verde (PASSED), rojo (FAILED), amarillo (WARNING)
+- [X] Crear componente visual para PASSED/FAILED/WARNING
+- [X] Mostrar en dashboard de proyecto
+- [X] Colores: verde (PASSED), rojo (FAILED), amarillo (WARNING)
 
 **Archivos:** `frontend/src/components/QualityGateBadge.tsx`
 

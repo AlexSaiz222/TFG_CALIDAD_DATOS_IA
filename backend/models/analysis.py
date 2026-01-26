@@ -142,6 +142,11 @@ class AnalysisRun(db.Model):
     def to_dict(self, include_issues=False):
         """Convert AnalysisRun to dictionary with serializable types"""
         try:
+            # Calculate recurrent issues (total - new)
+            total = self.total_issues_count or 0
+            new = self.new_issues_count or 0
+            recurrent = max(0, total - new)
+            
             result = {
                 'id': self.id,
                 'project_id': self.project_id,
@@ -150,10 +155,11 @@ class AnalysisRun(db.Model):
                 'quality_gate_status': self.quality_gate_status.value if self.quality_gate_status else None,
                 'quality_score': float(self.quality_score) if self.quality_score is not None else None,
                 'critical_issues_count': self.critical_issues_count or 0,
-                'total_issues_count': self.total_issues_count or 0,
+                'total_issues_count': total,
                 'baseline_analysis_id': self.baseline_analysis_id,
-                'new_issues_count': self.new_issues_count or 0,
+                'new_issues_count': new,
                 'fixed_issues_count': self.fixed_issues_count or 0,
+                'recurrent_issues_count': recurrent,
                 'metrics_config': self._ensure_serializable(self.metrics_config),
                 'results': self._ensure_serializable(self.results),
                 'task_id': self.task_id,
@@ -183,6 +189,8 @@ class AnalysisRun(db.Model):
     
     def to_summary_dict(self):
         """Versión ligera para listados"""
+        total = self.total_issues_count or 0
+        new = self.new_issues_count or 0
         return {
             'id': self.id,
             'project_id': self.project_id,
@@ -190,8 +198,11 @@ class AnalysisRun(db.Model):
             'status': self.status.value if self.status else None,
             'quality_gate_status': self.quality_gate_status.value if self.quality_gate_status else None,
             'quality_score': float(self.quality_score) if self.quality_score is not None else None,
-            'new_issues_count': self.new_issues_count or 0,
-            'total_issues_count': self.total_issues_count or 0,
+            'new_issues_count': new,
+            'fixed_issues_count': self.fixed_issues_count or 0,
+            'recurrent_issues_count': max(0, total - new),
+            'total_issues_count': total,
+            'baseline_analysis_id': self.baseline_analysis_id,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
         }

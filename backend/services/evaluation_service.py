@@ -728,7 +728,7 @@ class EvaluationService:
                 analysis_run.quality_score = float(quality_score) * 100  # Convert to 0-100 scale
                 analysis_run.total_issues_count = len(issues)
                 analysis_run.critical_issues_count = critical_issues_count
-                analysis_run.results = results_dict
+                # Note: results will be assigned after diff comparison to include diff info
                 analysis_run.completed_at = datetime.utcnow()
                 analysis_run.progress = 100
                 analysis_run.current_step = "Análisis completado"
@@ -801,6 +801,20 @@ class EvaluationService:
                 # Update AnalysisRun with diff counts
                 analysis_run.new_issues_count = diff_result['new_issues_count']
                 analysis_run.fixed_issues_count = diff_result['fixed_issues_count']
+                
+                # Enrich results with diff information for persistence and auditing
+                results_dict['diff'] = {
+                    'baseline_analysis_id': analysis_run.baseline_analysis_id,
+                    'baseline_completed_at': baseline_run.completed_at.isoformat() if baseline_run and baseline_run.completed_at else None,
+                    'comparison_timestamp': datetime.utcnow().isoformat(),
+                    'new_issues_count': diff_result['new_issues_count'],
+                    'fixed_issues_count': diff_result['fixed_issues_count'],
+                    'recurrent_issues_count': diff_result.get('recurrent_issues_count', 0),
+                    'has_baseline': baseline_run is not None
+                }
+                
+                # Update results in AnalysisRun with enriched data
+                analysis_run.results = results_dict
                 
                 logger.info(
                     f"[SONAR-LITE] AnalysisRun {analysis_run.id} completed: "
