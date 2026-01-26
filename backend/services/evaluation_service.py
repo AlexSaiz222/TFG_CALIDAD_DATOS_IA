@@ -162,6 +162,121 @@ class EvaluationService:
         
         return gate_status
     
+    def _compare_issues_with_baseline(self, analysis_run, baseline_run):
+        """Compare issues between current run and baseline to determine new vs recurrent issues
+        
+        This function implements the Diff logic for Sonar-Lite architecture:
+        - Compares fingerprints from current run with baseline run
+        - Marks issues as is_new=True if fingerprint doesn't exist in baseline
+        - Marks issues as is_new=False if fingerprint already existed (recurrent)
+        - Calculates new_issues_count and fixed_issues_count
+        
+        Args:
+            analysis_run: Current AnalysisRun being processed
+            baseline_run: Previous AnalysisRun to compare against (can be None)
+            
+        Returns:
+            dict: Comparison results with counts
+        """
+        if not baseline_run:
+            # No baseline - all issues are new
+            current_issues = analysis_run.issues.all()
+            new_count = len(current_issues)
+            
+            logger.info(f"[DIFF] No baseline for run {analysis_run.id} - all {new_count} issues marked as NEW")
+            
+            return {
+                'new_issues_count': new_count,
+                'fixed_issues_count': 0,
+                'recurrent_issues_count': 0,
+                'baseline_fingerprints': set(),
+                'current_fingerprints': {i.fingerprint for i in current_issues if i.fingerprint}
+            }
+        
+        # Get fingerprints from baseline
+        baseline_issues = baseline_run.issues.all()
+        baseline_fingerprints = {issue.fingerprint for issue in baseline_issues if issue.fingerprint}
+        
+        # Get current issues
+        current_issues = analysis_run.issues.all()
+        current_fingerprints = set()
+        
+        new_count = 0
+        recurrent_count = 0
+        
+        # Compare each current issue with baseline
+        for issue in current_issues:
+            if not issue.fingerprint:
+                # Issues without fingerprint are considered new
+                issue.is_new = True
+                new_count += 1
+                continue
+            
+            current_fingerprints.add(issue.fingerprint)
+            
+            if issue.fingerprint in baseline_fingerprints:
+                # Fingerprint exists in baseline - recurrent issue
+                issue.is_new = False
+                recurrent_count += 1
+            else:
+                # Fingerprint doesn't exist in baseline - new issue
+                issue.is_new = True
+                new_count += 1
+        
+        # Calculate fixed issues (fingerprints in baseline but not in current)
+        fixed_fingerprints = baseline_fingerprints - current_fingerprints
+        fixed_count = len(fixed_fingerprints)
+        
+        logger.info(
+            f"[DIFF] Run {analysis_run.id} vs baseline {baseline_run.id}: "
+            f"NEW={new_count}, RECURRENT={recurrent_count}, FIXED={fixed_count}"
+        )
+        
+        return {
+            'new_issues_count': new_count,
+            'fixed_issues_count': fixed_count,
+            'recurrent_issues_count': recurrent_count,
+            'baseline_fingerprints': baseline_fingerprints,
+            'current_fingerprints': current_fingerprints,
+            'fixed_fingerprints': fixed_fingerprints
+        }
+    
+    def _get_baseline_for_analysis(self, analysis_run):
+        """Get the baseline AnalysisRun for comparison
+        
+        Priority:
+        1. Explicit baseline_analysis_id if set
+        2. Most recent COMPLETED analysis for the same project (excluding current)
+        
+        Args:
+            analysis_run: Current AnalysisRun
+            
+        Returns:
+            AnalysisRun or None: The baseline run to compare against
+        """
+        # Check if explicit baseline is set
+        if analysis_run.baseline_analysis_id:
+            baseline = AnalysisRun.query.get(analysis_run.baseline_analysis_id)
+            if baseline and baseline.status == AnalysisStatus.COMPLETED:
+                logger.info(f"[DIFF] Using explicit baseline {baseline.id} for run {analysis_run.id}")
+                return baseline
+        
+        # Find most recent completed analysis for the same project
+        baseline = AnalysisRun.query.filter(
+            AnalysisRun.project_id == analysis_run.project_id,
+            AnalysisRun.id != analysis_run.id,
+            AnalysisRun.status == AnalysisStatus.COMPLETED
+        ).order_by(AnalysisRun.completed_at.desc()).first()
+        
+        if baseline:
+            logger.info(f"[DIFF] Found automatic baseline {baseline.id} for run {analysis_run.id}")
+            # Store the baseline reference
+            analysis_run.baseline_analysis_id = baseline.id
+        else:
+            logger.info(f"[DIFF] No baseline found for run {analysis_run.id} (first analysis for project)")
+        
+        return baseline
+    
     def run_evaluation(self, evaluation_id, analysis_run_id=None):
         """Run evaluation for the given evaluation ID
         
@@ -672,11 +787,26 @@ class EvaluationService:
                         affected_columns=issue_data.get('affected_columns'),
                         affected_rows=issue_data.get('affected_rows'),
                         rule_key=f"{issue_type}_check",
-                        is_new=True  # TODO: Compare with baseline to determine if new
+                        is_new=True  # Will be updated by comparison below
                     )
                     db.session.add(dq_issue)
                 
-                logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run.id} completed: score={quality_score:.2f}, issues={len(issues)}")
+                # Flush to ensure issues are in DB before comparison
+                db.session.flush()
+                
+                # Compare with baseline to determine new vs recurrent issues
+                baseline_run = self._get_baseline_for_analysis(analysis_run)
+                diff_result = self._compare_issues_with_baseline(analysis_run, baseline_run)
+                
+                # Update AnalysisRun with diff counts
+                analysis_run.new_issues_count = diff_result['new_issues_count']
+                analysis_run.fixed_issues_count = diff_result['fixed_issues_count']
+                
+                logger.info(
+                    f"[SONAR-LITE] AnalysisRun {analysis_run.id} completed: "
+                    f"score={quality_score:.2f}, total_issues={len(issues)}, "
+                    f"new={diff_result['new_issues_count']}, fixed={diff_result['fixed_issues_count']}"
+                )
             
             db.session.commit()
             
@@ -685,7 +815,9 @@ class EvaluationService:
                 'evaluation_id': evaluation.id,
                 'analysis_run_id': analysis_run.id if analysis_run else None,
                 'quality_score': float(quality_score),
-                'issues_count': len(issues)
+                'issues_count': len(issues),
+                'new_issues_count': analysis_run.new_issues_count if analysis_run else len(issues),
+                'fixed_issues_count': analysis_run.fixed_issues_count if analysis_run else 0
             }
         
         except Exception as e:
