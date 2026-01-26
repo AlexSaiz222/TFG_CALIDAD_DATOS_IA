@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 import io
 import logging
+import hashlib
 
 from extensions import db
 from models.evaluation import Evaluation, Issue
+from models.analysis import AnalysisRun, AnalysisStatus, QualityGateStatus, DataQualityIssue
 from models.dataset import Dataset
 from models.metric import Metric
 from services.dataset_service import DatasetService
@@ -21,25 +23,34 @@ class EvaluationService:
         self.dataset_service = DatasetService()
         self.minio_service = MinioService()
     
-    def _update_progress(self, evaluation_id, progress, current_step):
+    def _update_progress(self, evaluation_id, progress, current_step, analysis_run_id=None):
         """Update evaluation progress in the database using direct SQL update
         
         Args:
-            evaluation_id: ID of the evaluation
+            evaluation_id: ID of the evaluation (legacy)
             progress: Progress percentage (0-100)
             current_step: Description of current step
+            analysis_run_id: ID of the AnalysisRun (Sonar-Lite)
         """
         try:
-            # Use direct SQL update to avoid session caching issues in Celery
             from sqlalchemy import text
             progress_value = min(99, max(0, progress))  # Cap at 99 until complete
             
             logger.info(f"[PROGRESS] Updating evaluation {evaluation_id}: {progress_value}% - {current_step}")
             
+            # Update legacy Evaluation table
             result = db.session.execute(
                 text("UPDATE evaluations SET progress = :progress, current_step = :step, status = 'processing' WHERE id = :id"),
                 {"progress": progress_value, "step": current_step, "id": evaluation_id}
             )
+            
+            # Update new AnalysisRun table (Sonar-Lite)
+            if analysis_run_id:
+                db.session.execute(
+                    text("UPDATE analysis_runs SET progress = :progress, current_step = :step, status = 'RUNNING' WHERE id = :id"),
+                    {"progress": progress_value, "step": current_step, "id": analysis_run_id}
+                )
+            
             db.session.commit()
             
             logger.info(f"[PROGRESS] Updated evaluation {evaluation_id}: rows affected = {result.rowcount}")
@@ -47,23 +58,54 @@ class EvaluationService:
             logger.error(f"[PROGRESS] Failed to update progress for evaluation {evaluation_id}: {e}")
             db.session.rollback()
     
-    def run_evaluation(self, evaluation_id):
-        """Run evaluation for the given evaluation ID
+    def _generate_issue_fingerprint(self, rule_key, column_name, issue_type, description_hash):
+        """Generate a unique fingerprint for an issue to track it across runs
         
         Args:
-            evaluation_id: ID of the evaluation to run
+            rule_key: The rule that generated the issue
+            column_name: The affected column (if any)
+            issue_type: Type of issue (completeness, uniqueness, etc.)
+            description_hash: Hash of the description for uniqueness
+            
+        Returns:
+            str: SHA256 fingerprint (first 16 chars)
+        """
+        fingerprint_data = f"{rule_key}:{column_name}:{issue_type}:{description_hash}"
+        return hashlib.sha256(fingerprint_data.encode()).hexdigest()[:16]
+    
+    def run_evaluation(self, evaluation_id, analysis_run_id=None):
+        """Run evaluation for the given evaluation ID
+        
+        This method maintains backward compatibility with the legacy Evaluation model
+        while also supporting the new AnalysisRun model (Sonar-Lite architecture).
+        
+        Args:
+            evaluation_id: ID of the evaluation to run (legacy)
+            analysis_run_id: ID of the AnalysisRun (Sonar-Lite, optional)
             
         Returns:
             dict: Result of the evaluation
         """
+        analysis_run = None
+        
         try:
-            # Get evaluation
+            # Get evaluation (legacy)
             evaluation = Evaluation.query.get(evaluation_id)
             if not evaluation:
                 return {
                     'success': False,
                     'error': f"Evaluation {evaluation_id} not found"
                 }
+            
+            # Get or create AnalysisRun (Sonar-Lite)
+            if analysis_run_id:
+                analysis_run = AnalysisRun.query.get(analysis_run_id)
+                if analysis_run:
+                    # Update to PROCESSING status
+                    analysis_run.status = AnalysisStatus.RUNNING
+                    analysis_run.started_at = datetime.utcnow()
+                    db.session.commit()
+                    logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run_id} updated to PROCESSING")
             
             # Get metrics mapping for ID lookup
             metrics_map = {}
@@ -72,24 +114,24 @@ class EvaluationService:
                 metrics_map[metric.name] = metric.id
             
             # Update evaluation status using direct SQL to ensure it persists
-            self._update_progress(evaluation_id, 5, "Iniciando evaluación...")
+            self._update_progress(evaluation_id, 5, "Iniciando evaluación...", analysis_run_id)
             
             # Get dataset
             dataset = Dataset.query.get(evaluation.dataset_id)
             if not dataset:
                 raise Exception("Dataset not found")
             
-            self._update_progress(evaluation_id, 10, "Descargando dataset...")
+            self._update_progress(evaluation_id, 10, "Descargando dataset...", analysis_run_id)
             
             # Download dataset from MinIO
             file_data = self.minio_service.download_file(dataset.file_path)
             
-            self._update_progress(evaluation_id, 20, "Leyendo datos del dataset...")
+            self._update_progress(evaluation_id, 20, "Leyendo datos del dataset...", analysis_run_id)
             
             # Read dataset with pandas
             df = pd.read_csv(io.BytesIO(file_data))
             
-            self._update_progress(evaluation_id, 25, "Preparando análisis de métricas...")
+            self._update_progress(evaluation_id, 25, "Preparando análisis de métricas...", analysis_run_id)
             
             # Run metrics based on configuration
             results = {}
@@ -112,7 +154,7 @@ class EvaluationService:
                 weight = metric_config.get('weight', 1.0)
                 
                 # Update progress for current metric
-                self._update_progress(evaluation_id, metric_progress, f"Analizando métrica: {metric_id}...")
+                self._update_progress(evaluation_id, metric_progress, f"Analizando métrica: {metric_id}...", analysis_run_id)
                 
                 if metric_id == 'completeness':
                     # Calculate completeness (percentage of non-null values)
@@ -327,7 +369,7 @@ class EvaluationService:
                         processed_metrics.append('outliers')
                         metric_scores.append(outlier_score * weight)
             
-            self._update_progress(evaluation_id, 75, "Analizando métricas por columna...")
+            self._update_progress(evaluation_id, 75, "Analizando métricas por columna...", analysis_run_id)
             
             # Calculate column-level metrics for all columns
             column_metrics = {}
@@ -336,7 +378,7 @@ class EvaluationService:
                 # Update progress: 75% to 90% for column analysis
                 if col_index % max(1, total_columns // 5) == 0:  # Update every 20% of columns
                     col_progress = 75 + int((col_index / total_columns) * 15)
-                    self._update_progress(evaluation_id, col_progress, f"Analizando columna: {column}...")
+                    self._update_progress(evaluation_id, col_progress, f"Analizando columna: {column}...", analysis_run_id)
                 completeness = 1 - df[column].isna().mean()
                 uniqueness = df[column].nunique() / len(df) if len(df) > 0 else 1
                 
@@ -367,15 +409,15 @@ class EvaluationService:
                         'histogram': self._generate_histogram(df[column])
                     })
             
-            self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...")
+            self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...", analysis_run_id)
             
             # Calculate overall quality score
             quality_score = sum(metric_scores) / len(metric_scores) if metric_scores else 0.0
             
-            self._update_progress(evaluation_id, 95, "Guardando resultados...")
+            self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
             
-            # Update evaluation with results
-            evaluation.results = {
+            # Prepare results dict
+            results_dict = {
                 'overall': {
                     'quality_score': quality_score,
                     'metrics_processed': processed_metrics,
@@ -383,6 +425,9 @@ class EvaluationService:
                 },
                 'column_metrics': column_metrics
             }
+            
+            # Update legacy Evaluation with results
+            evaluation.results = results_dict
             evaluation.quality_score = quality_score
             evaluation.status = 'completed'
             evaluation.completed_at = datetime.utcnow()
@@ -407,7 +452,7 @@ class EvaluationService:
                                 'affected_columns': [{'column': col}]
                             })
             
-            # Create issues in database
+            # Create issues in database (legacy Issue table)
             for issue_data in issues:
                 issue = Issue(
                     evaluation_id=issue_data['evaluation_id'],
@@ -419,20 +464,110 @@ class EvaluationService:
                 )
                 db.session.add(issue)
             
+            # Count critical issues for AnalysisRun
+            critical_issues_count = sum(1 for i in issues if i.get('severity') in ['high', 'critical'])
+            
+            # Update AnalysisRun with results (Sonar-Lite)
+            if analysis_run:
+                analysis_run.status = AnalysisStatus.COMPLETED
+                analysis_run.quality_score = float(quality_score) * 100  # Convert to 0-100 scale
+                analysis_run.total_issues_count = len(issues)
+                analysis_run.critical_issues_count = critical_issues_count
+                analysis_run.results = results_dict
+                analysis_run.completed_at = datetime.utcnow()
+                analysis_run.progress = 100
+                analysis_run.current_step = "Análisis completado"
+                
+                # Determine Quality Gate status based on score
+                if quality_score >= 0.8:
+                    analysis_run.quality_gate_status = QualityGateStatus.PASSED
+                elif quality_score >= 0.6:
+                    analysis_run.quality_gate_status = QualityGateStatus.WARNING
+                else:
+                    analysis_run.quality_gate_status = QualityGateStatus.FAILED
+                
+                # Create DataQualityIssues for AnalysisRun (new table)
+                for issue_data in issues:
+                    # Generate fingerprint for issue tracking
+                    column_name = ''
+                    if issue_data.get('affected_columns'):
+                        cols = issue_data['affected_columns']
+                        if isinstance(cols, list) and len(cols) > 0:
+                            column_name = cols[0].get('column', '') if isinstance(cols[0], dict) else str(cols[0])
+                    
+                    issue_type = 'general'
+                    desc = issue_data.get('description', '')
+                    if 'completeness' in desc.lower():
+                        issue_type = 'completeness'
+                    elif 'uniqueness' in desc.lower() or 'duplicate' in desc.lower():
+                        issue_type = 'uniqueness'
+                    elif 'consistency' in desc.lower() or 'pattern' in desc.lower():
+                        issue_type = 'consistency'
+                    elif 'outlier' in desc.lower():
+                        issue_type = 'outliers'
+                    
+                    fingerprint = self._generate_issue_fingerprint(
+                        rule_key=issue_type,
+                        column_name=column_name,
+                        issue_type=issue_type,
+                        description_hash=hashlib.md5(desc.encode()).hexdigest()[:8]
+                    )
+                    
+                    # Map severity (legacy uses high/medium/low, new uses critical/major/minor/info)
+                    severity_map = {'high': 'major', 'medium': 'minor', 'low': 'info', 'critical': 'critical'}
+                    mapped_severity = severity_map.get(issue_data['severity'], 'minor')
+                    
+                    dq_issue = DataQualityIssue(
+                        analysis_run_id=analysis_run.id,
+                        metric_id=issue_data.get('metric_id'),
+                        fingerprint=fingerprint,
+                        issue_type=issue_type,
+                        severity=mapped_severity,
+                        description=desc,
+                        affected_columns=issue_data.get('affected_columns'),
+                        affected_rows=issue_data.get('affected_rows'),
+                        rule_key=f"{issue_type}_check",
+                        is_new=True  # All issues are new in this run
+                    )
+                    db.session.add(dq_issue)
+                
+                logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run.id} completed: score={quality_score:.2f}, issues={len(issues)}")
+            
             db.session.commit()
             
             return {
                 'success': True,
                 'evaluation_id': evaluation.id,
+                'analysis_run_id': analysis_run.id if analysis_run else None,
                 'quality_score': float(quality_score),
                 'issues_count': len(issues)
             }
         
         except Exception as e:
-            # Update evaluation status to failed
-            evaluation.status = 'failed'
-            evaluation.error = str(e)
-            evaluation.completed_at = datetime.utcnow()
+            logger.error(f"[EVALUATION] Error in evaluation {evaluation_id}: {str(e)}", exc_info=True)
+            
+            # Update legacy Evaluation status to failed
+            try:
+                evaluation = Evaluation.query.get(evaluation_id)
+                if evaluation:
+                    evaluation.status = 'failed'
+                    evaluation.error = str(e)
+                    evaluation.completed_at = datetime.utcnow()
+            except Exception:
+                pass
+            
+            # Update AnalysisRun status to FAILED (Sonar-Lite)
+            if analysis_run_id:
+                try:
+                    analysis_run = AnalysisRun.query.get(analysis_run_id)
+                    if analysis_run:
+                        analysis_run.status = AnalysisStatus.FAILED
+                        analysis_run.error_message = str(e)
+                        analysis_run.completed_at = datetime.utcnow()
+                        logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run_id} marked as FAILED")
+                except Exception as ar_error:
+                    logger.error(f"[SONAR-LITE] Failed to update AnalysisRun {analysis_run_id}: {ar_error}")
+            
             db.session.commit()
             
             return {

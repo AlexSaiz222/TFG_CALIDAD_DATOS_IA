@@ -9,18 +9,31 @@ from extensions import db
 
 
 class AnalysisStatus(PyEnum):
-    """Estados de ejecución técnica del análisis"""
-    PENDING = 'pending'
-    PROCESSING = 'processing'  # Renombrado de RUNNING para compatibilidad
-    COMPLETED = 'completed'
-    FAILED = 'failed'
+    """Estados de ejecución técnica del análisis
+    
+    IMPORTANTE: Los valores deben coincidir EXACTAMENTE con los definidos
+    en la migración add_sonar_lite_tables.py (MAYÚSCULAS)
+    """
+    PENDING = 'PENDING'
+    RUNNING = 'RUNNING'  # Estado durante ejecución (nombre de la migración)
+    COMPLETED = 'COMPLETED'
+    FAILED = 'FAILED'
+    
+    # Alias para compatibilidad con código que use PROCESSING
+    @classmethod
+    def PROCESSING(cls):
+        return cls.RUNNING
 
 
 class QualityGateStatus(PyEnum):
-    """Estados del Quality Gate (veredicto de calidad)"""
-    PASSED = 'passed'
-    FAILED = 'failed'
-    WARNING = 'warning'
+    """Estados del Quality Gate (veredicto de calidad)
+    
+    IMPORTANTE: Los valores deben coincidir EXACTAMENTE con los definidos
+    en la migración add_sonar_lite_tables.py (MAYÚSCULAS)
+    """
+    PASSED = 'PASSED'
+    FAILED = 'FAILED'
+    WARNING = 'WARNING'
 
 
 class AnalysisRun(db.Model):
