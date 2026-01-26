@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 from extensions import db
 from models.evaluation import Evaluation, Issue
+from models.analysis import AnalysisRun, AnalysisStatus, DataQualityIssue
 import numpy as np
 from models.dataset import Dataset
 from models.project import Project
@@ -295,7 +296,12 @@ def get_evaluation_status(evaluation_id):
 @evaluations_bp.route('/datasets/<int:dataset_id>', methods=['POST'])
 @jwt_required()
 def create_evaluation(dataset_id):
-    """Crea una nueva evaluación para un dataset y la ejecuta de forma asíncrona.
+    """[DEPRECATED] Crea una nueva evaluación para un dataset.
+    
+    NOTA: Este endpoint está DEPRECATED. Use POST /api/evaluations/projects/<project_id>/analyze
+    para la nueva API Sonar-Lite que devuelve analysis_run_id.
+    
+    Este endpoint se mantiene por compatibilidad con el frontend legacy.
     
     Valida que el usuario tenga acceso al dataset, crea un registro de evaluación
     en estado 'pending' y lanza una tarea asíncrona con Celery para procesarla.
@@ -921,5 +927,575 @@ def export_evaluation(evaluation_id):
         return jsonify({
             "success": False,
             "error": "Error al exportar evaluación",
+            "message": str(e)
+        }), 500
+
+
+# =============================================================================
+# SONAR-LITE API ENDPOINTS (AnalysisRun)
+# =============================================================================
+
+@evaluations_bp.route('/projects/<int:project_id>/analyze', methods=['POST'])
+@jwt_required()
+def start_analysis(project_id):
+    """Inicia un nuevo análisis de calidad para un proyecto (Sonar-Lite).
+    
+    Crea un AnalysisRun en estado PENDING y lanza la tarea asíncrona.
+    Devuelve inmediatamente el ID del análisis sin esperar a Celery.
+    
+    Args:
+        project_id (int): ID del proyecto a analizar
+    
+    Request Body:
+        dataset_id (int): ID del dataset a analizar
+        metrics (list): Lista de métricas a evaluar
+        options (dict, opcional): Opciones adicionales
+    
+    Returns:
+        tuple: JSON con analysis_run_id y status PENDING, código HTTP 202
+    """
+    current_user_id = get_jwt_identity()
+    
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        logger.error(f"ID de usuario inválido en token: {current_user_id}")
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
+    
+    logger.info(f"[SONAR-LITE] Usuario {current_user_id} iniciando análisis para proyecto {project_id}")
+    
+    # Verificar que el proyecto existe y el usuario tiene acceso
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({
+            "success": False,
+            "error": "project_not_found",
+            "message": f"No se encontró el proyecto con ID {project_id}"
+        }), 404
+    
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized_access",
+            "message": "No tienes permisos para analizar este proyecto"
+        }), 403
+    
+    # Obtener datos de entrada
+    data = request.get_json() or {}
+    dataset_id = data.get('dataset_id')
+    
+    if not dataset_id:
+        return jsonify({
+            "success": False,
+            "error": "missing_dataset_id",
+            "message": "Se requiere el ID del dataset a analizar"
+        }), 400
+    
+    # Verificar que el dataset existe y pertenece al proyecto
+    dataset = Dataset.query.get(dataset_id)
+    if not dataset:
+        return jsonify({
+            "success": False,
+            "error": "dataset_not_found",
+            "message": f"No se encontró el dataset con ID {dataset_id}"
+        }), 404
+    
+    if dataset.project_id != project_id:
+        return jsonify({
+            "success": False,
+            "error": "dataset_mismatch",
+            "message": "El dataset no pertenece a este proyecto"
+        }), 400
+    
+    try:
+        # Validar configuración de métricas
+        validated_data = create_evaluation_schema.load(data)
+        metrics = validated_data['metrics']
+        options = validated_data.get('options', {})
+    except ValidationError as err:
+        return jsonify({
+            "success": False,
+            "error": "invalid_config",
+            "message": "Configuración de métricas inválida",
+            "details": err.messages
+        }), 400
+    
+    try:
+        # Crear AnalysisRun en estado PENDING
+        analysis_run = AnalysisRun(
+            project_id=project_id,
+            dataset_id=dataset_id,
+            status=AnalysisStatus.PENDING,
+            metrics_config={'metrics': metrics, 'options': options},
+            progress=0,
+            current_step="Análisis en cola"
+        )
+        db.session.add(analysis_run)
+        db.session.commit()
+        
+        logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run.id} creado con estado PENDING")
+        
+        # Crear evaluación legacy para compatibilidad
+        new_evaluation = Evaluation(
+            dataset_id=dataset_id,
+            status='pending',
+            metrics_config={'metrics': metrics, 'options': options},
+            progress=0,
+            current_step="Inicializando evaluación",
+            created_at=datetime.utcnow()
+        )
+        db.session.add(new_evaluation)
+        db.session.commit()
+        
+        # Actualizar AnalysisRun con referencia a la evaluación legacy (si es necesario)
+        logger.debug(f"[SONAR-LITE] Evaluación legacy {new_evaluation.id} creada para compatibilidad")
+        
+        # Importar y lanzar tarea asíncrona
+        from tasks.evaluation_tasks import run_evaluation
+        task = run_evaluation.delay(new_evaluation.id)
+        
+        # Actualizar task_id en ambos modelos
+        new_evaluation.task_id = task.id
+        new_evaluation.started_at = datetime.utcnow()
+        analysis_run.task_id = task.id
+        db.session.commit()
+        
+        logger.info(f"[SONAR-LITE] Tarea {task.id} lanzada para AnalysisRun {analysis_run.id}")
+        
+        # Devolver respuesta inmediata (no bloqueante)
+        return jsonify({
+            "success": True,
+            "data": {
+                "analysis_run_id": analysis_run.id,
+                "status": analysis_run.status.value,
+                "evaluation_id": new_evaluation.id,  # Para compatibilidad
+                "task_id": task.id
+            },
+            "message": "Análisis iniciado correctamente"
+        }), 202  # 202 Accepted
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"[SONAR-LITE] Error al iniciar análisis: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "analysis_start_failed",
+            "message": f"Error al iniciar el análisis: {str(e)}"
+        }), 500
+
+
+@evaluations_bp.route('/analysis/<int:run_id>', methods=['GET'])
+@jwt_required()
+def get_analysis_run(run_id):
+    """Obtiene el estado y resultados de un AnalysisRun específico.
+    
+    Devuelve información completa del análisis incluyendo:
+    - Estado actual (PENDING, RUNNING, COMPLETED, FAILED)
+    - Quality Gate status (PASSED, FAILED, WARNING)
+    - Métricas y resultados (si completado)
+    - Resumen de issues
+    
+    Args:
+        run_id (int): ID del AnalysisRun
+    
+    Returns:
+        tuple: JSON con datos del AnalysisRun, código HTTP 200
+    """
+    current_user_id = get_jwt_identity()
+    
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity",
+            "message": "ID de usuario inválido en el token"
+        }), 401
+    
+    # Obtener AnalysisRun
+    analysis_run = AnalysisRun.query.get(run_id)
+    
+    if not analysis_run:
+        return jsonify({
+            "success": False,
+            "error": "analysis_not_found",
+            "message": f"No se encontró el análisis con ID {run_id}"
+        }), 404
+    
+    # Verificar permisos
+    project = Project.query.get(analysis_run.project_id)
+    if not project or project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized_access",
+            "message": "No tienes permisos para acceder a este análisis"
+        }), 403
+    
+    try:
+        # Construir respuesta con datos del análisis
+        response_data = analysis_run.to_dict(include_issues=False)
+        
+        # Añadir información adicional del dataset si existe
+        if analysis_run.dataset_id:
+            dataset = Dataset.query.get(analysis_run.dataset_id)
+            if dataset:
+                response_data['dataset_name'] = dataset.name
+        
+        # Añadir resumen de issues por severidad
+        if analysis_run.status == AnalysisStatus.COMPLETED:
+            issues_summary = db.session.query(
+                DataQualityIssue.severity,
+                db.func.count(DataQualityIssue.id)
+            ).filter(
+                DataQualityIssue.analysis_run_id == run_id
+            ).group_by(DataQualityIssue.severity).all()
+            
+            response_data['issues_by_severity'] = {
+                severity: count for severity, count in issues_summary
+            }
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "analysis_run": response_data
+            },
+            "message": "Análisis obtenido correctamente"
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"[SONAR-LITE] Error al obtener AnalysisRun {run_id}: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "serialization_error",
+            "message": f"Error al procesar los datos del análisis: {str(e)}"
+        }), 500
+
+
+@evaluations_bp.route('/analysis/<int:run_id>/status', methods=['GET'])
+@jwt_required()
+def get_analysis_run_status(run_id):
+    """Obtiene solo el estado actual de un AnalysisRun (endpoint ligero para polling).
+    
+    Endpoint optimizado para consultas frecuentes de estado durante el procesamiento.
+    
+    Args:
+        run_id (int): ID del AnalysisRun
+    
+    Returns:
+        tuple: JSON con estado, progreso y quality_gate_status
+    """
+    current_user_id = get_jwt_identity()
+    
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity"
+        }), 401
+    
+    analysis_run = AnalysisRun.query.get(run_id)
+    
+    if not analysis_run:
+        return jsonify({
+            "success": False,
+            "error": "analysis_not_found"
+        }), 404
+    
+    # Verificar permisos
+    project = Project.query.get(analysis_run.project_id)
+    if not project or project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized_access"
+        }), 403
+    
+    # Calcular tiempo estimado si está en proceso
+    estimated_completion = None
+    if analysis_run.status == AnalysisStatus.RUNNING and analysis_run.started_at and analysis_run.progress > 0:
+        elapsed_time = (datetime.utcnow() - analysis_run.started_at).total_seconds()
+        if analysis_run.progress > 0:
+            total_estimated_time = (elapsed_time / analysis_run.progress) * 100
+            estimated_completion = (analysis_run.started_at + 
+                                   timedelta(seconds=total_estimated_time)).isoformat()
+    
+    return jsonify({
+        "success": True,
+        "data": {
+            "analysis_run_id": analysis_run.id,
+            "status": analysis_run.status.value if analysis_run.status else None,
+            "quality_gate_status": analysis_run.quality_gate_status.value if analysis_run.quality_gate_status else None,
+            "progress": analysis_run.progress or 0,
+            "current_step": analysis_run.current_step,
+            "quality_score": float(analysis_run.quality_score) if analysis_run.quality_score else None,
+            "total_issues_count": analysis_run.total_issues_count or 0,
+            "critical_issues_count": analysis_run.critical_issues_count or 0,
+            "error_message": analysis_run.error_message,
+            "started_at": analysis_run.started_at.isoformat() if analysis_run.started_at else None,
+            "completed_at": analysis_run.completed_at.isoformat() if analysis_run.completed_at else None,
+            "estimated_completion": estimated_completion
+        }
+    }), 200
+
+
+@evaluations_bp.route('/analysis/<int:run_id>/issues', methods=['GET'])
+@jwt_required()
+def get_analysis_run_issues(run_id):
+    """Obtiene los issues de calidad detectados en un AnalysisRun.
+    
+    Args:
+        run_id (int): ID del AnalysisRun
+    
+    Query Parameters:
+        severity (str, opcional): Filtrar por severidad (critical, major, minor, info)
+        issue_type (str, opcional): Filtrar por tipo (completeness, uniqueness, etc.)
+        page (int): Página (default: 1)
+        per_page (int): Items por página (default: 50)
+    
+    Returns:
+        tuple: JSON con lista de issues paginada
+    """
+    current_user_id = get_jwt_identity()
+    
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity"
+        }), 401
+    
+    analysis_run = AnalysisRun.query.get(run_id)
+    
+    if not analysis_run:
+        return jsonify({
+            "success": False,
+            "error": "analysis_not_found",
+            "message": f"No se encontró el análisis con ID {run_id}"
+        }), 404
+    
+    # Verificar permisos
+    project = Project.query.get(analysis_run.project_id)
+    if not project or project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized_access"
+        }), 403
+    
+    # Parámetros de filtro y paginación
+    severity_filter = request.args.get('severity')
+    issue_type_filter = request.args.get('issue_type')
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 100)
+    
+    # Construir query
+    query = DataQualityIssue.query.filter_by(analysis_run_id=run_id)
+    
+    if severity_filter:
+        query = query.filter(DataQualityIssue.severity == severity_filter)
+    if issue_type_filter:
+        query = query.filter(DataQualityIssue.issue_type == issue_type_filter)
+    
+    # Ordenar por severidad (critical primero) y luego por ID
+    severity_order = db.case(
+        (DataQualityIssue.severity == 'critical', 1),
+        (DataQualityIssue.severity == 'major', 2),
+        (DataQualityIssue.severity == 'minor', 3),
+        else_=4
+    )
+    query = query.order_by(severity_order, DataQualityIssue.id)
+    
+    # Paginar
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    try:
+        issues_data = [issue.to_dict() for issue in pagination.items]
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "issues": issues_data,
+                "pagination": {
+                    "page": page,
+                    "per_page": per_page,
+                    "total": pagination.total,
+                    "pages": pagination.pages,
+                    "has_next": pagination.has_next,
+                    "has_prev": pagination.has_prev
+                }
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"[SONAR-LITE] Error al obtener issues de AnalysisRun {run_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "serialization_error",
+            "message": str(e)
+        }), 500
+
+
+@evaluations_bp.route('/projects/<int:project_id>/analysis_runs', methods=['GET'])
+@jwt_required()
+def get_project_analysis_runs(project_id):
+    """Obtiene el historial de análisis de un proyecto.
+    
+    Lista todos los AnalysisRuns de un proyecto ordenados por fecha de creación
+    (más recientes primero).
+    
+    Args:
+        project_id (int): ID del proyecto
+    
+    Query Parameters:
+        page (int): Página (default: 1)
+        per_page (int): Items por página (default: 20)
+        status (str, opcional): Filtrar por estado (PENDING, RUNNING, COMPLETED, FAILED)
+    
+    Returns:
+        tuple: JSON con lista de AnalysisRuns paginada
+    """
+    current_user_id = get_jwt_identity()
+    
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity"
+        }), 401
+    
+    # Verificar proyecto y permisos
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({
+            "success": False,
+            "error": "project_not_found",
+            "message": f"No se encontró el proyecto con ID {project_id}"
+        }), 404
+    
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized_access"
+        }), 403
+    
+    # Parámetros de paginación y filtro
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 20, type=int), 100)
+    status_filter = request.args.get('status')
+    
+    # Construir query
+    query = AnalysisRun.query.filter_by(project_id=project_id)
+    
+    if status_filter:
+        try:
+            status_enum = AnalysisStatus(status_filter.upper())
+            query = query.filter(AnalysisRun.status == status_enum)
+        except ValueError:
+            pass  # Ignorar filtro inválido
+    
+    # Ordenar por fecha de creación (más recientes primero)
+    query = query.order_by(AnalysisRun.created_at.desc())
+    
+    # Paginar
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    try:
+        runs_data = [run.to_summary_dict() for run in pagination.items]
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "analysis_runs": runs_data,
+                "pagination": {
+                    "page": page,
+                    "per_page": per_page,
+                    "total": pagination.total,
+                    "pages": pagination.pages,
+                    "has_next": pagination.has_next,
+                    "has_prev": pagination.has_prev
+                }
+            },
+            "message": "Historial de análisis obtenido correctamente"
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"[SONAR-LITE] Error al obtener historial de proyecto {project_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "serialization_error",
+            "message": str(e)
+        }), 500
+
+
+@evaluations_bp.route('/projects/<int:project_id>/latest_analysis', methods=['GET'])
+@jwt_required()
+def get_latest_analysis(project_id):
+    """Obtiene el análisis más reciente completado de un proyecto.
+    
+    Útil para mostrar el estado actual de calidad del proyecto en el dashboard.
+    
+    Args:
+        project_id (int): ID del proyecto
+    
+    Returns:
+        tuple: JSON con el AnalysisRun más reciente completado
+    """
+    current_user_id = get_jwt_identity()
+    
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "invalid_token_identity"
+        }), 401
+    
+    # Verificar proyecto y permisos
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({
+            "success": False,
+            "error": "project_not_found"
+        }), 404
+    
+    if project.owner_id != current_user_id_int:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized_access"
+        }), 403
+    
+    # Obtener el análisis más reciente completado
+    latest_run = AnalysisRun.query.filter_by(
+        project_id=project_id,
+        status=AnalysisStatus.COMPLETED
+    ).order_by(AnalysisRun.completed_at.desc()).first()
+    
+    if not latest_run:
+        return jsonify({
+            "success": True,
+            "data": {
+                "analysis_run": None
+            },
+            "message": "No hay análisis completados para este proyecto"
+        }), 200
+    
+    try:
+        return jsonify({
+            "success": True,
+            "data": {
+                "analysis_run": latest_run.to_dict(include_issues=False)
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"[SONAR-LITE] Error al obtener último análisis de proyecto {project_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "serialization_error",
             "message": str(e)
         }), 500

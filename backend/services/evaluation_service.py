@@ -12,6 +12,13 @@ from models.dataset import Dataset
 from models.metric import Metric
 from services.dataset_service import DatasetService
 from services.minio_service import MinioService
+from utils.fingerprint_utils import (
+    generate_issue_fingerprint,
+    generate_column_issue_fingerprint,
+    generate_pattern_issue_fingerprint,
+    generate_duplicate_issue_fingerprint,
+    generate_outlier_issue_fingerprint
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +65,11 @@ class EvaluationService:
             logger.error(f"[PROGRESS] Failed to update progress for evaluation {evaluation_id}: {e}")
             db.session.rollback()
     
-    def _generate_issue_fingerprint(self, rule_key, column_name, issue_type, description_hash):
-        """Generate a unique fingerprint for an issue to track it across runs
+    def _generate_issue_fingerprint_legacy(self, rule_key, column_name, issue_type, description_hash):
+        """[DEPRECATED] Legacy fingerprint generation - use utils.fingerprint_utils instead
+        
+        This method is kept for backward compatibility but new code should use
+        the functions from utils.fingerprint_utils module.
         
         Args:
             rule_key: The rule that generated the issue
@@ -70,8 +80,87 @@ class EvaluationService:
         Returns:
             str: SHA256 fingerprint (first 16 chars)
         """
-        fingerprint_data = f"{rule_key}:{column_name}:{issue_type}:{description_hash}"
-        return hashlib.sha256(fingerprint_data.encode()).hexdigest()[:16]
+        # Delegate to new utility function for consistency
+        return generate_issue_fingerprint(
+            issue_type=issue_type,
+            column_name=column_name,
+            rule_key=rule_key,
+            extra_params={"desc_hash": description_hash} if description_hash else None
+        )
+    
+    def _evaluate_quality_gate(self, analysis_run, quality_score, issues, results):
+        """Evaluate Quality Gate status based on MVP criteria
+        
+        This function determines if an analysis passes, fails, or gets a warning
+        based on hardcoded thresholds. Prepared for future config-based thresholds.
+        
+        Args:
+            analysis_run: The AnalysisRun being evaluated
+            quality_score: Overall quality score (0.0 - 1.0 scale)
+            issues: List of issue dictionaries from the evaluation
+            results: Results dictionary containing metric values
+            
+        Returns:
+            QualityGateStatus: PASSED, FAILED, or WARNING
+            
+        MVP Criteria (hardcoded, ready for config):
+            - CRITERIO 1 (Criticality): If any issue has severity='CRITICAL' or 'BLOCKER' -> FAILED
+            - CRITERIO 2 (Score min): If quality_score < 80% (0.8) -> FAILED
+            - CRITERIO 3 (Completeness): If any completeness metric < 90% (0.9) -> WARNING
+            - Otherwise -> PASSED
+        """
+        # TODO: In the future, read thresholds from QualityGate config for the project
+        # For now, use hardcoded MVP thresholds
+        THRESHOLD_MIN_SCORE = 0.80  # 80%
+        THRESHOLD_MIN_COMPLETENESS = 0.90  # 90%
+        CRITICAL_SEVERITIES = {'critical', 'blocker', 'CRITICAL', 'BLOCKER'}
+        
+        gate_status = QualityGateStatus.PASSED
+        gate_reasons = []
+        
+        # CRITERIO 1: Check for critical/blocker issues
+        for issue in issues:
+            severity = issue.get('severity', '').lower()
+            # Map legacy 'high' to 'critical' for this check
+            if severity in {'critical', 'blocker'} or (severity == 'high' and 'critical' in issue.get('description', '').lower()):
+                gate_status = QualityGateStatus.FAILED
+                gate_reasons.append(f"Critical issue found: {issue.get('description', 'Unknown')[:100]}")
+                logger.info(f"[QUALITY_GATE] FAILED - Critical issue detected: {issue.get('description', '')[:50]}")
+                break  # One critical is enough to fail
+        
+        # CRITERIO 2: Check minimum quality score (only if not already failed)
+        if gate_status != QualityGateStatus.FAILED:
+            if quality_score < THRESHOLD_MIN_SCORE:
+                gate_status = QualityGateStatus.FAILED
+                gate_reasons.append(f"Quality score {quality_score:.2%} is below minimum threshold {THRESHOLD_MIN_SCORE:.0%}")
+                logger.info(f"[QUALITY_GATE] FAILED - Score {quality_score:.2%} < {THRESHOLD_MIN_SCORE:.0%}")
+        
+        # CRITERIO 3: Check completeness metrics (only if not already failed)
+        if gate_status != QualityGateStatus.FAILED:
+            # Check overall completeness from results
+            overall_completeness = results.get('overall', {}).get('completeness')
+            if overall_completeness is not None and overall_completeness < THRESHOLD_MIN_COMPLETENESS:
+                gate_status = QualityGateStatus.WARNING
+                gate_reasons.append(f"Completeness {overall_completeness:.2%} is below recommended threshold {THRESHOLD_MIN_COMPLETENESS:.0%}")
+                logger.info(f"[QUALITY_GATE] WARNING - Completeness {overall_completeness:.2%} < {THRESHOLD_MIN_COMPLETENESS:.0%}")
+            
+            # Also check column-level completeness
+            column_metrics = results.get('column_metrics', {})
+            low_completeness_columns = []
+            for col_name, col_data in column_metrics.items():
+                col_completeness = col_data.get('completeness', 1.0)
+                if col_completeness < THRESHOLD_MIN_COMPLETENESS:
+                    low_completeness_columns.append(f"{col_name}: {col_completeness:.2%}")
+            
+            if low_completeness_columns and gate_status == QualityGateStatus.PASSED:
+                gate_status = QualityGateStatus.WARNING
+                gate_reasons.append(f"Low completeness in columns: {', '.join(low_completeness_columns[:3])}")
+                logger.info(f"[QUALITY_GATE] WARNING - Low completeness in {len(low_completeness_columns)} columns")
+        
+        # Log final decision
+        logger.info(f"[QUALITY_GATE] Final status: {gate_status.value} | Score: {quality_score:.2%} | Issues: {len(issues)} | Reasons: {gate_reasons}")
+        
+        return gate_status
     
     def run_evaluation(self, evaluation_id, analysis_run_id=None):
         """Run evaluation for the given evaluation ID
@@ -188,13 +277,19 @@ class EvaluationService:
                                     'null_rate': float(null_rate)
                                 })
                         
-                        # Create issue
+                        # Create issue with fingerprint
                         issues.append({
                             'evaluation_id': evaluation.id,
                             'metric_id': metrics_map.get(metric_id),
                             'severity': 'high' if completeness < 0.8 else 'medium',
                             'description': f"Dataset completeness ({completeness:.2%}) is below threshold ({completeness_threshold:.2%})",
-                            'affected_columns': problem_columns
+                            'affected_columns': problem_columns,
+                            'issue_type': 'completeness',
+                            'fingerprint': generate_column_issue_fingerprint(
+                                issue_type='completeness',
+                                column_name='_dataset_',  # Dataset-level issue
+                                threshold=completeness_threshold
+                            )
                         })
                 
                 elif metric_id == 'uniqueness':
@@ -236,13 +331,20 @@ class EvaluationService:
                     
                     # Always check for column-level uniqueness issues
                     if column_uniqueness_issues:
-                        issues.append({
-                            'evaluation_id': evaluation.id,
-                            'metric_id': metrics_map.get(metric_id),
-                            'severity': 'medium',
-                            'description': f"Low column uniqueness detected in {len(column_uniqueness_issues)} columns",
-                            'affected_columns': column_uniqueness_issues
-                        })
+                        # Create fingerprint for each affected column
+                        for col_issue in column_uniqueness_issues:
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get(metric_id),
+                                'severity': 'medium',
+                                'description': f"Low uniqueness in column '{col_issue['column']}' ({col_issue['uniqueness']:.2%})",
+                                'affected_columns': [col_issue],
+                                'issue_type': 'uniqueness',
+                                'fingerprint': generate_duplicate_issue_fingerprint(
+                                    column_name=col_issue['column'],
+                                    is_row_level=False
+                                )
+                            })
                     
                     if uniqueness < uniqueness_threshold:
                         # Find duplicate rows or values
@@ -256,14 +358,19 @@ class EvaluationService:
                                         duplicate_info[col] = duplicate_count
                             
                             if duplicate_info:
-                                issues.append({
-                                    'evaluation_id': evaluation.id,
-                                    'metric_id': metrics_map.get(metric_id),
-                                    'severity': 'high' if uniqueness < 0.9 else 'medium',
-                                    'description': f"Columns contain duplicate values",
-                                    'affected_columns': [{'column': col, 'duplicate_count': count} 
-                                                        for col, count in duplicate_info.items()]
-                                })
+                                for col, count in duplicate_info.items():
+                                    issues.append({
+                                        'evaluation_id': evaluation.id,
+                                        'metric_id': metrics_map.get(metric_id),
+                                        'severity': 'high' if uniqueness < 0.9 else 'medium',
+                                        'description': f"Column '{col}' contains {count} duplicate values",
+                                        'affected_columns': [{'column': col, 'duplicate_count': count}],
+                                        'issue_type': 'uniqueness',
+                                        'fingerprint': generate_duplicate_issue_fingerprint(
+                                            column_name=col,
+                                            is_row_level=False
+                                        )
+                                    })
                         else:
                             # Row-wise duplicates
                             duplicates = df[df.duplicated(keep='first')]
@@ -278,7 +385,11 @@ class EvaluationService:
                                     'affected_rows': {
                                         'count': duplicate_count,
                                         'sample': duplicates.head(5).to_dict(orient='records') if duplicate_count > 0 else []
-                                    }
+                                    },
+                                    'issue_type': 'uniqueness',
+                                    'fingerprint': generate_duplicate_issue_fingerprint(
+                                        is_row_level=True
+                                    )
                                 })
                 
                 elif metric_id == 'consistency' or metric_id == 'consistency_pattern':
@@ -324,14 +435,26 @@ class EvaluationService:
                                         'valid_count': valid_count,
                                         'invalid_count': invalid_count,
                                         'examples': invalid_examples
-                                    }
+                                    },
+                                    'issue_type': 'consistency',
+                                    'fingerprint': generate_pattern_issue_fingerprint(
+                                        column_name=column,
+                                        pattern=pattern
+                                    )
                                 })
                         except re.error:
                             issues.append({
                                 'evaluation_id': evaluation.id,
                                 'metric_id': metrics_map.get(metric_id),
                                 'severity': 'high',
-                                'description': f"Invalid regex pattern '{pattern}' for column '{column}'"
+                                'description': f"Invalid regex pattern '{pattern}' for column '{column}'",
+                                'issue_type': 'consistency',
+                                'fingerprint': generate_issue_fingerprint(
+                                    issue_type='consistency_error',
+                                    column_name=column,
+                                    rule_key='invalid_pattern',
+                                    extra_params={'pattern': pattern}
+                                )
                             })
                 
                 elif metric_id == 'outliers':
@@ -356,7 +479,13 @@ class EvaluationService:
                                     'metric_id': metrics_map.get(metric_id),
                                     'severity': 'medium',
                                     'description': f"Column '{column}' contains {outliers['count']} outliers",
-                                    'affected_columns': [{'column': column, 'outlier_count': outliers['count']}]
+                                    'affected_columns': [{'column': column, 'outlier_count': outliers['count']}],
+                                    'issue_type': 'outliers',
+                                    'fingerprint': generate_outlier_issue_fingerprint(
+                                        column_name=column,
+                                        method=method,
+                                        factor=factor
+                                    )
                                 })
                     
                     results['outliers'] = outlier_results
@@ -395,7 +524,12 @@ class EvaluationService:
                         'metric_id': metrics_map.get('completeness'),
                         'severity': 'high' if completeness < 0.9 else 'medium',
                         'description': f"Column '{column}' has low completeness ({completeness:.2%})",
-                        'affected_columns': [{'column': column, 'null_rate': float(1 - completeness)}]
+                        'affected_columns': [{'column': column, 'null_rate': float(1 - completeness)}],
+                        'issue_type': 'completeness',
+                        'fingerprint': generate_column_issue_fingerprint(
+                            issue_type='completeness',
+                            column_name=column
+                        )
                     })
                 
                 # Add statistics based on data type
@@ -449,7 +583,13 @@ class EvaluationService:
                                 'metric_id': metrics_map.get('consistency'),
                                 'severity': 'low',
                                 'description': f"Column '{col}' might be categorical but stored as numeric",
-                                'affected_columns': [{'column': col}]
+                                'affected_columns': [{'column': col}],
+                                'issue_type': 'consistency',
+                                'fingerprint': generate_issue_fingerprint(
+                                    issue_type='consistency',
+                                    column_name=col,
+                                    rule_key='categorical_as_numeric'
+                                )
                             })
             
             # Create issues in database (legacy Issue table)
@@ -478,40 +618,45 @@ class EvaluationService:
                 analysis_run.progress = 100
                 analysis_run.current_step = "Análisis completado"
                 
-                # Determine Quality Gate status based on score
-                if quality_score >= 0.8:
-                    analysis_run.quality_gate_status = QualityGateStatus.PASSED
-                elif quality_score >= 0.6:
-                    analysis_run.quality_gate_status = QualityGateStatus.WARNING
-                else:
-                    analysis_run.quality_gate_status = QualityGateStatus.FAILED
+                # Evaluate Quality Gate using MVP criteria
+                analysis_run.quality_gate_status = self._evaluate_quality_gate(
+                    analysis_run=analysis_run,
+                    quality_score=quality_score,
+                    issues=issues,
+                    results=results_dict
+                )
                 
                 # Create DataQualityIssues for AnalysisRun (new table)
                 for issue_data in issues:
-                    # Generate fingerprint for issue tracking
-                    column_name = ''
-                    if issue_data.get('affected_columns'):
-                        cols = issue_data['affected_columns']
-                        if isinstance(cols, list) and len(cols) > 0:
-                            column_name = cols[0].get('column', '') if isinstance(cols[0], dict) else str(cols[0])
-                    
-                    issue_type = 'general'
+                    # Use pre-computed fingerprint if available, otherwise generate one
+                    fingerprint = issue_data.get('fingerprint')
+                    issue_type = issue_data.get('issue_type', 'general')
                     desc = issue_data.get('description', '')
-                    if 'completeness' in desc.lower():
-                        issue_type = 'completeness'
-                    elif 'uniqueness' in desc.lower() or 'duplicate' in desc.lower():
-                        issue_type = 'uniqueness'
-                    elif 'consistency' in desc.lower() or 'pattern' in desc.lower():
-                        issue_type = 'consistency'
-                    elif 'outlier' in desc.lower():
-                        issue_type = 'outliers'
                     
-                    fingerprint = self._generate_issue_fingerprint(
-                        rule_key=issue_type,
-                        column_name=column_name,
-                        issue_type=issue_type,
-                        description_hash=hashlib.md5(desc.encode()).hexdigest()[:8]
-                    )
+                    if not fingerprint:
+                        # Fallback: generate fingerprint for legacy issues without one
+                        column_name = ''
+                        if issue_data.get('affected_columns'):
+                            cols = issue_data['affected_columns']
+                            if isinstance(cols, list) and len(cols) > 0:
+                                column_name = cols[0].get('column', '') if isinstance(cols[0], dict) else str(cols[0])
+                        
+                        # Infer issue_type from description if not set
+                        if issue_type == 'general':
+                            if 'completeness' in desc.lower():
+                                issue_type = 'completeness'
+                            elif 'uniqueness' in desc.lower() or 'duplicate' in desc.lower():
+                                issue_type = 'uniqueness'
+                            elif 'consistency' in desc.lower() or 'pattern' in desc.lower():
+                                issue_type = 'consistency'
+                            elif 'outlier' in desc.lower():
+                                issue_type = 'outliers'
+                        
+                        fingerprint = generate_issue_fingerprint(
+                            issue_type=issue_type,
+                            column_name=column_name,
+                            rule_key=f"{issue_type}_check"
+                        )
                     
                     # Map severity (legacy uses high/medium/low, new uses critical/major/minor/info)
                     severity_map = {'high': 'major', 'medium': 'minor', 'low': 'info', 'critical': 'critical'}
@@ -527,7 +672,7 @@ class EvaluationService:
                         affected_columns=issue_data.get('affected_columns'),
                         affected_rows=issue_data.get('affected_rows'),
                         rule_key=f"{issue_type}_check",
-                        is_new=True  # All issues are new in this run
+                        is_new=True  # TODO: Compare with baseline to determine if new
                     )
                     db.session.add(dq_issue)
                 

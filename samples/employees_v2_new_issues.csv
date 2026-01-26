@@ -1,0 +1,12 @@
+id,name,email,department,salary,join_date
+1,John Doe,john.doe@example.com,Engineering,78000,2023-01-15
+2,Jane Smith,jane.smith@example.com,Marketing,68000,2023-02-01
+3,Bob Wilson,bob.wilson@example.com,Engineering,82000,2023-01-20
+4,Alice Brown,alice.brown@example.com,HR,62000,2023-03-10
+5,Charlie Davis,charlie.davis@example.com,Sales,50000,2023-04-05
+6,Duplicate User,dup@example.com,Engineering,70000,2023-05-01
+7,Sarah Miller,sarah.miller@example.com,Marketing,95000,2023-06-15
+8,Mike Johnson,mike.johnson@example.com,Sales,55000,2023-06-20
+9,Emiliy Clark,emily.clark@example.com,Engineering,72000,2023-07-01
+10,New Guy,new.guy@example.com,IT,,2023-08-01
+11,Hacker,,Security,90000,2023-08-02
