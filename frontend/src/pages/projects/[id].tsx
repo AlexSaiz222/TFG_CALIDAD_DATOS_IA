@@ -40,7 +40,10 @@ import {
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
-import { projectsAPI, datasetsAPI, metricsAPI } from '../../services/api';
+import AnalysisHistory from '../../components/AnalysisHistory';
+import QualityTrendChart from '../../components/QualityTrendChart';
+import { projectsAPI, datasetsAPI, metricsAPI, analysisAPI } from '../../services/api';
+import type { AnalysisRun } from '../../types';
 
 // Colores consistentes con el resto de la aplicación
 const GREEN = '#00B37E';
@@ -79,6 +82,8 @@ const ProjectDetail = () => {
   const [project, setProject] = useState<any>(null);
   const [datasets, setDatasets] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any[]>([]);
+  const [analysisRuns, setAnalysisRuns] = useState<AnalysisRun[]>([]);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
@@ -328,6 +333,18 @@ const ProjectDetail = () => {
         }
 
         setLoading(false);
+        
+        // Cargar historial de análisis del proyecto (Sonar-Lite)
+        setAnalysisLoading(true);
+        try {
+          const runsResponse = await analysisAPI.getProjectAnalysisRuns(projectId);
+          const runsData = runsResponse.data?.data || runsResponse.data || [];
+          setAnalysisRuns(Array.isArray(runsData) ? runsData : []);
+        } catch (runsError) {
+          console.warn('Error al cargar historial de análisis:', runsError);
+          setAnalysisRuns([]);
+        }
+        setAnalysisLoading(false);
       } catch (error: any) {
         console.error('Error al cargar datos del proyecto:', error);
         setError(error.response?.data?.message || 'Error al cargar datos del proyecto. Inténtelo de nuevo.');
@@ -560,6 +577,7 @@ const ProjectDetail = () => {
           >
             <Tab label="Datasets" id="project-tab-0" aria-controls="project-tabpanel-0" />
             <Tab label="Métricas" id="project-tab-1" aria-controls="project-tabpanel-1" />
+            <Tab label="Historial de Análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
           </Tabs>
         </Box>
 
@@ -717,6 +735,28 @@ const ProjectDetail = () => {
               <Typography variant="body1" sx={{ color: '#555555', mb: 3 }}>
                 Configura métricas para evaluar la calidad de tus datasets.
               </Typography>
+            </Box>
+          )}
+        </TabPanel>
+
+        {/* Pestaña de Historial de Análisis */}
+        <TabPanel value={tabValue} index={2}>
+          {projectId && (
+            <Box>
+              {/* Gráficos de tendencia */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                  Tendencias de Calidad
+                </Typography>
+                <QualityTrendChart runs={analysisRuns} qualityGateThreshold={80} />
+              </Box>
+              
+              {/* Historial de análisis */}
+              <AnalysisHistory
+                runs={analysisRuns}
+                projectId={projectId}
+                loading={analysisLoading}
+              />
             </Box>
           )}
         </TabPanel>
