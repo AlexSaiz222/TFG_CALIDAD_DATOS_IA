@@ -97,21 +97,21 @@ Migración del sistema de evaluación de calidad de datos a una arquitectura tip
 
 ---
 
-### Tarea 2: Vista de Análisis ⏳ PENDIENTE
-- [ ] Adaptar página de evaluación para usar `AnalysisRun`
-- [ ] Mostrar Quality Gate status prominente
-- [ ] Mostrar métricas y score
-- [ ] Lista de issues con indicador nuevo/recurrente
+### Tarea 2: Vista de Análisis ✅
+- [x] Adaptar página de evaluación para usar `AnalysisRun`
+- [x] Mostrar Quality Gate status prominente
+- [x] Mostrar métricas y score
+- [x] Lista de issues con indicador nuevo/recurrente
 
 **Archivos:** `frontend/src/pages/evaluations/[id].tsx`
 
 ---
 
-### Tarea 3: Historial de Análisis ⏳ PENDIENTE
-- [ ] Crear vista de historial por proyecto
-- [ ] Mostrar evolución del Quality Gate
-- [ ] Gráfico de tendencia de score
-- [ ] Comparación entre runs
+### Tarea 3: Historial de Análisis ✅
+- [x] Crear vista de historial por proyecto
+- [x] Mostrar evolución del Quality Gate
+- [x] Gráfico de tendencia de score
+- [x] Comparación entre runs
 
 **Archivos:** `frontend/src/pages/projects/[id]/history.tsx`
 

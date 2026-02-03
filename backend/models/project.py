@@ -48,7 +48,7 @@ class Project(db.Model):
             except Exception as e:
                 dataset_count = 0
                 
-            return {
+            result = {
                 'id': self.id,
                 'name': self.name,
                 'description': self.description,
@@ -58,6 +58,33 @@ class Project(db.Model):
                 'updated_at': self.updated_at.isoformat(),
                 'dataset_count': dataset_count
             }
+            
+            # Obtener el último análisis completado (Computed Property pattern)
+            # Esto evita duplicar datos y mantiene la "Single Source of Truth"
+            # Usamos importación local para evitar dependencias circulares
+            from models.analysis import AnalysisRun
+            
+            latest_run = getattr(self, 'analysis_runs', None)
+            if latest_run:
+                # Buscar el último run completado usando literal para evitar importar el Enum
+                # AnalysisStatus.COMPLETED.value == 'COMPLETED'
+                last_completed = (latest_run.filter(AnalysisRun.status == 'COMPLETED')
+                                 .order_by(AnalysisRun.completed_at.desc())
+                                 .first())
+                
+                if last_completed:
+                    result.update({
+                        'latest_analysis': {
+                            'id': last_completed.id,
+                            'status': last_completed.status.value if hasattr(last_completed.status, 'value') else last_completed.status,
+                            'quality_score': last_completed.quality_score,
+                            'quality_gate_status': last_completed.quality_gate_status.value if last_completed.quality_gate_status else None,
+                            'completed_at': last_completed.completed_at.isoformat() if last_completed.completed_at else None,
+                            'new_issues': last_completed.new_issues_count or 0
+                        }
+                    })
+            
+            return result
         except Exception as e:
             # Si hay un error, devolver un diccionario mínimo
             return {
