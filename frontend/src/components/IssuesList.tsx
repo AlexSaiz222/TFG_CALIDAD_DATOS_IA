@@ -454,18 +454,22 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                 <TableCell>
                   {issue.affected_columns && issue.affected_columns.length > 0 ? (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {issue.affected_columns.slice(0, 3).map((col: string, idx: number) => (
-                        <Chip
-                          key={idx}
-                          label={col}
-                          size="small"
-                          sx={{
-                            fontSize: '0.7rem',
-                            height: 20,
-                            backgroundColor: '#E8E8E8',
-                          }}
-                        />
-                      ))}
+                      {issue.affected_columns.slice(0, 3).map((col: any, idx: number) => {
+                        // Handle both string and object formats: "column_name" or {column: "name", null_rate: 0.5}
+                        const columnName = typeof col === 'string' ? col : (col?.column || col?.name || JSON.stringify(col));
+                        return (
+                          <Chip
+                            key={idx}
+                            label={columnName}
+                            size="small"
+                            sx={{
+                              fontSize: '0.7rem',
+                              height: 20,
+                              backgroundColor: '#E8E8E8',
+                            }}
+                          />
+                        );
+                      })}
                       {issue.affected_columns.length > 3 && (
                         <Chip
                           label={`+${issue.affected_columns.length - 3}`}
