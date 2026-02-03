@@ -59,7 +59,11 @@ const AnalysisRunDetail = () => {
       try {
         // Fetch analysis run
         const runResponse = await analysisAPI.getAnalysisRun(Number(runId));
-        const runData = runResponse.data?.data || runResponse.data;
+        // Extract analysis_run from response: { data: { data: { analysis_run: ... } } }
+        const runData = runResponse.data?.data?.analysis_run || 
+                       runResponse.data?.analysis_run || 
+                       runResponse.data?.data || 
+                       runResponse.data;
         setAnalysisRun(runData);
 
         // Fetch project info
@@ -74,7 +78,11 @@ const AnalysisRunDetail = () => {
         if (runData?.baseline_analysis_id) {
           try {
             const baselineResponse = await analysisAPI.getAnalysisRun(runData.baseline_analysis_id);
-            setBaselineRun(baselineResponse.data?.data || baselineResponse.data);
+            const baselineData = baselineResponse.data?.data?.analysis_run || 
+                                baselineResponse.data?.analysis_run || 
+                                baselineResponse.data?.data || 
+                                baselineResponse.data;
+            setBaselineRun(baselineData);
           } catch {
             console.warn('Could not fetch baseline run');
           }
@@ -86,7 +94,10 @@ const AnalysisRunDetail = () => {
         setIssuesLoading(true);
         try {
           const issuesResponse = await analysisAPI.getAnalysisRunIssues(Number(runId));
-          const issuesData = issuesResponse.data?.data || issuesResponse.data || [];
+          // Extract issues from response: { data: { data: { issues: [...] } } }
+          const issuesData = issuesResponse.data?.data?.issues || 
+                            issuesResponse.data?.issues || 
+                            [];
           setIssues(Array.isArray(issuesData) ? issuesData : []);
         } catch {
           console.warn('Could not fetch issues');

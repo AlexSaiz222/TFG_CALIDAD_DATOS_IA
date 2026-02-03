@@ -967,27 +967,43 @@ export const metricsAPI = {
 
 // Analysis Runs API (Sonar-Lite)
 export const analysisAPI = {
-  getProjectAnalysisRuns: (projectId: number) =>
-    api.get(`/api/projects/${projectId}/analysis-runs`),
+  // Obtener historial de análisis de un proyecto
+  getProjectAnalysisRuns: (projectId: number, params?: { page?: number; per_page?: number; status?: string }) =>
+    api.get(`/api/evaluations/projects/${projectId}/analysis_runs`, { params }),
   
+  // Obtener el análisis más reciente completado de un proyecto
   getLatestAnalysisRun: async (projectId: number) => {
     try {
-      const response = await api.get(`/api/projects/${projectId}/analysis-runs/latest`);
-      return response.data;
+      const response = await api.get(`/api/evaluations/projects/${projectId}/latest_analysis`);
+      return response;
     } catch (error: any) {
       // If no analysis exists yet, return null instead of throwing
       if (error.response?.status === 404) {
-        return null;
+        return { data: { data: { analysis_run: null } } };
       }
       throw error;
     }
   },
   
+  // Obtener un AnalysisRun específico por ID
   getAnalysisRun: (runId: number) =>
-    api.get(`/api/analysis-runs/${runId}`),
+    api.get(`/api/evaluations/analysis/${runId}`),
   
-  getAnalysisRunIssues: (runId: number, params?: { is_new?: boolean; severity?: string }) =>
-    api.get(`/api/analysis-runs/${runId}/issues`, { params }),
+  // Obtener el estado de un AnalysisRun (endpoint ligero para polling)
+  getAnalysisRunStatus: (runId: number) =>
+    api.get(`/api/evaluations/analysis/${runId}/status`),
+  
+  // Obtener los issues de un AnalysisRun
+  getAnalysisRunIssues: (runId: number, params?: { severity?: string; issue_type?: string; page?: number; per_page?: number }) =>
+    api.get(`/api/evaluations/analysis/${runId}/issues`, { params }),
+  
+  // Iniciar un nuevo análisis para un proyecto
+  startAnalysis: (projectId: number, datasetId: number, metrics: any[], options?: any) =>
+    api.post(`/api/evaluations/projects/${projectId}/analyze`, {
+      dataset_id: datasetId,
+      metrics,
+      options: options || {}
+    }),
 };
 
 // Evaluations API

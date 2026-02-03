@@ -68,8 +68,12 @@ const Projects = () => {
         // Fetch latest analysis for each project
         const analysisPromises = response.map(async (project: Project) => {
           try {
-            const analysis = await analysisAPI.getLatestAnalysisRun(project.id);
-            return { projectId: project.id, analysis };
+            const analysisResponse = await analysisAPI.getLatestAnalysisRun(project.id);
+            // Extract analysis_run from response structure: { data: { data: { analysis_run: ... } } }
+            const analysisRun = analysisResponse?.data?.data?.analysis_run || 
+                               analysisResponse?.data?.analysis_run || 
+                               null;
+            return { projectId: project.id, analysis: analysisRun };
           } catch {
             return { projectId: project.id, analysis: null };
           }

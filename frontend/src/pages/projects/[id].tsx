@@ -338,7 +338,10 @@ const ProjectDetail = () => {
         setAnalysisLoading(true);
         try {
           const runsResponse = await analysisAPI.getProjectAnalysisRuns(projectId);
-          const runsData = runsResponse.data?.data || runsResponse.data || [];
+          // Extract analysis_runs from response: { data: { data: { analysis_runs: [...] } } }
+          const runsData = runsResponse.data?.data?.analysis_runs || 
+                          runsResponse.data?.analysis_runs || 
+                          [];
           setAnalysisRuns(Array.isArray(runsData) ? runsData : []);
         } catch (runsError) {
           console.warn('Error al cargar historial de análisis:', runsError);
