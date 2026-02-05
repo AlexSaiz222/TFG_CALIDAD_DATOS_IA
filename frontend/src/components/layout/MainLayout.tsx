@@ -7,13 +7,8 @@ import {
   Box,
   CssBaseline,
   Divider,
-  Drawer,
   IconButton,
-  List,
-  ListItem,
-  ListItemButton,
   ListItemIcon,
-  ListItemText,
   Toolbar,
   Typography,
   Avatar,
@@ -26,19 +21,13 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Storage as StorageIcon,
-  Assessment as AssessmentIcon,
-  Settings as SettingsIcon,
-  ChevronLeft as ChevronLeftIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
-  Dataset as DatasetIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
-
-const drawerWidth = 240;
+import { useSidebar } from '../../contexts/SidebarContext';
+import Sidebar, { DRAWER_WIDTH, COLLAPSED_WIDTH } from './Sidebar';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -46,25 +35,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 1),
   ...theme.mixins.toolbar,
   justifyContent: 'flex-end',
-}));
-
-// Ya no necesitamos el LogoContainer porque quitamos el logo del menú lateral
-
-const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
-  margin: '6px 10px',
-  borderRadius: '8px',
-  transition: 'all 0.2s ease-in-out',
-  padding: '10px 16px',
-  '&.Mui-selected': {
-    backgroundColor: 'rgba(0, 179, 126, 0.08)',
-    '&:hover': {
-      backgroundColor: 'rgba(0, 179, 126, 0.12)',
-    },
-  },
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
-    transform: 'translateX(2px)',
-  },
 }));
 
 interface MainLayoutProps {
@@ -84,10 +54,10 @@ const GlobalStyles = () => {
 };
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
+  const { isOpen: open, isCollapsed, toggleOpen, setOpen } = useSidebar();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -124,8 +94,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   const handleDrawerToggle = () => {
-    setOpen(!open);
+    toggleOpen();
   };
+
+  // Calculate sidebar width based on open and collapsed state
+  const currentSidebarWidth = open ? (isCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH) : 0;
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -145,16 +118,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     safeNavigate('/profile');
   };
 
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Projects', icon: <StorageIcon />, path: '/projects' },
-    { text: 'Datasets', icon: <DatasetIcon />, path: '/datasets' },
-    { text: 'Evaluations', icon: <AssessmentIcon />, path: '/evaluations' },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-  ];
-
   // Ruta a la imagen del logo personalizada
-  const logoPath = '/images/logo.png'; // Asegúrate de colocar tu imagen en public/images/logo.png
+  const logoPath = '/images/logo.png';
 
   return (
     <Box sx={{ display: 'flex', overflow: 'hidden' }}>
@@ -289,111 +254,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Menu>
         </Toolbar>
       </AppBar>
-      <Drawer
-        variant="persistent"
-        anchor="left"
-        open={open}
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          height: '100%',
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            backgroundColor: '#FFFFFF',
-            borderRight: '1px solid #EEEEEE',
-            position: 'fixed',
-            height: '100%',
-            boxShadow: open ? '1px 0px 5px rgba(0, 0, 0, 0.03)' : 'none',
-            transition: 'all 0.3s ease',
-          },
-        }}
-      >
-        <DrawerHeader sx={{ 
-          justifyContent: 'flex-end', 
-          px: 2, 
-          py: 3, 
-          borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-          mb: 1
-        }}>
-          <IconButton 
-            onClick={handleDrawerToggle}
-            sx={{
-              borderRadius: '8px',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 179, 126, 0.08)',
-              }
-            }}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-        </DrawerHeader>
-        <List sx={{ px: 1, pt: 2, pb: 2 }}>
-          {menuItems.map((item) => {
-            const isSelected = router.pathname === item.path;
-            return (
-              <ListItem key={item.text} disablePadding sx={{ mb: 1.5 }}>
-                <StyledListItemButton
-                  selected={isSelected}
-                  onClick={() => safeNavigate(item.path)}
-                  sx={{
-                    pl: 2,
-                    pr: 2,
-                    py: 1.2,
-                    ...(isSelected && {
-                      background: 'linear-gradient(90deg, rgba(0, 179, 126, 0.08) 0%, rgba(0, 179, 126, 0.02) 100%)',
-                      borderLeft: '3px solid #00B37E',
-                      boxShadow: '0 1px 4px rgba(0, 179, 126, 0.08)',
-                    }),
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      color: isSelected ? '#00B37E' : '#757575',
-                      minWidth: '42px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      '& .MuiSvgIcon-root': {
-                        fontSize: '1.2rem',
-                        transition: 'all 0.2s ease',
-                        transform: isSelected ? 'scale(1.05)' : 'scale(1)'
-                      }
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{
-                      fontWeight: isSelected ? 600 : 500,
-                      color: isSelected ? '#00B37E' : '#424242',
-                      fontSize: '0.95rem',
-                      letterSpacing: '0.2px'
-                    }}
-                    sx={{ transition: 'all 0.2s ease' }}
-                  />
-                </StyledListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
-      </Drawer>
+      <Sidebar open={open} onToggle={handleDrawerToggle} />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 2,
-          pl: 6, // Adjust this value to increase/decrease left padding
-          pr: 3, // Right padding
+          pl: 6,
+          pr: 3,
           paddingTop: 4,
           position: 'absolute',
-          left: open ? `${drawerWidth}px` : '0',
-          width: open ? `calc(100% - ${drawerWidth + 24}px)` : 'calc(100% - 24px)', // Adjusted width to account for right margin
+          left: `${currentSidebarWidth}px`,
+          width: `calc(100% - ${currentSidebarWidth + 24}px)`,
           transition: 'left 0.3s ease-in-out, width 0.3s ease-in-out',
         }}
       >
         <DrawerHeader />
-        {/* Asegurar que children siempre se renderice de forma segura */}
         {children}
       </Box>
     </Box>

@@ -1,0 +1,281 @@
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import {
+  Box,
+  Drawer,
+  List,
+  Divider,
+  IconButton,
+  Typography,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import {
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Dashboard as DashboardIcon,
+  Folder as FolderIcon,
+  FolderOpen as FolderOpenIcon,
+  Storage as StorageIcon,
+  CloudUpload as CloudUploadIcon,
+  Add as AddIcon,
+  Assessment as AssessmentIcon,
+  History as HistoryIcon,
+  PlayArrow as PlayArrowIcon,
+  Settings as SettingsIcon,
+  Person as PersonIcon,
+  Tune as TuneIcon,
+  Notifications as NotificationsIcon,
+  List as ListIcon,
+  Description as DescriptionIcon,
+} from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
+import SidebarItemComponent from './SidebarItem';
+import RecentItems from './RecentItems';
+import { SidebarItem } from './types';
+import { useSidebar } from '../../../contexts/SidebarContext';
+import { projectsAPI } from '../../../services/api';
+
+const DRAWER_WIDTH = 260;
+const COLLAPSED_WIDTH = 68;
+
+const DrawerHeader = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(0, 1),
+  ...theme.mixins.toolbar,
+  justifyContent: 'flex-end',
+}));
+
+interface SidebarProps {
+  open: boolean;
+  onToggle: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
+  const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isCollapsed, toggleCollapsed, setCollapsed } = useSidebar();
+  const [projects, setProjects] = useState<Array<{id: number; name: string}>>([]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setCollapsed(true);
+    }
+  }, [isMobile, setCollapsed]);
+
+  // Fetch projects for dynamic menu
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await projectsAPI.getProjects();
+        const projectsList = res.data?.data?.projects || res.data?.projects || [];
+        setProjects(projectsList.slice(0, 10));
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const handleCollapseToggle = () => {
+    toggleCollapsed();
+  };
+
+  // Build dynamic project children
+  const projectChildren: SidebarItem[] = [
+    {
+      id: 'projects-all',
+      text: 'Todos los proyectos',
+      icon: <ListIcon />,
+      path: '/projects',
+      children: projects.length > 0 ? projects.map(p => ({
+        id: `project-${p.id}`,
+        text: p.name,
+        icon: <FolderOpenIcon />,
+        path: `/projects/${p.id}`,
+      })) : undefined,
+    },
+    {
+      id: 'projects-new',
+      text: 'Nuevo proyecto',
+      icon: <AddIcon />,
+      path: '/projects/new',
+    },
+  ];
+
+  // Build dynamic dataset children (datasets are per-project, so we show upload option)
+  const datasetChildren: SidebarItem[] = [
+    {
+      id: 'datasets-all',
+      text: 'Todos los datasets',
+      icon: <ListIcon />,
+      path: '/datasets',
+    },
+    {
+      id: 'datasets-upload',
+      text: 'Subir dataset',
+      icon: <CloudUploadIcon />,
+      path: '/datasets/upload',
+    },
+  ];
+
+  const menuItems: SidebarItem[] = [
+    {
+      id: 'dashboard',
+      text: 'Dashboard',
+      icon: <DashboardIcon />,
+      path: '/dashboard',
+    },
+    {
+      id: 'projects',
+      text: 'Proyectos',
+      icon: <FolderIcon />,
+      children: projectChildren,
+    },
+    {
+      id: 'datasets',
+      text: 'Datasets',
+      icon: <StorageIcon />,
+      children: datasetChildren,
+    },
+    {
+      id: 'analysis',
+      text: 'Análisis',
+      icon: <AssessmentIcon />,
+      children: [
+        {
+          id: 'analysis-history',
+          text: 'Historial',
+          icon: <HistoryIcon />,
+          path: '/evaluations',
+        },
+      ],
+    },
+    {
+      id: 'settings',
+      text: 'Configuración',
+      icon: <SettingsIcon />,
+      children: [
+        {
+          id: 'settings-profile',
+          text: 'Perfil',
+          icon: <PersonIcon />,
+          path: '/profile',
+        },
+        {
+          id: 'settings-metrics',
+          text: 'Métricas globales',
+          icon: <TuneIcon />,
+          path: '/settings',
+        },
+      ],
+    },
+  ];
+
+  const currentWidth = isCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
+
+  return (
+    <Drawer
+      variant="persistent"
+      anchor="left"
+      open={open}
+      sx={{
+        width: currentWidth,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: currentWidth,
+          boxSizing: 'border-box',
+          backgroundColor: '#FAFAFA',
+          borderRight: '1px solid #E5E5E5',
+          transition: 'width 0.3s ease-in-out',
+          overflowX: 'hidden',
+        },
+      }}
+    >
+      <DrawerHeader
+        sx={{
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          px: isCollapsed ? 1 : 2,
+          py: 2,
+          borderBottom: '1px solid #E5E5E5',
+        }}
+      >
+        {!isCollapsed && (
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: '#888',
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            Navegación
+          </Typography>
+        )}
+        <IconButton
+          onClick={handleCollapseToggle}
+          size="small"
+          sx={{
+            borderRadius: '8px',
+            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 179, 126, 0.1)',
+            },
+          }}
+        >
+          {isCollapsed ? (
+            <ChevronRightIcon fontSize="small" />
+          ) : (
+            <ChevronLeftIcon fontSize="small" />
+          )}
+        </IconButton>
+      </DrawerHeader>
+
+      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 1 }}>
+        <List component="nav" disablePadding>
+          {menuItems.map((item, index) => (
+            <React.Fragment key={item.id}>
+              <SidebarItemComponent
+                item={item}
+                isCollapsed={isCollapsed}
+              />
+              {item.id === 'dashboard' && (
+                <Divider sx={{ my: 1, mx: 2 }} />
+              )}
+            </React.Fragment>
+          ))}
+        </List>
+      </Box>
+
+      <RecentItems isCollapsed={isCollapsed} />
+
+      {!isCollapsed && (
+        <Box
+          sx={{
+            p: 2,
+            borderTop: '1px solid #E5E5E5',
+            backgroundColor: '#F5F5F5',
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#999',
+              display: 'block',
+              textAlign: 'center',
+            }}
+          >
+            DataQual v1.0
+          </Typography>
+        </Box>
+      )}
+    </Drawer>
+  );
+};
+
+export default Sidebar;
+export { DRAWER_WIDTH, COLLAPSED_WIDTH };

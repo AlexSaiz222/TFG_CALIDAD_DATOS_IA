@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from '../contexts/AuthContext';
+import { SidebarProvider } from '../contexts/SidebarContext';
 import { initRouteChangeHandlers } from '../utils/routeTransition';
 
 // Create a theme instance
@@ -94,7 +95,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
-          <Component {...pageProps} />
+          <SidebarProvider>
+            <Component {...pageProps} />
+          </SidebarProvider>
         </AuthProvider>
       </ThemeProvider>
     </>

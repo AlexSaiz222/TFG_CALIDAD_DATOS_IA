@@ -211,8 +211,8 @@ const EvaluationDetail = () => {
   }
 
   const results = evaluation.results;
-  const overallMetrics = results?.overall || {};
-  const columnMetrics = results?.column_metrics || {};
+  const overallMetrics: Record<string, any> = results?.overall || {};
+  const columnMetrics: Record<string, any> = results?.column_metrics || {};
 
   return (
     <MainLayout>
