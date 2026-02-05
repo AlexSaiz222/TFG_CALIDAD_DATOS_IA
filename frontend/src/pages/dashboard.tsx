@@ -8,13 +8,10 @@ import {
   CardContent,
   Button,
   CircularProgress,
-  Paper,
   Divider,
-  Avatar,
   Chip,
   IconButton,
   Tooltip,
-  LinearProgress,
   alpha,
 } from '@mui/material';
 import {
@@ -22,10 +19,7 @@ import {
   Storage as StorageIcon,
   Assessment as AssessmentIcon,
   Warning as WarningIcon,
-  Refresh as RefreshIcon,
   ArrowForward as ArrowForwardIcon,
-  CheckCircle as CheckCircleIcon,
-  Timeline as TimelineIcon,
 } from '@mui/icons-material';
 
 // Import the MainLayout component
@@ -244,26 +238,9 @@ function Dashboard() {
                   }} 
                 />
               </Box>
-              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 1 }}>
+              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 2 }}>
                 {totalProjects}
               </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" sx={{ color: '#555555', mb: 0.5 }}>
-                  Project completion
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={totalProjects > 0 ? 75 : 0} 
-                  sx={{ 
-                    height: 6, 
-                    borderRadius: 3,
-                    backgroundColor: alpha('#00B37E', 0.1),
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: '#00B37E',
-                    }
-                  }} 
-                />
-              </Box>
               <Divider sx={{ my: 1.5 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
@@ -343,31 +320,9 @@ function Dashboard() {
                   }} 
                 />
               </Box>
-              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 1 }}>
+              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 2 }}>
                 {totalDatasets}
               </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ color: '#555555' }}>
-                    Processing status
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#00B37E', fontWeight: 500 }}>
-                    {totalDatasets > 0 ? '100%' : '0%'}
-                  </Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={totalDatasets > 0 ? 100 : 0} 
-                  sx={{ 
-                    height: 6, 
-                    borderRadius: 3,
-                    backgroundColor: alpha('#FFB800', 0.1),
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: '#FFB800',
-                    }
-                  }} 
-                />
-              </Box>
               <Divider sx={{ my: 1.5 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
@@ -439,50 +394,27 @@ function Dashboard() {
             <CardContent sx={{ pt: 5, pb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
                 <Typography variant="h6" component="div" sx={{ color: '#1A1A1A', fontWeight: 600 }}>
-                  Quality Issues
+                  Evaluaciones
                 </Typography>
                 <Chip 
-                  icon={<CheckCircleIcon sx={{ fontSize: '16px !important', color: '#00B37E !important' }} />}
-                  label="All Clear" 
+                  label="Análisis" 
                   size="small" 
                   sx={{ 
-                    backgroundColor: alpha('#00B37E', 0.1), 
-                    color: '#00B37E',
+                    backgroundColor: alpha('#E5484D', 0.1), 
+                    color: '#E5484D',
                     fontWeight: 500,
-                    '& .MuiChip-icon': { color: '#00B37E' }
                   }} 
                 />
               </Box>
-              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 1 }}>
-                0
+              <Typography variant="body2" sx={{ color: '#555555', mb: 2 }}>
+                Ejecuta análisis de calidad en tus datasets para detectar problemas.
               </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ color: '#555555' }}>
-                    Data quality score
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#00B37E', fontWeight: 500 }}>
-                    Excellent
-                  </Typography>
-                </Box>
-                <Box sx={{ position: 'relative', height: '6px', borderRadius: '3px', backgroundColor: alpha('#E5484D', 0.1) }}>
-                  <Box sx={{ 
-                    position: 'absolute', 
-                    left: 0, 
-                    top: 0, 
-                    height: '100%', 
-                    width: '95%', 
-                    borderRadius: '3px', 
-                    background: 'linear-gradient(90deg, #00B37E 0%, #00B37E 100%)'
-                  }} />
-                </Box>
-              </Box>
               <Divider sx={{ my: 1.5 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
                   variant="contained"
-                  startIcon={<RefreshIcon sx={{ color: 'white' }} />}
-                  onClick={() => router.push('/evaluations')}
+                  startIcon={<AssessmentIcon sx={{ color: 'white' }} />}
+                  onClick={() => router.push('/projects')}
                   sx={{
                     backgroundColor: '#E5484D',
                     color: 'white',
@@ -495,14 +427,14 @@ function Dashboard() {
                     fontWeight: 500,
                   }}
                 >
-                  View Issues
+                  Ver Proyectos
                 </Button>
-                <Tooltip title="Run new evaluation">
+                <Tooltip title="Ver historial de análisis">
                   <IconButton 
-                    onClick={() => router.push('/evaluations/new')}
+                    onClick={() => router.push('/projects')}
                     sx={{ color: '#555555' }}
                   >
-                    <RefreshIcon />
+                    <ArrowForwardIcon />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -511,199 +443,6 @@ function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Data quality test */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          mb: 2
-        }}>
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#1A1A1A', display: 'flex', alignItems: 'center' }}>
-            <TimelineIcon sx={{ mr: 1, color: '#00B37E' }} />
-            Data quality test
-          </Typography>
-          <Button
-            variant="contained"
-            endIcon={<ArrowForwardIcon sx={{ color: '#FFFFFF' }} />}
-            onClick={() => router.push('/metrics')}
-            sx={{
-              backgroundColor: '#00B37E',
-              color: '#FFFFFF',
-              '&:hover': {
-                backgroundColor: '#00A070',
-              },
-              boxShadow: '0px 2px 4px rgba(0, 179, 126, 0.25)',
-              borderRadius: '8px',
-              textTransform: 'none',
-              fontWeight: 500,
-              padding: '6px 16px',
-            }}
-          >
-            View all metrics
-          </Button>
-        </Box>
-        
-        {totalDatasets === 0 ? (
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              border: '1px dashed',
-              borderColor: alpha('#00B37E', 0.3),
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <TimelineIcon sx={{ fontSize: 48, color: alpha('#00B37E', 0.7), mb: 2 }} />
-            <Typography variant="body1" sx={{ color: '#555555', textAlign: 'center', mb: 2 }}>
-              Upload datasets to see quality metrics and visualizations
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => router.push('/datasets/upload')}
-              sx={{
-                backgroundColor: '#00B37E',
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: '#00A070',
-                },
-                boxShadow: '0px 2px 4px rgba(0, 179, 126, 0.25)',
-                borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 500,
-              }}
-              disabled={totalProjects === 0}
-            >
-              Upload Your First Dataset
-            </Button>
-          </Paper>
-        ) : (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  border: '1px solid #EEEEEE',
-                  height: '100%',
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                  Completeness Score
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box sx={{ position: 'relative', display: 'inline-flex', mr: 2 }}>
-                    <CircularProgress
-                      variant="determinate"
-                      value={95}
-                      size={80}
-                      thickness={4}
-                      sx={{
-                        color: '#00B37E',
-                        '& .MuiCircularProgress-circle': {
-                          strokeLinecap: 'round',
-                        },
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        right: 0,
-                        position: 'absolute',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                        95%
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#00B37E' }}>
-                      Excellent
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Most fields are complete
-                    </Typography>
-                  </Box>
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="body2" color="text.secondary">
-                  Recommendation: Check for missing values in optional fields to reach 100% completeness.
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  border: '1px solid #EEEEEE',
-                  height: '100%',
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                  Consistency Score
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box sx={{ position: 'relative', display: 'inline-flex', mr: 2 }}>
-                    <CircularProgress
-                      variant="determinate"
-                      value={87}
-                      size={80}
-                      thickness={4}
-                      sx={{
-                        color: '#FFB800',
-                        '& .MuiCircularProgress-circle': {
-                          strokeLinecap: 'round',
-                        },
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        right: 0,
-                        position: 'absolute',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                        87%
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#FFB800' }}>
-                      Good
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Minor inconsistencies found
-                    </Typography>
-                  </Box>
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="body2" color="text.secondary">
-                  Recommendation: Standardize date formats and categorical values across datasets.
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        )}
-      </Box>
     </MainLayout>
   );
 }
