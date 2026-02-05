@@ -25,46 +25,34 @@ interface SidebarItemProps {
   isCollapsed?: boolean;
 }
 
-const StyledListItemButton = styled(ListItemButton)<{ depth?: number; isactive?: string; isexpanded?: string }>(
-  ({ theme, depth = 0, isactive, isexpanded }) => ({
-    margin: depth === 0 ? '2px 8px' : depth === 1 ? '1px 8px 1px 12px' : '1px 8px 1px 8px',
-    marginLeft: depth === 0 ? '8px' : depth === 1 ? '16px' : '24px',
-    borderRadius: '6px',
-    padding: depth === 0 ? '8px 12px' : depth === 1 ? '6px 10px' : '5px 8px',
-    paddingLeft: depth === 0 ? '12px' : depth === 1 ? '12px' : '16px',
-    minHeight: depth === 0 ? 40 : depth === 1 ? 36 : 32,
-    transition: 'all 0.15s ease-in-out',
+const StyledListItemButton = styled(ListItemButton)<{ depth?: number; isactive?: string; isexpanded?: string; iscontrol?: string }>(
+  ({ theme, depth = 0, isactive, isexpanded, iscontrol }) => ({
+    margin: depth === 0 ? '3px 8px' : iscontrol === 'true' ? '2px 8px 2px 16px' : '1px 8px 1px 16px',
+    marginLeft: depth === 0 ? '8px' : depth === 1 ? '24px' : '40px',
+    marginRight: '8px',
+    borderRadius: depth === 0 ? '8px' : '6px',
+    padding: depth === 0 ? '10px 14px' : iscontrol === 'true' ? '6px 12px' : '7px 12px',
+    minHeight: depth === 0 ? 44 : iscontrol === 'true' ? 34 : 36,
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
-    // Visual hierarchy indicator
-    ...(depth > 0 && {
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        left: 0,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        width: '2px',
-        height: '60%',
-        backgroundColor: 'rgba(0, 0, 0, 0.08)',
-        borderRadius: '2px',
-      },
-    }),
-    // Only highlight if this exact item is active (not just expanded)
+    // Only highlight if this exact item is active
     ...(isactive === 'true' && {
-      backgroundColor: 'rgba(0, 179, 126, 0.12)',
+      backgroundColor: 'rgba(0, 179, 126, 0.1)',
       borderLeft: '3px solid #00B37E',
       '&:hover': {
-        backgroundColor: 'rgba(0, 179, 126, 0.18)',
+        backgroundColor: 'rgba(0, 179, 126, 0.15)',
       },
     }),
-    // Subtle indicator for expanded parents (not active)
-    ...(isexpanded === 'true' && isactive !== 'true' && {
-      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    // Expanded parent state (subtle)
+    ...(isexpanded === 'true' && isactive !== 'true' && depth === 0 && {
+      backgroundColor: 'rgba(0, 0, 0, 0.025)',
     }),
+    // Hover states with clear visual feedback
     '&:hover': {
       backgroundColor: isactive === 'true' 
-        ? 'rgba(0, 179, 126, 0.18)' 
-        : 'rgba(0, 0, 0, 0.04)',
+        ? 'rgba(0, 179, 126, 0.15)' 
+        : depth === 0 ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+      transform: depth === 0 ? 'translateX(2px)' : 'none',
     },
   })
 );
@@ -123,6 +111,7 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
       depth={depth}
       isactive={isActive ? 'true' : 'false'}
       isexpanded={open && hasChildren ? 'true' : 'false'}
+      iscontrol={item.isControl ? 'true' : 'false'}
       onClick={handleClick}
       sx={{
         justifyContent: isCollapsed ? 'center' : 'flex-start',
@@ -131,12 +120,13 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
     >
       <ListItemIcon
         sx={{
-          color: isActive ? '#00B37E' : depth === 0 ? '#666666' : depth === 1 ? '#777777' : '#888888',
-          minWidth: isCollapsed ? 0 : depth === 0 ? 32 : depth === 1 ? 28 : 24,
-          mr: isCollapsed ? 0 : depth === 0 ? 1 : 0.75,
+          color: isActive ? '#00B37E' : depth === 0 ? '#374151' : '#6B7280',
+          minWidth: isCollapsed ? 0 : depth === 0 ? 36 : 32,
+          mr: isCollapsed ? 0 : depth === 0 ? 1.5 : 1.25,
           justifyContent: 'center',
+          opacity: depth === 0 ? 1 : 0.8,
           '& .MuiSvgIcon-root': {
-            fontSize: depth === 0 ? '1.2rem' : depth === 1 ? '1.05rem' : '0.95rem',
+            fontSize: depth === 0 ? '1.3rem' : '1.05rem',
           },
         }}
       >
@@ -148,9 +138,10 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
           <ListItemText
             primary={item.text}
             primaryTypographyProps={{
-              fontSize: depth === 0 ? '0.875rem' : depth === 1 ? '0.825rem' : '0.8rem',
-              fontWeight: isActive ? 600 : depth === 0 ? 500 : 400,
-              color: isActive ? '#00B37E' : depth === 0 ? '#424242' : depth === 1 ? '#555555' : '#666666',
+              fontSize: depth === 0 ? '0.9375rem' : '0.8125rem',
+              fontWeight: isActive ? 600 : depth === 0 ? 600 : 400,
+              color: isActive ? '#00B37E' : depth === 0 ? '#1F2937' : '#4B5563',
+              letterSpacing: depth === 0 ? '0.01em' : '0',
             }}
           />
           
@@ -195,7 +186,14 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
       
       {hasChildren && !isCollapsed && (
         <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding sx={{ mt: 0.5, mb: 0.5 }}>
+          <List 
+            component="div" 
+            disablePadding 
+            sx={{ 
+              mt: depth === 0 ? 0.5 : 0.25, 
+              mb: depth === 0 ? 1 : 0.5,
+            }}
+          >
             {item.children!.map((child) => (
               <SidebarItemComponent
                 key={child.id}

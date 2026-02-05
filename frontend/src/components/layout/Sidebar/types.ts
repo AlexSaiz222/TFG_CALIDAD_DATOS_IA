@@ -9,7 +9,7 @@ export interface SidebarItem {
   action?: () => void;
   badge?: number | string;
   dividerAfter?: boolean;
-  hoverMenu?: 'projects' | 'datasets';
+  isControl?: boolean; // Mark items like "Ver todos" as controls, not content
 }
 
 export interface SidebarSection {

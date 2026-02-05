@@ -101,13 +101,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     toggleCollapsed();
   };
 
-  // Build dynamic project children - "Ver todos" has projects as children
+  // Build dynamic project children - "Ver todos" marked as control
   const projectChildren: SidebarItem[] = [
     {
       id: 'projects-all',
       text: 'Ver todos',
       icon: <ListIcon />,
       path: '/projects',
+      isControl: true,
       children: projects.length > 0 ? projects.map(p => ({
         id: `project-${p.id}`,
         text: p.name,
@@ -130,6 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       text: 'Todos los datasets',
       icon: <ListIcon />,
       path: '/datasets',
+      isControl: true,
     },
     {
       id: 'datasets-upload',
