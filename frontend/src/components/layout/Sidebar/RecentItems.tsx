@@ -37,16 +37,28 @@ interface RecentItemsProps {
 const RecentItems: React.FC<RecentItemsProps> = ({ isCollapsed = false }) => {
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const fetchRecentItems = async () => {
       try {
         setLoading(true);
         
-        const projectsRes = await projectsAPI.getProjects().catch(() => ({ data: { data: { projects: [] } } }));
+        const projectsRes = await projectsAPI.getProjects().catch(() => ({ data: [] }));
 
-        const projects = projectsRes.data?.data?.projects || projectsRes.data?.projects || [];
+        // Handle different API response formats
+        let projects: any[] = [];
+        if (projectsRes?.data?.data?.projects) {
+          projects = projectsRes.data.data.projects;
+        } else if (projectsRes?.data?.projects) {
+          projects = projectsRes.data.projects;
+        } else if (projectsRes?.data?.data && Array.isArray(projectsRes.data.data)) {
+          projects = projectsRes.data.data;
+        } else if (Array.isArray(projectsRes?.data)) {
+          projects = projectsRes.data;
+        } else if (Array.isArray(projectsRes)) {
+          projects = projectsRes;
+        }
 
         const recentProjects: RecentItem[] = projects
           .slice(0, 5)

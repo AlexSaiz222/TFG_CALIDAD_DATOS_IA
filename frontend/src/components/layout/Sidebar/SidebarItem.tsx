@@ -27,11 +27,28 @@ interface SidebarItemProps {
 
 const StyledListItemButton = styled(ListItemButton)<{ depth?: number; isactive?: string; isexpanded?: string }>(
   ({ theme, depth = 0, isactive, isexpanded }) => ({
-    margin: depth === 0 ? '2px 8px' : '1px 8px 1px 16px',
+    margin: depth === 0 ? '2px 8px' : depth === 1 ? '1px 8px 1px 12px' : '1px 8px 1px 8px',
+    marginLeft: depth === 0 ? '8px' : depth === 1 ? '16px' : '24px',
     borderRadius: '6px',
-    padding: depth === 0 ? '8px 12px' : '6px 12px',
-    minHeight: depth === 0 ? 40 : 32,
+    padding: depth === 0 ? '8px 12px' : depth === 1 ? '6px 10px' : '5px 8px',
+    paddingLeft: depth === 0 ? '12px' : depth === 1 ? '12px' : '16px',
+    minHeight: depth === 0 ? 40 : depth === 1 ? 36 : 32,
     transition: 'all 0.15s ease-in-out',
+    position: 'relative',
+    // Visual hierarchy indicator
+    ...(depth > 0 && {
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        width: '2px',
+        height: '60%',
+        backgroundColor: 'rgba(0, 0, 0, 0.08)',
+        borderRadius: '2px',
+      },
+    }),
     // Only highlight if this exact item is active (not just expanded)
     ...(isactive === 'true' && {
       backgroundColor: 'rgba(0, 179, 126, 0.12)',
@@ -114,12 +131,12 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
     >
       <ListItemIcon
         sx={{
-          color: isActive ? '#00B37E' : '#666666',
-          minWidth: isCollapsed ? 0 : 32,
-          mr: isCollapsed ? 0 : 1,
+          color: isActive ? '#00B37E' : depth === 0 ? '#666666' : depth === 1 ? '#777777' : '#888888',
+          minWidth: isCollapsed ? 0 : depth === 0 ? 32 : depth === 1 ? 28 : 24,
+          mr: isCollapsed ? 0 : depth === 0 ? 1 : 0.75,
           justifyContent: 'center',
           '& .MuiSvgIcon-root': {
-            fontSize: depth === 0 ? '1.2rem' : '1rem',
+            fontSize: depth === 0 ? '1.2rem' : depth === 1 ? '1.05rem' : '0.95rem',
           },
         }}
       >
@@ -131,9 +148,9 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
           <ListItemText
             primary={item.text}
             primaryTypographyProps={{
-              fontSize: depth === 0 ? '0.875rem' : '0.8rem',
-              fontWeight: isActive ? 600 : 500,
-              color: isActive ? '#00B37E' : '#424242',
+              fontSize: depth === 0 ? '0.875rem' : depth === 1 ? '0.825rem' : '0.8rem',
+              fontWeight: isActive ? 600 : depth === 0 ? 500 : 400,
+              color: isActive ? '#00B37E' : depth === 0 ? '#424242' : depth === 1 ? '#555555' : '#666666',
             }}
           />
           
@@ -178,7 +195,7 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
       
       {hasChildren && !isCollapsed && (
         <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
+          <List component="div" disablePadding sx={{ mt: 0.5, mb: 0.5 }}>
             {item.children!.map((child) => (
               <SidebarItemComponent
                 key={child.id}

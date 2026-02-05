@@ -101,20 +101,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     toggleCollapsed();
   };
 
-  // Build dynamic project children - projects appear directly under "Proyectos"
+  // Build dynamic project children - "Ver todos" has projects as children
   const projectChildren: SidebarItem[] = [
     {
       id: 'projects-all',
       text: 'Ver todos',
       icon: <ListIcon />,
       path: '/projects',
+      children: projects.length > 0 ? projects.map(p => ({
+        id: `project-${p.id}`,
+        text: p.name,
+        icon: <FolderOpenIcon />,
+        path: `/projects/${p.id}`,
+      })) : undefined,
     },
-    ...projects.map(p => ({
-      id: `project-${p.id}`,
-      text: p.name,
-      icon: <FolderOpenIcon />,
-      path: `/projects/${p.id}`,
-    })),
     {
       id: 'projects-new',
       text: 'Nuevo proyecto',
@@ -123,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     },
   ];
 
-  // Build dynamic dataset children (datasets are per-project, so we show upload option)
+  // Dataset children - simple structure without nested datasets
   const datasetChildren: SidebarItem[] = [
     {
       id: 'datasets-all',
@@ -243,7 +243,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         </IconButton>
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 0.5 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', pt: 2, pb: 0.5 }}>
         <List component="nav" disablePadding>
           {menuItems.map((item) => (
             <SidebarItemComponent
