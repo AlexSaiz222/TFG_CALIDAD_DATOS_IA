@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import {
   Box,
   Drawer,
   List,
-  Divider,
   IconButton,
   Typography,
   useTheme,
@@ -21,13 +19,10 @@ import {
   Add as AddIcon,
   Assessment as AssessmentIcon,
   History as HistoryIcon,
-  PlayArrow as PlayArrowIcon,
   Settings as SettingsIcon,
   Person as PersonIcon,
   Tune as TuneIcon,
-  Notifications as NotificationsIcon,
   List as ListIcon,
-  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import SidebarItemComponent from './SidebarItem';
@@ -54,7 +49,6 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
-  const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isCollapsed, toggleCollapsed, setCollapsed } = useSidebar();

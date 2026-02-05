@@ -8,14 +8,7 @@ export interface SidebarItem {
   children?: SidebarItem[];
   action?: () => void;
   badge?: number | string;
-  dividerAfter?: boolean;
   isControl?: boolean; // Mark items like "Ver todos" as controls, not content
-}
-
-export interface SidebarSection {
-  id: string;
-  title?: string;
-  items: SidebarItem[];
 }
 
 export interface RecentItem {
@@ -24,12 +17,4 @@ export interface RecentItem {
   type: 'project' | 'dataset';
   path: string;
   updatedAt?: string;
-}
-
-export interface SidebarContextType {
-  isOpen: boolean;
-  expandedItems: string[];
-  toggleSidebar: () => void;
-  toggleExpanded: (itemId: string) => void;
-  isExpanded: (itemId: string) => boolean;
 }
