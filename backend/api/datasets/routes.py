@@ -392,7 +392,12 @@ def get_datasets():
                         'schema': [],  # Simplificar para evitar errores de serialización
                         'created_at': dataset.created_at.isoformat() if dataset.created_at else '',
                         'updated_at': dataset.updated_at.isoformat() if dataset.updated_at else '',
-                        'evaluation_count': 0  # Valor por defecto seguro
+                        'evaluation_count': 0,  # Valor por defecto seguro
+                        # Versioning fields
+                        'parent_dataset_id': dataset.parent_dataset_id,
+                        'version': dataset.version if dataset.version is not None else 1,
+                        'version_tag': dataset.version_tag,
+                        'is_latest': dataset.is_latest if dataset.is_latest is not None else True
                     }
                     dataset_list.append(dataset_dict)
                 except Exception as dict_error:
@@ -408,7 +413,11 @@ def get_datasets():
                         'row_count': 0,
                         'column_count': 0,
                         'schema': [],
-                        'evaluation_count': 0
+                        'evaluation_count': 0,
+                        'parent_dataset_id': getattr(dataset, 'parent_dataset_id', None),
+                        'version': getattr(dataset, 'version', 1) or 1,
+                        'version_tag': getattr(dataset, 'version_tag', None),
+                        'is_latest': getattr(dataset, 'is_latest', True) if getattr(dataset, 'is_latest', None) is not None else True
                     })
             
             return jsonify({
