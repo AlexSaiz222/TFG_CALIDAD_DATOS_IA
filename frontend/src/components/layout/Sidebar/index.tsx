@@ -74,10 +74,24 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     const fetchProjects = async () => {
       try {
         const res = await projectsAPI.getProjects();
-        const projectsList = res.data?.data?.projects || res.data?.projects || [];
-        setProjects(projectsList.slice(0, 10));
+        // The API returns { data: { projects: [...] } } or { data: [...] } or directly [...]
+        let projectsList: Array<{id: number; name: string}> = [];
+        
+        if (res?.data?.data?.projects) {
+          projectsList = res.data.data.projects;
+        } else if (res?.data?.projects) {
+          projectsList = res.data.projects;
+        } else if (res?.data?.data && Array.isArray(res.data.data)) {
+          projectsList = res.data.data;
+        } else if (Array.isArray(res?.data)) {
+          projectsList = res.data;
+        } else if (Array.isArray(res)) {
+          projectsList = res;
+        }
+        
+        setProjects(projectsList.slice(0, 8));
       } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error fetching projects for sidebar:', error);
       }
     };
     fetchProjects();
@@ -87,20 +101,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     toggleCollapsed();
   };
 
-  // Build dynamic project children
+  // Build dynamic project children - projects appear directly under "Proyectos"
   const projectChildren: SidebarItem[] = [
     {
       id: 'projects-all',
-      text: 'Todos los proyectos',
+      text: 'Ver todos',
       icon: <ListIcon />,
       path: '/projects',
-      children: projects.length > 0 ? projects.map(p => ({
-        id: `project-${p.id}`,
-        text: p.name,
-        icon: <FolderOpenIcon />,
-        path: `/projects/${p.id}`,
-      })) : undefined,
     },
+    ...projects.map(p => ({
+      id: `project-${p.id}`,
+      text: p.name,
+      icon: <FolderOpenIcon />,
+      path: `/projects/${p.id}`,
+    })),
     {
       id: 'projects-new',
       text: 'Nuevo proyecto',
@@ -229,18 +243,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         </IconButton>
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 1 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 0.5 }}>
         <List component="nav" disablePadding>
-          {menuItems.map((item, index) => (
-            <React.Fragment key={item.id}>
-              <SidebarItemComponent
-                item={item}
-                isCollapsed={isCollapsed}
-              />
-              {item.id === 'dashboard' && (
-                <Divider sx={{ my: 1, mx: 2 }} />
-              )}
-            </React.Fragment>
+          {menuItems.map((item) => (
+            <SidebarItemComponent
+              key={item.id}
+              item={item}
+              isCollapsed={isCollapsed}
+            />
           ))}
         </List>
       </Box>
