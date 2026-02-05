@@ -25,25 +25,29 @@ interface SidebarItemProps {
   isCollapsed?: boolean;
 }
 
-const StyledListItemButton = styled(ListItemButton)<{ depth?: number; isactive?: string }>(
-  ({ theme, depth = 0, isactive }) => ({
-    margin: depth === 0 ? '4px 8px' : '2px 8px 2px 16px',
-    borderRadius: '8px',
-    padding: depth === 0 ? '10px 12px' : '8px 12px',
-    minHeight: depth === 0 ? 44 : 38,
-    transition: 'all 0.2s ease-in-out',
+const StyledListItemButton = styled(ListItemButton)<{ depth?: number; isactive?: string; isexpanded?: string }>(
+  ({ theme, depth = 0, isactive, isexpanded }) => ({
+    margin: depth === 0 ? '2px 8px' : '1px 8px 1px 16px',
+    borderRadius: '6px',
+    padding: depth === 0 ? '8px 12px' : '6px 12px',
+    minHeight: depth === 0 ? 40 : 32,
+    transition: 'all 0.15s ease-in-out',
+    // Only highlight if this exact item is active (not just expanded)
     ...(isactive === 'true' && {
-      backgroundColor: 'rgba(0, 179, 126, 0.1)',
+      backgroundColor: 'rgba(0, 179, 126, 0.12)',
       borderLeft: '3px solid #00B37E',
       '&:hover': {
-        backgroundColor: 'rgba(0, 179, 126, 0.15)',
+        backgroundColor: 'rgba(0, 179, 126, 0.18)',
       },
+    }),
+    // Subtle indicator for expanded parents (not active)
+    ...(isexpanded === 'true' && isactive !== 'true' && {
+      backgroundColor: 'rgba(0, 0, 0, 0.02)',
     }),
     '&:hover': {
       backgroundColor: isactive === 'true' 
-        ? 'rgba(0, 179, 126, 0.15)' 
+        ? 'rgba(0, 179, 126, 0.18)' 
         : 'rgba(0, 0, 0, 0.04)',
-      transform: 'translateX(2px)',
     },
   })
 );
@@ -56,8 +60,9 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
   const router = useRouter();
   const hasChildren = item.children && item.children.length > 0;
   
+  // Only mark as active if this exact path matches (not children)
   const isActive = item.path 
-    ? router.pathname === item.path || router.pathname.startsWith(item.path + '/')
+    ? router.pathname === item.path
     : false;
 
   // Check if any child (or grandchild) is active
@@ -99,21 +104,22 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
   const buttonContent = (
     <StyledListItemButton
       depth={depth}
-      isactive={(isActive || isChildActive) ? 'true' : 'false'}
+      isactive={isActive ? 'true' : 'false'}
+      isexpanded={open && hasChildren ? 'true' : 'false'}
       onClick={handleClick}
       sx={{
         justifyContent: isCollapsed ? 'center' : 'flex-start',
-        px: isCollapsed ? 1.5 : 2,
+        px: isCollapsed ? 1 : 1.5,
       }}
     >
       <ListItemIcon
         sx={{
-          color: (isActive || isChildActive) ? '#00B37E' : '#666666',
-          minWidth: isCollapsed ? 0 : 36,
-          mr: isCollapsed ? 0 : 1.5,
+          color: isActive ? '#00B37E' : '#666666',
+          minWidth: isCollapsed ? 0 : 32,
+          mr: isCollapsed ? 0 : 1,
           justifyContent: 'center',
           '& .MuiSvgIcon-root': {
-            fontSize: depth === 0 ? '1.3rem' : '1.1rem',
+            fontSize: depth === 0 ? '1.2rem' : '1rem',
           },
         }}
       >
@@ -125,9 +131,9 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
           <ListItemText
             primary={item.text}
             primaryTypographyProps={{
-              fontSize: depth === 0 ? '0.9rem' : '0.85rem',
-              fontWeight: (isActive || isChildActive) ? 600 : 500,
-              color: (isActive || isChildActive) ? '#00B37E' : '#424242',
+              fontSize: depth === 0 ? '0.875rem' : '0.8rem',
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? '#00B37E' : '#424242',
             }}
           />
           

@@ -35,9 +35,10 @@ import RecentItems from './RecentItems';
 import { SidebarItem } from './types';
 import { useSidebar } from '../../../contexts/SidebarContext';
 import { projectsAPI } from '../../../services/api';
+import { useAuth } from '../../../contexts/AuthContext';
 
-const DRAWER_WIDTH = 260;
-const COLLAPSED_WIDTH = 68;
+const DRAWER_WIDTH = 240;
+const COLLAPSED_WIDTH = 56;
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -57,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isCollapsed, toggleCollapsed, setCollapsed } = useSidebar();
+  const { isAuthenticated } = useAuth();
   const [projects, setProjects] = useState<Array<{id: number; name: string}>>([]);
 
   useEffect(() => {
@@ -65,8 +67,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     }
   }, [isMobile, setCollapsed]);
 
-  // Fetch projects for dynamic menu
+  // Fetch projects for dynamic menu (only when authenticated)
   useEffect(() => {
+    if (!isAuthenticated) return;
+    
     const fetchProjects = async () => {
       try {
         const res = await projectsAPI.getProjects();
@@ -77,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       }
     };
     fetchProjects();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleCollapseToggle = () => {
     toggleCollapsed();
@@ -194,34 +198,24 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         },
       }}
     >
-      <DrawerHeader
+      <Box
         sx={{
-          justifyContent: isCollapsed ? 'center' : 'space-between',
-          px: isCollapsed ? 1 : 2,
-          py: 2,
+          display: 'flex',
+          justifyContent: isCollapsed ? 'center' : 'flex-end',
+          alignItems: 'center',
+          px: isCollapsed ? 0.5 : 1,
+          py: 1,
           borderBottom: '1px solid #E5E5E5',
+          minHeight: 48,
         }}
       >
-        {!isCollapsed && (
-          <Typography
-            variant="subtitle2"
-            sx={{
-              color: '#888',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
-            Navegación
-          </Typography>
-        )}
         <IconButton
           onClick={handleCollapseToggle}
           size="small"
           sx={{
-            borderRadius: '8px',
-            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            borderRadius: '6px',
+            width: 32,
+            height: 32,
             '&:hover': {
               backgroundColor: 'rgba(0, 179, 126, 0.1)',
             },
@@ -233,7 +227,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             <ChevronLeftIcon fontSize="small" />
           )}
         </IconButton>
-      </DrawerHeader>
+      </Box>
 
       <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 1 }}>
         <List component="nav" disablePadding>
