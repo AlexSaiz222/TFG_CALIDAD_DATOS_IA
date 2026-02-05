@@ -70,7 +70,7 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
     ? router.pathname === item.path
     : false;
 
-  // Check if any child (or grandchild) is active
+  // Check if any child (or grandchild) is active (but not the parent itself)
   const checkChildActive = (children: typeof item.children): boolean => {
     if (!children) return false;
     return children.some(child => {
@@ -86,24 +86,32 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
 
   const isChildActive = checkChildActive(item.children);
 
-  // Auto-expand when a child is active
-  const [open, setOpen] = useState(isChildActive || false);
+  // Auto-expand ONLY when a specific child is active (not when parent route is active)
+  const [open, setOpen] = useState(false);
 
-  // Update open state when route changes
+  // Update open state when route changes - only expand if a CHILD is active, not the parent
   useEffect(() => {
-    if (isChildActive && !open) {
+    // Only auto-expand if a child is active AND we're not on the parent route
+    if (isChildActive && !isActive) {
       setOpen(true);
+    } else if (isActive && hasChildren) {
+      // If we're on the parent route, collapse the children
+      setOpen(false);
     }
-  }, [isChildActive, router.pathname]);
+  }, [isChildActive, isActive, router.pathname]);
 
   const handleClick = () => {
-    if (hasChildren) {
-      setOpen(!open);
+    // If item has a path, navigate (even if it has children)
+    if (item.path) {
+      safeNavigate(item.path);
     } else if (item.action) {
       item.action();
-    } else if (item.path) {
-      safeNavigate(item.path);
     }
+  };
+
+  const handleChevronClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation
+    setOpen(!open);
   };
 
   const buttonContent = (
@@ -160,8 +168,26 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
           )}
           
           {hasChildren && (
-            <Box sx={{ color: '#999' }}>
-              {open ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+            <Box
+              onClick={handleChevronClick}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 24,
+                height: 24,
+                borderRadius: '4px',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                },
+              }}
+            >
+              {open ? (
+                <ExpandLess fontSize="small" sx={{ color: '#888' }} />
+              ) : (
+                <ExpandMore fontSize="small" sx={{ color: '#888' }} />
+              )}
             </Box>
           )}
         </>
