@@ -101,8 +101,13 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
   }, [isChildActive, isActive, router.pathname]);
 
   const handleClick = () => {
-    // If item has a path, navigate (even if it has children)
-    if (item.path) {
+    // Control items (like "Ver todos") should navigate even if they have children
+    if (item.isControl && item.path) {
+      safeNavigate(item.path);
+    } else if (hasChildren) {
+      // Regular items with children toggle expansion
+      setOpen(!open);
+    } else if (item.path) {
       safeNavigate(item.path);
     } else if (item.action) {
       item.action();
@@ -110,7 +115,7 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({
   };
 
   const handleChevronClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent navigation
+    e.stopPropagation(); // Prevent double toggle
     setOpen(!open);
   };
 
