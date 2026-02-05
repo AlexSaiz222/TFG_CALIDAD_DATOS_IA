@@ -37,8 +37,11 @@ import {
   Error as ErrorIcon,
   Warning as WarningIcon,
   HourglassEmpty as HourglassEmptyIcon,
+  CloudUpload as CloudUploadIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
+import DatasetVersionHistory from '../../components/DatasetVersionHistory';
 import { datasetsAPI, evaluationsAPI, projectsAPI } from '../../services/api';
 import { Dataset, Evaluation, Issue } from '../../types';
 
@@ -132,7 +135,12 @@ const DatasetDetail = () => {
           schema: raw.schema ?? [],
           created_at: raw.created_at ?? raw.createdAt ?? new Date().toISOString(),
           updated_at: raw.updated_at ?? raw.updatedAt ?? new Date().toISOString(),
-          evaluation_count: raw.evaluation_count ?? raw.evaluationCount ?? 0
+          evaluation_count: raw.evaluation_count ?? raw.evaluationCount ?? 0,
+          // Versioning fields
+          parent_dataset_id: raw.parent_dataset_id ?? raw.parentDatasetId,
+          version: raw.version ?? 1,
+          version_tag: raw.version_tag ?? raw.versionTag,
+          is_latest: raw.is_latest ?? raw.isLatest ?? true,
         };
         
         setDataset(normalized);
@@ -447,16 +455,54 @@ const DatasetDetail = () => {
             <ArrowBackIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              {dataset.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+                {dataset.name}
+              </Typography>
+              <Chip
+                label={dataset.version_tag || `v${dataset.version}`}
+                size="small"
+                sx={{
+                  backgroundColor: dataset.version > 1 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(158, 158, 158, 0.1)',
+                  color: dataset.version > 1 ? '#9c27b0' : '#757575',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                }}
+              />
+              {dataset.is_latest && (
+                <Chip
+                  label="Latest"
+                  size="small"
+                  sx={{
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                    color: '#1976d2',
+                    fontWeight: 600,
+                  }}
+                />
+              )}
+            </Box>
             {dataset.description && (
               <Typography variant="body1" sx={{ color: '#555555', mt: 1 }}>
                 {dataset.description}
               </Typography>
             )}
           </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={() => router.push(`/datasets/upload?parentId=${dataset.id}&projectId=${dataset.project_id}`)}
+              sx={{
+                borderColor: '#9c27b0',
+                color: '#9c27b0',
+                '&:hover': {
+                  borderColor: '#7b1fa2',
+                  backgroundColor: 'rgba(156, 39, 176, 0.04)',
+                },
+              }}
+            >
+              Nueva versión
+            </Button>
             <Button
               variant="outlined"
               color="error"
@@ -572,6 +618,7 @@ const DatasetDetail = () => {
             <Tab label="Preview" id="dataset-tab-0" aria-controls="dataset-tabpanel-0" />
             <Tab label="Evaluations" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
             <Tab label="Issues" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
+            <Tab label="Versiones" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
           </Tabs>
         </Box>
 
@@ -854,6 +901,17 @@ const DatasetDetail = () => {
               )}
             </Box>
           )}
+        </TabPanel>
+
+        {/* Versions Tab */}
+        <TabPanel value={tabValue} index={3}>
+          <DatasetVersionHistory
+            datasetId={dataset.id}
+            projectId={dataset.project_id}
+            onCompare={(versionA, versionB) => {
+              router.push(`/datasets/${versionA}?compare=${versionB}`);
+            }}
+          />
         </TabPanel>
       </Box>
 

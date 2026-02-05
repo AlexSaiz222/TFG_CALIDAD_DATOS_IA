@@ -1340,3 +1340,383 @@ def delete_dataset(dataset_id):
             "error": "server_error",
             "message": f"Error del servidor: {str(e)}"
         }), 500
+
+
+# ==================== VERSIONING ENDPOINTS ====================
+
+@project_datasets_bp.route('/<int:dataset_id>/versions', methods=['GET'])
+@jwt_required()
+def get_dataset_versions(project_id, dataset_id):
+    """Get all versions of a dataset"""
+    try:
+        current_user_id = get_jwt_identity()
+        current_user_id_int = int(current_user_id)
+        
+        # Verify project access
+        project = Project.query.get(project_id)
+        if not project:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Proyecto no encontrado"
+            }), 404
+        
+        if project.owner_id != current_user_id_int:
+            return jsonify({
+                "success": False,
+                "error": "unauthorized",
+                "message": "No tienes acceso a este proyecto"
+            }), 403
+        
+        # Get the dataset
+        dataset = Dataset.query.get(dataset_id)
+        if not dataset:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Dataset no encontrado"
+            }), 404
+        
+        if dataset.project_id != project_id:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Dataset no pertenece a este proyecto"
+            }), 404
+        
+        # Get version history
+        versions = dataset.get_version_history()
+        
+        # Import AnalysisRun for eager loading analysis data
+        from models.analysis import AnalysisRun
+        
+        # Get latest analysis for each version in a single query
+        version_ids = [v.id for v in versions]
+        
+        # Subquery to get latest completed analysis per dataset
+        from sqlalchemy import func
+        latest_analysis_subq = db.session.query(
+            AnalysisRun.dataset_id,
+            func.max(AnalysisRun.completed_at).label('max_completed')
+        ).filter(
+            AnalysisRun.dataset_id.in_(version_ids),
+            AnalysisRun.status == 'COMPLETED'
+        ).group_by(AnalysisRun.dataset_id).subquery()
+        
+        latest_analyses = db.session.query(AnalysisRun).join(
+            latest_analysis_subq,
+            db.and_(
+                AnalysisRun.dataset_id == latest_analysis_subq.c.dataset_id,
+                AnalysisRun.completed_at == latest_analysis_subq.c.max_completed
+            )
+        ).all()
+        
+        # Map analyses by dataset_id
+        analysis_map = {a.dataset_id: a for a in latest_analyses}
+        
+        # Build response with analysis data
+        versions_data = []
+        for v in versions:
+            v_dict = v.to_dict()
+            analysis = analysis_map.get(v.id)
+            if analysis:
+                # Convert enum to string if necessary
+                gate_status = analysis.quality_gate_status
+                if hasattr(gate_status, 'value'):
+                    gate_status = gate_status.value
+                elif hasattr(gate_status, 'name'):
+                    gate_status = gate_status.name
+                
+                v_dict['latestAnalysis'] = {
+                    'quality_score': analysis.quality_score,
+                    'quality_gate_status': str(gate_status) if gate_status else None,
+                    'total_issues_count': analysis.total_issues_count or 0,
+                    'completed_at': analysis.completed_at.isoformat() if analysis.completed_at else None
+                }
+            else:
+                v_dict['latestAnalysis'] = None
+            versions_data.append(v_dict)
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "dataset_id": dataset_id,
+                "total_versions": len(versions),
+                "versions": versions_data
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error al obtener versiones del dataset {dataset_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "server_error",
+            "message": f"Error al obtener versiones: {str(e)}"
+        }), 500
+
+
+@project_datasets_bp.route('/<int:dataset_id>/new-version', methods=['POST'])
+@jwt_required()
+def upload_new_version(project_id, dataset_id):
+    """Upload a new version of an existing dataset"""
+    try:
+        current_user_id = get_jwt_identity()
+        current_user_id_int = int(current_user_id)
+        
+        # Verify project access
+        project = Project.query.get(project_id)
+        if not project:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Proyecto no encontrado"
+            }), 404
+        
+        if project.owner_id != current_user_id_int:
+            return jsonify({
+                "success": False,
+                "error": "unauthorized",
+                "message": "No tienes acceso a este proyecto"
+            }), 403
+        
+        # Get parent dataset
+        parent_dataset = Dataset.query.get(dataset_id)
+        if not parent_dataset:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Dataset padre no encontrado"
+            }), 404
+        
+        if parent_dataset.project_id != project_id:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Dataset no pertenece a este proyecto"
+            }), 404
+        
+        # Check if file is provided
+        if 'file' not in request.files:
+            return jsonify({
+                "success": False,
+                "error": "bad_request",
+                "message": "No se proporcionó archivo"
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '' or not file.filename.endswith('.csv'):
+            return jsonify({
+                "success": False,
+                "error": "bad_request",
+                "message": "Solo se permiten archivos CSV"
+            }), 400
+        
+        # Process the new file
+        try:
+            dataset_info = dataset_service.process_dataset(file, project_id)
+        except Exception as csv_error:
+            return jsonify({
+                "success": False,
+                "error": "csv_error",
+                "message": f"Error al procesar el CSV: {str(csv_error)}"
+            }), 400
+        
+        # Calculate new version number
+        root_dataset = parent_dataset.get_root_dataset()
+        versions = root_dataset.get_version_history()
+        max_version = max(v.version or 1 for v in versions)
+        
+        # Mark parent as not latest
+        parent_dataset.is_latest = False
+        
+        # Create new version
+        new_dataset = Dataset(
+            name=parent_dataset.name,  # Keep original name
+            description=request.form.get('description', parent_dataset.description),
+            project_id=project_id,
+            file_path=dataset_info['file_path'],
+            file_size=dataset_info.get('file_size'),
+            row_count=dataset_info.get('row_count'),
+            column_count=dataset_info.get('column_count'),
+            schema=dataset_info.get('schema'),
+            parent_dataset_id=parent_dataset.id,
+            version=max_version + 1,
+            version_tag=request.form.get('version_tag'),
+            is_latest=True
+        )
+        
+        db.session.add(new_dataset)
+        db.session.commit()
+        
+        logger.info(f"Nueva versión creada: Dataset {new_dataset.id} (v{new_dataset.version}) del dataset {parent_dataset.id}")
+        
+        return jsonify({
+            "success": True,
+            "data": new_dataset.to_dict(),
+            "message": f"Versión {new_dataset.version} creada correctamente"
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al crear nueva versión del dataset {dataset_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "server_error",
+            "message": f"Error al crear nueva versión: {str(e)}"
+        }), 500
+
+
+@project_datasets_bp.route('/<int:dataset_id>/compare/<int:other_dataset_id>', methods=['GET'])
+@jwt_required()
+def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
+    """Compare two versions of a dataset"""
+    try:
+        current_user_id = get_jwt_identity()
+        current_user_id_int = int(current_user_id)
+        
+        # Verify project access
+        project = Project.query.get(project_id)
+        if not project:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Proyecto no encontrado"
+            }), 404
+        
+        if project.owner_id != current_user_id_int:
+            return jsonify({
+                "success": False,
+                "error": "unauthorized",
+                "message": "No tienes acceso a este proyecto"
+            }), 403
+        
+        # Get both datasets
+        dataset_a = Dataset.query.get(dataset_id)
+        dataset_b = Dataset.query.get(other_dataset_id)
+        
+        if not dataset_a or not dataset_b:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": "Uno o ambos datasets no encontrados"
+            }), 404
+        
+        # Verify they belong to the same project
+        if dataset_a.project_id != project_id or dataset_b.project_id != project_id:
+            return jsonify({
+                "success": False,
+                "error": "bad_request",
+                "message": "Los datasets deben pertenecer al mismo proyecto"
+            }), 400
+        
+        # Verify they are from the same version chain
+        root_a = dataset_a.get_root_dataset()
+        root_b = dataset_b.get_root_dataset()
+        
+        if root_a.id != root_b.id:
+            return jsonify({
+                "success": False,
+                "error": "bad_request",
+                "message": "Solo se pueden comparar versiones del mismo dataset"
+            }), 400
+        
+        # Import AnalysisRun and DataQualityIssue here to avoid circular imports
+        from models.analysis import AnalysisRun, DataQualityIssue
+        
+        # Get latest completed analysis for each dataset
+        analysis_a = AnalysisRun.query.filter_by(
+            dataset_id=dataset_id
+        ).filter(
+            AnalysisRun.status.in_(['COMPLETED'])
+        ).order_by(AnalysisRun.completed_at.desc()).first()
+        
+        analysis_b = AnalysisRun.query.filter_by(
+            dataset_id=other_dataset_id
+        ).filter(
+            AnalysisRun.status.in_(['COMPLETED'])
+        ).order_by(AnalysisRun.completed_at.desc()).first()
+        
+        # Get issues for both analyses
+        issues_a_list = []
+        issues_b_list = []
+        
+        if analysis_a:
+            issues_a_list = DataQualityIssue.query.filter_by(analysis_run_id=analysis_a.id).all()
+        if analysis_b:
+            issues_b_list = DataQualityIssue.query.filter_by(analysis_run_id=analysis_b.id).all()
+        
+        # Compare issues by description to find new/resolved
+        issues_a_descriptions = {i.description for i in issues_a_list}
+        issues_b_descriptions = {i.description for i in issues_b_list}
+        
+        resolved_issues = [i.to_dict() for i in issues_a_list if i.description not in issues_b_descriptions]
+        new_issues = [i.to_dict() for i in issues_b_list if i.description not in issues_a_descriptions]
+        common_issues = [i.to_dict() for i in issues_b_list if i.description in issues_a_descriptions]
+        
+        # Build comparison response with frontend-expected structure
+        dataset_a_dict = dataset_a.to_dict()
+        dataset_b_dict = dataset_b.to_dict()
+        
+        # Helper to convert enum to string
+        def get_gate_status_str(status):
+            if status is None:
+                return None
+            if hasattr(status, 'value'):
+                return status.value
+            if hasattr(status, 'name'):
+                return status.name
+            return str(status)
+        
+        # Add latestAnalysis to each dataset
+        if analysis_a:
+            dataset_a_dict['latestAnalysis'] = {
+                'quality_score': analysis_a.quality_score,
+                'quality_gate_status': get_gate_status_str(analysis_a.quality_gate_status),
+                'total_issues_count': analysis_a.total_issues_count or 0,
+                'completed_at': analysis_a.completed_at.isoformat() if analysis_a.completed_at else None
+            }
+        
+        if analysis_b:
+            dataset_b_dict['latestAnalysis'] = {
+                'quality_score': analysis_b.quality_score,
+                'quality_gate_status': get_gate_status_str(analysis_b.quality_gate_status),
+                'total_issues_count': analysis_b.total_issues_count or 0,
+                'completed_at': analysis_b.completed_at.isoformat() if analysis_b.completed_at else None
+            }
+        
+        # Calculate differences
+        score_a = analysis_a.quality_score if analysis_a else None
+        score_b = analysis_b.quality_score if analysis_b else None
+        issues_a_count = analysis_a.total_issues_count or 0 if analysis_a else 0
+        issues_b_count = analysis_b.total_issues_count or 0 if analysis_b else 0
+        
+        quality_score_diff = None
+        if score_a is not None and score_b is not None:
+            quality_score_diff = round(score_b - score_a, 2)
+        
+        comparison = {
+            "dataset_a": dataset_a_dict,
+            "dataset_b": dataset_b_dict,
+            "comparison": {
+                "rows_diff": (dataset_b.row_count or 0) - (dataset_a.row_count or 0),
+                "columns_diff": (dataset_b.column_count or 0) - (dataset_a.column_count or 0),
+                "quality_score_diff": quality_score_diff,
+                "issues_diff": issues_b_count - issues_a_count,
+                "new_issues": new_issues,
+                "resolved_issues": resolved_issues,
+                "common_issues": common_issues
+            }
+        }
+        
+        return jsonify({
+            "success": True,
+            "data": comparison
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error al comparar datasets {dataset_id} y {other_dataset_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "server_error",
+            "message": f"Error al comparar versiones: {str(e)}"
+        }), 500

@@ -41,6 +41,11 @@ export interface Dataset {
   created_at: string;
   updated_at: string;
   evaluation_count: number;
+  // Versioning fields
+  parent_dataset_id?: number;
+  version: number;
+  version_tag?: string;
+  is_latest: boolean;
 }
 
 export interface ColumnSchema {

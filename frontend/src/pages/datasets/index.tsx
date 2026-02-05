@@ -51,7 +51,9 @@ const DatasetsList = () => {
       schema: [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      evaluation_count: 3
+      evaluation_count: 3,
+      version: 1,
+      is_latest: true,
     },
     {
       id: 2,
@@ -65,7 +67,9 @@ const DatasetsList = () => {
       schema: [],
       created_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
       updated_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-      evaluation_count: 1
+      evaluation_count: 1,
+      version: 1,
+      is_latest: true,
     },
     {
       id: 3,
@@ -79,7 +83,9 @@ const DatasetsList = () => {
       schema: [],
       created_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
       updated_at: new Date(Date.now() - 86400000 * 5).toISOString(),
-      evaluation_count: 2
+      evaluation_count: 2,
+      version: 1,
+      is_latest: true,
     },
   ];
 
@@ -321,6 +327,7 @@ const DatasetsList = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Version</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Project</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
@@ -342,9 +349,38 @@ const DatasetsList = () => {
                       onClick={() => handleViewDataset(dataset.id)}
                     >
                       <TableCell>
-                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                          {dataset.name}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {dataset.name}
+                          </Typography>
+                          {dataset.is_latest && (
+                            <Chip
+                              label="Latest"
+                              size="small"
+                              sx={{
+                                height: '20px',
+                                fontSize: '0.7rem',
+                                backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                                color: '#1976d2',
+                                fontWeight: 600,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title={dataset.version_tag || `Versión ${dataset.version}`}>
+                          <Chip
+                            label={dataset.version_tag || `v${dataset.version}`}
+                            size="small"
+                            sx={{
+                              backgroundColor: dataset.version > 1 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(158, 158, 158, 0.1)',
+                              color: dataset.version > 1 ? '#9c27b0' : '#757575',
+                              fontWeight: 500,
+                              minWidth: '40px',
+                            }}
+                          />
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
                         <Typography 

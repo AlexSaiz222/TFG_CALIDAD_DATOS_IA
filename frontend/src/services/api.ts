@@ -492,6 +492,28 @@ export const datasetsAPI = {
   
   deleteDataset: (id: number) => 
     api.delete(`/api/datasets/${id}`),
+  
+  // Versioning endpoints
+  getDatasetVersions: (projectId: number, datasetId: number) =>
+    api.get(`/api/projects/${projectId}/datasets/${datasetId}/versions`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+      timeout: 8000
+    }),
+  
+  uploadNewVersion: (projectId: number, datasetId: number, formData: FormData) =>
+    api.post(`/api/projects/${projectId}/datasets/${datasetId}/new-version`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 30000
+    }),
+  
+  compareDatasetVersions: (projectId: number, datasetIdA: number, datasetIdB: number) =>
+    api.get(`/api/projects/${projectId}/datasets/${datasetIdA}/compare/${datasetIdB}`, {
+      timeout: 10000
+    }),
 };
 
 // Metrics API

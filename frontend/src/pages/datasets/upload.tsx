@@ -29,7 +29,11 @@ const steps = ['Select Project', 'Upload File', 'Review & Confirm'];
 
 const DatasetUpload = () => {
   const router = useRouter();
-  const { projectId: queryProjectId } = router.query;
+  const { projectId: queryProjectId, parentId: queryParentId } = router.query;
+  
+  // Check if this is a new version upload
+  const isNewVersion = !!queryParentId;
+  const parentDatasetId = queryParentId ? Number(queryParentId) : null;
   
   const [activeStep, setActiveStep] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -40,6 +44,7 @@ const DatasetUpload = () => {
     projectId: queryProjectId ? Number(queryProjectId) : 0,
     name: '',
     description: '',
+    versionTag: '',
   });
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
@@ -222,11 +227,23 @@ const DatasetUpload = () => {
         formDataToSend.append('file', file);
       }
       
-      // Log the request for debugging
-      console.log('Uploading dataset to project ID:', formData.projectId);
+      // Add version tag if uploading new version
+      if (isNewVersion && formData.versionTag) {
+        formDataToSend.append('version_tag', formData.versionTag);
+      }
       
-      const response = await datasetsAPI.uploadDataset(formData.projectId, formDataToSend);
-      console.log('uploadDataset response:', response);
+      let response;
+      
+      if (isNewVersion && parentDatasetId) {
+        // Upload as new version of existing dataset
+        console.log('Uploading new version for dataset ID:', parentDatasetId);
+        response = await datasetsAPI.uploadNewVersion(formData.projectId, parentDatasetId, formDataToSend);
+      } else {
+        // Upload as new dataset
+        console.log('Uploading dataset to project ID:', formData.projectId);
+        response = await datasetsAPI.uploadDataset(formData.projectId, formDataToSend);
+      }
+      console.log('Upload response:', response);
       
       // Normalize the response structure to handle different API response formats
       // This handles nested data structures like {data: {data: {...}}} or {data: {...}}
@@ -276,8 +293,22 @@ const DatasetUpload = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Upload Dataset
+            {isNewVersion ? 'Subir nueva versión' : 'Upload Dataset'}
           </Typography>
+          {isNewVersion && (
+            <Box sx={{ 
+              ml: 2, 
+              px: 1.5, 
+              py: 0.5, 
+              backgroundColor: 'rgba(156, 39, 176, 0.1)', 
+              borderRadius: 1,
+              color: '#9c27b0',
+              fontSize: '0.85rem',
+              fontWeight: 500,
+            }}>
+              Nueva versión del dataset #{parentDatasetId}
+            </Box>
+          )}
         </Box>
 
         <Paper
@@ -469,6 +500,19 @@ const DatasetUpload = () => {
                   sx={{ mb: 3 }}
                   placeholder="Enter a description for your dataset (optional)"
                 />
+                
+                {isNewVersion && (
+                  <TextField
+                    fullWidth
+                    label="Etiqueta de versión (opcional)"
+                    name="versionTag"
+                    value={formData.versionTag}
+                    onChange={handleChange}
+                    sx={{ mb: 3 }}
+                    placeholder="Ej: v2.0, corregido, final, etc."
+                    helperText="Una etiqueta descriptiva para identificar esta versión"
+                  />
+                )}
               </Box>
             )}
 

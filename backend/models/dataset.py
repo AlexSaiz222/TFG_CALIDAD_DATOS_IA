@@ -22,9 +22,23 @@ class Dataset(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Versioning fields
+    parent_dataset_id = db.Column(db.Integer, db.ForeignKey('datasets.id'), nullable=True)
+    version = db.Column(db.Integer, default=1)
+    version_tag = db.Column(db.String(50), nullable=True)
+    is_latest = db.Column(db.Boolean, default=True)
+    
     # Relationships
     evaluations = db.relationship('Evaluation', backref='dataset', lazy=True, cascade='all, delete-orphan')
     analysis_runs = db.relationship('AnalysisRun', backref='dataset', lazy='dynamic')
+    
+    # Self-referential relationship for versioning
+    parent = db.relationship(
+        'Dataset',
+        remote_side=[id],
+        backref=db.backref('versions', lazy='dynamic'),
+        foreign_keys=[parent_dataset_id]
+    )
     
     def __repr__(self):
         return f'<Dataset {self.name}>'
@@ -88,7 +102,12 @@ class Dataset(db.Model):
                 'schema': schema,
                 'created_at': created_at,
                 'updated_at': updated_at,
-                'evaluation_count': evaluation_count
+                'evaluation_count': evaluation_count,
+                # Versioning fields
+                'parent_dataset_id': self.parent_dataset_id,
+                'version': self.version or 1,
+                'version_tag': self.version_tag,
+                'is_latest': self.is_latest if self.is_latest is not None else True,
             }
         except Exception as e:
             logger.error(f"Error general al serializar dataset {self.id}: {str(e)}")
@@ -124,3 +143,54 @@ class Dataset(db.Model):
             except Exception as e:
                 logger.warning(f"No se pudo convertir objeto a string: {str(e)}")
                 return None
+    
+    # ==================== Versioning Methods ====================
+    
+    def get_root_dataset(self):
+        """Get the root dataset (first version) in the version chain"""
+        current = self
+        while current.parent:
+            current = current.parent
+        return current
+    
+    def get_version_history(self):
+        """Get all versions of this dataset (including ancestors and descendants)"""
+        root = self.get_root_dataset()
+        
+        # Get all datasets in this version chain
+        all_versions = [root]
+        
+        def collect_versions(dataset):
+            for version in dataset.versions:
+                all_versions.append(version)
+                collect_versions(version)
+        
+        collect_versions(root)
+        
+        # Sort by version number
+        return sorted(all_versions, key=lambda d: d.version or 1)
+    
+    def get_latest_version(self):
+        """Get the latest version in this dataset's version chain"""
+        versions = self.get_version_history()
+        for v in reversed(versions):
+            if v.is_latest:
+                return v
+        # Fallback to last version if none marked as latest
+        return versions[-1] if versions else self
+    
+    def get_version_count(self):
+        """Get the total number of versions in this dataset's chain"""
+        return len(self.get_version_history())
+    
+    def is_root_version(self):
+        """Check if this is the root (first) version"""
+        return self.parent_dataset_id is None
+    
+    def get_previous_version(self):
+        """Get the previous version of this dataset"""
+        return self.parent
+    
+    def get_next_versions(self):
+        """Get all direct child versions of this dataset"""
+        return list(self.versions)
