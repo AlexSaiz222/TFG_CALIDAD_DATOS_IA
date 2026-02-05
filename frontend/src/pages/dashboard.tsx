@@ -24,8 +24,10 @@ import {
 
 // Import the MainLayout component
 import MainLayout from '../components/layout/MainLayout';
+import { StatusDonut } from '../components/dashboard/DashboardCharts';
 import { useAuth } from '../contexts/AuthContext';
-import { projectsAPI } from '../services/api';
+import { projectsAPI, analysisAPI } from '../services/api';
+import type { AnalysisRun, QualityGateStatus } from '../types';
 
 // Definición de tipos para asegurar consistencia
 type SafeProject = {
@@ -49,11 +51,40 @@ const toSafeProject = (project: any): SafeProject => {
   };
 };
 
+// Tipo para estadísticas agregadas de análisis
+type AnalysisStats = {
+  totalAnalyses: number;
+  passedCount: number;
+  failedCount: number;
+  warningCount: number;
+  avgQualityScore: number | null;
+  totalIssues: number;
+  criticalIssues: number;
+};
+
+// Tipo para proyecto con su análisis
+type ProjectWithAnalysis = {
+  project: SafeProject;
+  analysis: AnalysisRun | null;
+  qualityScore: number | null;
+  gateStatus: 'PASSED' | 'FAILED' | 'WARNING' | null;
+};
+
 function Dashboard() {
   // Inicializar con un array vacío para evitar problemas de tipo
   const [projects, setProjects] = useState<SafeProject[]>([]);
+  const [projectsWithAnalysis, setProjectsWithAnalysis] = useState<ProjectWithAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [analysisStats, setAnalysisStats] = useState<AnalysisStats>({
+    totalAnalyses: 0,
+    passedCount: 0,
+    failedCount: 0,
+    warningCount: 0,
+    avgQualityScore: null,
+    totalIssues: 0,
+    criticalIssues: 0,
+  });
   const router = useRouter();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
   
@@ -147,6 +178,74 @@ function Dashboard() {
     };
   }, [isAuthenticated]);
 
+  // Efecto para cargar estadísticas de análisis de todos los proyectos
+  useEffect(() => {
+    if (!isAuthenticated || projects.length === 0) return;
+
+    let isMounted = true;
+
+    const fetchAnalysisStats = async () => {
+      try {
+        // Obtener el último análisis de cada proyecto
+        const analysisPromises = projects.map(async (project) => {
+          try {
+            const response = await analysisAPI.getLatestAnalysisRun(project.id);
+            const analysisRun = response?.data?.data?.analysis_run || 
+                               response?.data?.analysis_run || 
+                               null;
+            return { project, analysisRun };
+          } catch {
+            return { project, analysisRun: null };
+          }
+        });
+
+        const results = await Promise.all(analysisPromises);
+        
+        if (!isMounted) return;
+
+        // Crear array de proyectos con análisis
+        const projectsAnalysis: ProjectWithAnalysis[] = results.map(({ project, analysisRun }) => ({
+          project,
+          analysis: analysisRun,
+          qualityScore: analysisRun?.status === 'COMPLETED' ? (analysisRun.quality_score ?? null) : null,
+          gateStatus: analysisRun?.status === 'COMPLETED' ? (analysisRun.quality_gate_status as 'PASSED' | 'FAILED' | 'WARNING' ?? null) : null,
+        }));
+
+        setProjectsWithAnalysis(projectsAnalysis);
+
+        // Filtrar análisis válidos (completados)
+        const validAnalyses = results
+          .map(r => r.analysisRun)
+          .filter((a): a is AnalysisRun => a !== null && a.status === 'COMPLETED');
+
+        // Calcular estadísticas agregadas
+        const stats: AnalysisStats = {
+          totalAnalyses: validAnalyses.length,
+          passedCount: validAnalyses.filter(a => a.quality_gate_status === 'PASSED').length,
+          failedCount: validAnalyses.filter(a => a.quality_gate_status === 'FAILED').length,
+          warningCount: validAnalyses.filter(a => a.quality_gate_status === 'WARNING').length,
+          avgQualityScore: validAnalyses.length > 0
+            ? Math.round(
+                validAnalyses.reduce((sum, a) => sum + (a.quality_score || 0), 0) / validAnalyses.length
+              )
+            : null,
+          totalIssues: validAnalyses.reduce((sum, a) => sum + (a.total_issues_count || 0), 0),
+          criticalIssues: validAnalyses.reduce((sum, a) => sum + (a.critical_issues_count || 0), 0),
+        };
+
+        setAnalysisStats(stats);
+      } catch (error) {
+        console.error('Error fetching analysis stats:', error);
+      }
+    };
+
+    fetchAnalysisStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, projects]);
+
   // Total de proyectos - simplemente la longitud del array
   const totalProjects = Array.isArray(projects) ? projects.length : 0;
   
@@ -163,6 +262,9 @@ function Dashboard() {
   } catch (e) {
     console.error('Error al calcular totalDatasets:', e);
   }
+
+  // Calcular proyectos sin análisis para el gráfico donut
+  const projectsWithoutAnalysis = projectsWithAnalysis.filter(p => p.gateStatus === null).length;
 
   // Mostrar carga mientras se verifica la autenticación
   if (authLoading) {
@@ -379,69 +481,251 @@ function Dashboard() {
                 position: 'absolute',
                 top: '-16px',
                 left: '24px',
-                backgroundColor: '#E5484D',
+                backgroundColor: '#00B37E',
                 borderRadius: '12px',
                 width: '56px',
                 height: '56px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0px 4px 8px rgba(229, 72, 77, 0.25)',
+                boxShadow: '0px 4px 8px rgba(0, 179, 126, 0.25)',
               }}
             >
-              <WarningIcon sx={{ color: 'white', fontSize: '28px' }} />
+              <AssessmentIcon sx={{ color: 'white', fontSize: '28px' }} />
             </Box>
             <CardContent sx={{ pt: 5, pb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
                 <Typography variant="h6" component="div" sx={{ color: '#1A1A1A', fontWeight: 600 }}>
-                  Evaluaciones
+                  Calidad de datos
                 </Typography>
-                <Chip 
-                  label="Análisis" 
-                  size="small" 
-                  sx={{ 
-                    backgroundColor: alpha('#E5484D', 0.1), 
-                    color: '#E5484D',
-                    fontWeight: 500,
-                  }} 
-                />
+                {analysisStats.totalAnalyses > 0 ? (
+                  <Chip 
+                    label={
+                      analysisStats.failedCount > 0 ? 'FAILED' :
+                      analysisStats.warningCount > 0 ? 'WARNING' : 'PASSED'
+                    }
+                    size="small" 
+                    sx={{ 
+                      backgroundColor: alpha(
+                        analysisStats.failedCount > 0 ? '#E5484D' :
+                        analysisStats.warningCount > 0 ? '#FFB800' : '#00B37E',
+                        0.1
+                      ), 
+                      color: analysisStats.failedCount > 0 ? '#E5484D' :
+                             analysisStats.warningCount > 0 ? '#FFB800' : '#00B37E',
+                      fontWeight: 600,
+                    }} 
+                  />
+                ) : (
+                  <Chip 
+                    label="Sin análisis" 
+                    size="small" 
+                    sx={{ 
+                      backgroundColor: alpha('#888', 0.1), 
+                      color: '#888',
+                      fontWeight: 500,
+                    }} 
+                  />
+                )}
               </Box>
-              <Typography variant="body2" sx={{ color: '#555555', mb: 2 }}>
-                Ejecuta análisis de calidad en tus datasets para detectar problemas.
-              </Typography>
-              <Divider sx={{ my: 1.5 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Button
-                  variant="contained"
-                  startIcon={<AssessmentIcon sx={{ color: 'white' }} />}
-                  onClick={() => router.push('/projects')}
-                  sx={{
-                    backgroundColor: '#E5484D',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: '#D03B40',
-                    },
-                    boxShadow: '0px 2px 4px rgba(229, 72, 77, 0.25)',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Ver Proyectos
-                </Button>
-                <Tooltip title="Ver historial de análisis">
-                  <IconButton 
-                    onClick={() => router.push('/projects')}
-                    sx={{ color: '#555555' }}
-                  >
-                    <ArrowForwardIcon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
+              {analysisStats.totalAnalyses > 0 ? (
+                <>
+                  <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#1A1A1A', mb: 2 }}>
+                    {analysisStats.avgQualityScore !== null ? `${analysisStats.avgQualityScore}%` : '-'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" sx={{ color: '#555555' }}>
+                      Score promedio de calidad
+                    </Typography>
+                    <Chip 
+                      label={`${analysisStats.passedCount} passed`} 
+                      size="small" 
+                      onClick={() => router.push('/projects?status=passed')}
+                      sx={{ 
+                        backgroundColor: alpha('#00B37E', 0.1), 
+                        color: '#00B37E', 
+                        fontSize: '0.7rem',
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: alpha('#00B37E', 0.2) },
+                      }} 
+                    />
+                    {analysisStats.warningCount > 0 && (
+                      <Chip 
+                        label={`${analysisStats.warningCount} warning`} 
+                        size="small" 
+                        onClick={() => router.push('/projects?status=warning')}
+                        sx={{ 
+                          backgroundColor: alpha('#FFB800', 0.1), 
+                          color: '#FFB800', 
+                          fontSize: '0.7rem',
+                          cursor: 'pointer',
+                          '&:hover': { backgroundColor: alpha('#FFB800', 0.2) },
+                        }} 
+                      />
+                    )}
+                    {analysisStats.failedCount > 0 && (
+                      <Chip 
+                        label={`${analysisStats.failedCount} failed`} 
+                        size="small" 
+                        onClick={() => router.push('/projects?status=failed')}
+                        sx={{ 
+                          backgroundColor: alpha('#E5484D', 0.1), 
+                          color: '#E5484D', 
+                          fontSize: '0.7rem',
+                          cursor: 'pointer',
+                          '&:hover': { backgroundColor: alpha('#E5484D', 0.2) },
+                        }} 
+                      />
+                    )}
+                  </Box>
+                </>
+              ) : (
+                <Typography variant="body2" sx={{ color: '#555555' }}>
+                  Ejecuta análisis de calidad en tus datasets para ver métricas y detectar problemas.
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Sección de Distribución de Estados */}
+      {projectsWithAnalysis.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 2 }}>
+            Distribución de Calidad
+          </Typography>
+          <Card sx={{ p: 3, borderRadius: 2, boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)' }}>
+            <Grid container spacing={3} alignItems="center">
+              <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <StatusDonut
+                  passed={analysisStats.passedCount}
+                  warning={analysisStats.warningCount}
+                  failed={analysisStats.failedCount}
+                  noAnalysis={projectsWithoutAnalysis}
+                  size={140}
+                />
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#00B37E' }} />
+                      <Typography variant="body2">Passed</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{analysisStats.passedCount} proyectos</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#FFB800' }} />
+                      <Typography variant="body2">Warning</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{analysisStats.warningCount} proyectos</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#E5484D' }} />
+                      <Typography variant="body2">Failed</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{analysisStats.failedCount} proyectos</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: '#CCCCCC' }} />
+                      <Typography variant="body2">Sin análisis</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{projectsWithoutAnalysis} proyectos</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Card>
+        </Box>
+      )}
+
+      {/* Sección Requiere Atención - Top 5 proyectos con peor score */}
+      {projectsWithAnalysis.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 2 }}>
+            Requiere atención
+          </Typography>
+          
+          {(() => {
+            // Filtrar proyectos con análisis y ordenar por score (peor primero)
+            const projectsNeedingAttention = projectsWithAnalysis
+              .filter(p => p.gateStatus === 'FAILED' || p.gateStatus === 'WARNING' || (p.qualityScore !== null && p.qualityScore < 80))
+              .sort((a, b) => (a.qualityScore ?? 100) - (b.qualityScore ?? 100))
+              .slice(0, 5);
+
+            if (projectsNeedingAttention.length === 0) {
+              return (
+                <Card sx={{ p: 3, borderRadius: 2, backgroundColor: alpha('#00B37E', 0.05), border: '1px solid', borderColor: alpha('#00B37E', 0.2) }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <AssessmentIcon sx={{ color: '#00B37E', fontSize: 32 }} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: '#1A1A1A' }}>
+                        ¡Todo en orden!
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#555555' }}>
+                        No hay proyectos que requieran atención inmediata.
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              );
+            }
+
+            return (
+              <Grid container spacing={2}>
+                {projectsNeedingAttention.map((item) => (
+                  <Grid item xs={12} sm={6} md={4} key={item.project.id}>
+                    <Card 
+                      sx={{ 
+                        p: 2, 
+                        borderRadius: 2, 
+                        cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor: item.gateStatus === 'FAILED' ? alpha('#E5484D', 0.3) : alpha('#FFB800', 0.3),
+                        backgroundColor: item.gateStatus === 'FAILED' ? alpha('#E5484D', 0.02) : alpha('#FFB800', 0.02),
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                        },
+                      }}
+                      onClick={() => router.push(`/projects/${item.project.id}`)}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+                          {item.project.name}
+                        </Typography>
+                        <Chip 
+                          label={item.gateStatus || 'N/A'} 
+                          size="small" 
+                          sx={{ 
+                            backgroundColor: alpha(item.gateStatus === 'FAILED' ? '#E5484D' : '#FFB800', 0.1),
+                            color: item.gateStatus === 'FAILED' ? '#E5484D' : '#FFB800',
+                            fontWeight: 600,
+                            fontSize: '0.7rem',
+                          }} 
+                        />
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: item.gateStatus === 'FAILED' ? '#E5484D' : '#FFB800' }}>
+                          {item.qualityScore !== null ? `${item.qualityScore}%` : '-'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#555555' }}>
+                          {item.project.dataset_count} dataset{item.project.dataset_count !== 1 ? 's' : ''}
+                        </Typography>
+                      </Box>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            );
+          })()}
+        </Box>
+      )}
 
     </MainLayout>
   );

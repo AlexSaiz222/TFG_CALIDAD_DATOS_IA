@@ -20,6 +20,8 @@ import {
   DialogContentText,
   DialogActions,
   ListItemIcon,
+  Chip,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -27,6 +29,7 @@ import {
   MoreVert as MoreVertIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import QualityGateBadge from '../../components/QualityGateBadge';
@@ -38,6 +41,7 @@ const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -48,6 +52,16 @@ const Projects = () => {
   
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+
+  // Leer el parámetro status de la URL
+  useEffect(() => {
+    if (router.isReady) {
+      const { status } = router.query;
+      if (status && typeof status === 'string') {
+        setStatusFilter(status.toUpperCase());
+      }
+    }
+  }, [router.isReady, router.query]);
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -98,18 +112,36 @@ const Projects = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    // Filter projects based on search term
-    if (searchTerm.trim() === '') {
-      setFilteredProjects(projects);
-    } else {
-      const filtered = projects.filter(
+    // Filter projects based on search term and status filter
+    let filtered = projects;
+
+    // Filtrar por búsqueda de texto
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(
         (project) =>
           project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      setFilteredProjects(filtered);
     }
-  }, [searchTerm, projects]);
+
+    // Filtrar por status del Quality Gate
+    if (statusFilter && Object.keys(projectAnalysis).length > 0) {
+      filtered = filtered.filter((project) => {
+        const analysis = projectAnalysis[project.id];
+        if (!analysis || analysis.status !== 'COMPLETED') {
+          return statusFilter === 'NONE'; // Proyectos sin análisis
+        }
+        return analysis.quality_gate_status === statusFilter;
+      });
+    }
+
+    setFilteredProjects(filtered);
+  }, [searchTerm, projects, statusFilter, projectAnalysis]);
+
+  const clearStatusFilter = () => {
+    setStatusFilter(null);
+    router.push('/projects', undefined, { shallow: true });
+  };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -203,7 +235,7 @@ const Projects = () => {
           placeholder="Search projects..."
           value={searchTerm}
           onChange={handleSearchChange}
-          sx={{ mb: 3 }}
+          sx={{ mb: 2 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -212,6 +244,39 @@ const Projects = () => {
             ),
           }}
         />
+
+        {/* Indicador de filtro activo */}
+        {statusFilter && (
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2" sx={{ color: '#555555' }}>
+              Filtrado por:
+            </Typography>
+            <Chip
+              label={statusFilter}
+              onDelete={clearStatusFilter}
+              deleteIcon={<CloseIcon />}
+              sx={{
+                backgroundColor: alpha(
+                  statusFilter === 'PASSED' ? '#00B37E' :
+                  statusFilter === 'FAILED' ? '#E5484D' :
+                  statusFilter === 'WARNING' ? '#FFB800' : '#888',
+                  0.1
+                ),
+                color: statusFilter === 'PASSED' ? '#00B37E' :
+                       statusFilter === 'FAILED' ? '#E5484D' :
+                       statusFilter === 'WARNING' ? '#FFB800' : '#888',
+                fontWeight: 600,
+                '& .MuiChip-deleteIcon': {
+                  color: 'inherit',
+                  '&:hover': { color: 'inherit', opacity: 0.7 },
+                },
+              }}
+            />
+            <Typography variant="body2" sx={{ color: '#888' }}>
+              ({filteredProjects.length} proyecto{filteredProjects.length !== 1 ? 's' : ''})
+            </Typography>
+          </Box>
+        )}
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>

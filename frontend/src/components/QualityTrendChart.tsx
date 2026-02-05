@@ -233,26 +233,26 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     },
   }), []);
 
-  // Calcular estadísticas
+  // Calcular estadísticas agregadas del proyecto
   const stats = useMemo(() => {
     if (sortedRuns.length === 0) return null;
     
     const scores = sortedRuns.map((r) => r.quality_score || 0);
     const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
     const latestScore = scores[scores.length - 1];
-    const previousScore = scores.length > 1 ? scores[scores.length - 2] : null;
-    const trend = previousScore !== null ? latestScore - previousScore : 0;
     
-    const totalNewIssues = sortedRuns.reduce((sum, r) => sum + (r.new_issues_count || 0), 0);
-    const totalFixedIssues = sortedRuns.reduce((sum, r) => sum + (r.fixed_issues_count || 0), 0);
+    // Contar datasets únicos analizados
+    const uniqueDatasets = new Set(sortedRuns.map(r => r.dataset_id).filter(Boolean));
+    
+    // Total de issues en el último análisis de cada dataset
+    const totalIssuesLastRun = sortedRuns.length > 0 ? (sortedRuns[sortedRuns.length - 1].total_issues_count || 0) : 0;
     
     return {
       avgScore,
       latestScore,
-      trend,
-      totalNewIssues,
-      totalFixedIssues,
       runsCount: sortedRuns.length,
+      datasetsAnalyzed: uniqueDatasets.size,
+      totalIssuesLastRun,
     };
   }, [sortedRuns]);
 
@@ -272,13 +272,13 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
 
   return (
     <Box>
-      {/* Estadísticas resumen */}
+      {/* Estadísticas resumen del proyecto */}
       {stats && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={6} sm={3}>
             <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: GRAY }}>
-                Score Promedio
+                Score promedio
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 600, color: stats.avgScore >= qualityGateThreshold ? GREEN : RED }}>
                 {stats.avgScore.toFixed(1)}%
@@ -288,35 +288,30 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
           <Grid item xs={6} sm={3}>
             <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: GRAY }}>
-                Último Score
+                Último score
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 600, color: stats.latestScore >= qualityGateThreshold ? GREEN : RED }}>
                 {stats.latestScore.toFixed(1)}%
-                {stats.trend !== 0 && (
-                  <Typography component="span" sx={{ fontSize: '0.7em', ml: 0.5, color: stats.trend > 0 ? GREEN : RED }}>
-                    {stats.trend > 0 ? '+' : ''}{stats.trend.toFixed(1)}
-                  </Typography>
-                )}
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: GRAY }}>
-                Issues Nuevos (Total)
+                Análisis realizados
               </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: RED }}>
-                +{stats.totalNewIssues}
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+                {stats.runsCount}
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: GRAY }}>
-                Issues Corregidos (Total)
+                Datasets analizados
               </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: GREEN }}>
-                -{stats.totalFixedIssues}
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+                {stats.datasetsAnalyzed}
               </Typography>
             </Paper>
           </Grid>

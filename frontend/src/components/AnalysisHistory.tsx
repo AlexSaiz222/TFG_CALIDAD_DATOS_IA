@@ -38,6 +38,7 @@ interface AnalysisHistoryProps {
   currentRunId?: number;
   projectId: number;
   loading?: boolean;
+  datasets?: Array<{ id: number; name: string }>;
 }
 
 const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
@@ -45,8 +46,16 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
   currentRunId,
   projectId,
   loading = false,
+  datasets = [],
 }) => {
   const router = useRouter();
+  
+  // Helper para obtener el nombre del dataset
+  const getDatasetName = (datasetId?: number) => {
+    if (!datasetId) return '—';
+    const dataset = datasets.find(d => d.id === datasetId);
+    return dataset ? dataset.name : `Dataset #${datasetId}`;
+  };
   
   // Paginación
   const [page, setPage] = useState(0);
@@ -183,13 +192,11 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
         <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: '#F5F5F5' }}>
-              <TableCell sx={{ fontWeight: 600, width: 50 }}></TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Dataset</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Quality Gate</TableCell>
               <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Score</TableCell>
               <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Issues</TableCell>
-              <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Nuevos</TableCell>
-              <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Corregidos</TableCell>
               <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Duración</TableCell>
               <TableCell sx={{ fontWeight: 600, width: 60 }}></TableCell>
             </TableRow>
@@ -209,29 +216,6 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     borderLeft: isCurrentRun ? `3px solid ${GREEN}` : '3px solid transparent',
                   }}
                 >
-                  {/* Indicador de run actual/más reciente */}
-                  <TableCell>
-                    {isLatest && (
-                      <Tooltip title="Análisis más reciente">
-                        <StarIcon sx={{ fontSize: 18, color: ORANGE }} />
-                      </Tooltip>
-                    )}
-                    {isCurrentRun && !isLatest && (
-                      <Tooltip title="Análisis actual">
-                        <Chip
-                          label="Actual"
-                          size="small"
-                          sx={{
-                            fontSize: '0.65rem',
-                            height: 18,
-                            backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                            color: GREEN,
-                          }}
-                        />
-                      </Tooltip>
-                    )}
-                  </TableCell>
-                  
                   {/* Fecha */}
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: isLatest ? 600 : 400 }}>
@@ -239,6 +223,23 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     </Typography>
                     <Typography variant="caption" sx={{ color: GRAY }}>
                       #{run.id}
+                    </Typography>
+                  </TableCell>
+                  
+                  {/* Dataset */}
+                  <TableCell>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: run.dataset_id ? '#1A1A1A' : GRAY,
+                        maxWidth: 200,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={getDatasetName(run.dataset_id)}
+                    >
+                      {getDatasetName(run.dataset_id)}
                     </Typography>
                   </TableCell>
                   
@@ -275,48 +276,6 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     <Typography variant="body2">
                       {run.total_issues_count || 0}
                     </Typography>
-                  </TableCell>
-                  
-                  {/* New Issues */}
-                  <TableCell sx={{ textAlign: 'center' }}>
-                    {(run.new_issues_count || 0) > 0 ? (
-                      <Chip
-                        label={`+${run.new_issues_count}`}
-                        size="small"
-                        sx={{
-                          fontSize: '0.7rem',
-                          height: 20,
-                          backgroundColor: 'rgba(229, 72, 77, 0.1)',
-                          color: RED,
-                          fontWeight: 600,
-                        }}
-                      />
-                    ) : (
-                      <Typography variant="body2" sx={{ color: GREEN }}>
-                        0
-                      </Typography>
-                    )}
-                  </TableCell>
-                  
-                  {/* Fixed Issues */}
-                  <TableCell sx={{ textAlign: 'center' }}>
-                    {(run.fixed_issues_count || 0) > 0 ? (
-                      <Chip
-                        label={`-${run.fixed_issues_count}`}
-                        size="small"
-                        sx={{
-                          fontSize: '0.7rem',
-                          height: 20,
-                          backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                          color: GREEN,
-                          fontWeight: 600,
-                        }}
-                      />
-                    ) : (
-                      <Typography variant="body2" sx={{ color: GRAY }}>
-                        0
-                      </Typography>
-                    )}
                   </TableCell>
                   
                   {/* Duración */}

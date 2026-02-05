@@ -759,6 +759,7 @@ const ProjectDetail = () => {
                 runs={analysisRuns}
                 projectId={projectId}
                 loading={analysisLoading}
+                datasets={datasets.map(d => ({ id: d.id, name: d.name }))}
               />
             </Box>
           )}
