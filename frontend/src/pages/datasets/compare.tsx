@@ -181,8 +181,8 @@ const DatasetCompare = () => {
                 <Chip
                   label={dataset_a.version_tag || `v${dataset_a.version}`}
                   sx={{
-                    backgroundColor: 'rgba(158, 158, 158, 0.1)',
-                    color: '#757575',
+                    backgroundColor: 'rgba(23, 69, 79, 0.1)',
+                    color: '#17454F',
                     fontWeight: 600,
                   }}
                 />
@@ -257,8 +257,8 @@ const DatasetCompare = () => {
                 <Chip
                   label={dataset_b.version_tag || `v${dataset_b.version}`}
                   sx={{
-                    backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                    color: '#9c27b0',
+                    backgroundColor: 'rgba(23, 69, 79, 0.1)',
+                    color: '#17454F',
                     fontWeight: 600,
                   }}
                 />
@@ -267,8 +267,8 @@ const DatasetCompare = () => {
                     label="Latest"
                     size="small"
                     sx={{
-                      backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                      color: '#1976d2',
+                      backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                      color: '#00B37E',
                       fontWeight: 600,
                     }}
                   />

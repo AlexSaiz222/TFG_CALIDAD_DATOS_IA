@@ -22,14 +22,13 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) =>
   // Persist state in localStorage
   useEffect(() => {
     const savedOpen = localStorage.getItem('sidebar-open');
-    const savedCollapsed = localStorage.getItem('sidebar-collapsed');
     
     if (savedOpen !== null) {
       setIsOpen(savedOpen === 'true');
     }
-    if (savedCollapsed !== null) {
-      setIsCollapsed(savedCollapsed === 'true');
-    }
+    // Always start expanded - reset any corrupted state
+    localStorage.setItem('sidebar-collapsed', 'false');
+    setIsCollapsed(false);
   }, []);
 
   const toggleOpen = () => {

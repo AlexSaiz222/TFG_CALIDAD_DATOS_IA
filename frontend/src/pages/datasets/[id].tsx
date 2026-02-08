@@ -463,8 +463,8 @@ const DatasetDetail = () => {
                 label={dataset.version_tag || `v${dataset.version}`}
                 size="small"
                 sx={{
-                  backgroundColor: dataset.version > 1 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(158, 158, 158, 0.1)',
-                  color: dataset.version > 1 ? '#9c27b0' : '#757575',
+                  backgroundColor: 'rgba(23, 69, 79, 0.1)',
+                  color: '#17454F',
                   fontWeight: 600,
                   fontSize: '0.85rem',
                 }}
@@ -474,8 +474,8 @@ const DatasetDetail = () => {
                   label="Latest"
                   size="small"
                   sx={{
-                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                    color: '#1976d2',
+                    backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                    color: '#00B37E',
                     fontWeight: 600,
                   }}
                 />
@@ -493,11 +493,11 @@ const DatasetDetail = () => {
               startIcon={<CloudUploadIcon />}
               onClick={() => router.push(`/datasets/upload?parentId=${dataset.id}&projectId=${dataset.project_id}`)}
               sx={{
-                borderColor: '#9c27b0',
-                color: '#9c27b0',
+                borderColor: '#17454F',
+                color: '#17454F',
                 '&:hover': {
-                  borderColor: '#7b1fa2',
-                  backgroundColor: 'rgba(156, 39, 176, 0.04)',
+                  borderColor: '#0f2f36',
+                  backgroundColor: 'rgba(23, 69, 79, 0.04)',
                 },
               }}
             >

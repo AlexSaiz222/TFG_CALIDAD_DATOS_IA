@@ -300,9 +300,9 @@ const DatasetUpload = () => {
               ml: 2, 
               px: 1.5, 
               py: 0.5, 
-              backgroundColor: 'rgba(156, 39, 176, 0.1)', 
+              backgroundColor: 'rgba(23, 69, 79, 0.1)', 
               borderRadius: 1,
-              color: '#9c27b0',
+              color: '#17454F',
               fontSize: '0.85rem',
               fontWeight: 500,
             }}>

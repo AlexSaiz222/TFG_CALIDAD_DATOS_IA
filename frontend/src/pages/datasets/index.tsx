@@ -493,8 +493,8 @@ const DatasetsList = () => {
                                 sx={{
                                   height: '20px',
                                   fontSize: '0.7rem',
-                                  backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                                  color: '#1976d2',
+                                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                                  color: '#00B37E',
                                   fontWeight: 600,
                                 }}
                               />
@@ -507,8 +507,8 @@ const DatasetsList = () => {
                                   label={dataset.version_tag || `v${dataset.version || 1}`}
                                   size="small"
                                   sx={{
-                                    backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                                    color: '#9c27b0',
+                                    backgroundColor: 'rgba(23, 69, 79, 0.1)',
+                                    color: '#17454F',
                                     fontWeight: 500,
                                     minWidth: '40px',
                                   }}
