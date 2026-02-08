@@ -38,7 +38,7 @@ interface AnalysisHistoryProps {
   currentRunId?: number;
   projectId: number;
   loading?: boolean;
-  datasets?: Array<{ id: number; name: string }>;
+  datasets?: Array<{ id: number; name: string; version?: number }>;
 }
 
 const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
@@ -55,6 +55,13 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
     if (!datasetId) return '—';
     const dataset = datasets.find(d => d.id === datasetId);
     return dataset ? dataset.name : `Dataset #${datasetId}`;
+  };
+
+  // Helper para obtener la versión del dataset
+  const getDatasetVersion = (datasetId?: number): number => {
+    if (!datasetId) return 1;
+    const dataset = datasets.find(d => d.id === datasetId);
+    return dataset?.version || 1;
   };
   
   // Paginación
@@ -228,19 +235,34 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                   
                   {/* Dataset */}
                   <TableCell>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: run.dataset_id ? '#1A1A1A' : GRAY,
-                        maxWidth: 200,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={getDatasetName(run.dataset_id)}
-                    >
-                      {getDatasetName(run.dataset_id)}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: run.dataset_id ? '#1A1A1A' : GRAY,
+                          maxWidth: 180,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={getDatasetName(run.dataset_id)}
+                      >
+                        {getDatasetName(run.dataset_id)}
+                      </Typography>
+                      {run.dataset_id && (
+                        <Chip
+                          label={`v${getDatasetVersion(run.dataset_id)}`}
+                          size="small"
+                          sx={{
+                            height: '18px',
+                            fontSize: '0.65rem',
+                            backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                            color: GREEN,
+                            fontWeight: 500,
+                          }}
+                        />
+                      )}
+                    </Box>
                   </TableCell>
                   
                   {/* Quality Gate */}

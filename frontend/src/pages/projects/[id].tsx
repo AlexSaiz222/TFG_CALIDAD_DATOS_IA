@@ -42,6 +42,7 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import AnalysisHistory from '../../components/AnalysisHistory';
 import QualityTrendChart from '../../components/QualityTrendChart';
+import DatasetStatusSnapshot from '../../components/DatasetStatusSnapshot';
 import { projectsAPI, datasetsAPI, metricsAPI, analysisAPI } from '../../services/api';
 import type { AnalysisRun } from '../../types';
 
@@ -89,6 +90,7 @@ const ProjectDetail = () => {
   const [tabValue, setTabValue] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
   const fetchedRef = useRef(false);
 
   // Cargar datos del proyecto
@@ -612,6 +614,7 @@ const ProjectDetail = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Versión</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Filas</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Columnas</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Fecha de creación</TableCell>
@@ -628,6 +631,18 @@ const ProjectDetail = () => {
                             {dataset.name}
                           </Typography>
                         </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`v${dataset.version || 1}`}
+                          size="small"
+                          sx={{
+                            backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                            color: GREEN,
+                            fontWeight: 500,
+                            fontSize: '0.75rem',
+                          }}
+                        />
                       </TableCell>
                       <TableCell>{typeof dataset.row_count === 'number' ? dataset.row_count.toLocaleString() : '—'}</TableCell>
                       <TableCell>{typeof dataset.column_count === 'number' ? dataset.column_count : '—'}</TableCell>
@@ -746,20 +761,58 @@ const ProjectDetail = () => {
         <TabPanel value={tabValue} index={2}>
           {projectId && (
             <Box>
-              {/* Gráficos de tendencia */}
+              {/* 1. Estado actual de los datasets (Snapshot) */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                  Tendencias de Calidad
-                </Typography>
-                <QualityTrendChart runs={analysisRuns} qualityGateThreshold={80} />
+                <DatasetStatusSnapshot
+                  runs={analysisRuns}
+                  datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
+                  selectedDatasetId={selectedDatasetId}
+                  onSelectDataset={(datasetId: number) => setSelectedDatasetId(datasetId)}
+                  qualityGateThreshold={80}
+                />
               </Box>
               
-              {/* Historial de análisis */}
+              {/* 2. Evolución del dataset seleccionado */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                  Evolución del dataset seleccionado
+                </Typography>
+                <QualityTrendChart 
+                  runs={analysisRuns} 
+                  qualityGateThreshold={80}
+                  selectedDatasetId={selectedDatasetId}
+                  datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
+                />
+              </Box>
+              
+              {/* 3. Historial de análisis (filtrado por dataset si hay uno seleccionado) */}
               <AnalysisHistory
-                runs={analysisRuns}
+                runs={selectedDatasetId 
+                  ? analysisRuns.filter((r: AnalysisRun) => {
+                      // Incluir análisis del dataset seleccionado y todas sus versiones
+                      const selectedDs = datasets.find((d: any) => d.id === selectedDatasetId);
+                      if (!selectedDs) return r.dataset_id === selectedDatasetId;
+                      
+                      // Encontrar el root de la cadena de versiones
+                      const findRoot = (ds: any): number => {
+                        if (!ds.parent_dataset_id) return ds.id;
+                        const parent = datasets.find((d: any) => d.id === ds.parent_dataset_id);
+                        return parent ? findRoot(parent) : ds.id;
+                      };
+                      const rootId = findRoot(selectedDs);
+                      
+                      // Incluir todos los datasets que pertenecen a esta cadena
+                      const chainIds = datasets
+                        .filter((d: any) => findRoot(d) === rootId)
+                        .map((d: any) => d.id);
+                      
+                      return chainIds.includes(r.dataset_id);
+                    })
+                  : analysisRuns
+                }
                 projectId={projectId}
                 loading={analysisLoading}
-                datasets={datasets.map(d => ({ id: d.id, name: d.name }))}
+                datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version }))}
               />
             </Box>
           )}

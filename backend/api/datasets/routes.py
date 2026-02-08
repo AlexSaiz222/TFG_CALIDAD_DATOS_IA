@@ -133,7 +133,11 @@ def get_project_datasets(project_id):
                     'schema': [],  # Simplificar para evitar errores de serialización
                     'created_at': dataset.created_at.isoformat() if dataset.created_at else '',
                     'updated_at': dataset.updated_at.isoformat() if dataset.updated_at else '',
-                    'evaluation_count': 0  # Valor por defecto seguro
+                    'evaluation_count': 0,  # Valor por defecto seguro
+                    'version': getattr(dataset, 'version', 1) or 1,
+                    'parent_dataset_id': getattr(dataset, 'parent_dataset_id', None),
+                    'is_latest': getattr(dataset, 'is_latest', True),
+                    'version_tag': getattr(dataset, 'version_tag', None)
                 }
                 dataset_list.append(dataset_dict)
             except Exception as dict_error:
@@ -150,7 +154,11 @@ def get_project_datasets(project_id):
                         'row_count': 0,
                         'column_count': 0,
                         'schema': [],
-                        'evaluation_count': 0
+                        'evaluation_count': 0,
+                        'version': getattr(dataset, 'version', 1) or 1,
+                        'parent_dataset_id': getattr(dataset, 'parent_dataset_id', None),
+                        'is_latest': getattr(dataset, 'is_latest', True),
+                        'version_tag': getattr(dataset, 'version_tag', None)
                     })
                 except Exception as minimal_dict_error:
                     logger.error(f"Error al crear diccionario mínimo para dataset: {str(minimal_dict_error)}")

@@ -37,27 +37,69 @@ const GRAY = '#888888';
 const LIGHT_GREEN = 'rgba(0, 179, 126, 0.1)';
 const LIGHT_RED = 'rgba(229, 72, 77, 0.1)';
 
+interface DatasetInfo {
+  id: number;
+  name: string;
+  version?: number;
+  parent_dataset_id?: number | null;
+}
+
 interface QualityTrendChartProps {
   runs: AnalysisRun[];
   qualityGateThreshold?: number;
+  selectedDatasetId?: number | null;
+  datasets?: DatasetInfo[];
 }
 
 const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
   runs,
   qualityGateThreshold = 80,
+  selectedDatasetId = null,
+  datasets = [],
 }) => {
   const [chartType, setChartType] = React.useState<'score' | 'issues'>('score');
 
-  // Ordenar runs por fecha (más antiguo primero para el gráfico)
+  // Obtener nombre del dataset seleccionado
+  const selectedDatasetName = useMemo(() => {
+    if (!selectedDatasetId) return null;
+    const dataset = datasets.find(d => d.id === selectedDatasetId);
+    return dataset?.name || `Dataset ${selectedDatasetId}`;
+  }, [selectedDatasetId, datasets]);
+
+  // Helper para encontrar el root de una cadena de versiones
+  const findRootId = useMemo(() => {
+    return (datasetId: number): number => {
+      const dataset = datasets.find(d => d.id === datasetId);
+      if (!dataset || !dataset.parent_dataset_id) return datasetId;
+      return findRootId(dataset.parent_dataset_id);
+    };
+  }, [datasets]);
+
+  // Obtener todos los IDs de la cadena de versiones del dataset seleccionado
+  const versionChainIds = useMemo(() => {
+    if (!selectedDatasetId) return [];
+    const rootId = findRootId(selectedDatasetId);
+    // Incluir todos los datasets que pertenecen a esta cadena
+    return datasets
+      .filter(d => findRootId(d.id) === rootId)
+      .map(d => d.id);
+  }, [selectedDatasetId, datasets, findRootId]);
+
+  // Filtrar y ordenar runs por fecha (más antiguo primero para el gráfico)
   const sortedRuns = useMemo(() => {
-    return [...runs]
-      .filter((run) => run.status === 'COMPLETED' && run.quality_score !== null)
-      .sort((a, b) => {
-        const dateA = new Date(a.completed_at || a.created_at).getTime();
-        const dateB = new Date(b.completed_at || b.created_at).getTime();
-        return dateA - dateB;
-      });
-  }, [runs]);
+    let filteredRuns = [...runs].filter((run) => run.status === 'COMPLETED' && run.quality_score !== null);
+    
+    // Si hay un dataset seleccionado, filtrar por toda la cadena de versiones
+    if (selectedDatasetId && versionChainIds.length > 0) {
+      filteredRuns = filteredRuns.filter((run) => run.dataset_id && versionChainIds.includes(run.dataset_id));
+    }
+    
+    return filteredRuns.sort((a, b) => {
+      const dateA = new Date(a.completed_at || a.created_at).getTime();
+      const dateB = new Date(b.completed_at || b.created_at).getTime();
+      return dateA - dateB;
+    });
+  }, [runs, selectedDatasetId, versionChainIds]);
 
   // Formatear fecha para labels
   const formatDate = (dateStr?: string) => {
@@ -68,9 +110,20 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     });
   };
 
+  // Helper para obtener la versión del dataset de un run
+  const getDatasetVersion = (datasetId: number | undefined): number => {
+    if (!datasetId) return 1;
+    const dataset = datasets.find(d => d.id === datasetId);
+    return dataset?.version || 1;
+  };
+
   // Datos para el gráfico de Quality Score
   const scoreChartData = useMemo(() => {
-    const labels = sortedRuns.map((run) => formatDate(run.completed_at || run.created_at));
+    const labels = sortedRuns.map((run) => {
+      const date = formatDate(run.completed_at || run.created_at);
+      const version = getDatasetVersion(run.dataset_id);
+      return `${date} (v${version})`;
+    });
     const scores = sortedRuns.map((run) => run.quality_score || 0);
     
     // Colores según si está por encima o debajo del umbral
@@ -169,7 +222,11 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
 
   // Datos para el gráfico de Issues
   const issuesChartData = useMemo(() => {
-    const labels = sortedRuns.map((run) => formatDate(run.completed_at || run.created_at));
+    const labels = sortedRuns.map((run) => {
+      const date = formatDate(run.completed_at || run.created_at);
+      const version = getDatasetVersion(run.dataset_id);
+      return `${date} (v${version})`;
+    });
     
     return {
       labels,
@@ -256,15 +313,30 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     };
   }, [sortedRuns]);
 
+  // Mensaje cuando no hay dataset seleccionado
+  if (!selectedDatasetId) {
+    return (
+      <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
+        <TrendingUpIcon sx={{ fontSize: 48, color: GRAY, mb: 2 }} />
+        <Typography variant="h6" sx={{ color: '#555555' }}>
+          Selecciona un dataset
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#888888' }}>
+          Haz clic en un dataset de la lista superior para ver su evolución temporal.
+        </Typography>
+      </Paper>
+    );
+  }
+
   if (sortedRuns.length === 0) {
     return (
       <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
         <TrendingUpIcon sx={{ fontSize: 48, color: GRAY, mb: 2 }} />
         <Typography variant="h6" sx={{ color: '#555555' }}>
-          No hay datos suficientes
+          No hay análisis para este dataset
         </Typography>
         <Typography variant="body2" sx={{ color: '#888888' }}>
-          Se necesitan análisis completados para mostrar tendencias.
+          El dataset "{selectedDatasetName}" aún no tiene análisis completados.
         </Typography>
       </Paper>
     );
@@ -340,7 +412,10 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
       {/* Gráfico */}
       <Paper elevation={0} sx={{ p: 3, borderRadius: 2, border: '1px solid #EEEEEE' }}>
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-          {chartType === 'score' ? 'Evolución del Quality Score' : 'Evolución de Issues'}
+          {chartType === 'score' 
+            ? `Evolución del Quality Score${selectedDatasetName ? ` - ${selectedDatasetName}` : ''}`
+            : `Evolución de Issues${selectedDatasetName ? ` - ${selectedDatasetName}` : ''}`
+          }
         </Typography>
         <Box sx={{ height: 300 }}>
           {chartType === 'score' ? (
