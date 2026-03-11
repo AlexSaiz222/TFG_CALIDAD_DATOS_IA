@@ -287,7 +287,7 @@ function Dashboard() {
           Dashboard
         </Typography>
         <Typography variant="body1" sx={{ color: '#555555' }}>
-          Welcome back, {user?.first_name || user?.username}!
+          ¡Bienvenido de nuevo, {user?.first_name || user?.username}!
         </Typography>
       </Box>
 
@@ -328,10 +328,10 @@ function Dashboard() {
             <CardContent sx={{ pt: 5, pb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 1 }}>
                 <Typography variant="h6" component="div" sx={{ color: '#1A1A1A', fontWeight: 600 }}>
-                  Projects
+                  Proyectos
                 </Typography>
                 <Chip 
-                  label="Active" 
+                  label="Activos" 
                   size="small" 
                   sx={{ 
                     backgroundColor: alpha('#00B37E', 0.1), 
@@ -361,9 +361,9 @@ function Dashboard() {
                     fontWeight: 500,
                   }}
                 >
-                  New Project
+                  Nuevo proyecto
                 </Button>
-                <Tooltip title="View all projects">
+                <Tooltip title="Ver todos los proyectos">
                   <IconButton 
                     onClick={() => router.push('/projects')}
                     sx={{ color: '#555555' }}
@@ -413,7 +413,7 @@ function Dashboard() {
                   Datasets
                 </Typography>
                 <Chip 
-                  label="Analytics" 
+                  label="Datos" 
                   size="small" 
                   sx={{ 
                     backgroundColor: alpha('#FFB800', 0.1), 
@@ -444,9 +444,9 @@ function Dashboard() {
                   }}
                   disabled={totalProjects === 0}
                 >
-                  Upload Dataset
+                  Subir dataset
                 </Button>
-                <Tooltip title="View all datasets">
+                <Tooltip title="Ver todos los datasets">
                   <span>
                     <IconButton 
                       onClick={() => router.push('/datasets')}

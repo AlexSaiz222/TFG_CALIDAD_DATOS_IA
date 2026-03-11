@@ -101,7 +101,7 @@ const Projects = () => {
         setProjectAnalysis(analysisMap);
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setError('Failed to load projects. Please try again later.');
+        setError('Error al cargar los proyectos. Por favor, inténtalo de nuevo.');
         setLoading(false);
       }
     };
@@ -188,7 +188,7 @@ const Projects = () => {
       setSelectedProject(null);
     } catch (error) {
       console.error('Error deleting project:', error);
-      setError('Failed to delete project. Please try again later.');
+      setError('Error al eliminar el proyecto. Por favor, inténtalo de nuevo.');
     } finally {
       setDeleteLoading(false);
     }
@@ -211,7 +211,7 @@ const Projects = () => {
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Projects
+            Proyectos
           </Typography>
           <Button
             variant="contained"
@@ -225,14 +225,14 @@ const Projects = () => {
               },
             }}
           >
-            New Project
+            Nuevo proyecto
           </Button>
         </Box>
 
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Search projects..."
+          placeholder="Buscar proyectos..."
           value={searchTerm}
           onChange={handleSearchChange}
           sx={{ mb: 2 }}
@@ -341,7 +341,7 @@ const Projects = () => {
                         WebkitBoxOrient: 'vertical',
                       }}
                     >
-                      {project.description || 'No description'}
+                      {project.description || 'Sin descripción'}
                     </Typography>
                     
                     {/* Quality Gate Badge - Sonar-Lite */}
@@ -387,7 +387,7 @@ const Projects = () => {
         ) : (
           <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
             <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-              {searchTerm ? 'No projects match your search criteria.' : "You don't have any projects yet."}
+              {searchTerm ? 'No se encontraron proyectos con ese criterio de búsqueda.' : 'Aún no tienes ningún proyecto.'}
             </Typography>
             {!searchTerm && (
               <Button
@@ -402,7 +402,7 @@ const Projects = () => {
                   },
                 }}
               >
-                Create Your First Project
+                Crear tu primer proyecto
               </Button>
             )}
           </Box>
@@ -429,13 +429,13 @@ const Projects = () => {
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          Edit
+          Editar
         </MenuItem>
         <MenuItem onClick={handleDeleteClick}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" sx={{ color: '#E5484D' }} />
           </ListItemIcon>
-          <Typography color="error">Delete</Typography>
+          <Typography color="error">Eliminar</Typography>
         </MenuItem>
       </Menu>
 
@@ -447,16 +447,16 @@ const Projects = () => {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          {"Delete Project?"}
+          ¿Eliminar proyecto?
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete the project "{selectedProject?.name}"? This action cannot be undone and will delete all associated datasets and evaluations.
+            ¿Estás seguro de que quieres eliminar el proyecto "{selectedProject?.name}"? Esta acción no se puede deshacer y eliminará todos los datasets y análisis asociados.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
-            Cancel
+            Cancelar
           </Button>
           <Button 
             onClick={handleDeleteConfirm} 
@@ -464,7 +464,7 @@ const Projects = () => {
             autoFocus
             disabled={deleteLoading}
           >
-            {deleteLoading ? <CircularProgress size={24} /> : 'Delete'}
+            {deleteLoading ? <CircularProgress size={24} /> : 'Eliminar'}
           </Button>
         </DialogActions>
       </Dialog>

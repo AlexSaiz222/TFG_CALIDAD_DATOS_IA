@@ -411,7 +411,7 @@ const DatasetsList = () => {
           <Box sx={{ mb: 3 }}>
             <TextField
               fullWidth
-              placeholder="Search datasets by name, description or project"
+              placeholder="Buscar datasets por nombre, descripción o proyecto"
               variant="outlined"
               value={searchTerm}
               onChange={handleSearchChange}
@@ -697,7 +697,7 @@ const DatasetsList = () => {
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-                {searchTerm ? 'No datasets match your search criteria.' : 'No datasets available.'}
+                {searchTerm ? 'No se encontraron datasets con ese criterio de búsqueda.' : 'Aún no hay datasets disponibles.'}
               </Typography>
               <Button
                 variant="contained"
@@ -711,7 +711,7 @@ const DatasetsList = () => {
                   },
                 }}
               >
-                Create Dataset
+                Subir dataset
               </Button>
             </Box>
           )}

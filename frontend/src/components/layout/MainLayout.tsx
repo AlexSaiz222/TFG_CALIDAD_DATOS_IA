@@ -28,6 +28,7 @@ import { styled } from '@mui/material/styles';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
 import Sidebar, { DRAWER_WIDTH, COLLAPSED_WIDTH } from './Sidebar';
+import Breadcrumbs from './Breadcrumbs';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -192,7 +193,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Box>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
-          <Tooltip title="Account settings">
+          <Tooltip title="Configuración de cuenta">
             <IconButton
               onClick={handleProfileMenuOpen}
               size="small"
@@ -242,14 +243,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <ListItemIcon>
                 <PersonIcon fontSize="small" sx={{ color: '#00B37E' }} />
               </ListItemIcon>
-              <Typography>Profile</Typography>
+              <Typography>Perfil</Typography>
             </MenuItem>
             <Divider sx={{ my: 1 }} />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" sx={{ color: '#E5484D' }} />
               </ListItemIcon>
-              <Typography>Logout</Typography>
+              <Typography>Cerrar sesión</Typography>
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -270,6 +271,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <DrawerHeader />
+        <Breadcrumbs />
         {children}
       </Box>
     </Box>
