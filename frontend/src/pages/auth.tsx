@@ -30,25 +30,28 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import type { RegisterUserData } from '../types/auth';
 
-// Estilos comunes para los campos de texto
+// Estilos comunes para los campos de texto - Diseño Premium SaaS
 const textFieldStyles = {
   '& .MuiInputBase-root': {
-    color: '#111827',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 2,
-    transition: 'all 0.2s ease-in-out',
+    color: '#1F2937',
+    backgroundColor: '#FAFAFA',
+    borderRadius: '12px',
+    minHeight: '56px',
+    fontSize: '1rem',
+    transition: 'background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out',
     '&:hover': {
       backgroundColor: '#FFFFFF',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
     },
     '&.Mui-focused': {
       backgroundColor: '#FFFFFF',
-      boxShadow: '0 0 0 3px rgba(0, 179, 126, 0.15)',
+      boxShadow: '0 0 0 4px rgba(0, 179, 126, 0.12), 0 4px 12px rgba(0,0,0,0.08)',
     },
   },
   '& label': {
-    color: '#6B7280',
+    color: '#4B5563',
     fontWeight: 500,
+    fontSize: '0.95rem',
   },
   '& label.Mui-focused': {
     color: '#00B37E',
@@ -57,9 +60,11 @@ const textFieldStyles = {
   '& .MuiOutlinedInput-notchedOutline': {
     borderColor: '#E5E7EB',
     borderWidth: '1.5px',
+    borderRadius: '12px',
   },
   '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#D1D5DB',
+    borderColor: '#00B37E',
+    borderWidth: '1.5px',
   },
   '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
     borderColor: '#00B37E',
@@ -67,7 +72,13 @@ const textFieldStyles = {
   },
   '& .MuiFormHelperText-root': {
     marginLeft: 0,
+    marginTop: '8px',
     fontWeight: 500,
+    fontSize: '0.85rem',
+  },
+  '& .MuiInputBase-input::placeholder': {
+    color: '#9CA3AF',
+    opacity: 1,
   },
 };
 
@@ -346,33 +357,36 @@ const AuthPage = () => {
         }}
       >
         {/* Selector de modo (móvil y desktop) */}
+        {/* Tabs de navegación - Diseño más integrado */}
         <Box
           sx={{
             position: 'absolute',
-            top: 24,
-            right: 24,
+            top: 28,
+            right: 28,
             display: 'flex',
-            gap: 1,
+            gap: 0.5,
             backgroundColor: '#F3F4F6',
-            borderRadius: 2,
-            p: 0.5,
+            borderRadius: '14px',
+            p: 0.75,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}
         >
           <Button
             onClick={() => !isLogin && toggleAuthMode()}
             sx={{
-              px: 3,
-              py: 1,
-              borderRadius: 1.5,
+              px: 3.5,
+              py: 1.25,
+              borderRadius: '10px',
               fontWeight: 600,
-              fontSize: '0.875rem',
+              fontSize: '0.9rem',
               textTransform: 'none',
               backgroundColor: isLogin ? '#FFFFFF' : 'transparent',
               color: isLogin ? '#00B37E' : '#6B7280',
-              boxShadow: isLogin ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.2s ease',
+              boxShadow: isLogin ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+              transition: 'background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease',
               '&:hover': {
                 backgroundColor: isLogin ? '#FFFFFF' : 'rgba(0, 179, 126, 0.08)',
+                color: isLogin ? '#00B37E' : '#00B37E',
               },
             }}
           >
@@ -381,18 +395,19 @@ const AuthPage = () => {
           <Button
             onClick={() => isLogin && toggleAuthMode()}
             sx={{
-              px: 3,
-              py: 1,
-              borderRadius: 1.5,
+              px: 3.5,
+              py: 1.25,
+              borderRadius: '10px',
               fontWeight: 600,
-              fontSize: '0.875rem',
+              fontSize: '0.9rem',
               textTransform: 'none',
               backgroundColor: !isLogin ? '#FFFFFF' : 'transparent',
               color: !isLogin ? '#00B37E' : '#6B7280',
-              boxShadow: !isLogin ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.2s ease',
+              boxShadow: !isLogin ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+              transition: 'background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease',
               '&:hover': {
                 backgroundColor: !isLogin ? '#FFFFFF' : 'rgba(0, 179, 126, 0.08)',
+                color: !isLogin ? '#00B37E' : '#00B37E',
               },
             }}
           >
@@ -417,22 +432,32 @@ const AuthPage = () => {
             maxWidth: isLogin ? 400 : 500,
             opacity: isAnimating ? 0 : 1,
             transform: isAnimating ? 'translateY(10px)' : 'translateY(0)',
-            transition: 'all 0.15s ease-out',
+            transition: 'opacity 0.15s ease-out, transform 0.15s ease-out',
           }}
         >
-          {/* Título del formulario */}
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
+          {/* Título del formulario - Jerarquía visual mejorada */}
+          <Box sx={{ mb: 5, textAlign: 'center' }}>
             <Typography
-              variant="h4"
+              variant="h3"
               sx={{
-                fontWeight: 700,
-                color: '#1A1A1A',
-                mb: 1,
+                fontWeight: 800,
+                color: '#111827',
+                mb: 1.5,
+                fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
+                letterSpacing: '-0.02em',
+                lineHeight: 1.2,
               }}
             >
               {isLogin ? 'Bienvenido de nuevo' : 'Crear cuenta'}
             </Typography>
-            <Typography variant="body1" sx={{ color: '#6B7280' }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#6B7280',
+                fontSize: '1.05rem',
+                lineHeight: 1.5,
+              }}
+            >
               {isLogin
                 ? 'Accede a tu cuenta para gestionar tus proyectos'
                 : 'Únete a DataQual'}
@@ -456,7 +481,9 @@ const AuthPage = () => {
                 id="username"
                 name="username"
                 label="Usuario o correo"
+                placeholder="usuario@ejemplo.com…"
                 autoComplete="username"
+                spellCheck={false}
                 autoFocus
                 value={loginData.username}
                 onChange={handleLoginChange}
@@ -495,6 +522,7 @@ const AuthPage = () => {
                     <InputAdornment position="end">
                       <Tooltip title={showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                         <IconButton
+                          aria-label={showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                           onClick={() => setShowLoginPassword(!showLoginPassword)}
                           edge="end"
                           sx={{ color: '#6B7280', '&:hover': { color: '#00B37E' } }}
@@ -508,20 +536,33 @@ const AuthPage = () => {
                 sx={textFieldStyles}
               />
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, mb: 2 }}>
+              {/* Fila Recordarme / Olvidé contraseña - Mejor espaciado */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2.5, mb: 3 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={rememberMe}
                       onChange={() => setRememberMe(!rememberMe)}
-                      size="small"
                       sx={{
-                        color: '#6B7280',
+                        color: '#9CA3AF',
+                        padding: '8px',
                         '&.Mui-checked': { color: '#00B37E' },
+                        '& .MuiSvgIcon-root': { fontSize: '1.25rem' },
                       }}
                     />
                   }
-                  label={<Typography variant="body2" sx={{ color: '#6B7280' }}>Recordarme</Typography>}
+                  label={
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: '#4B5563', 
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Recordarme
+                    </Typography>
+                  }
                 />
                 <Typography
                   component="a"
@@ -530,14 +571,20 @@ const AuthPage = () => {
                   sx={{
                     color: '#00B37E',
                     textDecoration: 'none',
-                    fontWeight: 500,
-                    '&:hover': { textDecoration: 'underline' },
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    transition: 'color 0.2s ease',
+                    '&:hover': { 
+                      color: '#009966',
+                      textDecoration: 'underline',
+                    },
                   }}
                 >
                   ¿Olvidaste tu contraseña?
                 </Typography>
               </Box>
 
+              {/* Botón principal - Más prominente */}
               <Button
                 type="submit"
                 fullWidth
@@ -545,19 +592,19 @@ const AuthPage = () => {
                 disabled={loading}
                 endIcon={!loading && <ArrowForward />}
                 sx={{
-                  mt: 2,
-                  py: 1.5,
-                  fontWeight: 600,
+                  mt: 1,
+                  py: 1.75,
+                  fontWeight: 700,
                   textTransform: 'none',
-                  fontSize: '1rem',
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #00B37E 0%, #00C8A5 100%)',
+                  fontSize: '1.05rem',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #00B37E 0%, #00A070 100%)',
                   color: '#FFFFFF',
-                  boxShadow: '0 4px 14px rgba(0,179,126,0.3)',
-                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 14px rgba(0,179,126,0.35)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                   '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 20px rgba(0,179,126,0.4)',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 8px 25px rgba(0,179,126,0.45)',
                   },
                   '&.Mui-disabled': {
                     background: 'linear-gradient(135deg, #9FE7D3 0%, #B3F0E6 100%)',
@@ -568,24 +615,40 @@ const AuthPage = () => {
                 {loading ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CircularProgress size={20} color="inherit" />
-                    <span>Iniciando sesión...</span>
+                    <span>Iniciando sesión…</span>
                   </Box>
                 ) : (
                   'Iniciar sesión'
                 )}
               </Button>
 
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#6B7280' }}>
+              {/* Enlace secundario - Mejor espaciado */}
+              <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: '#6B7280',
+                    fontSize: '0.95rem',
+                  }}
+                >
                   ¿No tienes cuenta?{' '}
                   <Typography
-                    component="span"
+                    component="button"
+                    type="button"
                     onClick={toggleAuthMode}
                     sx={{
                       color: '#00B37E',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       cursor: 'pointer',
-                      '&:hover': { textDecoration: 'underline' },
+                      fontSize: '0.95rem',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      transition: 'color 0.2s ease',
+                      '&:hover': { 
+                        color: '#009966',
+                        textDecoration: 'underline',
+                      },
                     }}
                   >
                     Crear cuenta
@@ -596,7 +659,7 @@ const AuthPage = () => {
           ) : (
             /* Formulario de Registro */
             <Box component="form" onSubmit={handleRegisterSubmit} noValidate>
-              <Grid container spacing={2}>
+              <Grid container spacing={2.5}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     required
@@ -604,7 +667,9 @@ const AuthPage = () => {
                     id="username"
                     name="username"
                     label="Nombre de usuario"
+                    placeholder="tu_usuario…"
                     autoComplete="username"
+                    spellCheck={false}
                     autoFocus
                     value={registerData.username}
                     onChange={handleRegisterChange}
@@ -626,8 +691,11 @@ const AuthPage = () => {
                     fullWidth
                     id="email"
                     name="email"
+                    type="email"
                     label="Correo electrónico"
+                    placeholder="correo@ejemplo.com…"
                     autoComplete="email"
+                    spellCheck={false}
                     value={registerData.email}
                     onChange={handleRegisterChange}
                     error={!!registerErrors.email}
@@ -664,6 +732,7 @@ const AuthPage = () => {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
+                            aria-label={showRegisterPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                             onClick={() => setShowRegisterPassword(!showRegisterPassword)}
                             edge="end"
                             sx={{ color: '#6B7280', '&:hover': { color: '#00B37E' } }}
@@ -697,6 +766,7 @@ const AuthPage = () => {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
+                            aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             edge="end"
                             sx={{ color: '#6B7280', '&:hover': { color: '#00B37E' } }}
@@ -768,6 +838,7 @@ const AuthPage = () => {
                 </Grid>
               </Grid>
 
+              {/* Botón de registro - Consistente con login */}
               <Button
                 type="submit"
                 fullWidth
@@ -775,19 +846,19 @@ const AuthPage = () => {
                 disabled={loading}
                 endIcon={!loading && <ArrowForward />}
                 sx={{
-                  mt: 3,
-                  py: 1.5,
-                  fontWeight: 600,
+                  mt: 4,
+                  py: 1.75,
+                  fontWeight: 700,
                   textTransform: 'none',
-                  fontSize: '1rem',
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #00B37E 0%, #00C8A5 100%)',
+                  fontSize: '1.05rem',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #00B37E 0%, #00A070 100%)',
                   color: '#FFFFFF',
-                  boxShadow: '0 4px 14px rgba(0,179,126,0.3)',
-                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 14px rgba(0,179,126,0.35)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                   '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 20px rgba(0,179,126,0.4)',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 8px 25px rgba(0,179,126,0.45)',
                   },
                   '&.Mui-disabled': {
                     background: 'linear-gradient(135deg, #9FE7D3 0%, #B3F0E6 100%)',
@@ -798,24 +869,40 @@ const AuthPage = () => {
                 {loading ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CircularProgress size={20} color="inherit" />
-                    <span>Creando cuenta...</span>
+                    <span>Creando cuenta…</span>
                   </Box>
                 ) : (
                   'Crear cuenta'
                 )}
               </Button>
 
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#6B7280' }}>
+              {/* Enlace secundario - Consistente con login */}
+              <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: '#6B7280',
+                    fontSize: '0.95rem',
+                  }}
+                >
                   ¿Ya tienes cuenta?{' '}
                   <Typography
-                    component="span"
+                    component="button"
+                    type="button"
                     onClick={toggleAuthMode}
                     sx={{
                       color: '#00B37E',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       cursor: 'pointer',
-                      '&:hover': { textDecoration: 'underline' },
+                      fontSize: '0.95rem',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      transition: 'color 0.2s ease',
+                      '&:hover': { 
+                        color: '#009966',
+                        textDecoration: 'underline',
+                      },
                     }}
                   >
                     Iniciar sesión
