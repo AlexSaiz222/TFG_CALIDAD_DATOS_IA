@@ -277,18 +277,34 @@ const AuthPage = () => {
           {/* TÍTULO GRANDE */}
           <Typography
             variant="h1"
+            component="h1"
             sx={{
-              color: '#FFFFFF',
               fontWeight: 900,
               lineHeight: 1,
               fontSize: { md: '5rem', lg: '6rem' },
               letterSpacing: '-0.05em',
-              textShadow: '0 0 20px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5)',
               fontFamily: '"Inter", "Roboto", "Helvetica", sans-serif',
               mb: 2.5,
             }}
           >
-            DataQual
+            <Box
+              component="span"
+              sx={{
+                color: '#FFFFFF',
+                textShadow: '0 0 30px rgba(255, 255, 255, 0.25), 0 0 60px rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)',
+              }}
+            >
+              Data
+            </Box>
+            <Box
+              component="span"
+              sx={{
+                color: '#39FF14',
+                textShadow: '0 0 15px rgba(57, 255, 20, 0.4), 0 0 30px rgba(57, 255, 20, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              Qual
+            </Box>
           </Typography>
 
           {/* DESCRIPCIÓN justificada con mejor contraste */}
