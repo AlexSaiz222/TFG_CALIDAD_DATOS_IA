@@ -44,9 +44,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Si no estamos en la página de login, redirigir automáticamente
         if (typeof window !== 'undefined' && 
             !window.location.pathname.includes('/login') && 
-            !window.location.pathname.includes('/register')) {
-          console.log('AuthContext: Redirigiendo a login por falta de token...');
-          router.replace('/login');
+            !window.location.pathname.includes('/register') &&
+            !window.location.pathname.includes('/auth')) {
+          console.log('AuthContext: Redirigiendo a auth por falta de token...');
+          router.replace('/auth');
         }
         return;
       }
@@ -144,9 +145,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Redirigir a login si no estamos ya en la página de login
         if (typeof window !== 'undefined' && 
             !window.location.pathname.includes('/login') && 
-            !window.location.pathname.includes('/register')) {
-          console.log('AuthContext: Redirigiendo a login por error de autenticación...');
-          router.replace('/login');
+            !window.location.pathname.includes('/register') &&
+            !window.location.pathname.includes('/auth')) {
+          console.log('AuthContext: Redirigiendo a auth por error de autenticación...');
+          router.replace('/auth');
         }
       }
     };
@@ -252,8 +254,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       error: null,
     });
     
-    // Redirect to login
-    router.push('/login');
+    // Redirect to auth
+    router.push('/auth');
   };
 
   // Update profile function

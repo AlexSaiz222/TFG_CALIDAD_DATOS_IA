@@ -419,6 +419,15 @@ export const projectsAPI = {
     clearProjectsCache();
     return api.delete(`/api/projects/${id}`);
   },
+
+  getQualityGate: (projectId: number) =>
+    api.get(`/api/projects/${projectId}/quality-gate`),
+
+  updateQualityGate: (projectId: number, thresholds: any, options?: { name?: string; is_active?: boolean }) =>
+    api.put(`/api/projects/${projectId}/quality-gate`, {
+      thresholds,
+      ...(options || {}),
+    }),
 };
 
 // Datasets API

@@ -89,10 +89,10 @@ class EvaluationService:
         )
     
     def _evaluate_quality_gate(self, analysis_run, quality_score, issues, results):
-        """Evaluate Quality Gate status based on MVP criteria
+        """Evaluate Quality Gate status based on configurable thresholds.
         
-        This function determines if an analysis passes, fails, or gets a warning
-        based on hardcoded thresholds. Prepared for future config-based thresholds.
+        Reads thresholds from the project's QualityGate config in the database.
+        Falls back to default thresholds if no QualityGate is configured.
         
         Args:
             analysis_run: The AnalysisRun being evaluated
@@ -102,60 +102,80 @@ class EvaluationService:
             
         Returns:
             QualityGateStatus: PASSED, FAILED, or WARNING
-            
-        MVP Criteria (hardcoded, ready for config):
-            - CRITERIO 1 (Criticality): If any issue has severity='CRITICAL' or 'BLOCKER' -> FAILED
-            - CRITERIO 2 (Score min): If quality_score < 80% (0.8) -> FAILED
-            - CRITERIO 3 (Completeness): If any completeness metric < 90% (0.9) -> WARNING
-            - Otherwise -> PASSED
         """
-        # TODO: In the future, read thresholds from QualityGate config for the project
-        # For now, use hardcoded MVP thresholds
-        THRESHOLD_MIN_SCORE = 0.80  # 80%
-        THRESHOLD_MIN_COMPLETENESS = 0.90  # 90%
-        CRITICAL_SEVERITIES = {'critical', 'blocker', 'CRITICAL', 'BLOCKER'}
+        from models.analysis import QualityGate as QualityGateModel
+        
+        # Load thresholds from project's QualityGate config (or use defaults)
+        quality_gate_config = QualityGateModel.query.filter_by(
+            project_id=analysis_run.project_id
+        ).first()
+        
+        if quality_gate_config and quality_gate_config.is_active:
+            thresholds = quality_gate_config.thresholds or {}
+            logger.info(f"[QUALITY_GATE] Using project thresholds for project {analysis_run.project_id}: {thresholds}")
+        else:
+            thresholds = QualityGateModel.get_default_thresholds()
+            logger.info(f"[QUALITY_GATE] No custom config found, using default thresholds")
+
+        # Extract threshold values (stored as 0-100 scale in DB)
+        threshold_min_score = thresholds.get('min_score', 70) / 100.0
+        threshold_min_completeness = thresholds.get('min_completeness', 80) / 100.0
+        threshold_min_uniqueness = thresholds.get('min_uniqueness', 90) / 100.0
+        max_critical_issues = thresholds.get('max_critical_issues', 0)
         
         gate_status = QualityGateStatus.PASSED
         gate_reasons = []
         
         # CRITERIO 1: Check for critical/blocker issues
+        critical_count = 0
         for issue in issues:
             severity = issue.get('severity', '').lower()
-            # Map legacy 'high' to 'critical' for this check
             if severity in {'critical', 'blocker'} or (severity == 'high' and 'critical' in issue.get('description', '').lower()):
-                gate_status = QualityGateStatus.FAILED
-                gate_reasons.append(f"Critical issue found: {issue.get('description', 'Unknown')[:100]}")
-                logger.info(f"[QUALITY_GATE] FAILED - Critical issue detected: {issue.get('description', '')[:50]}")
-                break  # One critical is enough to fail
+                critical_count += 1
+        
+        if critical_count > max_critical_issues:
+            gate_status = QualityGateStatus.FAILED
+            gate_reasons.append(
+                f"Critical issues ({critical_count}) exceed maximum allowed ({max_critical_issues})"
+            )
+            logger.info(f"[QUALITY_GATE] FAILED - {critical_count} critical issues > max {max_critical_issues}")
         
         # CRITERIO 2: Check minimum quality score (only if not already failed)
         if gate_status != QualityGateStatus.FAILED:
-            if quality_score < THRESHOLD_MIN_SCORE:
+            if quality_score < threshold_min_score:
                 gate_status = QualityGateStatus.FAILED
-                gate_reasons.append(f"Quality score {quality_score:.2%} is below minimum threshold {THRESHOLD_MIN_SCORE:.0%}")
-                logger.info(f"[QUALITY_GATE] FAILED - Score {quality_score:.2%} < {THRESHOLD_MIN_SCORE:.0%}")
+                gate_reasons.append(f"Quality score {quality_score:.2%} is below minimum threshold {threshold_min_score:.0%}")
+                logger.info(f"[QUALITY_GATE] FAILED - Score {quality_score:.2%} < {threshold_min_score:.0%}")
         
         # CRITERIO 3: Check completeness metrics (only if not already failed)
         if gate_status != QualityGateStatus.FAILED:
-            # Check overall completeness from results
             overall_completeness = results.get('overall', {}).get('completeness')
-            if overall_completeness is not None and overall_completeness < THRESHOLD_MIN_COMPLETENESS:
+            if overall_completeness is not None and overall_completeness < threshold_min_completeness:
                 gate_status = QualityGateStatus.WARNING
-                gate_reasons.append(f"Completeness {overall_completeness:.2%} is below recommended threshold {THRESHOLD_MIN_COMPLETENESS:.0%}")
-                logger.info(f"[QUALITY_GATE] WARNING - Completeness {overall_completeness:.2%} < {THRESHOLD_MIN_COMPLETENESS:.0%}")
+                gate_reasons.append(f"Completeness {overall_completeness:.2%} is below recommended threshold {threshold_min_completeness:.0%}")
+                logger.info(f"[QUALITY_GATE] WARNING - Completeness {overall_completeness:.2%} < {threshold_min_completeness:.0%}")
             
             # Also check column-level completeness
             column_metrics = results.get('column_metrics', {})
             low_completeness_columns = []
             for col_name, col_data in column_metrics.items():
                 col_completeness = col_data.get('completeness', 1.0)
-                if col_completeness < THRESHOLD_MIN_COMPLETENESS:
+                if col_completeness < threshold_min_completeness:
                     low_completeness_columns.append(f"{col_name}: {col_completeness:.2%}")
             
             if low_completeness_columns and gate_status == QualityGateStatus.PASSED:
                 gate_status = QualityGateStatus.WARNING
                 gate_reasons.append(f"Low completeness in columns: {', '.join(low_completeness_columns[:3])}")
                 logger.info(f"[QUALITY_GATE] WARNING - Low completeness in {len(low_completeness_columns)} columns")
+        
+        # CRITERIO 4: Check uniqueness (only if not already failed)
+        if gate_status != QualityGateStatus.FAILED:
+            overall_uniqueness = results.get('overall', {}).get('uniqueness')
+            if overall_uniqueness is not None and overall_uniqueness < threshold_min_uniqueness:
+                if gate_status == QualityGateStatus.PASSED:
+                    gate_status = QualityGateStatus.WARNING
+                gate_reasons.append(f"Uniqueness {overall_uniqueness:.2%} is below recommended threshold {threshold_min_uniqueness:.0%}")
+                logger.info(f"[QUALITY_GATE] WARNING - Uniqueness {overall_uniqueness:.2%} < {threshold_min_uniqueness:.0%}")
         
         # Log final decision
         logger.info(f"[QUALITY_GATE] Final status: {gate_status.value} | Score: {quality_score:.2%} | Issues: {len(issues)} | Reasons: {gate_reasons}")

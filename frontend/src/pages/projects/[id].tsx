@@ -43,6 +43,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import AnalysisHistory from '../../components/AnalysisHistory';
 import QualityTrendChart from '../../components/QualityTrendChart';
 import DatasetStatusSnapshot from '../../components/DatasetStatusSnapshot';
+import QualityGateSettings from '../../components/QualityGateSettings';
 import { projectsAPI, datasetsAPI, metricsAPI, analysisAPI } from '../../services/api';
 import type { AnalysisRun } from '../../types';
 
@@ -91,6 +92,7 @@ const ProjectDetail = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
+  const [qualityGateThreshold, setQualityGateThreshold] = useState<number>(70);
   const fetchedRef = useRef(false);
 
   // Cargar datos del proyecto
@@ -583,6 +585,7 @@ const ProjectDetail = () => {
             <Tab label="Datasets" id="project-tab-0" aria-controls="project-tabpanel-0" />
             <Tab label="Métricas" id="project-tab-1" aria-controls="project-tabpanel-1" />
             <Tab label="Historial de Análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
+            <Tab label="Quality Gate" id="project-tab-3" aria-controls="project-tabpanel-3" />
           </Tabs>
         </Box>
 
@@ -768,7 +771,7 @@ const ProjectDetail = () => {
                   datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
                   selectedDatasetId={selectedDatasetId}
                   onSelectDataset={(datasetId: number) => setSelectedDatasetId(datasetId)}
-                  qualityGateThreshold={80}
+                  qualityGateThreshold={qualityGateThreshold}
                 />
               </Box>
               
@@ -779,7 +782,7 @@ const ProjectDetail = () => {
                 </Typography>
                 <QualityTrendChart 
                   runs={analysisRuns} 
-                  qualityGateThreshold={80}
+                  qualityGateThreshold={qualityGateThreshold}
                   selectedDatasetId={selectedDatasetId}
                   datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
                 />
@@ -815,6 +818,16 @@ const ProjectDetail = () => {
                 datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version }))}
               />
             </Box>
+          )}
+        </TabPanel>
+
+        {/* Pestaña de Quality Gate */}
+        <TabPanel value={tabValue} index={3}>
+          {projectId && (
+            <QualityGateSettings
+              projectId={projectId}
+              onThresholdsLoaded={(t) => setQualityGateThreshold(t.min_score)}
+            />
           )}
         </TabPanel>
       </Box>

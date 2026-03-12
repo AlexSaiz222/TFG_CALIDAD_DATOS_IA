@@ -5,6 +5,7 @@ import logging
 from extensions import db
 from models.project import Project
 from models.user import User
+from models.analysis import QualityGate
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -338,3 +339,136 @@ def delete_project(project_id):
             "error": "server_error",
             "message": f"Error del servidor: {str(e)}"
         }), 500
+
+@projects_bp.route('/<int:project_id>/quality-gate', methods=['GET'])
+@jwt_required()
+def get_quality_gate(project_id):
+    """Get Quality Gate configuration for a project.
+    Creates a default QualityGate if none exists (lazy initialization).
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "invalid_token_identity",
+                            "message": "ID de usuario inválido en el token"}), 401
+
+        # Verify project exists and user has access
+        project = Project.query.get(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "project_not_found",
+                            "message": f"No se encontró el proyecto con ID {project_id}"}), 404
+        if project.owner_id != current_user_id_int:
+            return jsonify({"success": False, "error": "unauthorized_access",
+                            "message": "No tiene permiso para acceder a este proyecto"}), 403
+
+        # Get or create QualityGate for this project
+        quality_gate = QualityGate.query.filter_by(project_id=project_id).first()
+        if not quality_gate:
+            # Lazy initialization: create with default thresholds
+            quality_gate = QualityGate(
+                project_id=project_id,
+                name='Default Quality Gate',
+                thresholds=QualityGate.get_default_thresholds(),
+                is_active=True,
+            )
+            db.session.add(quality_gate)
+            db.session.commit()
+            logger.info(f"Created default QualityGate for project {project_id}")
+
+        return jsonify({
+            "success": True,
+            "data": quality_gate.to_dict()
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error al obtener Quality Gate del proyecto {project_id}: {str(e)}")
+        return jsonify({"success": False, "error": "server_error",
+                        "message": f"Error del servidor: {str(e)}"}), 500
+
+
+@projects_bp.route('/<int:project_id>/quality-gate', methods=['PUT'])
+@jwt_required()
+def update_quality_gate(project_id):
+    """Update Quality Gate thresholds for a project."""
+    try:
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "invalid_token_identity",
+                            "message": "ID de usuario inválido en el token"}), 401
+
+        # Verify project exists and user has access
+        project = Project.query.get(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "project_not_found",
+                            "message": f"No se encontró el proyecto con ID {project_id}"}), 404
+        if project.owner_id != current_user_id_int:
+            return jsonify({"success": False, "error": "unauthorized_access",
+                            "message": "No tiene permiso para modificar este proyecto"}), 403
+
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "invalid_json",
+                            "message": "Se requiere un cuerpo JSON"}), 400
+
+        thresholds = data.get('thresholds')
+        if thresholds is None:
+            return jsonify({"success": False, "error": "missing_field",
+                            "message": "El campo 'thresholds' es obligatorio"}), 400
+
+        # Validate threshold values
+        defaults = QualityGate.get_default_thresholds()
+        valid_keys = set(defaults.keys())
+        errors = []
+        for key, value in thresholds.items():
+            if key not in valid_keys:
+                errors.append(f"Clave desconocida: '{key}'")
+                continue
+            if not isinstance(value, (int, float)):
+                errors.append(f"'{key}' debe ser un número")
+                continue
+            if key.startswith('min_') and (value < 0 or value > 100):
+                errors.append(f"'{key}' debe estar entre 0 y 100")
+            if key.startswith('max_') and value < 0:
+                errors.append(f"'{key}' no puede ser negativo")
+
+        if errors:
+            return jsonify({"success": False, "error": "validation_error",
+                            "message": "Errores de validación", "details": errors}), 400
+
+        # Get or create QualityGate
+        quality_gate = QualityGate.query.filter_by(project_id=project_id).first()
+        if not quality_gate:
+            quality_gate = QualityGate(
+                project_id=project_id,
+                name=data.get('name', 'Default Quality Gate'),
+                thresholds=thresholds,
+                is_active=data.get('is_active', True),
+            )
+            db.session.add(quality_gate)
+        else:
+            # Merge: keep existing keys, update provided ones
+            merged = {**quality_gate.thresholds, **thresholds}
+            quality_gate.thresholds = merged
+            if 'name' in data:
+                quality_gate.name = data['name']
+            if 'is_active' in data:
+                quality_gate.is_active = data['is_active']
+
+        db.session.commit()
+        logger.info(f"Updated QualityGate for project {project_id}: {quality_gate.thresholds}")
+
+        return jsonify({
+            "success": True,
+            "data": quality_gate.to_dict(),
+            "message": "Quality Gate actualizado correctamente"
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al actualizar Quality Gate del proyecto {project_id}: {str(e)}")
+        return jsonify({"success": False, "error": "server_error",
+                        "message": f"Error del servidor: {str(e)}"}), 500

@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.19, pytest-7.3.1, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /app
+plugins: cov-4.1.0
+collecting ... collected 12 items
+
+tests/test_quality_gate.py::TestQualityGateModel::test_default_thresholds PASSED [  8%]
+tests/test_quality_gate.py::TestQualityGateModel::test_create_quality_gate_with_defaults PASSED [ 16%]
+tests/test_quality_gate.py::TestQualityGateModel::test_update_thresholds PASSED [ 25%]
+tests/test_quality_gate.py::TestQualityGateModel::test_to_dict PASSED    [ 33%]
+tests/test_quality_gate.py::TestQualityGateModel::test_unique_per_project PASSED [ 41%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_passed_with_defaults PASSED [ 50%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_failed_low_score PASSED [ 58%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_failed_critical_issues PASSED [ 66%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_warning_low_completeness PASSED [ 75%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_uses_custom_thresholds PASSED [ 83%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_inactive_gate_uses_defaults PASSED [ 91%]
+tests/test_quality_gate.py::TestEvaluateQualityGate::test_critical_issues_allowed PASSED [100%]
+
+============================== 12 passed in 2.78s ==============================
