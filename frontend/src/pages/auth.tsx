@@ -4,6 +4,13 @@ import { useRouter } from 'next/router';
 
 import Image from 'next/image';
 
+import dynamic from 'next/dynamic';
+
+const ParticlesBackground = dynamic(
+  () => import('../components/gl/ParticlesBackground'),
+  { ssr: false }
+);
+
 import {
 
   Box,
@@ -470,69 +477,15 @@ const AuthPage = () => {
 
       >
 
-        {/* Imagen de fondo - esfera de datos */}
-
-        <Box
-
-          sx={{
-
-            position: 'absolute',
-
-            top: 0,
-
-            left: 0,
-
-            right: 0,
-
-            bottom: 0,
-
-            backgroundImage: `url('/images/imagen-data.png')`,
-
-            backgroundSize: 'auto 100%',
-
-            backgroundPosition: 'left center',
-
-            backgroundRepeat: 'no-repeat',
-
-            opacity: 0.4,
-
-            filter: 'contrast(8) brightness(1.5)',
-
-          }}
-
+        {/* Animación de partículas 3D */}
+        <ParticlesBackground 
+          color="#FFFFFF" 
+          backgroundColor="#006B52"
         />
 
 
 
-        {/* Capa de blur expandida a todo el panel */}
-
-        <Box
-
-          sx={{
-
-            position: 'absolute',
-
-            top: 0,
-
-            left: 0,
-
-            right: 0,
-
-            bottom: 0,
-
-            background: 'rgba(0, 0, 0, 0.12)',
-
-            backdropFilter: 'blur(0.8px)',
-
-            zIndex: 0,
-
-          }}
-
-        />
-
-
-
-        {/* Contenido principal Minimalista */}
+        {/* Contenido principal - Estilo Hero */}
 
         <Box 
 
@@ -542,14 +495,99 @@ const AuthPage = () => {
 
             zIndex: 1, 
 
-            maxWidth: '85%',
+            maxWidth: '90%',
+
+            textAlign: 'center',
+
+            display: 'flex',
+
+            flexDirection: 'column',
+
+            alignItems: 'center',
+
+            justifyContent: 'center',
+
+            width: '100%',
 
           }}
 
         > 
 
-          
+          {/* Badge DATAQUAL */}
 
+          <Box
+
+            sx={{
+
+              display: 'inline-flex',
+
+              alignItems: 'center',
+
+              gap: 1,
+
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+
+              backdropFilter: 'blur(8px)',
+
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+
+              borderRadius: '9999px',
+
+              px: 2.5,
+
+              py: 0.75,
+
+              mb: 4,
+
+            }}
+
+          >
+
+            <Box
+
+              sx={{
+
+                width: 8,
+
+                height: 8,
+
+                borderRadius: '50%',
+
+                backgroundColor: '#FFFFFF',
+
+                boxShadow: '0 0 0px 0px rgba(255, 255, 255, 0.5), 0 0 16px 4px rgba(255, 255, 255, 0.5), 0 0 24px 8px rgba(0, 212, 170, 0.4)',
+
+                animation: 'pulse 1s ease-in-out infinite',
+
+              }}
+
+            />
+
+            <Typography
+
+              sx={{
+
+                color: '#FFFFFF',
+
+                fontWeight: 500,
+
+                fontSize: '1.1rem',
+
+                letterSpacing: '0.15em',
+
+                fontFamily: 'monospace',
+
+              }}
+
+            >
+
+              DATAQUAL
+
+            </Typography>
+
+          </Box>
+
+          
           {/* TÍTULO GRANDE */}
 
           <Typography
@@ -560,71 +598,93 @@ const AuthPage = () => {
 
               color: '#FFFFFF',
 
-              fontWeight: 900,
+              fontWeight: 400,
 
-              lineHeight: 1,
+              lineHeight: 1.1,
 
-              fontSize: { md: '5rem', lg: '6rem' },
+              fontSize: { md: '6rem', lg: '7rem' },
 
-              letterSpacing: '-0.05em',
+              letterSpacing: '-0.02em',
 
-              textShadow: '0 0 20px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5)',
+              textShadow: '0 0 40px rgba(255, 255, 255, 0.2)',
 
-              fontFamily: '"Inter", "Roboto", "Helvetica", sans-serif',
+              fontFamily: '"Georgia", "Times New Roman", serif',
 
-              mb: 2.5,
+              mb: 1,
 
             }}
 
           >
 
-            DataQual
+            Impulsa tus
 
           </Typography>
 
-
-
-          {/* DESCRIPCIÓN justificada con mejor contraste */}
-
           <Typography
 
-            variant="h5"
+            variant="h1"
 
             sx={{
 
               color: '#FFFFFF',
 
-              fontWeight: 600,
+              fontWeight: 300,
 
-              lineHeight: 1.5,
+              fontStyle: 'italic',
 
-              fontSize: { md: '1.5rem', lg: '1.65rem' },
+              lineHeight: 1.1,
 
-              fontFamily: '"Inter", "Roboto", "Helvetica", sans-serif',
+              fontSize: { md: '5rem', lg: '6rem' },
 
-              maxWidth: '100%',
+              letterSpacing: '-0.02em',
 
-              letterSpacing: '0.02em',
+              textShadow: '0 0 40px rgba(255, 255, 255, 0.2)',
 
-              textAlign: 'justify',
+              fontFamily: '"Georgia", "Times New Roman", serif',
 
-              textShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              mb: 4,
 
             }}
 
           >
 
-            Gestión inteligente de la calidad de los datos
+            datos de IA
 
           </Typography>
 
 
 
+          {/* DESCRIPCIÓN */}
+
+          <Typography
+
+            sx={{
+
+              color: 'rgba(255, 255, 255, 0.6)',
+
+              fontWeight: 400,
+
+              lineHeight: 1.6,
+
+              fontSize: { md: '1.5rem', lg: '1.55rem' },
+
+              fontFamily: 'monospace',
+
+              maxWidth: '440px',
+
+              textAlign: 'center',
+
+            }}
+
+          >
+
+            Analiza y valida la calidad de datos usados en proyectos de IA
+
+          </Typography>
+
         </Box>
 
-
-
-        {/* Curva de transición derecha - Onda pequeña y luego onda grande */}
+        {/* Curva de transición derecha */}
 
         <Box
 
