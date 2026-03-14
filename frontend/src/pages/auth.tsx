@@ -630,8 +630,6 @@ const AuthPage = () => {
 
               fontWeight: 300,
 
-              fontStyle: 'italic',
-
               lineHeight: 1.1,
 
               fontSize: { md: '5rem', lg: '6rem' },
@@ -648,7 +646,7 @@ const AuthPage = () => {
 
           >
 
-            datos de IA
+            datos en IA
 
           </Typography>
 
@@ -660,7 +658,7 @@ const AuthPage = () => {
 
             sx={{
 
-              color: 'rgba(255, 255, 255, 0.6)',
+              color: 'rgba(255, 255, 255, 0.8)',
 
               fontWeight: 400,
 
