@@ -2,6 +2,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import io
+import json
 import logging
 import hashlib
 
@@ -519,7 +520,7 @@ class EvaluationService:
                                     'description': f"Dataset contains {duplicate_count} duplicate rows ({(1-uniqueness):.2%} of total)",
                                     'affected_rows': {
                                         'count': duplicate_count,
-                                        'sample': duplicates.head(5).to_dict(orient='records') if duplicate_count > 0 else []
+                                        'sample': json.loads(duplicates.head(5).to_json(orient='records')) if duplicate_count > 0 else []
                                     },
                                     'issue_type': 'uniqueness',
                                     'fingerprint': generate_duplicate_issue_fingerprint(
@@ -625,11 +626,19 @@ class EvaluationService:
                     
                     results['outliers'] = outlier_results
                     
-                    # Calculate outlier score (1 - proportion of outliers)
+                    # Calculate outlier score per-column with severity multiplier
                     if outlier_results:
-                        total_values = sum(len(df[col].dropna()) for col in outlier_results.keys())
-                        total_outliers = sum(outlier_results[col]['count'] for col in outlier_results.keys())
-                        outlier_score = 1 - (total_outliers / total_values if total_values > 0 else 0)
+                        cols_with_outliers = {col: data for col, data in outlier_results.items() if data['count'] > 0}
+                        if cols_with_outliers:
+                            # Per-column score with 3x penalty multiplier for outlier ratio
+                            col_scores = []
+                            for col, data in cols_with_outliers.items():
+                                non_null = len(df[col].dropna())
+                                ratio = data['count'] / non_null if non_null > 0 else 0
+                                col_scores.append(max(0.0, 1 - ratio * 3))
+                            outlier_score = sum(col_scores) / len(col_scores)
+                        else:
+                            outlier_score = 1.0
                         processed_metrics.append('outliers')
                         metric_scores.append(outlier_score * weight)
             
@@ -680,8 +689,19 @@ class EvaluationService:
             
             self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...", analysis_run_id)
             
-            # Calculate overall quality score
-            quality_score = sum(metric_scores) / len(metric_scores) if metric_scores else 0.0
+            # Calculate overall quality score with issue-based penalty
+            base_score = sum(metric_scores) / len(metric_scores) if metric_scores else 0.0
+            
+            # Apply penalty based on detected issues (severity-weighted)
+            high_count = sum(1 for i in issues if i.get('severity') == 'high')
+            medium_count = sum(1 for i in issues if i.get('severity') == 'medium')
+            low_count = sum(1 for i in issues if i.get('severity') == 'low')
+            issue_penalty = (high_count * 0.05) + (medium_count * 0.025) + (low_count * 0.01)
+            
+            quality_score = max(0.0, min(1.0, base_score - issue_penalty))
+            logger.info(f"[SCORE] base={base_score:.4f}, penalty={issue_penalty:.4f} "
+                        f"(high={high_count}, med={medium_count}, low={low_count}), "
+                        f"final={quality_score:.4f}")
             
             self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
             
@@ -739,8 +759,9 @@ class EvaluationService:
                 )
                 db.session.add(issue)
             
-            # Count critical issues for AnalysisRun
-            critical_issues_count = sum(1 for i in issues if i.get('severity') in ['high', 'critical'])
+            # Count critical issues for AnalysisRun (high = major, critical/blocker = critical)
+            critical_issues_count = sum(1 for i in issues if i.get('severity') in ['critical', 'blocker'])
+            major_issues_count = sum(1 for i in issues if i.get('severity') == 'high')
             
             # Update AnalysisRun with results (Sonar-Lite)
             if analysis_run:

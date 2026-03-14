@@ -971,8 +971,8 @@ def create_dataset_evaluation(dataset_id):
             "weight": 1.0
         },
         {
-            "id": "consistency",
-            "parameters": {},
+            "id": "outliers",
+            "parameters": {"method": "iqr", "factor": 1.5},
             "weight": 1.0
         }
     ]

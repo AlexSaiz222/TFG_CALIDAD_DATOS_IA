@@ -1,0 +1,36 @@
+id,nombre,email,telefono,departamento,ciudad,salario,fecha_contratacion
+1,María García,,691 214 125,Soporte,,38049,31/13/2025
+2,Carlos López,carlos.lopez@empresa.com,687 127 674,Marketing,Córdoba,1500000,2023-03-28
+3,Ana Martínez,ana.martinez@empresa.com,653 204 194,RRHH,Barcelona,45526,2023-12-06
+4,Pedro Sánchez,sin-arroba,690 733 982,Ingeniería,Granada,34601,2025-12-13
+5,,laura.fernandez@empresa.com,656 266 479,Ingeniería,Sevilla,65920,2023-07-01
+6,Miguel Torres,miguel.torres@empresa.com,644 755 804,Finanzas,,66866,2023-10-27
+7,Carmen Ruiz,carmen.ruiz@empresa.com,682 997 835,Ingeniería,Sevilla,64954,2024-10-19
+8,David Moreno,david.moreno@empresa.com,,ingenieria ,Málaga,999999999,2022-10-11
+9,Lucía Jiménez,lucia.jimenez@empresa.com,,Ingeniería,Córdoba,78412,2022-01-24
+10,Javier Hernández,javier.hernandez@empresa.com,teléfono,Soporte,Zaragoza,0,2023-01-01
+11,Elena Díaz,elena.diaz@empresa.com,677 100 713,ingenieria ,Alicante,2000000,2022-08-18
+12,Roberto Muñoz,roberto.munoz@empresa.com,618 878 645,Logística,Valencia,30414,2025-09-13
+13,Isabel Álvarez,isabel.alvarez@empresa.com,698 305 830,Ingeniería,Bilbao,-5000,2025-08-23
+14,,francisco.romero@empresa.com,638 107 172,Soporte,Madrid,37003,2022-05-19
+15,Patricia Navarro,,683 690 584,MKT,Alicante,74920,no-es-fecha
+16,Andrés Gil,andres.gil@empresa.com,623 354 296,Marketing,Córdoba,51400,2022-10-15
+17,Sofía Molina,  ,616 767 653,Logística,Madrid,-5000,2023-04-30
+18,Diego Ortega,@@doble.com,,Soporte,Córdoba,65376,ayer
+19,Raquel Serrano,,677 261 158,Finanzas,,77793,2023-01-16
+20,Pablo Domínguez,pablo.dominguez@empresa.com,689 183 529,Soporte,Granada,59042,2099-99-99
+21,,cristina.vazquez@empresa.com,619 109 569,Finanzas,Granada,-999,2022-05-31
+22,Manuel Ramos,manuel.ramos@empresa.com,679 820 409,Finanzas,Córdoba,-5000,2025-09-29
+23,Teresa Castro,@@doble.com,629 378 388,Finanzas,Sevilla,999999999,2023-12-04
+24,,sergio.blanco@empresa.com,610 441 889,Marketing,,32589,2024-06-23
+25,Marta Morales,marta.morales@empresa.com,657 696 665,Marketing,Bilbao,30352,2022-03-27
+26,Alejandro Guerrero,alejandro.guerrero@empresa.com,123,Finanzas,Bilbao,62675,2099-99-99
+27,Rosa Suárez,rosa.suarez@empresa.com,,Logística,Sevilla,39485,2022-11-23
+28,Daniel Méndez,,639 328 124,Soporte,Sevilla,48113,2023-11-04
+29,Natalia Cortés,noesuncorreo,613 218 998,Ingeniería,Valencia,60049,2023-06-28
+30,Héctor Iglesias,hector.iglesias@empresa.com,683 294 360,MKT,Bilbao,22110,2024-11-30
+2,Carlos López,carlos.lopez@empresa.com,687 127 674,Marketing,Córdoba,1500000,2023-03-28
+7,Carmen Ruiz,carmen.ruiz@empresa.com,682 997 835,Ingeniería,Sevilla,64954,2024-10-19
+15,Patricia Navarro,,683 690 584,MKT,Alicante,74920,no-es-fecha
+31,,,,,,,
+32,,,,,,,

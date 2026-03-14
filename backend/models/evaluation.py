@@ -31,18 +31,19 @@ class Evaluation(db.Model):
     def __repr__(self):
         return f'<Evaluation {self.id} for Dataset {self.dataset_id}>'
     
-    def _ensure_serializable(self, obj):
+    @staticmethod
+    def _ensure_serializable(obj):
         """Recursively convert non-serializable types to serializable ones"""
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
             return float(obj)
         elif isinstance(obj, np.ndarray):
-            return self._ensure_serializable(obj.tolist())
+            return Evaluation._ensure_serializable(obj.tolist())
         elif isinstance(obj, dict):
-            return {key: self._ensure_serializable(value) for key, value in obj.items()}
+            return {key: Evaluation._ensure_serializable(value) for key, value in obj.items()}
         elif isinstance(obj, list):
-            return [self._ensure_serializable(item) for item in obj]
+            return [Evaluation._ensure_serializable(item) for item in obj]
         elif isinstance(obj, (datetime, np.datetime64)):
             return obj.isoformat() if hasattr(obj, 'isoformat') else str(obj)
         else:
@@ -61,8 +62,8 @@ class Evaluation(db.Model):
                 'id': self.id,
                 'dataset_id': self.dataset_id,
                 'status': self.status,
-                'metrics_config': self._ensure_serializable(self.metrics_config),
-                'results': self._ensure_serializable(self.results),
+                'metrics_config': Evaluation._ensure_serializable(self.metrics_config),
+                'results': Evaluation._ensure_serializable(self.results),
                 'quality_score': float(self.quality_score) if self.quality_score else None,
                 'progress': self.progress,
                 'current_step': self.current_step,
@@ -110,8 +111,8 @@ class Issue(db.Model):
                 'metric_id': self.metric_id,
                 'severity': self.severity,
                 'description': self.description,
-                'affected_columns': Evaluation._ensure_serializable(self, self.affected_columns),
-                'affected_rows': Evaluation._ensure_serializable(self, self.affected_rows),
+                'affected_columns': Evaluation._ensure_serializable(self.affected_columns),
+                'affected_rows': Evaluation._ensure_serializable(self.affected_rows),
                 'created_at': self.created_at.isoformat()
             }
         except Exception as e:

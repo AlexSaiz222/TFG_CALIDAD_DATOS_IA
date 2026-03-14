@@ -1054,8 +1054,9 @@ export const evaluationsAPI = {
   createEvaluation: (datasetId: number, metricsConfig: any) => 
     api.post(`/api/evaluations/datasets/${datasetId}`, { 
       metrics: Array.isArray(metricsConfig?.metrics) ? metricsConfig.metrics : [
-        { id: 'completeness', parameters: { threshold: 0.95 } },
-        { id: 'uniqueness', parameters: { threshold: 1.0 } }
+        { id: 'completeness', parameters: { threshold: 0.95 }, weight: 1.0 },
+        { id: 'uniqueness', parameters: { threshold: 1.0 }, weight: 1.0 },
+        { id: 'outliers', parameters: { method: 'iqr', factor: 1.5 }, weight: 1.0 }
       ],
       options: metricsConfig?.options || {}
     }),

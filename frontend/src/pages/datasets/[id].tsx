@@ -174,7 +174,7 @@ const DatasetDetail = () => {
             try {
               const issuesResponse = await evaluationsAPI.getIssues(latestEvaluation.id);
               // Extraer las issues de la estructura de respuesta
-              const issuesData = issuesResponse?.data?.data || issuesResponse?.data || [];
+              const issuesData = issuesResponse?.data?.data?.issues || issuesResponse?.data?.data || issuesResponse?.data || [];
               setIssues(Array.isArray(issuesData) ? issuesData : []);
             } catch (issueError) {
               console.warn('Error fetching issues:', issueError);
@@ -786,7 +786,8 @@ const DatasetDetail = () => {
                             // Fetch issues for this evaluation
                             evaluationsAPI.getIssues(evaluation.id)
                               .then(response => {
-                                setIssues(response.data);
+                                const data = response.data?.data?.issues || response.data?.data || response.data || [];
+                                setIssues(Array.isArray(data) ? data : []);
                                 setTabValue(2); // Switch to Issues tab
                               })
                               .catch(error => {

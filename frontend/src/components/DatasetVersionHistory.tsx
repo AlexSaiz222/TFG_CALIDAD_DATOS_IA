@@ -282,7 +282,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
                     {getQualityGateIcon(version.latestAnalysis?.quality_gate_status)}
                     <Typography variant="body2" color="text.secondary">
                       {version.latestAnalysis?.quality_score != null
-                        ? `${version.latestAnalysis.quality_score}%`
+                        ? `${Number(version.latestAnalysis.quality_score).toFixed(1)}%`
                         : 'Sin análisis'}
                     </Typography>
                   </Box>

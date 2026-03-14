@@ -388,7 +388,7 @@ const EvaluationsIndex = () => {
                             color: (run.quality_score || 0) >= 80 ? GREEN : (run.quality_score || 0) >= 60 ? ORANGE : RED,
                           }}
                         >
-                          {run.quality_score}%
+                          {Number(run.quality_score).toFixed(1)}%
                         </Typography>
                       ) : (
                         <Typography variant="body2" sx={{ color: GRAY }}>—</Typography>

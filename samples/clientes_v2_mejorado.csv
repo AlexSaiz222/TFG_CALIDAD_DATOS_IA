@@ -1,0 +1,32 @@
+id,nombre,email,telefono,departamento,ciudad,salario,fecha_contratacion
+1,María García,maria.garcia@empresa.com,689 421 779,Logística,Barcelona,69169,2023-09-08
+2,,carlos.lopez@empresa.com,634 530 780,RRHH,Valencia,62338,2025-03-11
+3,Ana Martínez,ana.martinez@empresa.com,684 721 770,Ingeniería,Alicante,50952,2024-06-24
+4,Pedro Sánchez,pedro.sanchez@empresa.com,694 186 390,Finanzas,Granada,43966,2022-07-11
+5,Laura Fernández,laura.fernandez@empresa.com,613 147 350,RRHH,Granada,77688,2022-05-30
+6,Miguel Torres,miguel.torres@empresa.com,661 349 251,Soporte,Madrid,80501,2022-08-07
+7,Carmen Ruiz,carmen.ruiz@empresa.com,681 355 968,Ventas,Alicante,30738,2024-08-09
+8,David Moreno,david.moreno@empresa.com,688 934 836,Finanzas,Bilbao,76432,2025-01-27
+9,Lucía Jiménez,lucia.jimenez@empresa.com,691 383 884,Logística,Córdoba,53758,2025-07-07
+10,Javier Hernández,javier.hernandez@empresa.com,679 182 241,Marketing,Sevilla,47102,2025-11-22
+11,Elena Díaz,elena.diaz@empresa.com,,RRHH,Bilbao,81299,2025-04-11
+12,Roberto Muñoz,roberto.munoz@empresa.com,655 405 871,RRHH,Bilbao,57272,2025-01-23
+13,Isabel Álvarez,isabel.alvarez@empresa.com,659 444 784,Soporte,Bilbao,69459,2022-12-05
+14,Francisco Romero,francisco.romero@empresa.com,685 677 778,Ventas,Barcelona,64123,2024-05-27
+15,,patricia.navarro@empresa.com,,RRHH,Zaragoza,71283,2024-05-13
+16,,andres.gil@empresa.com,654 329 765,Ventas,Madrid,71429,2022-03-05
+17,Sofía Molina,sofia.molina@empresa.com,695 217 677,Marketing,Alicante,67840,2023-06-09
+18,Diego Ortega,diego.ortega@empresa.com,630 418 210,Finanzas,Madrid,82875,2023-10-01
+19,Raquel Serrano,raquel.serrano@empresa.com,685 807 950,Soporte,Sevilla,28678,2025-11-28
+20,Pablo Domínguez,pablo.dominguez@empresa.com,,RRHH,Málaga,26519,2024-11-02
+21,Cristina Vázquez,cristina.vazquez@empresa.com,656 750 948,RRHH,Valencia,50540,2022-12-27
+22,Manuel Ramos,manuel.ramos@empresa.com,671 576 546,Logística,Granada,39589,2023-10-23
+23,Teresa Castro,teresa.castro@empresa.com,669 683 724,Soporte,Bilbao,44046,2022-02-28
+24,Sergio Blanco,sergio.blanco@empresa.com,,Ingeniería,Córdoba,22665,2024-11-24
+25,Marta Morales,,698 587 761,Soporte,Alicante,51371,2022-02-05
+26,Alejandro Guerrero,alejandro.guerrero@empresa.com,680 643 452,RRHH,Córdoba,43678,2023-12-22
+27,Rosa Suárez,rosa.suarez@empresa.com,625 860 648,Logística,Valencia,34552,2023-03-20
+28,Daniel Méndez,daniel.mendez@empresa.com,622 952 298,Ingeniería,Sevilla,-1000,2023-01-03
+29,Natalia Cortés,natalia.cortes@empresa.com,699 229 753,Logística,Alicante,28723,2022-01-26
+30,Héctor Iglesias,hector.iglesias@empresa.com,671 216 941,Ventas,Bilbao,54227,2022-06-01
+5,Laura Fernández,laura.fernandez@empresa.com,613 147 350,RRHH,Granada,77688,2022-05-30

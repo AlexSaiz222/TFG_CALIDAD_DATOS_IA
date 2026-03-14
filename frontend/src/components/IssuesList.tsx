@@ -490,7 +490,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                 </TableCell>
                 <TableCell sx={{ textAlign: 'right' }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {issue.affected_row_count || 0}
+                    {issue.affected_row_count ? issue.affected_row_count : '—'}
                   </Typography>
                 </TableCell>
               </TableRow>
