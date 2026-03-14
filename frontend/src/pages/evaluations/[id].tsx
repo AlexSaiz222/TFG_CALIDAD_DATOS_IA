@@ -45,6 +45,7 @@ const EvaluationDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   useEffect(() => {
     const fetchEvaluationData = async () => {
@@ -328,12 +329,21 @@ const EvaluationDetail = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '100%',
+                    cursor: overallMetrics.score_breakdown ? 'pointer' : 'default',
+                    transition: 'box-shadow 0.2s',
+                    '&:hover': overallMetrics.score_breakdown ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } : {},
                   }}
+                  onClick={() => overallMetrics.score_breakdown && setShowBreakdown(!showBreakdown)}
                 >
                   <QualityScoreGauge
                     score={evaluation.quality_score || overallMetrics.quality_score || 0}
                     size="large"
                   />
+                  {overallMetrics.score_breakdown && (
+                    <Typography variant="caption" sx={{ mt: 1, color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {showBreakdown ? '▲ Ocultar detalle' : '▼ Ver cómo se calcula'}
+                    </Typography>
+                  )}
                 </Paper>
               </Grid>
 
@@ -344,48 +354,76 @@ const EvaluationDetail = () => {
                     Metrics Summary
                   </Typography>
                   <Grid container spacing={2}>
+                    {/* Completeness Card */}
                     {overallMetrics.completeness !== undefined && (
-                      <Grid item xs={6} sm={4}>
-                        <MetricCard
-                          name="Completeness"
-                          value={overallMetrics.completeness}
-                          threshold={0.95}
-                          description="Non-null values"
-                        />
+                      <Grid item xs={12} sm={4}>
+                        <Paper elevation={0} sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Completeness</Typography>
+                            {overallMetrics.completeness < 0.95 ? (
+                              <WarningIcon sx={{ fontSize: 18, color: '#FFB800' }} />
+                            ) : (
+                              <CheckCircleIcon sx={{ fontSize: 18, color: '#00B37E' }} />
+                            )}
+                          </Box>
+                          <Typography variant="h4" sx={{ fontWeight: 700, color: overallMetrics.completeness >= 0.95 ? '#00B37E' : '#FFB800' }}>
+                            {(overallMetrics.completeness * 100).toFixed(1)}%
+                          </Typography>
+                          <Box sx={{ width: '100%', height: 4, backgroundColor: '#EEEEEE', borderRadius: 2, mt: 1, mb: 1.5 }}>
+                            <Box sx={{ width: `${overallMetrics.completeness * 100}%`, height: '100%', backgroundColor: overallMetrics.completeness >= 0.95 ? '#00B37E' : '#FFB800', borderRadius: 2 }} />
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#555' }}>
+                            Porcentaje de celdas con valor (no nulas) en todo el dataset.
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block', color: '#888', mt: 0.5 }}>
+                            Umbral: 95% — por debajo se genera un issue.
+                          </Typography>
+                        </Paper>
                       </Grid>
                     )}
+
+                    {/* Uniqueness Card */}
                     {overallMetrics.uniqueness !== undefined && (
-                      <Grid item xs={6} sm={4}>
-                        <MetricCard
-                          name="Uniqueness"
-                          value={overallMetrics.uniqueness}
-                          threshold={1.0}
-                          description="Unique rows"
-                        />
+                      <Grid item xs={12} sm={4}>
+                        <Paper elevation={0} sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Uniqueness</Typography>
+                            {overallMetrics.uniqueness >= 1.0 ? (
+                              <CheckCircleIcon sx={{ fontSize: 18, color: '#00B37E' }} />
+                            ) : (
+                              <WarningIcon sx={{ fontSize: 18, color: '#FFB800' }} />
+                            )}
+                          </Box>
+                          <Typography variant="h4" sx={{ fontWeight: 700, color: overallMetrics.uniqueness >= 1.0 ? '#00B37E' : '#FFB800' }}>
+                            {(overallMetrics.uniqueness * 100).toFixed(1)}%
+                          </Typography>
+                          <Box sx={{ width: '100%', height: 4, backgroundColor: '#EEEEEE', borderRadius: 2, mt: 1, mb: 1.5 }}>
+                            <Box sx={{ width: `${overallMetrics.uniqueness * 100}%`, height: '100%', backgroundColor: overallMetrics.uniqueness >= 1.0 ? '#00B37E' : '#FFB800', borderRadius: 2 }} />
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#555' }}>
+                            Porcentaje de filas que son únicas (sin duplicados completos).
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block', color: '#888', mt: 0.5 }}>
+                            Umbral: 100% — cualquier duplicado genera un issue.
+                          </Typography>
+                        </Paper>
                       </Grid>
                     )}
+
+                    {/* Outliers Card - Enhanced */}
                     {overallMetrics.outliers && (
-                      <Grid item xs={6} sm={4}>
-                        <Paper
-                          elevation={0}
-                          sx={{
-                            p: 2,
-                            border: '1px solid #EEEEEE',
-                            borderRadius: 2,
-                            height: '100%',
-                          }}
-                        >
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 1 }}>
-                            Outliers Detected
+                      <Grid item xs={12} sm={4}>
+                        <Paper elevation={0} sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                            Outliers
                           </Typography>
                           <Typography variant="h4" sx={{ fontWeight: 700, color: '#FFB800' }}>
                             {Object.values(overallMetrics.outliers).reduce(
-                              (sum: number, col: any) => sum + (col?.count || 0),
-                              0
+                              (sum: number, col: any) => sum + (col?.count || 0), 0
                             )}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#555555' }}>
-                            Across all columns
+                          <Typography variant="caption" sx={{ color: '#555', display: 'block', mt: 1 }}>
+                            Valores fuera del rango esperado usando el método IQR (rango intercuartílico × 1.5).
                           </Typography>
                         </Paper>
                       </Grid>
@@ -394,6 +432,178 @@ const EvaluationDetail = () => {
                 </Paper>
               </Grid>
             </Grid>
+
+            {/* Outlier Detail per Column */}
+            {overallMetrics.outliers && Object.entries(overallMetrics.outliers).some(([_, col]: [string, any]) => col?.count > 0) && (
+              <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  Outlier Detail
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#555', mb: 2 }}>
+                  Valores detectados como atípicos por columna. Se usa el método IQR: un valor es outlier si está fuera de [Q1 − 1.5×IQR, Q3 + 1.5×IQR].
+                </Typography>
+                {Object.entries(overallMetrics.outliers)
+                  .filter(([_, col]: [string, any]) => col?.count > 0)
+                  .map(([colName, col]: [string, any]) => (
+                    <Paper key={colName} elevation={0} sx={{ p: 2, mb: 2, border: '1px solid #F5F5F5', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                        <Chip label={colName} size="small" sx={{ fontWeight: 600, backgroundColor: '#E8E8E8' }} />
+                        <Chip label={`${col.count} outliers`} size="small" sx={{ backgroundColor: 'rgba(255, 184, 0, 0.15)', color: '#B8860B', fontWeight: 500 }} />
+                      </Box>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 1 }}>
+                        {col.q1 !== undefined && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#888' }}>Q1</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>{Number(col.q1).toLocaleString()}</Typography>
+                          </Box>
+                        )}
+                        {col.q3 !== undefined && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#888' }}>Q3</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>{Number(col.q3).toLocaleString()}</Typography>
+                          </Box>
+                        )}
+                        {col.iqr !== undefined && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#888' }}>IQR</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>{Number(col.iqr).toLocaleString()}</Typography>
+                          </Box>
+                        )}
+                        {col.lower_bound !== undefined && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#888' }}>Límite inferior</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace', color: '#E5484D' }}>{Number(col.lower_bound).toLocaleString()}</Typography>
+                          </Box>
+                        )}
+                        {col.upper_bound !== undefined && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#888' }}>Límite superior</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace', color: '#E5484D' }}>{Number(col.upper_bound).toLocaleString()}</Typography>
+                          </Box>
+                        )}
+                      </Box>
+                      {col.sample_values && col.sample_values.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" sx={{ color: '#888' }}>Valores atípicos detectados:</Typography>
+                          <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                            {col.sample_values.map((val: number, idx: number) => (
+                              <Chip key={idx} label={Number(val).toLocaleString()} size="small" sx={{ fontFamily: 'monospace', backgroundColor: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }} />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                    </Paper>
+                  ))}
+              </Paper>
+            )}
+
+            {/* Score Breakdown - Collapsible on gauge click */}
+            {showBreakdown && overallMetrics.score_breakdown && (
+              <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #E0E0E0', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                  Score Breakdown
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#555555', mb: 3 }}>
+                  El Quality Score se calcula promediando los scores de cada métrica evaluada y restando una penalización proporcional al número y severidad de los issues detectados.
+                </Typography>
+
+                {/* Step 1: Metric Scores */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#333' }}>
+                    1. Scores por métrica
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {Object.entries(overallMetrics.score_breakdown.metric_scores || {}).map(([metric, score]: [string, any]) => {
+                      const pct = (score * 100).toFixed(1);
+                      const color = score >= 0.8 ? '#00B37E' : score >= 0.6 ? '#FFB800' : '#E5484D';
+                      return (
+                        <Paper key={metric} elevation={0} sx={{ px: 2, py: 1.5, border: '1px solid #EEEEEE', borderRadius: 2, minWidth: 140, backgroundColor: '#fff' }}>
+                          <Typography variant="caption" sx={{ color: '#888', textTransform: 'capitalize' }}>
+                            {metric}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color }}>
+                            {pct}%
+                          </Typography>
+                        </Paper>
+                      );
+                    })}
+                  </Box>
+                  <Typography variant="body2" sx={{ mt: 1, color: '#888' }}>
+                    Base Score (promedio) = <strong>{(overallMetrics.score_breakdown.base_score * 100).toFixed(1)}%</strong>
+                  </Typography>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Step 2: Issue Penalty */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#333' }}>
+                    2. Penalización por issues
+                  </Typography>
+                  {(() => {
+                    const pd = overallMetrics.score_breakdown.penalty_detail || {};
+                    const totalPenalty = overallMetrics.score_breakdown.issue_penalty || 0;
+                    return (
+                      <Box>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 1.5 }}>
+                          {pd.high_issues > 0 && (
+                            <Chip
+                              size="small"
+                              label={`${pd.high_issues} high × ${(pd.high_weight * 100).toFixed(0)}% = −${(pd.high_issues * pd.high_weight * 100).toFixed(1)}%`}
+                              sx={{ backgroundColor: 'rgba(229, 72, 77, 0.1)', color: '#E5484D', fontWeight: 500 }}
+                            />
+                          )}
+                          {pd.medium_issues > 0 && (
+                            <Chip
+                              size="small"
+                              label={`${pd.medium_issues} medium × ${(pd.medium_weight * 100).toFixed(1)}% = −${(pd.medium_issues * pd.medium_weight * 100).toFixed(1)}%`}
+                              sx={{ backgroundColor: 'rgba(255, 184, 0, 0.1)', color: '#B8860B', fontWeight: 500 }}
+                            />
+                          )}
+                          {pd.low_issues > 0 && (
+                            <Chip
+                              size="small"
+                              label={`${pd.low_issues} low × ${(pd.low_weight * 100).toFixed(0)}% = −${(pd.low_issues * pd.low_weight * 100).toFixed(1)}%`}
+                              sx={{ backgroundColor: 'rgba(0, 179, 126, 0.1)', color: '#00B37E', fontWeight: 500 }}
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="body2" sx={{ color: '#E5484D' }}>
+                          Penalización total = <strong>−{(totalPenalty * 100).toFixed(1)}%</strong>
+                        </Typography>
+                      </Box>
+                    );
+                  })()}
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Step 3: Final Calculation */}
+                <Box sx={{ 
+                  p: 2, 
+                  borderRadius: 2, 
+                  backgroundColor: (overallMetrics.score_breakdown.final_score || 0) >= 0.8 ? 'rgba(0, 179, 126, 0.05)' : 
+                                   (overallMetrics.score_breakdown.final_score || 0) >= 0.5 ? 'rgba(255, 184, 0, 0.05)' : 'rgba(229, 72, 77, 0.05)',
+                  border: '1px solid',
+                  borderColor: (overallMetrics.score_breakdown.final_score || 0) >= 0.8 ? 'rgba(0, 179, 126, 0.2)' : 
+                               (overallMetrics.score_breakdown.final_score || 0) >= 0.5 ? 'rgba(255, 184, 0, 0.2)' : 'rgba(229, 72, 77, 0.2)',
+                }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#333' }}>
+                    3. Score Final
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                    {(overallMetrics.score_breakdown.base_score * 100).toFixed(1)}% (base) − {(overallMetrics.score_breakdown.issue_penalty * 100).toFixed(1)}% (penalización) = {' '}
+                    <Box component="span" sx={{ 
+                      fontSize: '1.2rem',
+                      color: (overallMetrics.score_breakdown.final_score || 0) >= 0.8 ? '#00B37E' : 
+                             (overallMetrics.score_breakdown.final_score || 0) >= 0.5 ? '#FFB800' : '#E5484D',
+                    }}>
+                      {(overallMetrics.score_breakdown.final_score * 100).toFixed(1)}%
+                    </Box>
+                  </Typography>
+                </Box>
+              </Paper>
+            )}
 
             {/* Issues Section */}
             <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2 }}>

@@ -413,11 +413,19 @@ class EvaluationService:
                                     'null_rate': float(null_rate)
                                 })
                         
+                        # Calculate dynamic severity based on distance from threshold
+                        severity = self._calculate_dynamic_severity(
+                            actual_value=completeness,
+                            threshold=completeness_threshold,
+                            metric_type='completeness',
+                            higher_is_better=True
+                        )
+                        
                         # Create issue with fingerprint
                         issues.append({
                             'evaluation_id': evaluation.id,
                             'metric_id': metrics_map.get(metric_id),
-                            'severity': 'high' if completeness < 0.8 else 'medium',
+                            'severity': severity,
                             'description': f"Dataset completeness ({completeness:.2%}) is below threshold ({completeness_threshold:.2%})",
                             'affected_columns': problem_columns,
                             'issue_type': 'completeness',
@@ -469,10 +477,18 @@ class EvaluationService:
                     if column_uniqueness_issues:
                         # Create fingerprint for each affected column
                         for col_issue in column_uniqueness_issues:
+                            # Dynamic severity based on how low uniqueness is
+                            col_uniq_severity = self._calculate_dynamic_severity(
+                                actual_value=col_issue['uniqueness'],
+                                threshold=0.3,  # We flag columns < 30% unique
+                                metric_type='uniqueness',
+                                higher_is_better=True
+                            )
+                            
                             issues.append({
                                 'evaluation_id': evaluation.id,
                                 'metric_id': metrics_map.get(metric_id),
-                                'severity': 'medium',
+                                'severity': col_uniq_severity,
                                 'description': f"Low uniqueness in column '{col_issue['column']}' ({col_issue['uniqueness']:.2%})",
                                 'affected_columns': [col_issue],
                                 'issue_type': 'uniqueness',
@@ -495,10 +511,19 @@ class EvaluationService:
                             
                             if duplicate_info:
                                 for col, count in duplicate_info.items():
+                                    # Calculate column uniqueness for severity
+                                    col_uniqueness = df[col].nunique() / len(df) if len(df) > 0 else 1.0
+                                    col_dup_severity = self._calculate_dynamic_severity(
+                                        actual_value=col_uniqueness,
+                                        threshold=uniqueness_threshold,
+                                        metric_type='uniqueness',
+                                        higher_is_better=True
+                                    )
+                                    
                                     issues.append({
                                         'evaluation_id': evaluation.id,
                                         'metric_id': metrics_map.get(metric_id),
-                                        'severity': 'high' if uniqueness < 0.9 else 'medium',
+                                        'severity': col_dup_severity,
                                         'description': f"Column '{col}' contains {count} duplicate values",
                                         'affected_columns': [{'column': col, 'duplicate_count': count}],
                                         'issue_type': 'uniqueness',
@@ -513,10 +538,18 @@ class EvaluationService:
                             duplicate_count = len(duplicates)
                             
                             if duplicate_count > 0:
+                                # Dynamic severity based on uniqueness score
+                                row_dup_severity = self._calculate_dynamic_severity(
+                                    actual_value=uniqueness,
+                                    threshold=uniqueness_threshold,
+                                    metric_type='uniqueness',
+                                    higher_is_better=True
+                                )
+                                
                                 issues.append({
                                     'evaluation_id': evaluation.id,
                                     'metric_id': metrics_map.get(metric_id),
-                                    'severity': 'high' if uniqueness < 0.9 else 'medium',
+                                    'severity': row_dup_severity,
                                     'description': f"Dataset contains {duplicate_count} duplicate rows ({(1-uniqueness):.2%} of total)",
                                     'affected_rows': {
                                         'count': duplicate_count,
@@ -610,12 +643,23 @@ class EvaluationService:
                             outlier_results[column] = outliers
                             
                             if outliers['count'] > 0:
+                                # Calculate outlier proportion for dynamic severity
+                                non_null_count = len(df[column].dropna())
+                                outlier_proportion = outliers['count'] / non_null_count if non_null_count > 0 else 0
+                                
+                                outlier_severity = self._calculate_dynamic_severity(
+                                    actual_value=outlier_proportion,
+                                    threshold=0.0,  # Any outlier is technically an issue
+                                    metric_type='outliers',
+                                    higher_is_better=False
+                                )
+                                
                                 issues.append({
                                     'evaluation_id': evaluation.id,
                                     'metric_id': metrics_map.get(metric_id),
-                                    'severity': 'medium',
-                                    'description': f"Column '{column}' contains {outliers['count']} outliers",
-                                    'affected_columns': [{'column': column, 'outlier_count': outliers['count']}],
+                                    'severity': outlier_severity,
+                                    'description': f"Column '{column}' contains {outliers['count']} outliers ({outlier_proportion:.1%} of values)",
+                                    'affected_columns': [{'column': column, 'outlier_count': outliers['count'], 'outlier_proportion': float(outlier_proportion)}],
                                     'issue_type': 'outliers',
                                     'fingerprint': generate_outlier_issue_fingerprint(
                                         column_name=column,
@@ -663,10 +707,18 @@ class EvaluationService:
                 
                 # Generate issues for individual columns with low completeness
                 if completeness < 0.98 and 'completeness' in processed_metrics:
+                    # Calculate dynamic severity for this column
+                    col_severity = self._calculate_dynamic_severity(
+                        actual_value=completeness,
+                        threshold=0.98,
+                        metric_type='completeness',
+                        higher_is_better=True
+                    )
+                    
                     issues.append({
                         'evaluation_id': evaluation.id,
                         'metric_id': metrics_map.get('completeness'),
-                        'severity': 'high' if completeness < 0.9 else 'medium',
+                        'severity': col_severity,
                         'description': f"Column '{column}' has low completeness ({completeness:.2%})",
                         'affected_columns': [{'column': column, 'null_rate': float(1 - completeness)}],
                         'issue_type': 'completeness',
@@ -705,11 +757,30 @@ class EvaluationService:
             
             self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
             
+            # Build per-metric score breakdown for transparency
+            score_breakdown = {}
+            for i, metric_name in enumerate(processed_metrics):
+                score_breakdown[metric_name] = round(metric_scores[i], 4) if i < len(metric_scores) else None
+            
             # Prepare results dict
             results_dict = {
                 'overall': {
                     'quality_score': quality_score,
                     'metrics_processed': processed_metrics,
+                    'score_breakdown': {
+                        'metric_scores': score_breakdown,
+                        'base_score': round(base_score, 4),
+                        'issue_penalty': round(issue_penalty, 4),
+                        'penalty_detail': {
+                            'high_issues': high_count,
+                            'medium_issues': medium_count,
+                            'low_issues': low_count,
+                            'high_weight': 0.05,
+                            'medium_weight': 0.025,
+                            'low_weight': 0.01,
+                        },
+                        'final_score': round(quality_score, 4),
+                    },
                     **results  # Include all metric results
                 },
                 'column_metrics': column_metrics
@@ -907,6 +978,56 @@ class EvaluationService:
                 'error': str(e)
             }
     
+    def _calculate_dynamic_severity(self, actual_value, threshold, metric_type='completeness', higher_is_better=True):
+        """Calculate dynamic severity based on distance from threshold
+        
+        Args:
+            actual_value: The actual metric value (0.0 to 1.0 for percentages)
+            threshold: The threshold value to compare against
+            metric_type: Type of metric ('completeness', 'uniqueness', 'outliers')
+            higher_is_better: True if higher values are better (completeness, uniqueness), False for outliers
+            
+        Returns:
+            str: Severity level ('critical', 'high', 'medium', 'low')
+        """
+        if metric_type == 'outliers':
+            # For outliers, actual_value is the proportion of outliers (0.0 to 1.0)
+            # Higher proportion = worse
+            if actual_value >= 0.20:  # >= 20% outliers
+                return 'critical'
+            elif actual_value >= 0.10:  # 10-20% outliers
+                return 'high'
+            elif actual_value >= 0.05:  # 5-10% outliers
+                return 'medium'
+            else:  # < 5% outliers
+                return 'low'
+        
+        # For completeness and uniqueness (higher is better)
+        if higher_is_better:
+            distance = threshold - actual_value  # How far below threshold
+            
+            if distance <= 0:
+                # Above threshold - no issue (shouldn't create issue in this case)
+                return 'low'
+            
+            # Calculate severity based on distance from threshold
+            if actual_value < 0.50:  # < 50% - critical (more than half missing/duplicate)
+                return 'critical'
+            elif actual_value < 0.70:  # 50-70% - high (significant problem)
+                return 'high'
+            elif actual_value < threshold:  # 70% to threshold - medium/low based on distance
+                # Fine-grained: closer to threshold = lower severity
+                if distance > 0.15:  # More than 15% below threshold
+                    return 'high'
+                elif distance > 0.05:  # 5-15% below threshold
+                    return 'medium'
+                else:  # < 5% below threshold
+                    return 'low'
+            else:
+                return 'low'
+        
+        return 'medium'  # Default fallback
+    
     def _generate_histogram(self, series, bins=10):
         """Generate histogram data for a numeric series
         
@@ -972,7 +1093,23 @@ class EvaluationService:
         else:
             raise ValueError(f"Unknown outlier detection method: {method}")
         
-        return {
+        result = {
             'count': len(outliers),
-            'indices': list(outliers.index)
+            'indices': list(outliers.index),
+            'method': method,
+            'factor': factor,
+            'sample_values': [float(v) for v in outliers.head(5).values] if len(outliers) > 0 else [],
         }
+        
+        if method == 'iqr':
+            result['lower_bound'] = float(lower_bound)
+            result['upper_bound'] = float(upper_bound)
+            result['q1'] = float(q1)
+            result['q3'] = float(q3)
+            result['iqr'] = float(iqr)
+        elif method == 'zscore':
+            result['mean'] = float(mean)
+            result['std'] = float(std)
+            result['z_threshold'] = float(factor)
+        
+        return result

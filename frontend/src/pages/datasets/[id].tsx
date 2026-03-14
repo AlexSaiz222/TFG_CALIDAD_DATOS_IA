@@ -869,7 +869,16 @@ const DatasetDetail = () => {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ textTransform: 'capitalize' }}>{issue.metric_id ? `Metric ${issue.metric_id}` : 'System'}</TableCell>
-                      <TableCell>{issue.affected_columns && issue.affected_columns.length > 0 ? issue.affected_columns[0] : 'N/A'}</TableCell>
+                      <TableCell>
+                        {issue.affected_columns && issue.affected_columns.length > 0
+                          ? issue.affected_columns.map((col: any) => {
+                              if (typeof col === 'string') return col;
+                              if (col?.column) return col.column;
+                              if (col?.name) return col.name;
+                              return JSON.stringify(col);
+                            }).join(', ')
+                          : 'N/A'}
+                      </TableCell>
                       <TableCell>{issue.description}</TableCell>
                     </TableRow>
                   ))}
