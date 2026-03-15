@@ -323,6 +323,22 @@ const DatasetDetail = () => {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    
+    // If switching to Issues tab (index 2), load issues from latest completed evaluation
+    if (newValue === 2 && evaluations.length > 0) {
+      const latestCompletedEval = evaluations.find((e: Evaluation) => e.status === 'completed');
+      if (latestCompletedEval) {
+        evaluationsAPI.getIssues(latestCompletedEval.id)
+          .then(response => {
+            const data = response.data?.data?.issues || response.data?.data || response.data || [];
+            setIssues(Array.isArray(data) ? data : []);
+          })
+          .catch(error => {
+            console.error('Error fetching issues:', error);
+            setError('Failed to fetch issues for this evaluation.');
+          });
+      }
+    }
   };
 
   const handleDeleteClick = () => {
