@@ -96,6 +96,8 @@ class Issue(db.Model):
     description = db.Column(db.Text, nullable=False)
     affected_columns = db.Column(db.JSON)
     affected_rows = db.Column(db.JSON)
+    issue_type = db.Column(db.String(100), nullable=True)  # Type of issue: completeness, uniqueness, outliers, etc.
+    fingerprint = db.Column(db.String(64), nullable=True, index=True)  # Unique hash to identify issue across runs
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
@@ -104,7 +106,6 @@ class Issue(db.Model):
     def to_dict(self):
         """Convert issue to dictionary with serializable types"""
         try:
-            # Usar el método de la clase padre para asegurar serialización
             return {
                 'id': self.id,
                 'evaluation_id': self.evaluation_id,
@@ -113,6 +114,8 @@ class Issue(db.Model):
                 'description': self.description,
                 'affected_columns': Evaluation._ensure_serializable(self.affected_columns),
                 'affected_rows': Evaluation._ensure_serializable(self.affected_rows),
+                'issue_type': self.issue_type,
+                'fingerprint': self.fingerprint,
                 'created_at': self.created_at.isoformat()
             }
         except Exception as e:
@@ -122,5 +125,6 @@ class Issue(db.Model):
                 'evaluation_id': self.evaluation_id,
                 'severity': self.severity,
                 'description': self.description,
+                'issue_type': self.issue_type,
                 'error': f"Error al serializar: {str(e)}"
             }

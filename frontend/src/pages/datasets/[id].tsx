@@ -884,7 +884,7 @@ const DatasetDetail = () => {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{issue.metric_id ? `Metric ${issue.metric_id}` : 'System'}</TableCell>
+                      <TableCell sx={{ textTransform: 'capitalize' }}>{issue.issue_type || 'System'}</TableCell>
                       <TableCell>
                         {issue.affected_columns && issue.affected_columns.length > 0
                           ? issue.affected_columns.map((col: any) => {
