@@ -46,6 +46,7 @@ const EvaluationDetail = () => {
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [outlierScaleStates, setOutlierScaleStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchEvaluationData = async () => {
@@ -410,21 +411,113 @@ const EvaluationDetail = () => {
                       </Grid>
                     )}
 
-                    {/* Outliers Card - Enhanced */}
+                    {/* Outliers Card - Enhanced with context, proportion, and mini box-plot */}
                     {overallMetrics.outliers && (
                       <Grid item xs={12} sm={4}>
-                        <Paper elevation={0} sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                            Outliers
-                          </Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 700, color: '#FFB800' }}>
-                            {Object.values(overallMetrics.outliers).reduce(
+                        <Paper elevation={0} sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                          {(() => {
+                            const outlierEntries = Object.entries(overallMetrics.outliers).filter(([_, col]: [string, any]) => col?.count > 0);
+                            const totalOutliers = Object.values(overallMetrics.outliers).reduce(
                               (sum: number, col: any) => sum + (col?.count || 0), 0
-                            )}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#555', display: 'block', mt: 1 }}>
-                            Valores fuera del rango esperado usando el método IQR (rango intercuartílico × 1.5).
-                          </Typography>
+                            );
+                            const totalValues = Object.values(overallMetrics.outliers).reduce(
+                              (sum: number, col: any) => sum + (col?.total_values || 0), 0
+                            );
+                            const overallProportion = totalValues > 0 ? totalOutliers / totalValues : 0;
+                            const proportionPct = (overallProportion * 100).toFixed(1);
+                            const severityColor = overallProportion >= 0.20 ? '#E5484D' : overallProportion >= 0.10 ? '#E5484D' : overallProportion >= 0.05 ? '#FFB800' : '#00B37E';
+                            const columnsAffected = outlierEntries.length;
+
+                            return (
+                              <>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Outliers</Typography>
+                                  {totalOutliers > 0 ? (
+                                    overallProportion >= 0.10 ? (
+                                      <ErrorIcon sx={{ fontSize: 18, color: '#E5484D' }} />
+                                    ) : overallProportion >= 0.05 ? (
+                                      <WarningIcon sx={{ fontSize: 18, color: '#FFB800' }} />
+                                    ) : (
+                                      <CheckCircleIcon sx={{ fontSize: 18, color: '#00B37E' }} />
+                                    )
+                                  ) : (
+                                    <CheckCircleIcon sx={{ fontSize: 18, color: '#00B37E' }} />
+                                  )}
+                                </Box>
+
+                                {/* Main number with context */}
+                                <Typography variant="h4" sx={{ fontWeight: 700, color: severityColor }}>
+                                  {totalOutliers}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: '#555', fontWeight: 500 }}>
+                                  de {totalValues} valores analizados ({proportionPct}%)
+                                </Typography>
+
+                                {/* Proportion bar */}
+                                <Box sx={{ width: '100%', height: 4, backgroundColor: '#EEEEEE', borderRadius: 2, mt: 1, mb: 1.5 }}>
+                                  <Box sx={{
+                                    width: `${Math.min(overallProportion * 100, 100)}%`,
+                                    minWidth: totalOutliers > 0 ? '4px' : '0px',
+                                    height: '100%',
+                                    backgroundColor: severityColor,
+                                    borderRadius: 2
+                                  }} />
+                                </Box>
+
+                                {/* Columns affected - WITH NAMES */}
+                                <Box sx={{ flex: 1 }}>
+                                  {columnsAffected > 0 ? (
+                                    <>
+                                      <Typography variant="caption" sx={{ color: '#555', display: 'block', fontWeight: 600 }}>
+                                        {columnsAffected === 1 
+                                          ? `Columna afectada: ${outlierEntries[0][0]}`
+                                          : `${columnsAffected} columnas afectadas`
+                                        }
+                                      </Typography>
+                                      {columnsAffected > 1 && (
+                                        <Typography variant="caption" sx={{ color: '#888', display: 'block', fontSize: '0.7rem' }}>
+                                          {outlierEntries.slice(0, 2).map(([name]) => name).join(', ')}
+                                          {columnsAffected > 2 && ` +${columnsAffected - 2} más`}
+                                        </Typography>
+                                      )}
+                                      <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mt: 0.5 }}>
+                                        Método IQR (×1.5)
+                                      </Typography>
+                                    </>
+                                  ) : (
+                                    <Typography variant="caption" sx={{ color: '#555' }}>
+                                      Sin outliers detectados · Método IQR (×1.5)
+                                    </Typography>
+                                  )}
+                                </Box>
+
+                                {/* Scroll to detail button */}
+                                {columnsAffected > 0 && (
+                                  <Box
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      document.getElementById('outlier-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    }}
+                                    sx={{
+                                      mt: 1,
+                                      pt: 1,
+                                      borderTop: '1px solid #F0F0F0',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: 0.5,
+                                      '&:hover': { opacity: 0.7 },
+                                    }}
+                                  >
+                                    <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500 }}>
+                                      Ver detalles ↓
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </>
+                            );
+                          })()}
                         </Paper>
                       </Grid>
                     )}
@@ -433,67 +526,325 @@ const EvaluationDetail = () => {
               </Grid>
             </Grid>
 
-            {/* Outlier Detail per Column */}
+            {/* Outlier Detail per Column - PROFESSIONAL with median, zoom, extreme classification */}
             {overallMetrics.outliers && Object.entries(overallMetrics.outliers).some(([_, col]: [string, any]) => col?.count > 0) && (
-              <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2 }}>
+              <Paper id="outlier-detail" elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2, scrollMarginTop: '80px' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                   Outlier Detail
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#555', mb: 2 }}>
+                <Typography variant="body2" sx={{ color: '#555', mb: 3 }}>
                   Valores detectados como atípicos por columna. Se usa el método IQR: un valor es outlier si está fuera de [Q1 − 1.5×IQR, Q3 + 1.5×IQR].
                 </Typography>
                 {Object.entries(overallMetrics.outliers)
                   .filter(([_, col]: [string, any]) => col?.count > 0)
-                  .map(([colName, col]: [string, any]) => (
-                    <Paper key={colName} elevation={0} sx={{ p: 2, mb: 2, border: '1px solid #F5F5F5', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                        <Chip label={colName} size="small" sx={{ fontWeight: 600, backgroundColor: '#E8E8E8' }} />
-                        <Chip label={`${col.count} outliers`} size="small" sx={{ backgroundColor: 'rgba(255, 184, 0, 0.15)', color: '#B8860B', fontWeight: 500 }} />
-                      </Box>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 1 }}>
-                        {col.q1 !== undefined && (
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#888' }}>Q1</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>{Number(col.q1).toLocaleString()}</Typography>
+                  .map(([colName, col]: [string, any]) => {
+                    const proportion = col.proportion || (col.total_values > 0 ? col.count / col.total_values : 0);
+                    const proportionPct = (proportion * 100).toFixed(1);
+                    const severityColor = proportion >= 0.20 ? '#E5484D' : proportion >= 0.10 ? '#E5484D' : proportion >= 0.05 ? '#FFB800' : '#00B37E';
+                    const severityLabel = proportion >= 0.20 ? 'Critical' : proportion >= 0.10 ? 'High' : proportion >= 0.05 ? 'Medium' : 'Low';
+                    
+                    // Classify outliers as extreme vs moderate
+                    const lb = col.lower_bound ?? col.series_min ?? 0;
+                    const ub = col.upper_bound ?? col.series_max ?? 100;
+                    const iqr = col.iqr ?? (col.q3 - col.q1) ?? 1;
+                    const outlierValues = (col.sample_values || []).map((val: number) => {
+                      const distanceFromBound = val < lb ? lb - val : val - ub;
+                      const iqrMultiple = distanceFromBound / iqr;
+                      const isExtreme = iqrMultiple > 3; // More than 3x IQR away
+                      const isSuspicious = Math.abs(val) > 100000000 || val === 999999999 || val === -999999999; // Sentinel values
+                      return { val, distanceFromBound, iqrMultiple, isExtreme, isSuspicious };
+                    });
+                    const extremeCount = outlierValues.filter(o => o.isExtreme || o.isSuspicious).length;
+                    const moderateCount = outlierValues.length - extremeCount;
+                    
+                    return (
+                      <Paper key={colName} elevation={0} sx={{ p: 3, mb: 3, border: '1px solid #E8E8E8', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
+                        {/* Header with column name, count, and severity */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>{colName}</Typography>
+                            <Chip 
+                              label={`${col.count} outliers`} 
+                              size="small" 
+                              sx={{ backgroundColor: `${severityColor}20`, color: severityColor, fontWeight: 600 }} 
+                            />
+                            {extremeCount > 0 && (
+                              <Chip 
+                                label={`${extremeCount} extremo${extremeCount > 1 ? 's' : ''}`}
+                                size="small" 
+                                sx={{ backgroundColor: 'rgba(229, 72, 77, 0.15)', color: '#C62828', fontWeight: 600, fontSize: '0.7rem' }} 
+                              />
+                            )}
                           </Box>
-                        )}
-                        {col.q3 !== undefined && (
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#888' }}>Q3</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>{Number(col.q3).toLocaleString()}</Typography>
-                          </Box>
-                        )}
-                        {col.iqr !== undefined && (
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#888' }}>IQR</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>{Number(col.iqr).toLocaleString()}</Typography>
-                          </Box>
-                        )}
-                        {col.lower_bound !== undefined && (
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#888' }}>Límite inferior</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace', color: '#E5484D' }}>{Number(col.lower_bound).toLocaleString()}</Typography>
-                          </Box>
-                        )}
-                        {col.upper_bound !== undefined && (
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#888' }}>Límite superior</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace', color: '#E5484D' }}>{Number(col.upper_bound).toLocaleString()}</Typography>
-                          </Box>
-                        )}
-                      </Box>
-                      {col.sample_values && col.sample_values.length > 0 && (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="caption" sx={{ color: '#888' }}>Valores atípicos detectados:</Typography>
-                          <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-                            {col.sample_values.map((val: number, idx: number) => (
-                              <Chip key={idx} label={Number(val).toLocaleString()} size="small" sx={{ fontFamily: 'monospace', backgroundColor: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }} />
-                            ))}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" sx={{ color: '#666' }}>
+                              {col.count} de {col.total_values || 'N/A'} registros
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#666', fontWeight: 600 }}>
+                              {proportionPct}% afectados
+                            </Typography>
+                            <Chip 
+                              label={`Severidad: ${severityLabel}`} 
+                              size="small" 
+                              sx={{ 
+                                backgroundColor: severityColor, 
+                                color: '#fff', 
+                                fontWeight: 600,
+                                fontSize: '0.7rem'
+                              }} 
+                            />
                           </Box>
                         </Box>
-                      )}
-                    </Paper>
-                  ))}
+
+                        {/* Box-plot visualization with zoom toggle */}
+                        {(() => {
+                          const showFullScale = outlierScaleStates[colName] || false;
+                          const toggleScale = () => {
+                            setOutlierScaleStates(prev => ({ ...prev, [colName]: !showFullScale }));
+                          };
+                          
+                          const q1 = col.q1 ?? lb;
+                          const q3 = col.q3 ?? ub;
+                          const sMin = col.series_min ?? lb;
+                          const sMax = col.series_max ?? ub;
+                          const median = col.median ?? (q1 + q3) / 2;
+                          
+                          // Determine if we need zoom (extreme outliers present)
+                          const normalRange = ub - lb;
+                          const fullRange = sMax - sMin;
+                          const needsZoom = fullRange > normalRange * 5; // If full range is 5x+ the normal range
+                          
+                          // Choose scale based on toggle
+                          const rangeMin = showFullScale ? sMin : Math.max(sMin, lb - iqr);
+                          const rangeMax = showFullScale ? sMax : Math.min(sMax, ub + iqr);
+                          const range = rangeMax - rangeMin || 1;
+                          
+                          const toPercent = (v: number) => {
+                            const pct = ((v - rangeMin) / range) * 100;
+                            return Math.max(0, Math.min(100, pct));
+                          };
+                          
+                          const lbPct = toPercent(lb);
+                          const ubPct = toPercent(ub);
+                          const q1Pct = toPercent(q1);
+                          const q3Pct = toPercent(q3);
+                          const medianPct = toPercent(median);
+                          
+                          return (
+                            <Box sx={{ mb: 3, p: 2, backgroundColor: '#fff', borderRadius: 2, border: '1px solid #E0E0E0' }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="caption" sx={{ color: '#888', fontWeight: 600 }}>
+                                  Distribución y outliers
+                                </Typography>
+                                {needsZoom && (
+                                  <Button 
+                                    size="small" 
+                                    onClick={toggleScale}
+                                    sx={{ fontSize: '0.7rem', textTransform: 'none' }}
+                                  >
+                                    {showFullScale ? '🔍 Zoom al rango normal' : '↔️ Ver escala completa'}
+                                  </Button>
+                                )}
+                              </Box>
+                              
+                              {needsZoom && !showFullScale && (
+                                <Alert severity="info" sx={{ mb: 1, py: 0.5 }}>
+                                  <Typography variant="caption">
+                                    {extremeCount} outlier{extremeCount > 1 ? 's' : ''} extremadamente alejado{extremeCount > 1 ? 's' : ''} fuera de escala. 
+                                    Haz clic en "Ver escala completa" para visualizarlos.
+                                  </Typography>
+                                </Alert>
+                              )}
+                              
+                              <Box>
+                                {/* SVG Box-plot */}
+                                <svg width="100%" height="100" viewBox="0 0 1000 100" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
+                                  {/* Whiskers */}
+                                  <line x1={lbPct * 10} y1="50" x2={q1Pct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" />
+                                  <line x1={q3Pct * 10} y1="50" x2={ubPct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" />
+                                  
+                                  {/* Whisker caps */}
+                                  <line x1={lbPct * 10} y1="35" x2={lbPct * 10} y2="65" stroke="#999" strokeWidth="2" />
+                                  <line x1={ubPct * 10} y1="35" x2={ubPct * 10} y2="65" stroke="#999" strokeWidth="2" />
+                                  
+                                  {/* IQR Box */}
+                                  <rect 
+                                    x={q1Pct * 10} 
+                                    y="25" 
+                                    width={Math.max((q3Pct - q1Pct) * 10, 4)} 
+                                    height="50" 
+                                    rx="4" 
+                                    fill="#C8E6C9" 
+                                    stroke="#66BB6A" 
+                                    strokeWidth="2.5" 
+                                  />
+                                  
+                                  {/* Median line - PROMINENT */}
+                                  <line 
+                                    x1={medianPct * 10} 
+                                    y1="25" 
+                                    x2={medianPct * 10} 
+                                    y2="75" 
+                                    stroke="#1B5E20" 
+                                    strokeWidth="4" 
+                                  />
+                                  
+                                  {/* Median label */}
+                                  <text 
+                                    x={medianPct * 10} 
+                                    y="15" 
+                                    textAnchor="middle" 
+                                    fontSize="11" 
+                                    fontWeight="600" 
+                                    fill="#1B5E20"
+                                  >
+                                    Q2
+                                  </text>
+                                  
+                                  {/* Outlier points */}
+                                  {outlierValues.map((outlier, idx) => {
+                                    const xPos = toPercent(outlier.val) * 10;
+                                    const isVisible = xPos >= 0 && xPos <= 1000;
+                                    if (!isVisible && !showFullScale) return null;
+                                    
+                                    const color = outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D';
+                                    const radius = outlier.isSuspicious ? 7 : outlier.isExtreme ? 6 : 5;
+                                    
+                                    return (
+                                      <g key={idx}>
+                                        <circle 
+                                          cx={Math.max(10, Math.min(990, xPos))} 
+                                          cy="50" 
+                                          r={radius} 
+                                          fill={color} 
+                                          stroke="#fff" 
+                                          strokeWidth="2" 
+                                          opacity="0.95"
+                                        />
+                                      </g>
+                                    );
+                                  })}
+                                </svg>
+                                
+                                {/* Scale labels */}
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5, px: 0.5 }}>
+                                  <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                                    {showFullScale ? 'Min' : 'Rango'}: {Number(rangeMin).toLocaleString()}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                                    {showFullScale ? 'Max' : 'Rango'}: {Number(rangeMax).toLocaleString()}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          );
+                        })()}
+
+                        {/* Statistical values - WITH MEDIAN */}
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 2, mb: 2 }}>
+                          {col.q1 !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
+                              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Q1 (25%)</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#2E7D32' }}>
+                                {Number(col.q1).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                          {col.median !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#E8F5E9', borderRadius: 1, border: '2px solid #66BB6A' }}>
+                              <Typography variant="caption" sx={{ color: '#1B5E20', display: 'block', fontWeight: 600 }}>Mediana (Q2)</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#1B5E20' }}>
+                                {Number(col.median).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                          {col.q3 !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
+                              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Q3 (75%)</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#2E7D32' }}>
+                                {Number(col.q3).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                          {col.iqr !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
+                              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>IQR (Q3 - Q1)</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#1976d2' }}>
+                                {Number(col.iqr).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                          {col.mean !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#FFF8E1', borderRadius: 1, border: '1px solid #FFD54F' }}>
+                              <Typography variant="caption" sx={{ color: '#F57F17', display: 'block' }}>Media (sesgada)</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#F57F17', fontSize: '0.85rem' }}>
+                                {Number(col.mean).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                          {col.lower_bound !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
+                              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Límite inferior</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#E5484D' }}>
+                                {Number(col.lower_bound).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                          {col.upper_bound !== undefined && (
+                            <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
+                              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Límite superior</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#E5484D' }}>
+                                {Number(col.upper_bound).toLocaleString()}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+
+                        {/* Outlier values - WITH CLASSIFICATION AND DISTANCE */}
+                        {outlierValues.length > 0 && (
+                          <Box sx={{ p: 2, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
+                            <Typography variant="caption" sx={{ color: '#888', fontWeight: 600, display: 'block', mb: 1.5 }}>
+                              Valores atípicos detectados ({col.count} total{col.count > 5 ? ', mostrando primeros 5' : ''}):
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {outlierValues.map((outlier, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                  <Chip 
+                                    label={Number(outlier.val).toLocaleString()} 
+                                    size="medium" 
+                                    sx={{ 
+                                      fontFamily: 'monospace', 
+                                      backgroundColor: outlier.isSuspicious ? 'rgba(183, 28, 28, 0.15)' : outlier.isExtreme ? 'rgba(229, 57, 53, 0.15)' : 'rgba(229, 72, 77, 0.1)', 
+                                      color: outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D',
+                                      fontWeight: 600,
+                                      fontSize: '0.9rem',
+                                      minWidth: '120px'
+                                    }} 
+                                  />
+                                  <Chip 
+                                    label={outlier.isSuspicious ? 'Posible error' : outlier.isExtreme ? 'Extremo' : 'Moderado'}
+                                    size="small"
+                                    sx={{ 
+                                      backgroundColor: outlier.isSuspicious ? '#FFEBEE' : outlier.isExtreme ? '#FFF3E0' : '#F5F5F5',
+                                      color: outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E65100' : '#666',
+                                      fontWeight: 500,
+                                      fontSize: '0.7rem'
+                                    }}
+                                  />
+                                  <Typography variant="caption" sx={{ color: '#666', fontFamily: 'monospace' }}>
+                                    {outlier.iqrMultiple.toFixed(1)}× IQR del límite
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ color: '#999' }}>
+                                    ({outlier.val < lb ? 'bajo' : 'alto'})
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+                      </Paper>
+                    );
+                  })}
               </Paper>
             )}
 

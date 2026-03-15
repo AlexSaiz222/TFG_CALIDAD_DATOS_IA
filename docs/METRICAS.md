@@ -87,21 +87,51 @@ La severidad se calcula según la distancia del umbral:
 ## Uniqueness (Unicidad)
 
 ### Descripción
-Mide el porcentaje de filas únicas (sin duplicados completos) y detecta columnas con baja variabilidad.
+**IMPORTANTE**: Esta métrica evalúa **dos conceptos distintos** que no deben confundirse:
+
+1. **Row-level Uniqueness (Unicidad de filas)**: Detecta filas completamente duplicadas
+2. **Column-level Variability (Variabilidad de columnas)**: Detecta columnas con baja diversidad de valores
+
+Ambos se reportan por separado para evitar confusiones.
 
 ### Cómo se calcula
 
-#### Nivel Dataset (filas únicas)
+#### 1. Row-level Uniqueness (Duplicados de filas)
 ```python
-uniqueness = len(df.drop_duplicates()) / len(df)
+row_uniqueness = len(df.drop_duplicates()) / len(df)
 ```
-Proporción de filas que no tienen duplicados completos.
+Proporción de filas que no tienen duplicados completos (todas las columnas iguales).
 
-#### Nivel Columna (variabilidad)
-```python
-uniqueness_columna = df[column].nunique() / len(df)
+**Ejemplo:**
 ```
-Proporción de valores únicos en una columna.
+| id | nombre | edad |
+|----|--------|------|
+| 1  | Ana    | 25   |
+| 2  | Luis   | 30   |
+| 1  | Ana    | 25   |  ← Duplicado completo
+
+row_uniqueness = 2/3 = 66.7%
+```
+
+#### 2. Column-level Variability (Diversidad de columnas)
+```python
+# Excluye nulls del denominador para no mezclar con problemas de completitud
+non_null_count = df[column].notna().sum()
+variability = df[column].nunique(dropna=True) / non_null_count
+```
+Proporción de valores únicos entre los valores no nulos de una columna.
+
+**Ejemplo:**
+```
+Columna "estado" [Activo, Activo, Activo, Inactivo, null]:
+- Valores no nulos: 4
+- Valores únicos: 2 (Activo, Inactivo)
+- Variability = 2/4 = 50%
+```
+
+**¿Por qué excluir nulls?**
+- Los nulls son un problema de **completitud**, no de variabilidad
+- Evita que una columna con muchos nulls baje artificialmente en variabilidad
 
 ### Configuración
 
@@ -117,21 +147,107 @@ Proporción de valores únicos en una columna.
 ```
 
 **Parámetros:**
-- `threshold` (default: 1.0): Umbral mínimo de unicidad. 1.0 significa que no se toleran duplicados.
-- `columns` (opcional): Columnas específicas a evaluar.
+- `threshold` (default: 1.0): Umbral mínimo para **row-level uniqueness**. 1.0 significa que no se toleran filas duplicadas.
+- `columns` (opcional): Lista de columnas que **deben ser únicas** (ej: IDs, emails). Si se especifica, se valida que estas columnas no tengan duplicados.
 - `weight`: Peso de la métrica en el Quality Score.
 
-### Umbrales por defecto
-- **Dataset**: 100% — Cualquier fila duplicada genera un issue
-- **Columna**: 30% — Columnas con < 30% de valores únicos generan un issue informativo
+### Umbrales
 
-### Issues generados
+#### Row-level Uniqueness (filas duplicadas)
+- **Umbral por defecto: 100%** — Cualquier fila duplicada genera un issue
+- **Configurable**: Puedes ajustar el threshold (ej: 0.95 para tolerar hasta 5% de duplicados)
 
-1. **Filas duplicadas**: Cuando hay filas completamente duplicadas
-   - Incluye el número de duplicados y una muestra de hasta 5 filas
-   
-2. **Baja variabilidad en columnas**: Cuando una columna tiene < 30% valores únicos
-   - Útil para detectar columnas con datos repetitivos o poco informativos
+#### Column-level Variability - **Umbrales Adaptativos (NO configurables actualmente)**
+
+DataQual utiliza umbrales adaptativos según el tipo de columna:
+
+| Tipo de Columna | Umbral | Criterio de Detección | Ejemplo |
+|-----------------|--------|----------------------|---------|
+| **ID/Clave** | 95% | Nombre termina en `_id`, `_uuid`, `_guid`, `_key` o es exactamente `id` | `cliente_id`, `order_id`, `uuid` |
+| **Categórica** | 5% | ≤ 20 valores únicos y no numérica | `genero`, `estado_civil`, `pais` |
+| **Numérica/Texto** | 30% | Columnas numéricas o alta cardinalidad | `salario`, `descripcion`, `email` |
+
+**Nota sobre detección de IDs**: Se usan patrones regex específicos (`_id$`, `^id$`, etc.) para evitar falsos positivos como `country_code`, `status_code`, `zip_code`.
+
+**Justificación:**
+- **Columnas ID**: Deben ser casi únicas (95%+) para identificar registros
+- **Columnas categóricas**: Es normal tener pocos valores únicos (ej: género con 2 valores). Solo se alerta si > 95% de valores son iguales (variabilidad extremadamente baja)
+- **Columnas numéricas/texto**: Se espera mayor variabilidad (30%+)
+
+**Ejemplos:**
+```
+Columna "genero" con valores [M, F, M, F, M, F]:
+- Uniqueness = 2/6 = 33%
+- Tipo: Categórica (2 valores únicos)
+- Umbral aplicado: 5%
+- Resultado: ✅ No genera issue (33% > 5%)
+
+Columna "estado" con valores [Activo, Activo, Activo, Activo, Inactivo]:
+- Uniqueness = 2/5 = 40%
+- Tipo: Categórica (2 valores únicos)
+- Umbral aplicado: 5%
+- Resultado: ✅ No genera issue (40% > 5%)
+
+Columna "estado" con valores [Activo, Activo, Activo, ..., Activo] (98% Activo):
+- Uniqueness = 2/100 = 2%
+- Tipo: Categórica
+- Umbral aplicado: 5%
+- Resultado: ⚠️ Genera issue (2% < 5% - variabilidad extremadamente baja)
+
+Columna "cliente_id" con valores [1, 2, 3, 3, 4]:
+- Uniqueness = 4/5 = 80%
+- Tipo: ID (nombre contiene "id")
+- Umbral aplicado: 95%
+- Resultado: ⚠️ Genera issue (80% < 95% - esperamos IDs únicos)
+
+Columna "descripcion" con valores repetitivos:
+- Uniqueness = 15/100 = 15%
+- Tipo: Texto (alta cardinalidad)
+- Umbral aplicado: 30%
+- Resultado: ⚠️ Genera issue (15% < 30% - baja variabilidad sospechosa)
+```
+
+### Tipos de Issues generados
+
+La métrica genera **3 tipos distintos de issues** con fingerprints diferentes:
+
+#### 1. `duplicate_rows` — Filas completamente duplicadas
+**Cuándo**: Cuando hay filas con todas las columnas iguales
+```
+Issue: "Dataset contains 5 duplicate rows (8.6% of total)"
+Tipo: duplicate_rows
+Severidad: Dinámica según % de duplicados
+Incluye: Número de duplicados y muestra de hasta 5 filas
+```
+
+#### 2. `low_variability` — Baja diversidad en columnas
+**Cuándo**: Cuando una columna tiene baja variabilidad según su umbral adaptativo
+```
+Issue: "Low variability in categorical column 'estado' (2% unique values)"
+Tipo: low_variability
+Severidad: Dinámica según distancia del umbral adaptativo
+Incluye: Columna, variabilidad, umbral usado, tipo de columna
+```
+
+#### 3. `non_unique_identifier` — Columnas que deberían ser únicas pero no lo son
+**Cuándo**: Cuando se especifica `columns` en la configuración y esas columnas tienen duplicados
+```
+Issue: "Column 'email' expected to be unique but contains 3 duplicate values (95% unique)"
+Tipo: non_unique_identifier
+Severidad: Dinámica según % de duplicados
+Incluye: Columna, número de duplicados, % de unicidad
+```
+
+**Ejemplo de configuración para validar IDs:**
+```json
+{
+  "id": "uniqueness",
+  "parameters": {
+    "threshold": 1.0,
+    "columns": ["cliente_id", "email"]  // Estas columnas DEBEN ser únicas
+  }
+}
+```
 
 ### Severidad dinámica
 
@@ -143,10 +259,16 @@ Proporción de valores únicos en una columna.
 | 85-95% | **medium/low** | Algunos duplicados |
 | 95-100% | **low** | Pocos duplicados |
 
-**Ejemplo:**
+**Ejemplos de severidad:**
+
+*Para filas duplicadas (row-level):*
 - Uniqueness 40% (60% duplicados) → `critical`
 - Uniqueness 91.4% (8.6% duplicados) → `low`
-- Columna con 22% valores únicos → `critical` (muy baja variabilidad)
+
+*Para baja variabilidad en columnas (column-level):*
+- Columna numérica con 22% valores únicos (umbral 30%) → `critical` (muy baja variabilidad)
+- Columna categórica "genero" con 50% valores únicos (umbral 5%) → No genera issue (es normal)
+- Columna ID con 80% valores únicos (umbral 95%) → `high` (esperamos IDs casi únicos)
 
 ---
 
@@ -430,6 +552,21 @@ Ejemplo: Si `lower_bound = 15,000` y `upper_bound = 95,000`, entonces:
 ### ¿Puedo desactivar una métrica?
 
 Sí, simplemente no la incluyas en el `metrics_config` al crear la evaluación. Si no especificas configuración, se usan las métricas por defecto (completeness, uniqueness, outliers).
+
+### ¿Por qué una columna categórica como "genero" no genera issues de baja variabilidad?
+
+DataQual utiliza **umbrales adaptativos** para la detección de baja variabilidad en columnas. Las columnas categóricas (≤ 20 valores únicos, no numéricas) tienen un umbral del **5%** en lugar del 30% estándar.
+
+**Razón**: Es completamente normal que columnas como `genero`, `estado_civil`, o `pais` tengan pocos valores únicos. Una columna `genero` con 50% de valores únicos (2 valores: M y F) es perfectamente válida y no indica un problema de calidad.
+
+Solo se genera un issue si la variabilidad es **extremadamente baja** (< 5%), lo que indicaría que más del 95% de los valores son iguales. Ejemplo:
+- ✅ `genero` con [M, F, M, F] → 50% unique → No issue (normal)
+- ⚠️ `estado` con 98% "Activo" y 2% "Inactivo" → 2% unique → Issue (variabilidad sospechosamente baja)
+
+**Tipos de columnas y sus umbrales:**
+- **ID/Clave** (nombre contiene "id", "code", etc.): 95% — Deben ser casi únicas
+- **Categórica** (≤ 20 valores únicos): 5% — Solo alertar si extremadamente baja
+- **Numérica/Texto**: 30% — Se espera mayor variabilidad
 
 ---
 

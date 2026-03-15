@@ -437,50 +437,93 @@ class EvaluationService:
                         })
                 
                 elif metric_id == 'uniqueness':
-                    # Calculate uniqueness
-                    if 'columns' in parameters and parameters['columns']:
-                        # Calculate for specific columns
-                        columns = parameters['columns']
-                        uniqueness_values = []
-                        for col in columns:
-                            if col in df.columns:
-                                col_uniqueness = df[col].nunique() / len(df) if len(df) > 0 else 1.0
-                                uniqueness_values.append(col_uniqueness)
-                        
-                        if uniqueness_values:
-                            uniqueness = sum(uniqueness_values) / len(uniqueness_values)
-                        else:
-                            uniqueness = 1.0  # Default if no valid columns specified
-                    else:
-                        # Calculate for entire dataset (row-wise) and also check column-level uniqueness
-                        uniqueness = len(df.drop_duplicates()) / len(df) if len(df) > 0 else 1.0
-                        
-                        # Check column-level uniqueness for potential issues
-                        column_uniqueness_issues = []
-                        for col in df.columns:
-                            col_uniqueness = df[col].nunique() / len(df) if len(df) > 0 else 1.0
-                            if col_uniqueness < 0.3 and len(df) > 10:  # Only flag low uniqueness for non-trivial datasets
-                                column_uniqueness_issues.append({
-                                    'column': col,
-                                    'uniqueness': float(col_uniqueness),
-                                    'duplicate_count': int(len(df) - df[col].nunique())
-                                })
+                    # REFACTORED: Separate row-level uniqueness from column-level variability
+                    # Based on professor feedback to avoid mixing two distinct concepts
                     
-                    results['uniqueness'] = uniqueness
+                    # Initialize column variability issues list (FIX: bug if columns parameter is used)
+                    column_variability_issues = []
+                    
+                    # 1. ROW-LEVEL UNIQUENESS (duplicate rows detection)
+                    row_uniqueness = len(df.drop_duplicates()) / len(df) if len(df) > 0 else 1.0
+                    
+                    # 2. COLUMN-LEVEL VARIABILITY (diversity/cardinality check)
+                    # Check all columns for low variability with adaptive thresholds
+                    for col in df.columns:
+                        # FIX: Exclude nulls from denominator to avoid mixing completeness issues
+                        non_null_count = df[col].notna().sum()
+                        if non_null_count == 0:
+                            continue  # Skip columns with all nulls
+                        
+                        num_unique = df[col].nunique(dropna=True)
+                        col_variability = num_unique / non_null_count
+                        
+                        # Determine adaptive threshold based on column characteristics
+                        threshold = self._get_adaptive_variability_threshold(df[col], col)
+                        
+                        # Only flag if below adaptive threshold and dataset is non-trivial
+                        if col_variability < threshold and len(df) > 10:
+                            column_variability_issues.append({
+                                'column': col,
+                                'variability': float(col_variability),
+                                'unique_values': int(num_unique),
+                                'non_null_count': int(non_null_count),
+                                'threshold_used': float(threshold),
+                                'column_type': self._infer_column_type(df[col], col)
+                            })
+                    
+                    # Store separate metrics in results
+                    results['row_uniqueness'] = row_uniqueness
+                    if column_variability_issues:
+                        # Calculate average variability for columns with issues
+                        avg_variability = sum(c['variability'] for c in column_variability_issues) / len(column_variability_issues)
+                        results['column_variability_avg'] = avg_variability
+                    
+                    # For backward compatibility and quality score calculation
+                    # Use row_uniqueness as the primary metric
+                    results['uniqueness'] = row_uniqueness
                     processed_metrics.append('uniqueness')
-                    metric_scores.append(uniqueness * weight)
+                    metric_scores.append(row_uniqueness * weight)
                     
-                    # Check uniqueness threshold
+                    # Check uniqueness threshold for row duplicates
                     uniqueness_threshold = parameters.get('threshold', 1.0)
                     
-                    # Always check for column-level uniqueness issues
-                    if column_uniqueness_issues:
-                        # Create fingerprint for each affected column
-                        for col_issue in column_uniqueness_issues:
-                            # Dynamic severity based on how low uniqueness is
-                            col_uniq_severity = self._calculate_dynamic_severity(
-                                actual_value=col_issue['uniqueness'],
-                                threshold=0.3,  # We flag columns < 30% unique
+                    # 3. GENERATE ISSUES FOR COLUMN VARIABILITY
+                    for col_issue in column_variability_issues:
+                        # FIX: Use adaptive threshold for severity calculation (not hardcoded 0.3)
+                        col_var_severity = self._calculate_dynamic_severity(
+                            actual_value=col_issue['variability'],
+                            threshold=col_issue['threshold_used'],
+                            metric_type='uniqueness',
+                            higher_is_better=True
+                        )
+                        
+                        # FIX: Use "low variability" instead of "low uniqueness" for clarity
+                        col_type_desc = col_issue['column_type']
+                        issues.append({
+                            'evaluation_id': evaluation.id,
+                            'metric_id': metrics_map.get(metric_id),
+                            'severity': col_var_severity,
+                            'description': f"Low variability in {col_type_desc} column '{col_issue['column']}' ({col_issue['variability']:.2%} unique values)",
+                            'affected_columns': [col_issue],
+                            'issue_type': 'low_variability',
+                            'fingerprint': generate_issue_fingerprint(
+                                issue_type='low_variability',
+                                column_name=col_issue['column'],
+                                rule_key='adaptive_threshold',
+                                extra_params={'threshold': col_issue['threshold_used']}
+                            )
+                        })
+                    
+                    # 4. GENERATE ISSUES FOR ROW DUPLICATES
+                    if row_uniqueness < uniqueness_threshold:
+                        duplicates = df[df.duplicated(keep='first')]
+                        duplicate_count = len(duplicates)
+                        
+                        if duplicate_count > 0:
+                            # Dynamic severity based on uniqueness score
+                            row_dup_severity = self._calculate_dynamic_severity(
+                                actual_value=row_uniqueness,
+                                threshold=uniqueness_threshold,
                                 metric_type='uniqueness',
                                 higher_is_better=True
                             )
@@ -488,59 +531,37 @@ class EvaluationService:
                             issues.append({
                                 'evaluation_id': evaluation.id,
                                 'metric_id': metrics_map.get(metric_id),
-                                'severity': col_uniq_severity,
-                                'description': f"Low uniqueness in column '{col_issue['column']}' ({col_issue['uniqueness']:.2%})",
-                                'affected_columns': [col_issue],
-                                'issue_type': 'uniqueness',
+                                'severity': row_dup_severity,
+                                'description': f"Dataset contains {duplicate_count} duplicate rows ({(1-row_uniqueness):.2%} of total)",
+                                'affected_rows': {
+                                    'count': duplicate_count,
+                                    'sample': json.loads(duplicates.head(5).to_json(orient='records')) if duplicate_count > 0 else []
+                                },
+                                'issue_type': 'duplicate_rows',
                                 'fingerprint': generate_duplicate_issue_fingerprint(
-                                    column_name=col_issue['column'],
-                                    is_row_level=False
+                                    is_row_level=True
                                 )
                             })
                     
-                    if uniqueness < uniqueness_threshold:
-                        # Find duplicate rows or values
-                        if 'columns' in parameters and parameters['columns']:
-                            # Column-specific duplicates
-                            duplicate_info = {}
-                            for col in parameters['columns']:
-                                if col in df.columns:
-                                    duplicate_count = len(df) - df[col].nunique()
-                                    if duplicate_count > 0:
-                                        duplicate_info[col] = duplicate_count
+                    # 5. HANDLE COLUMN-SPECIFIC UNIQUENESS (if columns parameter provided)
+                    # This checks for non-unique values in columns that SHOULD be unique (e.g., IDs)
+                    if 'columns' in parameters and parameters['columns']:
+                        for col in parameters['columns']:
+                            if col not in df.columns:
+                                continue
                             
-                            if duplicate_info:
-                                for col, count in duplicate_info.items():
-                                    # Calculate column uniqueness for severity
-                                    col_uniqueness = df[col].nunique() / len(df) if len(df) > 0 else 1.0
-                                    col_dup_severity = self._calculate_dynamic_severity(
-                                        actual_value=col_uniqueness,
-                                        threshold=uniqueness_threshold,
-                                        metric_type='uniqueness',
-                                        higher_is_better=True
-                                    )
-                                    
-                                    issues.append({
-                                        'evaluation_id': evaluation.id,
-                                        'metric_id': metrics_map.get(metric_id),
-                                        'severity': col_dup_severity,
-                                        'description': f"Column '{col}' contains {count} duplicate values",
-                                        'affected_columns': [{'column': col, 'duplicate_count': count}],
-                                        'issue_type': 'uniqueness',
-                                        'fingerprint': generate_duplicate_issue_fingerprint(
-                                            column_name=col,
-                                            is_row_level=False
-                                        )
-                                    })
-                        else:
-                            # Row-wise duplicates
-                            duplicates = df[df.duplicated(keep='first')]
-                            duplicate_count = len(duplicates)
+                            non_null_count = df[col].notna().sum()
+                            if non_null_count == 0:
+                                continue
                             
-                            if duplicate_count > 0:
-                                # Dynamic severity based on uniqueness score
-                                row_dup_severity = self._calculate_dynamic_severity(
-                                    actual_value=uniqueness,
+                            num_unique = df[col].nunique(dropna=True)
+                            col_uniqueness = num_unique / non_null_count
+                            duplicate_count = non_null_count - num_unique
+                            
+                            if col_uniqueness < uniqueness_threshold and duplicate_count > 0:
+                                # This is a true uniqueness violation (expected unique, found duplicates)
+                                col_dup_severity = self._calculate_dynamic_severity(
+                                    actual_value=col_uniqueness,
                                     threshold=uniqueness_threshold,
                                     metric_type='uniqueness',
                                     higher_is_better=True
@@ -549,15 +570,15 @@ class EvaluationService:
                                 issues.append({
                                     'evaluation_id': evaluation.id,
                                     'metric_id': metrics_map.get(metric_id),
-                                    'severity': row_dup_severity,
-                                    'description': f"Dataset contains {duplicate_count} duplicate rows ({(1-uniqueness):.2%} of total)",
-                                    'affected_rows': {
-                                        'count': duplicate_count,
-                                        'sample': json.loads(duplicates.head(5).to_json(orient='records')) if duplicate_count > 0 else []
-                                    },
-                                    'issue_type': 'uniqueness',
-                                    'fingerprint': generate_duplicate_issue_fingerprint(
-                                        is_row_level=True
+                                    'severity': col_dup_severity,
+                                    'description': f"Column '{col}' expected to be unique but contains {duplicate_count} duplicate values ({col_uniqueness:.2%} unique)",
+                                    'affected_columns': [{'column': col, 'duplicate_count': duplicate_count, 'uniqueness': float(col_uniqueness)}],
+                                    'issue_type': 'non_unique_identifier',
+                                    'fingerprint': generate_issue_fingerprint(
+                                        issue_type='non_unique_identifier',
+                                        column_name=col,
+                                        rule_key='expected_unique',
+                                        extra_params={'threshold': uniqueness_threshold}
                                     )
                                 })
                 
@@ -978,6 +999,68 @@ class EvaluationService:
                 'error': str(e)
             }
     
+    def _infer_column_type(self, series, column_name):
+        """Infer semantic column type for better issue descriptions
+        
+        Args:
+            series: Pandas series to analyze
+            column_name: Name of the column
+            
+        Returns:
+            str: Column type description ('ID', 'categorical', 'numeric', 'text')
+        """
+        num_unique = series.nunique()
+        
+        # Check if it's an ID column (more specific patterns)
+        id_patterns = [r'_id$', r'^id$', r'_uuid$', r'^uuid$', r'_guid$', r'_key$']
+        import re
+        if any(re.search(pattern, column_name.lower()) for pattern in id_patterns):
+            return 'ID'
+        
+        # Categorical: few unique values, non-numeric
+        if num_unique <= 20 and not pd.api.types.is_numeric_dtype(series):
+            return 'categorical'
+        
+        # Numeric
+        if pd.api.types.is_numeric_dtype(series):
+            return 'numeric'
+        
+        # High-cardinality text
+        return 'text'
+    
+    def _get_adaptive_variability_threshold(self, series, column_name):
+        """Determine adaptive threshold for column variability based on column type
+        
+        Args:
+            series: Pandas series to analyze
+            column_name: Name of the column
+            
+        Returns:
+            float: Adaptive threshold for uniqueness (0.0 to 1.0)
+        """
+        num_unique = series.nunique()
+        
+        # FIX: More specific ID column detection (avoid false positives like 'country_code')
+        # Only match patterns like: _id, id, _uuid, _guid, _key at end of name
+        id_patterns = [r'_id$', r'^id$', r'_uuid$', r'^uuid$', r'_guid$', r'_key$']
+        import re
+        is_id_column = any(re.search(pattern, column_name.lower()) for pattern in id_patterns)
+        
+        if is_id_column:
+            return 0.95  # Expect 95%+ unique values for ID columns
+        
+        # Categorical columns (few unique values, non-numeric)
+        is_categorical = (num_unique <= 20 and not pd.api.types.is_numeric_dtype(series))
+        
+        if is_categorical:
+            # For categorical columns, only flag if extremely low variability
+            # (e.g., 95%+ of values are the same)
+            return 0.05  # Flag only if < 5% unique (very low variability)
+        else:
+            # For numeric or high-cardinality text columns
+            # Use standard threshold of 30%
+            return 0.30
+    
     def _calculate_dynamic_severity(self, actual_value, threshold, metric_type='completeness', higher_is_better=True):
         """Calculate dynamic severity based on distance from threshold
         
@@ -1096,9 +1179,15 @@ class EvaluationService:
         result = {
             'count': len(outliers),
             'indices': list(outliers.index),
+            'total_values': len(series),
+            'proportion': len(outliers) / len(series) if len(series) > 0 else 0,
             'method': method,
             'factor': factor,
             'sample_values': [float(v) for v in outliers.head(5).values] if len(outliers) > 0 else [],
+            'series_min': float(series.min()),
+            'series_max': float(series.max()),
+            'median': float(series.median()),
+            'mean': float(series.mean()),
         }
         
         if method == 'iqr':
@@ -1107,6 +1196,7 @@ class EvaluationService:
             result['q1'] = float(q1)
             result['q3'] = float(q3)
             result['iqr'] = float(iqr)
+            result['median'] = float(series.median())  # Q2
         elif method == 'zscore':
             result['mean'] = float(mean)
             result['std'] = float(std)
