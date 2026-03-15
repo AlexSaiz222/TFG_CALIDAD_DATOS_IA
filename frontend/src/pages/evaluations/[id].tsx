@@ -564,24 +564,14 @@ const EvaluationDetail = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 600 }}>{colName}</Typography>
                             <Chip 
-                              label={`${col.count} outliers`} 
+                              label={`${col.count} outlier${col.count > 1 ? 's' : ''}`} 
                               size="small" 
                               sx={{ backgroundColor: `${severityColor}20`, color: severityColor, fontWeight: 600 }} 
                             />
-                            {extremeCount > 0 && (
-                              <Chip 
-                                label={`${extremeCount} extremo${extremeCount > 1 ? 's' : ''}`}
-                                size="small" 
-                                sx={{ backgroundColor: 'rgba(229, 72, 77, 0.15)', color: '#C62828', fontWeight: 600, fontSize: '0.7rem' }} 
-                              />
-                            )}
                           </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                             <Typography variant="body2" sx={{ color: '#666' }}>
-                              {col.count} de {col.total_values || 'N/A'} registros
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#666', fontWeight: 600 }}>
-                              {proportionPct}% afectados
+                              {col.count} de {col.total_values || 'N/A'} registros · {proportionPct}% afectados
                             </Typography>
                             <Chip 
                               label={`Severidad: ${severityLabel}`} 
@@ -650,8 +640,20 @@ const EvaluationDetail = () => {
                               {needsZoom && !showFullScale && (
                                 <Alert severity="info" sx={{ mb: 1, py: 0.5 }}>
                                   <Typography variant="caption">
-                                    {extremeCount} outlier{extremeCount > 1 ? 's' : ''} extremadamente alejado{extremeCount > 1 ? 's' : ''} fuera de escala. 
-                                    Haz clic en "Ver escala completa" para visualizarlos.
+                                    {(() => {
+                                      const outOfScaleCount = outlierValues.filter(o => {
+                                        const val = o.val;
+                                        return val < rangeMin || val > rangeMax;
+                                      }).length;
+                                      const visibleCount = outlierValues.length - outOfScaleCount;
+                                      
+                                      if (outOfScaleCount === outlierValues.length) {
+                                        return `Todos los ${outlierValues.length} outliers están fuera de escala. Haz clic en "Ver escala completa" para visualizarlos.`;
+                                      } else if (outOfScaleCount > 0) {
+                                        return `${visibleCount} outlier${visibleCount > 1 ? 's' : ''} visible${visibleCount > 1 ? 's' : ''} en rango normal. ${outOfScaleCount} colapsado${outOfScaleCount > 1 ? 's' : ''} fuera de escala (haz clic en "Ver escala completa").`;
+                                      }
+                                      return '';
+                                    })()}
                                   </Typography>
                                 </Alert>
                               )}
@@ -729,10 +731,10 @@ const EvaluationDetail = () => {
                                 {/* Scale labels */}
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5, px: 0.5 }}>
                                   <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.7rem' }}>
-                                    {showFullScale ? 'Min' : 'Rango'}: {Number(rangeMin).toLocaleString()}
+                                    {showFullScale ? 'Min absoluto' : 'Min visible'}: {Number(rangeMin).toLocaleString()}
                                   </Typography>
                                   <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.7rem' }}>
-                                    {showFullScale ? 'Max' : 'Rango'}: {Number(rangeMax).toLocaleString()}
+                                    {showFullScale ? 'Max absoluto' : 'Max visible'}: {Number(rangeMax).toLocaleString()}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -775,9 +777,11 @@ const EvaluationDetail = () => {
                             </Box>
                           )}
                           {col.mean !== undefined && (
-                            <Box sx={{ p: 1.5, backgroundColor: '#FFF8E1', borderRadius: 1, border: '1px solid #FFD54F' }}>
-                              <Typography variant="caption" sx={{ color: '#F57F17', display: 'block' }}>Media (sesgada)</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#F57F17', fontSize: '0.85rem' }}>
+                            <Box sx={{ p: 1.5, backgroundColor: '#FAFAFA', borderRadius: 1, border: '1px solid #E0E0E0' }}>
+                              <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.7rem' }}>
+                                Media (sesgada por extremos)
+                              </Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace', color: '#999', fontSize: '0.8rem' }}>
                                 {Number(col.mean).toLocaleString()}
                               </Typography>
                             </Box>
@@ -800,46 +804,59 @@ const EvaluationDetail = () => {
                           )}
                         </Box>
 
-                        {/* Outlier values - WITH CLASSIFICATION AND DISTANCE */}
+                        {/* Outlier values - TABLE LAYOUT for better scannability */}
                         {outlierValues.length > 0 && (
                           <Box sx={{ p: 2, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
                             <Typography variant="caption" sx={{ color: '#888', fontWeight: 600, display: 'block', mb: 1.5 }}>
                               Valores atípicos detectados ({col.count} total{col.count > 5 ? ', mostrando primeros 5' : ''}):
                             </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                              {outlierValues.map((outlier, idx) => (
-                                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                  <Chip 
-                                    label={Number(outlier.val).toLocaleString()} 
-                                    size="medium" 
-                                    sx={{ 
-                                      fontFamily: 'monospace', 
-                                      backgroundColor: outlier.isSuspicious ? 'rgba(183, 28, 28, 0.15)' : outlier.isExtreme ? 'rgba(229, 57, 53, 0.15)' : 'rgba(229, 72, 77, 0.1)', 
-                                      color: outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D',
-                                      fontWeight: 600,
-                                      fontSize: '0.9rem',
-                                      minWidth: '120px'
-                                    }} 
-                                  />
-                                  <Chip 
-                                    label={outlier.isSuspicious ? 'Posible error' : outlier.isExtreme ? 'Extremo' : 'Moderado'}
-                                    size="small"
-                                    sx={{ 
-                                      backgroundColor: outlier.isSuspicious ? '#FFEBEE' : outlier.isExtreme ? '#FFF3E0' : '#F5F5F5',
-                                      color: outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E65100' : '#666',
-                                      fontWeight: 500,
-                                      fontSize: '0.7rem'
-                                    }}
-                                  />
-                                  <Typography variant="caption" sx={{ color: '#666', fontFamily: 'monospace' }}>
-                                    {outlier.iqrMultiple.toFixed(1)}× IQR del límite
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#999' }}>
-                                    ({outlier.val < lb ? 'bajo' : 'alto'})
-                                  </Typography>
-                                </Box>
-                              ))}
-                            </Box>
+                            <TableContainer>
+                              <Table size="small">
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>Valor</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>Clasificación</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>Distancia</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {outlierValues.map((outlier, idx) => (
+                                    <TableRow key={idx} sx={{ '&:hover': { backgroundColor: '#F9F9F9' } }}>
+                                      <TableCell>
+                                        <Typography 
+                                          variant="body2" 
+                                          sx={{ 
+                                            fontFamily: 'monospace', 
+                                            fontWeight: 600,
+                                            color: outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D',
+                                            fontSize: '0.85rem'
+                                          }}
+                                        >
+                                          {Number(outlier.val).toLocaleString()}
+                                        </Typography>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Chip 
+                                          label={outlier.isSuspicious ? 'Posible error' : outlier.isExtreme ? 'Extremo' : 'Plausible'}
+                                          size="small"
+                                          sx={{ 
+                                            backgroundColor: outlier.isSuspicious ? '#FFEBEE' : outlier.isExtreme ? '#FFF3E0' : '#F5F5F5',
+                                            color: outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E65100' : '#666',
+                                            fontWeight: 500,
+                                            fontSize: '0.7rem'
+                                          }}
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <Typography variant="caption" sx={{ color: '#666', fontFamily: 'monospace' }}>
+                                          {outlier.iqrMultiple.toFixed(1)}× sobre límite {outlier.val < lb ? '(bajo)' : '(alto)'}
+                                        </Typography>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
                           </Box>
                         )}
                       </Paper>

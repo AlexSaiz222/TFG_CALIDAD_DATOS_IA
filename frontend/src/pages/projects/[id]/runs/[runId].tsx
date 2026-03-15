@@ -46,7 +46,7 @@ const AnalysisRunDetail = () => {
   const [project, setProject] = useState<any>(null);
   const [issues, setIssues] = useState<DataQualityIssue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [issuesLoading, setIssuesLoading] = useState(false);
+  const [issuesLoading, setIssuesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
