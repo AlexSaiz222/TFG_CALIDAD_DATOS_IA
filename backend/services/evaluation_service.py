@@ -847,7 +847,9 @@ class EvaluationService:
                     severity=issue_data['severity'],
                     description=issue_data['description'],
                     affected_columns=issue_data.get('affected_columns'),
-                    affected_rows=issue_data.get('affected_rows')
+                    affected_rows=issue_data.get('affected_rows'),
+                    issue_type=issue_data.get('issue_type'),
+                    fingerprint=issue_data.get('fingerprint')
                 )
                 db.session.add(issue)
             

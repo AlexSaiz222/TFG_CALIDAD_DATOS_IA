@@ -166,7 +166,11 @@ const DatasetDetail = () => {
           const evaluationsResponse = await evaluationsAPI.getEvaluations(datasetId);
           // Extraer las evaluaciones de la estructura de respuesta
           const evaluationsData = evaluationsResponse?.data?.data || evaluationsResponse?.data || [];
-          setEvaluations(Array.isArray(evaluationsData) ? evaluationsData : []);
+          // Sort evaluations by ID descending (newest first)
+          const sortedEvaluations = Array.isArray(evaluationsData) 
+            ? evaluationsData.sort((a: Evaluation, b: Evaluation) => b.id - a.id)
+            : [];
+          setEvaluations(sortedEvaluations);
           
           // Fetch issues if there are evaluations
           if (Array.isArray(evaluationsData) && evaluationsData.length > 0) {
