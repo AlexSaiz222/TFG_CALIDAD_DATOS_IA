@@ -262,6 +262,9 @@ def get_evaluation_status(evaluation_id):
             "message": "No tienes permisos para acceder a esta evaluación"
         }), 403
     
+    # Refresh to get latest data from DB (in case of concurrent updates)
+    db.session.refresh(evaluation)
+    
     # Calcular tiempo estimado de finalización si está en proceso
     estimated_completion = None
     if evaluation.status == 'processing' and evaluation.started_at and evaluation.progress > 0:
@@ -273,6 +276,15 @@ def get_evaluation_status(evaluation_id):
             estimated_completion = (evaluation.started_at + 
                                    timedelta(seconds=total_estimated_time)).isoformat()
     
+    # Calculate issue count
+    try:
+        issue_count = len(evaluation.issues) if evaluation.issues else 0
+    except Exception:
+        issue_count = 0
+    
+    # Get quality score (already in 0-100 scale in DB) and convert to float
+    quality_score = float(evaluation.quality_score) if evaluation.quality_score is not None else None
+    
     # Construir respuesta con información de estado
     status_info = {
         "evaluation_id": evaluation.id,
@@ -283,7 +295,8 @@ def get_evaluation_status(evaluation_id):
         "started_at": evaluation.started_at.isoformat() if evaluation.started_at else None,
         "completed_at": evaluation.completed_at.isoformat() if evaluation.completed_at else None,
         "estimated_completion": estimated_completion,
-        "issue_count": evaluation.issue_count
+        "issue_count": issue_count,
+        "quality_score": quality_score
     }
     
     return jsonify({

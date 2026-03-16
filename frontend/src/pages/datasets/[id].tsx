@@ -280,6 +280,7 @@ const DatasetDetail = () => {
             const statusData = statusResponse.data?.data?.status || statusResponse.data?.data || statusResponse.data;
             
             console.log(`Polling evaluation ${evalId}:`, statusData);
+            console.log(`Quality score from status:`, statusData.quality_score, typeof statusData.quality_score);
             
             setEvaluations((prev: Evaluation[]) => prev.map((evaluation: Evaluation) => {
               if (evaluation.id === evalId) {
@@ -310,6 +311,7 @@ const DatasetDetail = () => {
                   started_at: statusData.started_at,
                   error: statusData.error,
                   issue_count: statusData.issue_count,
+                  quality_score: statusData.quality_score,
                 };
               }
               return evaluation;
@@ -696,6 +698,7 @@ const DatasetDetail = () => {
                     <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Duration</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Quality Score</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Issues</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                   </TableRow>
@@ -782,6 +785,31 @@ const DatasetDetail = () => {
                           return '-';
                         })()}
                       </TableCell>
+                      <TableCell>
+                        {evaluation.status === 'completed' && evaluation.quality_score !== null && evaluation.quality_score !== undefined && typeof evaluation.quality_score === 'number' ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                color: evaluation.quality_score >= 80 ? '#00B37E' : evaluation.quality_score >= 60 ? '#FFB800' : '#E5484D'
+                              }}
+                            >
+                              {evaluation.quality_score.toFixed(1)}%
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                backgroundColor: evaluation.quality_score >= 80 ? '#00B37E' : evaluation.quality_score >= 60 ? '#FFB800' : '#E5484D'
+                              }}
+                            />
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" sx={{ color: '#888' }}>—</Typography>
+                        )}
+                      </TableCell>
                       <TableCell>{evaluation.issue_count || 0}</TableCell>
                       <TableCell>
                         <Button
@@ -798,7 +826,7 @@ const DatasetDetail = () => {
                             },
                           }}
                         >
-                          View Details
+                          View details
                         </Button>
                         <Button
                           size="small"
@@ -826,7 +854,7 @@ const DatasetDetail = () => {
                             },
                           }}
                         >
-                          View Issues
+                          View issues
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -852,7 +880,7 @@ const DatasetDetail = () => {
                   },
                 }}
               >
-                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'run Evaluation'}
+                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
               </Button>
             </Box>
           )}

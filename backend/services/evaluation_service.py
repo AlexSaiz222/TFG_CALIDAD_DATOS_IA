@@ -809,7 +809,7 @@ class EvaluationService:
             
             # Update legacy Evaluation with results
             evaluation.results = results_dict
-            evaluation.quality_score = quality_score
+            evaluation.quality_score = float(quality_score) * 100  # Convert to 0-100 scale
             evaluation.status = 'completed'
             evaluation.completed_at = datetime.utcnow()
             
