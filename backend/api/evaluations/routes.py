@@ -282,7 +282,8 @@ def get_evaluation_status(evaluation_id):
         "error": evaluation.error,
         "started_at": evaluation.started_at.isoformat() if evaluation.started_at else None,
         "completed_at": evaluation.completed_at.isoformat() if evaluation.completed_at else None,
-        "estimated_completion": estimated_completion
+        "estimated_completion": estimated_completion,
+        "issue_count": evaluation.issue_count
     }
     
     return jsonify({

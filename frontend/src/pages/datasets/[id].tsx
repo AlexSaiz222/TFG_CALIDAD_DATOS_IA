@@ -309,6 +309,7 @@ const DatasetDetail = () => {
                   completed_at: statusData.completed_at,
                   started_at: statusData.started_at,
                   error: statusData.error,
+                  issue_count: statusData.issue_count,
                 };
               }
               return evaluation;
