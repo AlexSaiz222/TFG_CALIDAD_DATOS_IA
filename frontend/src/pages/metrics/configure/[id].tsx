@@ -336,11 +336,21 @@ const MetricsConfigurationPage = () => {
         if (projectObj?.metrics_config && Array.isArray(projectObj.metrics_config)) {
           console.log('Rehidratando métricas con configuración del proyecto:', projectObj.metrics_config);
           hydratedMetrics = normalizedMetrics.map((metric: any) => {
+            // Buscar por nombre (string) ya que metrics_config usa id como string ("completeness", "uniqueness", etc.)
+            // mientras que el catálogo de métricas usa id numérico
             const cfg = projectObj.metrics_config.find(
-              (m: any) => (m.metric_id ?? m.id) === metric.id
+              (m: any) => {
+                const configId = m.metric_id ?? m.id;
+                // Comparar por nombre (case-insensitive) o por ID si coincide
+                return (
+                  (typeof configId === 'string' && metric.name && configId.toLowerCase() === metric.name.toLowerCase()) ||
+                  (typeof configId === 'number' && configId === metric.id) ||
+                  (m.name && metric.name && m.name.toLowerCase() === metric.name.toLowerCase())
+                );
+              }
             );
             if (cfg) {
-              console.log(`Encontrada configuración para métrica ${metric.id}:`, cfg);
+              console.log(`Encontrada configuración para métrica ${metric.name} (ID: ${metric.id}):`, cfg);
               const params = cfg.parameters ?? {};
               const configured = {
                 ...metric,
@@ -444,10 +454,11 @@ const MetricsConfigurationPage = () => {
     setSuccess(null);
 
     try {
-      // Formato correcto para la API: un array de objetos con metric_id y parameters
+      // Formato correcto para la API: un array de objetos con id (nombre de la métrica) y parameters
       const metricsConfig = selectedMetrics.map((metric) => ({
-        metric_id: metric.id,  // Cambiado de id a metric_id para coincidir con el formato esperado
+        id: metric.name,  // Usar el nombre de la métrica como id (string) para consistencia
         parameters: metric.parameters || {},
+        weight: metric.weight || 1.0  // Incluir weight si existe
       }));
 
       // El formato esperado por la API
@@ -614,7 +625,7 @@ const MetricsConfigurationPage = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Configuración de Métricas
+              Configuración de métricas
             </Typography>
           </Box>
           <Alert 
@@ -686,7 +697,7 @@ const MetricsConfigurationPage = () => {
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Configuración de Métricas
+              Configuración de métricas
             </Typography>
             {project && (
               <Typography variant="body1" sx={{ color: '#555555', mt: 1 }}>

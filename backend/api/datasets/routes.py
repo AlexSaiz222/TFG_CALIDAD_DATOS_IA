@@ -958,8 +958,12 @@ def create_dataset_evaluation(dataset_id):
     data = request.get_json() or {}
     logger.info(f"Datos recibidos en create_dataset_evaluation para dataset {dataset_id}: {data}")
     
-    # Definir métricas por defecto para cuando no se proporciona configuración
-    default_metrics = [
+    # Obtener métricas configuradas en el proyecto
+    # Si el proyecto tiene metrics_config, usarlas; si no, usar métricas por defecto
+    project_metrics = project.metrics_config if project.metrics_config else []
+    
+    # Métricas por defecto (fallback si el proyecto no tiene configuración)
+    default_metrics = project_metrics if len(project_metrics) > 0 else [
         {
             "id": "completeness",
             "parameters": {},
@@ -976,6 +980,8 @@ def create_dataset_evaluation(dataset_id):
             "weight": 1.0
         }
     ]
+    
+    logger.info(f"Usando métricas del proyecto (total: {len(default_metrics)}): {default_metrics}")
     
     # Opciones por defecto
     default_options = {

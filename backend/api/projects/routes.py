@@ -140,11 +140,34 @@ def create_project():
                 "message": "El nombre del proyecto es obligatorio"
             }), 400
         
+        # Métricas por defecto para nuevos proyectos
+        default_metrics = [
+            {
+                "id": "completeness",
+                "parameters": {},
+                "weight": 1.0
+            },
+            {
+                "id": "uniqueness",
+                "parameters": {},
+                "weight": 1.0
+            },
+            {
+                "id": "outliers",
+                "parameters": {"method": "iqr", "factor": 1.5},
+                "weight": 1.0
+            }
+        ]
+        
+        # Usar métricas proporcionadas o las por defecto
+        metrics_config = data.get('metrics_config', default_metrics)
+        
         # Create new project
         new_project = Project(
             name=data['name'],
             description=data.get('description', ''),
-            owner_id=current_user_id_int
+            owner_id=current_user_id_int,
+            metrics_config=metrics_config
         )
         
         # Save project to database
@@ -237,6 +260,8 @@ def update_project(project_id):
             project.name = data['name']
         if 'description' in data:
             project.description = data['description']
+        if 'metrics_config' in data:
+            project.metrics_config = data['metrics_config']
         
         # Save changes to database
         try:

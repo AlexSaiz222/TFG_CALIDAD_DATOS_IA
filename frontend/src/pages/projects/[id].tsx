@@ -267,18 +267,25 @@ const ProjectDetail = () => {
           const enrichedMetrics = Array.isArray(rawMetrics) ? rawMetrics.map(metric => {
             const metricId = metric.metric_id ?? metric.id;
             // Buscar la métrica en el catálogo completo
-            const fullMetricInfo = availableMetrics.find(m => 
-              (m.id === metricId || m.metric_id === metricId) || 
-              (typeof m.name === 'string' && typeof metric.name === 'string' && 
-               m.name.toLowerCase() === metric.name.toLowerCase())
-            );
+            // Si metricId es string ("completeness"), comparar con el nombre de la métrica en el catálogo
+            const fullMetricInfo = availableMetrics.find(m => {
+              if (typeof metricId === 'string') {
+                // Comparar el id (string) con el nombre de la métrica del catálogo
+                return m.name && m.name.toLowerCase() === metricId.toLowerCase();
+              }
+              // Si es numérico, comparar con el id
+              return m.id === metricId || m.metric_id === metricId;
+            });
             
-            // Combinar la información
+            // Combinar la información, fusionando parámetros del catálogo con los del proyecto
+            const catalogParams = fullMetricInfo?.parameters || {};
+            const projectParams = metric.parameters || {};
             return {
               ...metric,
               name: fullMetricInfo?.name || metric.name || `Métrica ${metricId}`,
               description: fullMetricInfo?.description || metric.description || 'Sin descripción',
               category: fullMetricInfo?.category || metric.category || 'general',
+              parameters: { ...catalogParams, ...projectParams },
             };
           }) : [];
           
@@ -288,18 +295,22 @@ const ProjectDetail = () => {
             const projectMetrics = normalized.metrics_config.map(metric => {
               const metricId = metric.metric_id ?? metric.id;
               // Buscar la métrica en el catálogo completo
-              const fullMetricInfo = availableMetrics.find(m => 
-                (m.id === metricId || m.metric_id === metricId) || 
-                (typeof m.name === 'string' && typeof metric.name === 'string' && 
-                 m.name.toLowerCase() === metric.name.toLowerCase())
-              );
+              const fullMetricInfo = availableMetrics.find(m => {
+                if (typeof metricId === 'string') {
+                  return m.name && m.name.toLowerCase() === metricId.toLowerCase();
+                }
+                return m.id === metricId || m.metric_id === metricId;
+              });
               
-              // Combinar la información
+              // Combinar la información, fusionando parámetros del catálogo con los del proyecto
+              const catalogParams = fullMetricInfo?.parameters || {};
+              const projectParams = metric.parameters || {};
               return {
                 ...metric,
                 name: fullMetricInfo?.name || metric.name || `Métrica ${metricId}`,
                 description: fullMetricInfo?.description || metric.description || 'Sin descripción',
                 category: fullMetricInfo?.category || metric.category || 'general',
+                parameters: { ...catalogParams, ...projectParams },
               };
             });
             setMetrics(projectMetrics);
@@ -315,18 +326,22 @@ const ProjectDetail = () => {
             const projectMetrics = normalized.metrics_config.map(metric => {
               const metricId = metric.metric_id ?? metric.id;
               // Buscar la métrica en el catálogo completo
-              const fullMetricInfo = availableMetrics.find(m => 
-                (m.id === metricId || m.metric_id === metricId) || 
-                (typeof m.name === 'string' && typeof metric.name === 'string' && 
-                 m.name.toLowerCase() === metric.name.toLowerCase())
-              );
+              const fullMetricInfo = availableMetrics.find(m => {
+                if (typeof metricId === 'string') {
+                  return m.name && m.name.toLowerCase() === metricId.toLowerCase();
+                }
+                return m.id === metricId || m.metric_id === metricId;
+              });
               
-              // Combinar la información
+              // Combinar la información, fusionando parámetros del catálogo con los del proyecto
+              const catalogParams = fullMetricInfo?.parameters || {};
+              const projectParams = metric.parameters || {};
               return {
                 ...metric,
                 name: fullMetricInfo?.name || metric.name || `Métrica ${metricId}`,
                 description: fullMetricInfo?.description || metric.description || 'Sin descripción',
                 category: fullMetricInfo?.category || metric.category || 'general',
+                parameters: { ...catalogParams, ...projectParams },
               };
             });
             setMetrics(projectMetrics);
@@ -607,7 +622,7 @@ const ProjectDetail = () => {
                 },
               }}
             >
-              Añadir Dataset
+              Añadir dataset
             </Button>
           </Box>
 
@@ -689,7 +704,7 @@ const ProjectDetail = () => {
         <TabPanel value={tabValue} index={1}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 500 }}>
-              Métricas Configuradas
+              Métricas configuradas
             </Typography>
             <Button
               variant="contained"
