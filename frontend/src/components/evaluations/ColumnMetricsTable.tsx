@@ -53,17 +53,16 @@ const ColumnMetricsTable: React.FC<ColumnMetricsTableProps> = ({ columnMetrics }
       <Table size="small" aria-label="column metrics table">
         <TableHead>
           <TableRow sx={{ backgroundColor: '#F5F5F5' }}>
-            <TableCell sx={{ fontWeight: 600 }}>Column</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Completeness</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Nulls</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Non-Nulls</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Uniqueness</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Unique Values</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Min</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Max</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Mean</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Std</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Column</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Type</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Completeness</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Nulls / Non-Nulls</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Uniqueness</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Unique Values</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Min</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Max</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Mean</TableCell>
+            <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>Std</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -116,13 +115,16 @@ const ColumnMetricsTable: React.FC<ColumnMetricsTableProps> = ({ columnMetrics }
                   </Tooltip>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ color: (metrics.n_nulls ?? 0) > 0 ? '#E5484D' : '#555' }}>
-                    {metrics.n_nulls !== undefined ? metrics.n_nulls.toLocaleString() : '—'}
-                  </Typography>
-                </TableCell>
-                <TableCell>
                   <Typography variant="body2" sx={{ color: '#555' }}>
-                    {metrics.n_non_nulls !== undefined ? metrics.n_non_nulls.toLocaleString() : '—'}
+                    {metrics.n_nulls !== undefined && metrics.n_non_nulls !== undefined ? (
+                      <>
+                        <Box component="span" sx={{ color: (metrics.n_nulls ?? 0) > 0 ? '#E5484D' : '#555', fontWeight: (metrics.n_nulls ?? 0) > 0 ? 600 : 400 }}>
+                          {metrics.n_nulls.toLocaleString()}
+                        </Box>
+                        {' / '}
+                        {metrics.n_non_nulls.toLocaleString()}
+                      </>
+                    ) : '—'}
                   </Typography>
                 </TableCell>
                 <TableCell>

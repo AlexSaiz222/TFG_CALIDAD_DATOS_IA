@@ -29,7 +29,7 @@ import {
   Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
-import { QualityScoreGauge, MetricCard, IssuesSummary, ColumnMetricsTable } from '../../components/evaluations';
+import { QualityScoreGauge, MetricCard, ColumnMetricsTable } from '../../components/evaluations';
 import { evaluationsAPI, datasetsAPI } from '../../services/api';
 import { Evaluation, Issue, Dataset } from '../../types';
 
@@ -981,14 +981,6 @@ const EvaluationDetail = () => {
 
               {issues.length > 0 ? (
                 <>
-                  <IssuesSummary
-                    issues={issues}
-                    onFilterChange={setSelectedSeverity}
-                    selectedSeverity={selectedSeverity}
-                  />
-
-                  <Divider sx={{ my: 2 }} />
-
                   <TableContainer sx={{ maxHeight: 400 }}>
                     <Table size="small" stickyHeader>
                       <TableHead>
