@@ -245,9 +245,6 @@ class QualityGate(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship
-    project = db.relationship('Project', backref=db.backref('quality_gate', uselist=False))
-    
     def __repr__(self):
         return f'<QualityGate {self.id} - Project {self.project_id}>'
     

@@ -30,7 +30,7 @@ class Dataset(db.Model):
     
     # Relationships
     evaluations = db.relationship('Evaluation', backref='dataset', lazy=True, cascade='all, delete-orphan')
-    analysis_runs = db.relationship('AnalysisRun', backref='dataset', lazy='dynamic')
+    analysis_runs = db.relationship('AnalysisRun', backref='dataset', lazy='dynamic', cascade='all, delete-orphan')
     
     # Self-referential relationship for versioning
     parent = db.relationship(

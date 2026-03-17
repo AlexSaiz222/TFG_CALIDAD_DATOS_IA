@@ -18,6 +18,7 @@ class Project(db.Model):
     # Relationships
     datasets = db.relationship('Dataset', backref='project', lazy=True, cascade='all, delete-orphan')
     analysis_runs = db.relationship('AnalysisRun', backref='project', lazy='dynamic', cascade='all, delete-orphan')
+    quality_gate = db.relationship('QualityGate', backref='project', uselist=False, cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Project {self.name}>'

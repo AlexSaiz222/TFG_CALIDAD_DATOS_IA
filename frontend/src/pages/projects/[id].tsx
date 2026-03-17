@@ -506,7 +506,7 @@ const ProjectDetail = () => {
                 },
               }}
             >
-              Configurar Métricas
+              Configurar métricas
             </Button>
           </Box>
         </Box>
@@ -703,7 +703,7 @@ const ProjectDetail = () => {
                 },
               }}
             >
-              Configurar Métricas
+              Configurar métricas
             </Button>
           </Box>
 
