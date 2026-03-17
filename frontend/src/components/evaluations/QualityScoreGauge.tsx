@@ -12,7 +12,7 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
   size = 'medium',
   showLabel = true 
 }) => {
-  const normalizedScore = Math.min(100, Math.max(0, score * 100));
+  const normalizedScore = Math.min(100, Math.max(0, score));
   
   const getColor = (value: number): string => {
     if (value >= 80) return '#00B37E';

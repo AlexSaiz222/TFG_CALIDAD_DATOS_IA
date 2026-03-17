@@ -45,7 +45,6 @@ const EvaluationDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [showBreakdown, setShowBreakdown] = useState(false);
   const [outlierScaleStates, setOutlierScaleStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -330,21 +329,12 @@ const EvaluationDetail = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '100%',
-                    cursor: overallMetrics.score_breakdown ? 'pointer' : 'default',
-                    transition: 'box-shadow 0.2s',
-                    '&:hover': overallMetrics.score_breakdown ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } : {},
                   }}
-                  onClick={() => overallMetrics.score_breakdown && setShowBreakdown(!showBreakdown)}
                 >
                   <QualityScoreGauge
                     score={evaluation.quality_score || overallMetrics.quality_score || 0}
                     size="large"
                   />
-                  {overallMetrics.score_breakdown && (
-                    <Typography variant="caption" sx={{ mt: 1, color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {showBreakdown ? '▲ Ocultar detalle' : '▼ Ver cómo se calcula'}
-                    </Typography>
-                  )}
                 </Paper>
               </Grid>
 
@@ -865,8 +855,18 @@ const EvaluationDetail = () => {
               </Paper>
             )}
 
-            {/* Score Breakdown - Collapsible on gauge click */}
-            {showBreakdown && overallMetrics.score_breakdown && (
+            {/* Column Metrics Section */}
+            {Object.keys(columnMetrics).length > 0 && (
+              <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                  Column Metrics ({Object.keys(columnMetrics).length} columns)
+                </Typography>
+                <ColumnMetricsTable columnMetrics={columnMetrics} />
+              </Paper>
+            )}
+
+            {/* Score Breakdown - Always visible at the end */}
+            {overallMetrics.score_breakdown && (
               <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #E0E0E0', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                   Score Breakdown
@@ -1050,15 +1050,6 @@ const EvaluationDetail = () => {
               )}
             </Paper>
 
-            {/* Column Metrics Section */}
-            {Object.keys(columnMetrics).length > 0 && (
-              <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Column Metrics ({Object.keys(columnMetrics).length} columns)
-                </Typography>
-                <ColumnMetricsTable columnMetrics={columnMetrics} />
-              </Paper>
-            )}
           </>
         )}
       </Box>

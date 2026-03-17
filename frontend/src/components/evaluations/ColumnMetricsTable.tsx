@@ -56,7 +56,10 @@ const ColumnMetricsTable: React.FC<ColumnMetricsTableProps> = ({ columnMetrics }
             <TableCell sx={{ fontWeight: 600 }}>Column</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Completeness</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Nulls</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Non-Nulls</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Uniqueness</TableCell>
+            <TableCell sx={{ fontWeight: 600 }}>Unique Values</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Min</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Max</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Mean</TableCell>
@@ -113,7 +116,22 @@ const ColumnMetricsTable: React.FC<ColumnMetricsTableProps> = ({ columnMetrics }
                   </Tooltip>
                 </TableCell>
                 <TableCell>
+                  <Typography variant="body2" sx={{ color: (metrics.n_nulls ?? 0) > 0 ? '#E5484D' : '#555' }}>
+                    {metrics.n_nulls !== undefined ? metrics.n_nulls.toLocaleString() : '—'}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ color: '#555' }}>
+                    {metrics.n_non_nulls !== undefined ? metrics.n_non_nulls.toLocaleString() : '—'}
+                  </Typography>
+                </TableCell>
+                <TableCell>
                   <Typography variant="body2">{formatPercentage(metrics.uniqueness)}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#555' }}>
+                    {metrics.n_unique !== undefined ? metrics.n_unique.toLocaleString() : '—'}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2">{formatValue(metrics.min)}</Typography>

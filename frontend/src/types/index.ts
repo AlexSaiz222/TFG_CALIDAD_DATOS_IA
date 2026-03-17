@@ -126,6 +126,9 @@ export interface OutlierInfo {
 export interface ColumnMetrics {
   completeness: number;
   uniqueness: number;
+  n_nulls?: number;
+  n_non_nulls?: number;
+  n_unique?: number;
   type: string;
   min?: number;
   max?: number;

@@ -717,12 +717,18 @@ class EvaluationService:
                 if col_index % max(1, total_columns // 5) == 0:  # Update every 20% of columns
                     col_progress = 75 + int((col_index / total_columns) * 15)
                     self._update_progress(evaluation_id, col_progress, f"Analizando columna: {column}...", analysis_run_id)
+                n_nulls = int(df[column].isna().sum())
+                n_non_nulls = int(len(df) - n_nulls)
+                n_unique = int(df[column].nunique())
                 completeness = 1 - df[column].isna().mean()
-                uniqueness = df[column].nunique() / len(df) if len(df) > 0 else 1
+                uniqueness = n_unique / len(df) if len(df) > 0 else 1
                 
                 column_metrics[column] = {
                     'completeness': completeness,
                     'uniqueness': uniqueness,
+                    'n_nulls': n_nulls,
+                    'n_non_nulls': n_non_nulls,
+                    'n_unique': n_unique,
                     'type': str(df[column].dtype)
                 }
                 
