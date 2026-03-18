@@ -319,52 +319,6 @@ const EvaluationDetail = () => {
         {/* Completed state - Results */}
         {evaluation.status === 'completed' && (
           <>
-            {/* Sticky Section Navigation */}
-            <Paper
-              elevation={1}
-              sx={{
-                position: 'sticky',
-                top: 64,
-                zIndex: 10,
-                mb: 3,
-                px: 2,
-                py: 0.5,
-                display: 'flex',
-                gap: 1,
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(8px)',
-                borderRadius: 2,
-                border: '1px solid #EEEEEE',
-              }}
-            >
-              {[
-                { label: 'Score', target: 'executive-summary' },
-                { label: 'Issues', target: 'priority-issues' },
-                { label: 'Metric Details', target: 'metric-details' },
-                { label: 'Columns', target: 'column-metrics' },
-                { label: 'Calculation', target: 'score-calculation' },
-              ].map((nav) => (
-                <Button
-                  key={nav.target}
-                  size="small"
-                  onClick={() => document.getElementById(nav.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    fontSize: '0.8rem',
-                    color: '#555',
-                    minWidth: 'auto',
-                    px: 1.5,
-                    '&:hover': { color: '#1976d2', backgroundColor: 'rgba(25, 118, 210, 0.04)' },
-                  }}
-                >
-                  {nav.label}
-                </Button>
-              ))}
-            </Paper>
-
             {/* Quality Score and Metrics Summary */}
             <Grid id="executive-summary" container spacing={3} sx={{ mb: 4, scrollMarginTop: '120px' }}>
               <Grid item xs={12} md={4}>
@@ -518,12 +472,32 @@ const EvaluationDetail = () => {
               </Grid>
             </Grid>
 
-            {/* Priority Issues Section - Moved up for better narrative flow */}
-            <Paper id="priority-issues" elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2, scrollMarginTop: '80px' }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Issues Detected ({issues.length})
-              </Typography>
-
+            {/* Priority Issues Section - Collapsible */}
+            <Accordion
+              id="priority-issues"
+              elevation={0}
+              defaultExpanded={true}
+              sx={{
+                mb: 4,
+                border: '1px solid #E0E0E0',
+                borderRadius: '8px !important',
+                backgroundColor: '#FFFFFF',
+                '&:before': { display: 'none' },
+                scrollMarginTop: '80px',
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{ px: 3, py: 1 }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <WarningIcon sx={{ color: '#888', fontSize: 20 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Issues Detected ({issues.length})
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 3, pb: 3 }}>
               {issues.length > 0 ? (
                 <>
                   <Box sx={{ mb: 2 }}>
@@ -609,15 +583,40 @@ const EvaluationDetail = () => {
                   </Typography>
                 </Box>
               )}
-            </Paper>
+              </AccordionDetails>
+            </Accordion>
 
-            {/* Metric Details - Tabs for Completeness, Uniqueness, Outliers */}
-            <Box sx={{ mb: 4 }}>
-              <MetricDetailsTabs
-                overallMetrics={overallMetrics}
-                columnMetrics={columnMetrics}
-              />
-            </Box>
+            {/* Metric Details - Collapsible Tabs */}
+            <Accordion
+              elevation={0}
+              defaultExpanded={true}
+              sx={{
+                mb: 4,
+                border: '1px solid #E0E0E0',
+                borderRadius: '8px !important',
+                backgroundColor: '#FFFFFF',
+                '&:before': { display: 'none' },
+                scrollMarginTop: '80px',
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{ px: 3, py: 1 }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AssessmentIcon sx={{ color: '#888', fontSize: 20 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Metric Details
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 0 }}>
+                <MetricDetailsTabs
+                  overallMetrics={overallMetrics}
+                  columnMetrics={columnMetrics}
+                />
+              </AccordionDetails>
+            </Accordion>
 
             {/* Column Metrics Section - Hidden temporarily */}
             {false && Object.keys(columnMetrics).length > 0 && (
@@ -638,7 +637,7 @@ const EvaluationDetail = () => {
                   mb: 4, 
                   border: '1px solid #E0E0E0', 
                   borderRadius: '8px !important', 
-                  backgroundColor: '#FAFAFA',
+                  backgroundColor: '#FFFFFF',
                   '&:before': { display: 'none' },
                   scrollMarginTop: '80px',
                 }}
