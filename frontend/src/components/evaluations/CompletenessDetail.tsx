@@ -47,8 +47,8 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
   const pct = (overallCompleteness * 100).toFixed(1);
 
   const getColor = (val: number): string => {
-    if (val >= 0.95) return '#00B37E';
-    if (val >= 0.80) return '#FFB800';
+    if (val >= 0.98) return '#00B37E';
+    if (val >= 0.90) return '#FFB800';
     return '#E5484D';
   };
 

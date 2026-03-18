@@ -355,8 +355,8 @@ const EvaluationDetail = () => {
                       const nullColumns = Object.values(columnMetrics).filter((col: any) => (col.n_nulls || 0) > 0).length;
                       const totalColumns = Object.keys(columnMetrics).length;
                       
-                      const badge = value >= 0.95 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : value >= 0.80 ? { label: 'Aceptable', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                      const badge = value >= 0.98 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : value >= 0.90 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
                                   : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
                       
                       const insight = nullColumns > 0 
@@ -424,7 +424,7 @@ const EvaluationDetail = () => {
                       const duplicateRows = totalRows > 0 ? Math.round((1 - value) * totalRows) : 0;
                       
                       const badge = duplicateRows === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : duplicateRows <= 5 ? { label: 'Bajo impacto', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : duplicateRows <= 2 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
                                   : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
                       
                       const insight = duplicateRows > 0
@@ -493,9 +493,10 @@ const EvaluationDetail = () => {
                       const overallProportion = totalValues > 0 ? totalOutliers / totalValues : 0;
                       const columnsAffected = Object.entries(overallMetrics.outliers).filter(([_, col]: [string, any]) => col?.count > 0).length;
                       
-                      const badge = overallProportion >= 0.10 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
-                                  : overallProportion >= 0.05 ? { label: 'Moderado', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Bajo impacto', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' };
+                      const badge = overallProportion >= 0.05 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
+                                  : overallProportion >= 0.02 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : totalOutliers === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : { label: 'Aceptable', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' };
                       
                       const mostAffectedCol = Object.entries(overallMetrics.outliers)
                         .filter(([_, col]: [string, any]) => col?.count > 0)
