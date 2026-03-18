@@ -58,7 +58,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   if (hasCompleteness) {
     tabs.push({
       label: `Completeness (${(overallMetrics.completeness * 100).toFixed(1)}%)`,
-      icon: getStatusIcon(overallMetrics.completeness, 0.95),
+      icon: null,
       available: true,
     });
   }
@@ -66,7 +66,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   if (hasUniqueness) {
     tabs.push({
       label: `Uniqueness (${(overallMetrics.uniqueness * 100).toFixed(1)}%)`,
-      icon: getStatusIcon(overallMetrics.uniqueness, 1.0),
+      icon: null,
       available: true,
     });
   }
@@ -77,9 +77,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
     );
     tabs.push({
       label: `Outliers (${totalOutliers})`,
-      icon: totalOutliers > 0
-        ? <WarningIcon sx={{ fontSize: 16, color: '#FFB800' }} />
-        : <CheckCircleIcon sx={{ fontSize: 16, color: '#00B37E' }} />,
+      icon: null,
       available: true,
     });
   }
