@@ -147,6 +147,7 @@ export interface Issue {
   metric_id?: number;
   severity: 'low' | 'medium' | 'high';
   description: string;
+  issue_type?: string;
   affected_columns?: any[];
   affected_rows?: any;
   created_at: string;

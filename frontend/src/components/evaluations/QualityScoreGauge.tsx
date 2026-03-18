@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 
 interface QualityScoreGaugeProps {
   score: number;
@@ -20,6 +21,14 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
     return '#E5484D';
   };
 
+  const getVerdict = (value: number): { label: string; description: string } => {
+    if (value >= 90) return { label: 'Excelente', description: 'Dataset de alta calidad, listo para uso.' };
+    if (value >= 80) return { label: 'Bueno', description: 'Calidad aceptable con mejoras menores posibles.' };
+    if (value >= 60) return { label: 'Aceptable', description: 'Requiere atención en algunas métricas.' };
+    if (value >= 40) return { label: 'Deficiente', description: 'Problemas significativos que corregir.' };
+    return { label: 'Crítico', description: 'Calidad insuficiente, revisión urgente necesaria.' };
+  };
+
   const getSize = (): { width: number; thickness: number; fontSize: string } => {
     switch (size) {
       case 'small':
@@ -33,16 +42,18 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
 
   const { width, thickness, fontSize } = getSize();
   const color = getColor(normalizedScore);
+  const verdict = getVerdict(normalizedScore);
+
+  const containerSx: SxProps<Theme> = {
+    position: 'relative',
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  };
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        display: 'inline-flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-      }}
-    >
+    // @ts-ignore - MUI Box sx type inference too complex
+    <Box sx={containerSx}>
       <Box sx={{ position: 'relative', display: 'inline-flex' }}>
         <CircularProgress
           variant="determinate"
@@ -93,16 +104,42 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
         </Box>
       </Box>
       {showLabel && (
-        <Typography
-          variant="body2"
-          sx={{
-            mt: 1,
-            color: '#555555',
-            fontWeight: 500,
-          }}
-        >
-          Quality Score
-        </Typography>
+        <>
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 1,
+              color: '#555555',
+              fontWeight: 500,
+            }}
+          >
+            Quality Score
+          </Typography>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mt: 0.5,
+              color: color,
+              fontWeight: 700,
+              fontSize: size === 'large' ? '1rem' : '0.8rem',
+            }}
+          >
+            {verdict.label}
+          </Typography>
+          {size === 'large' && (
+            <Typography
+              variant="caption"
+              sx={{
+                mt: 0.25,
+                color: '#888',
+                textAlign: 'center',
+                maxWidth: 200,
+              }}
+            >
+              {verdict.description}
+            </Typography>
+          )}
+        </>
       )}
     </Box>
   );

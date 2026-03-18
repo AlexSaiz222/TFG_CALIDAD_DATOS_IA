@@ -13,6 +13,44 @@ interface IssuesSummaryProps {
   selectedSeverity?: string | null;
 }
 
+interface SeverityConfig {
+  key: string;
+  label: string;
+  count: number;
+  color: string;
+  bgColor: string;
+  icon: React.ReactElement;
+}
+
+const SeverityChip: React.FC<{
+  config: SeverityConfig;
+  isSelected: boolean;
+  interactive: boolean;
+  onClick: () => void;
+}> = ({ config, isSelected, interactive, onClick }) => (
+  <Chip
+    icon={config.icon}
+    label={`${config.label}: ${config.count}`}
+    onClick={onClick}
+    sx={{
+      backgroundColor: isSelected ? config.color : config.bgColor,
+      color: isSelected ? '#FFFFFF' : config.color,
+      fontWeight: 500,
+      cursor: interactive ? 'pointer' : 'default',
+      '& .MuiChip-icon': {
+        color: isSelected ? '#FFFFFF' : config.color,
+      },
+      '&:hover': interactive
+        ? {
+            backgroundColor: config.color,
+            color: '#FFFFFF',
+            '& .MuiChip-icon': { color: '#FFFFFF' },
+          }
+        : {},
+    }}
+  />
+);
+
 const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   issues,
   onFilterChange,
@@ -22,7 +60,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   const mediumCount = issues.filter((i) => i.severity === 'medium').length;
   const lowCount = issues.filter((i) => i.severity === 'low').length;
 
-  const severityConfig = [
+  const severityConfig: SeverityConfig[] = [
     {
       key: 'high',
       label: 'High',
@@ -58,35 +96,14 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
         borderRadius: 2,
       }}
     >
-      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1A1A1A' }}>
-        Issues by Severity ({issues.length} total)
-      </Typography>
-
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {severityConfig.map((config) => (
-          <Chip
+          <SeverityChip
             key={config.key}
-            icon={config.icon}
-            label={`${config.label}: ${config.count}`}
+            config={config}
+            isSelected={selectedSeverity === config.key}
+            interactive={!!onFilterChange}
             onClick={() => onFilterChange?.(selectedSeverity === config.key ? null : config.key)}
-            sx={{
-              backgroundColor: selectedSeverity === config.key ? config.color : config.bgColor,
-              color: selectedSeverity === config.key ? '#FFFFFF' : config.color,
-              fontWeight: 500,
-              cursor: onFilterChange ? 'pointer' : 'default',
-              '& .MuiChip-icon': {
-                color: selectedSeverity === config.key ? '#FFFFFF' : config.color,
-              },
-              '&:hover': onFilterChange
-                ? {
-                    backgroundColor: config.color,
-                    color: '#FFFFFF',
-                    '& .MuiChip-icon': {
-                      color: '#FFFFFF',
-                    },
-                  }
-                : {},
-            }}
           />
         ))}
 
@@ -103,7 +120,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
             }}
           />
         )}
-      </Box>
+      </div>
     </Paper>
   );
 };
