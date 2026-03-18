@@ -345,128 +345,218 @@ const EvaluationDetail = () => {
               <Grid item xs={12} md={8}>
                 <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AssessmentIcon sx={{ color: '#00B37E' }} />
                     Metrics Summary
                   </Typography>
                   <Grid container spacing={2}>
-                    {/* Completeness Mini-Card */}
-                    {overallMetrics.completeness !== undefined && (
-                      <Grid item xs={12} sm={4}>
-                        <Paper
-                          elevation={0}
-                          onClick={() => {
-                            const el = document.getElementById('metric-details');
-                            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }}
-                          sx={{
-                            p: 2, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-                            transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#555' }}>Completeness</Typography>
-                            {overallMetrics.completeness >= 0.95
-                              ? <CheckCircleIcon sx={{ fontSize: 16, color: '#00B37E' }} />
-                              : <WarningIcon sx={{ fontSize: 16, color: '#FFB800' }} />
-                            }
-                          </Box>
-                          <Typography variant="h5" sx={{ fontWeight: 700, color: overallMetrics.completeness >= 0.95 ? '#00B37E' : overallMetrics.completeness >= 0.80 ? '#FFB800' : '#E5484D' }}>
-                            {(overallMetrics.completeness * 100).toFixed(1)}%
-                          </Typography>
-                          <Box sx={{ width: '100%', height: 4, backgroundColor: '#EEEEEE', borderRadius: 2, mt: 1 }}>
-                            <Box sx={{ width: `${overallMetrics.completeness * 100}%`, height: '100%', backgroundColor: overallMetrics.completeness >= 0.95 ? '#00B37E' : '#FFB800', borderRadius: 2 }} />
-                          </Box>
-                          <Typography variant="caption" sx={{ color: '#1976d2', display: 'block', mt: 1, fontSize: '0.7rem' }}>
-                            Ver detalle →
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                    )}
-
-                    {/* Uniqueness Mini-Card */}
-                    {overallMetrics.uniqueness !== undefined && (
-                      <Grid item xs={12} sm={4}>
-                        <Paper
-                          elevation={0}
-                          onClick={() => {
-                            const el = document.getElementById('metric-details');
-                            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }}
-                          sx={{
-                            p: 2, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-                            transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#555' }}>Uniqueness</Typography>
-                            {overallMetrics.uniqueness >= 1.0
-                              ? <CheckCircleIcon sx={{ fontSize: 16, color: '#00B37E' }} />
-                              : <WarningIcon sx={{ fontSize: 16, color: '#FFB800' }} />
-                            }
-                          </Box>
-                          <Typography variant="h5" sx={{ fontWeight: 700, color: overallMetrics.uniqueness >= 1.0 ? '#00B37E' : '#FFB800' }}>
-                            {(overallMetrics.uniqueness * 100).toFixed(1)}%
-                          </Typography>
-                          <Box sx={{ width: '100%', height: 4, backgroundColor: '#EEEEEE', borderRadius: 2, mt: 1 }}>
-                            <Box sx={{ width: `${overallMetrics.uniqueness * 100}%`, height: '100%', backgroundColor: overallMetrics.uniqueness >= 1.0 ? '#00B37E' : '#FFB800', borderRadius: 2 }} />
-                          </Box>
-                          <Typography variant="caption" sx={{ color: '#1976d2', display: 'block', mt: 1, fontSize: '0.7rem' }}>
-                            Ver detalle →
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                    )}
-
-                    {/* Outliers Mini-Card */}
-                    {overallMetrics.outliers && (
-                      <Grid item xs={12} sm={4}>
-                        {(() => {
-                          const totalOutliers = Object.values(overallMetrics.outliers).reduce(
-                            (sum: number, col: any) => sum + (col?.count || 0), 0
-                          );
-                          const totalValues = Object.values(overallMetrics.outliers).reduce(
-                            (sum: number, col: any) => sum + (col?.total_values || 0), 0
-                          );
-                          const overallProportion = totalValues > 0 ? totalOutliers / totalValues : 0;
-                          const severityColor = overallProportion >= 0.10 ? '#E5484D' : overallProportion >= 0.05 ? '#FFB800' : '#00B37E';
-                          const columnsAffected = Object.entries(overallMetrics.outliers).filter(([_, col]: [string, any]) => col?.count > 0).length;
-
-                          return (
-                            <Paper
-                              elevation={0}
-                              onClick={() => {
-                                const el = document.getElementById('metric-details');
-                                el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }}
-                              sx={{
-                                p: 2, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-                                transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-                              }}
-                            >
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                                <Typography variant="caption" sx={{ fontWeight: 600, color: '#555' }}>Outliers</Typography>
-                                {totalOutliers > 0
-                                  ? <WarningIcon sx={{ fontSize: 16, color: severityColor }} />
-                                  : <CheckCircleIcon sx={{ fontSize: 16, color: '#00B37E' }} />
-                                }
-                              </Box>
-                              <Typography variant="h5" sx={{ fontWeight: 700, color: severityColor }}>
-                                {totalOutliers}
+                    {/* Completeness Executive Card */}
+                    {overallMetrics.completeness !== undefined && (() => {
+                      const value = overallMetrics.completeness;
+                      const percentage = (value * 100).toFixed(1);
+                      const nullColumns = Object.values(columnMetrics).filter((col: any) => (col.n_nulls || 0) > 0).length;
+                      const totalColumns = Object.keys(columnMetrics).length;
+                      
+                      const badge = value >= 0.95 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : value >= 0.80 ? { label: 'Aceptable', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+                      
+                      const insight = nullColumns > 0 
+                        ? `${nullColumns} de ${totalColumns} columnas tienen valores nulos`
+                        : 'Todas las columnas están completas';
+                      
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => {
+                              const el = document.getElementById('metric-details');
+                              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            sx={{
+                              p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
+                              transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
+                              height: '100%',
+                            }}
+                          >
+                            {/* Header con badge */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
+                                Completeness
                               </Typography>
-                              <Box sx={{ width: '100%', height: 4, backgroundColor: '#EEEEEE', borderRadius: 2, mt: 1 }}>
-                                <Box sx={{ width: `${Math.min(overallProportion * 100, 100)}%`, minWidth: totalOutliers > 0 ? '4px' : '0px', height: '100%', backgroundColor: severityColor, borderRadius: 2 }} />
-                              </Box>
-                              <Typography variant="caption" sx={{ color: '#888', display: 'block', mt: 0.5, fontSize: '0.65rem' }}>
-                                {columnsAffected > 0 ? `${columnsAffected} col. afectada${columnsAffected > 1 ? 's' : ''}` : 'Sin outliers'} · {(overallProportion * 100).toFixed(1)}%
+                              <Chip 
+                                label={badge.label}
+                                size="small"
+                                sx={{ 
+                                  backgroundColor: badge.bg,
+                                  color: badge.color,
+                                  fontWeight: 500,
+                                  fontSize: '0.7rem',
+                                  height: 20,
+                                }}
+                              />
+                            </Box>
+                            
+                            {/* Valor principal */}
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>
+                              {percentage}%
+                            </Typography>
+                            
+                            {/* Hallazgo clave */}
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>
+                              {insight}
+                            </Typography>
+                            
+                            {/* CTA */}
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>
+                              Ver detalle →
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
+
+                    {/* Uniqueness Executive Card */}
+                    {overallMetrics.uniqueness !== undefined && (() => {
+                      const value = overallMetrics.uniqueness;
+                      const percentage = (value * 100).toFixed(1);
+                      const totalRows = Object.values(columnMetrics).length > 0 
+                        ? (columnMetrics[Object.keys(columnMetrics)[0]]?.n_nulls || 0) + (columnMetrics[Object.keys(columnMetrics)[0]]?.n_non_nulls || 0)
+                        : 0;
+                      const duplicateRows = totalRows > 0 ? Math.round((1 - value) * totalRows) : 0;
+                      
+                      const badge = duplicateRows === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : duplicateRows <= 5 ? { label: 'Bajo impacto', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+                      
+                      const insight = duplicateRows > 0
+                        ? `${duplicateRows} fila${duplicateRows !== 1 ? 's' : ''} completamente duplicada${duplicateRows !== 1 ? 's' : ''}`
+                        : 'Sin filas duplicadas detectadas';
+                      
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => {
+                              const el = document.getElementById('metric-details');
+                              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            sx={{
+                              p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
+                              transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
+                              height: '100%',
+                            }}
+                          >
+                            {/* Header con badge */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
+                                Uniqueness
                               </Typography>
-                              <Typography variant="caption" sx={{ color: '#1976d2', display: 'block', mt: 0.5, fontSize: '0.7rem' }}>
-                                Ver detalle →
+                              <Chip 
+                                label={badge.label}
+                                size="small"
+                                sx={{ 
+                                  backgroundColor: badge.bg,
+                                  color: badge.color,
+                                  fontWeight: 500,
+                                  fontSize: '0.7rem',
+                                  height: 20,
+                                }}
+                              />
+                            </Box>
+                            
+                            {/* Valor principal */}
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>
+                              {percentage}%
+                            </Typography>
+                            
+                            {/* Hallazgo clave */}
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>
+                              {insight}
+                            </Typography>
+                            
+                            {/* CTA */}
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>
+                              Ver detalle →
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
+
+                    {/* Outliers Executive Card */}
+                    {overallMetrics.outliers && (() => {
+                      const totalOutliers = Object.values(overallMetrics.outliers).reduce(
+                        (sum: number, col: any) => sum + (col?.count || 0), 0
+                      );
+                      const totalValues = Object.values(overallMetrics.outliers).reduce(
+                        (sum: number, col: any) => sum + (col?.total_values || 0), 0
+                      );
+                      const overallProportion = totalValues > 0 ? totalOutliers / totalValues : 0;
+                      const columnsAffected = Object.entries(overallMetrics.outliers).filter(([_, col]: [string, any]) => col?.count > 0).length;
+                      
+                      const badge = overallProportion >= 0.10 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
+                                  : overallProportion >= 0.05 ? { label: 'Moderado', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Bajo impacto', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' };
+                      
+                      const mostAffectedCol = Object.entries(overallMetrics.outliers)
+                        .filter(([_, col]: [string, any]) => col?.count > 0)
+                        .sort(([_, a]: [string, any], [__, b]: [string, any]) => (b?.count || 0) - (a?.count || 0))[0];
+                      
+                      const insight = totalOutliers === 0
+                        ? 'Sin valores atípicos detectados'
+                        : columnsAffected === 1 && mostAffectedCol
+                        ? `${columnsAffected} columna afectada (${mostAffectedCol[0]}, ${(overallProportion * 100).toFixed(1)}%)`
+                        : `${columnsAffected} columnas afectadas (${(overallProportion * 100).toFixed(1)}% del total)`;
+                      
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => {
+                              const el = document.getElementById('metric-details');
+                              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            sx={{
+                              p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
+                              transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
+                              height: '100%',
+                            }}
+                          >
+                            {/* Header con badge */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
+                                Outliers
                               </Typography>
-                            </Paper>
-                          );
-                        })()}
-                      </Grid>
-                    )}
+                              <Chip 
+                                label={badge.label}
+                                size="small"
+                                sx={{ 
+                                  backgroundColor: badge.bg,
+                                  color: badge.color,
+                                  fontWeight: 500,
+                                  fontSize: '0.7rem',
+                                  height: 20,
+                                }}
+                              />
+                            </Box>
+                            
+                            {/* Valor principal */}
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>
+                              {totalOutliers}
+                            </Typography>
+                            
+                            {/* Hallazgo clave */}
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>
+                              {insight}
+                            </Typography>
+                            
+                            {/* CTA */}
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>
+                              Ver detalle →
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
                   </Grid>
                 </Paper>
               </Grid>
