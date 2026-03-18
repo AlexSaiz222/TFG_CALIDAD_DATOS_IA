@@ -120,8 +120,6 @@ class EvaluationService:
 
         # Extract threshold values (stored as 0-100 scale in DB)
         threshold_min_score = thresholds.get('min_score', 70) / 100.0
-        threshold_min_completeness = thresholds.get('min_completeness', 80) / 100.0
-        threshold_min_uniqueness = thresholds.get('min_uniqueness', 90) / 100.0
         max_critical_issues = thresholds.get('max_critical_issues', 0)
         
         gate_status = QualityGateStatus.PASSED
@@ -147,36 +145,6 @@ class EvaluationService:
                 gate_status = QualityGateStatus.FAILED
                 gate_reasons.append(f"Quality score {quality_score:.2%} is below minimum threshold {threshold_min_score:.0%}")
                 logger.info(f"[QUALITY_GATE] FAILED - Score {quality_score:.2%} < {threshold_min_score:.0%}")
-        
-        # CRITERIO 3: Check completeness metrics (only if not already failed)
-        if gate_status != QualityGateStatus.FAILED:
-            overall_completeness = results.get('overall', {}).get('completeness')
-            if overall_completeness is not None and overall_completeness < threshold_min_completeness:
-                gate_status = QualityGateStatus.WARNING
-                gate_reasons.append(f"Completeness {overall_completeness:.2%} is below recommended threshold {threshold_min_completeness:.0%}")
-                logger.info(f"[QUALITY_GATE] WARNING - Completeness {overall_completeness:.2%} < {threshold_min_completeness:.0%}")
-            
-            # Also check column-level completeness
-            column_metrics = results.get('column_metrics', {})
-            low_completeness_columns = []
-            for col_name, col_data in column_metrics.items():
-                col_completeness = col_data.get('completeness', 1.0)
-                if col_completeness < threshold_min_completeness:
-                    low_completeness_columns.append(f"{col_name}: {col_completeness:.2%}")
-            
-            if low_completeness_columns and gate_status == QualityGateStatus.PASSED:
-                gate_status = QualityGateStatus.WARNING
-                gate_reasons.append(f"Low completeness in columns: {', '.join(low_completeness_columns[:3])}")
-                logger.info(f"[QUALITY_GATE] WARNING - Low completeness in {len(low_completeness_columns)} columns")
-        
-        # CRITERIO 4: Check uniqueness (only if not already failed)
-        if gate_status != QualityGateStatus.FAILED:
-            overall_uniqueness = results.get('overall', {}).get('uniqueness')
-            if overall_uniqueness is not None and overall_uniqueness < threshold_min_uniqueness:
-                if gate_status == QualityGateStatus.PASSED:
-                    gate_status = QualityGateStatus.WARNING
-                gate_reasons.append(f"Uniqueness {overall_uniqueness:.2%} is below recommended threshold {threshold_min_uniqueness:.0%}")
-                logger.info(f"[QUALITY_GATE] WARNING - Uniqueness {overall_uniqueness:.2%} < {threshold_min_uniqueness:.0%}")
         
         # Log final decision
         logger.info(f"[QUALITY_GATE] Final status: {gate_status.value} | Score: {quality_score:.2%} | Issues: {len(issues)} | Reasons: {gate_reasons}")

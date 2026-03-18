@@ -76,13 +76,10 @@ class TestQualityGateModel:
         assert 'min_score' in defaults
         assert 'max_critical_issues' in defaults
         assert 'max_new_issues' in defaults
-        assert 'min_completeness' in defaults
-        assert 'min_uniqueness' in defaults
         
         assert defaults['min_score'] == 70
         assert defaults['max_critical_issues'] == 0
-        assert defaults['min_completeness'] == 80
-        assert defaults['min_uniqueness'] == 90
+        assert defaults['max_new_issues'] == 10
     
     def test_create_quality_gate_with_defaults(self, app, sample_project):
         """Test creating a QualityGate with default thresholds"""
@@ -116,7 +113,7 @@ class TestQualityGateModel:
             db.session.commit()
             
             # Update thresholds
-            new_thresholds = {**qg.thresholds, 'min_score': 90, 'min_completeness': 95}
+            new_thresholds = {**qg.thresholds, 'min_score': 90, 'max_new_issues': 5}
             qg.thresholds = new_thresholds
             db.session.commit()
             
@@ -124,7 +121,7 @@ class TestQualityGateModel:
             qg = QualityGate.query.filter_by(project_id=sample_project).first()
             
             assert qg.thresholds['min_score'] == 90
-            assert qg.thresholds['min_completeness'] == 95
+            assert qg.thresholds['max_new_issues'] == 5
             # Other values should remain unchanged
             assert qg.thresholds['max_critical_issues'] == 0
     
@@ -281,8 +278,6 @@ class TestEvaluateQualityGate:
                     'min_score': 95,           # Very strict
                     'max_critical_issues': 0,
                     'max_new_issues': 5,
-                    'min_completeness': 98,
-                    'min_uniqueness': 99,
                 },
                 is_active=True,
             )
@@ -348,8 +343,6 @@ class TestEvaluateQualityGate:
                 thresholds={
                     'min_score': 70,
                     'max_critical_issues': 2,
-                    'min_completeness': 80,
-                    'min_uniqueness': 90,
                     'max_new_issues': 10,
                 },
                 is_active=True,

@@ -33,8 +33,6 @@ interface QualityGateThresholds {
   min_score: number;
   max_critical_issues: number;
   max_new_issues: number;
-  min_completeness: number;
-  min_uniqueness: number;
 }
 
 interface QualityGateSettingsProps {
@@ -46,24 +44,12 @@ const DEFAULT_THRESHOLDS: QualityGateThresholds = {
   min_score: 70,
   max_critical_issues: 0,
   max_new_issues: 10,
-  min_completeness: 80,
-  min_uniqueness: 90,
 };
 
 const THRESHOLD_LABELS: Record<string, { label: string; description: string; unit: string }> = {
   min_score: {
     label: 'Score mínimo',
     description: 'Puntuación mínima que debe alcanzar el dataset para aprobar',
-    unit: '%',
-  },
-  min_completeness: {
-    label: 'Completitud mínima',
-    description: 'Porcentaje mínimo de valores no nulos requerido',
-    unit: '%',
-  },
-  min_uniqueness: {
-    label: 'Unicidad mínima',
-    description: 'Porcentaje mínimo de valores únicos requerido',
     unit: '%',
   },
   max_critical_issues: {
@@ -302,12 +288,6 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({ projectId, on
       <Grid container spacing={2.5} sx={{ opacity: isActive ? 1 : 0.5 }}>
         <Grid item xs={12} md={6}>
           {renderSliderField('min_score', 0, 100)}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          {renderSliderField('min_completeness', 0, 100)}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          {renderSliderField('min_uniqueness', 0, 100)}
         </Grid>
         <Grid item xs={12} md={6}>
           {renderSliderField('max_critical_issues', 0, 50)}

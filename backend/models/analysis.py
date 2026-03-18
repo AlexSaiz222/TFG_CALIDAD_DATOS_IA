@@ -267,8 +267,6 @@ class QualityGate(db.Model):
             'min_score': 70,              # Score mínimo para pasar
             'max_critical_issues': 0,     # Máximo de issues críticos permitidos
             'max_new_issues': 10,         # Máximo de nuevos issues permitidos
-            'min_completeness': 80,       # Completitud mínima (%)
-            'min_uniqueness': 90,         # Unicidad mínima (%)
         }
 
 
