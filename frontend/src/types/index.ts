@@ -199,3 +199,81 @@ export interface DataQualityIssue {
   expected_value?: string;
   created_at: string;
 }
+
+// ── Data Profiling / EDA types ──────────────────────────────────
+export interface ProfilingOverview {
+  total_rows: number;
+  total_columns: number;
+  total_cells: number;
+  total_missing: number;
+  missing_percent: number;
+  duplicate_rows: number;
+  duplicate_percent: number;
+  estimated_size_bytes: number;
+}
+
+export interface ProfilingTypeSummary {
+  numeric_count: number;
+  categorical_count: number;
+  numeric_columns: string[];
+  categorical_columns: string[];
+}
+
+export interface HistogramData {
+  bins: number[];
+  counts: number[];
+}
+
+export interface BoxplotData {
+  min: number;
+  q1: number;
+  median: number;
+  q3: number;
+  max: number;
+  lower_fence: number;
+  upper_fence: number;
+  outlier_count: number;
+  outliers_sample: number[];
+}
+
+export interface BarChartData {
+  labels: string[];
+  counts: number[];
+}
+
+export interface ProfilingColumn {
+  name: string;
+  dtype: string;
+  category: 'numeric' | 'categorical';
+  sub_type: 'continuous' | 'discrete' | 'binary' | 'nominal' | 'text';
+  n_missing: number;
+  n_valid: number;
+  missing_percent: number;
+  n_unique: number;
+  // Numeric stats
+  mean?: number | null;
+  median?: number | null;
+  std?: number | null;
+  min?: number | null;
+  max?: number | null;
+  q1?: number | null;
+  q3?: number | null;
+  iqr?: number | null;
+  histogram?: HistogramData | null;
+  boxplot?: BoxplotData | null;
+  // Categorical stats
+  mode?: string | null;
+  bar_chart?: BarChartData | null;
+}
+
+export interface CorrelationMatrix {
+  columns: string[];
+  values: number[][];
+}
+
+export interface DataProfilingResult {
+  overview: ProfilingOverview;
+  type_summary: ProfilingTypeSummary;
+  columns: ProfilingColumn[];
+  correlation_matrix: CorrelationMatrix | null;
+}

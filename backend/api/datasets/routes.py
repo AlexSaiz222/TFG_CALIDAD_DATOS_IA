@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import os
+import io
 import pandas as pd
+import numpy as np
 import logging
 from datetime import datetime, timezone
 
@@ -818,6 +820,203 @@ def preview_dataset(dataset_id):
             "error": "server_error",
             "message": f"Error del servidor: {str(e)}"
         }), 500
+
+@datasets_bp.route('/<int:dataset_id>/profiling', methods=['GET'])
+@jwt_required()
+def get_dataset_profiling(dataset_id):
+    """Generate a full Data Profiling / EDA report for the dataset.
+
+    Returns dataset overview, column type classification, descriptive
+    statistics, univariate visualisation data (histograms, boxplots,
+    bar charts) and a correlation matrix – all purely informative.
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "invalid_token_identity",
+                            "message": "ID de usuario inválido en el token"}), 401
+
+        dataset = Dataset.query.get(dataset_id)
+        if not dataset:
+            return jsonify({"success": False, "error": "dataset_not_found",
+                            "message": f"No se encontró el dataset con ID {dataset_id}"}), 404
+
+        project = Project.query.get(dataset.project_id)
+        if not project:
+            return jsonify({"success": False, "error": "project_not_found",
+                            "message": "No se encontró el proyecto asociado al dataset"}), 404
+        if project.owner_id != current_user_id_int:
+            return jsonify({"success": False, "error": "unauthorized_access",
+                            "message": "No tiene permiso para acceder a este dataset"}), 403
+
+        # ── Download & read CSV ──────────────────────────────────────
+        file_data = dataset_service.minio_service.download_file(dataset.file_path)
+        df = pd.read_csv(io.BytesIO(file_data))
+
+        total_rows = len(df)
+        total_cols = len(df.columns)
+
+        # ── 1. Dataset Overview ──────────────────────────────────────
+        total_cells = total_rows * total_cols
+        total_missing = int(df.isna().sum().sum())
+        missing_percent = round((total_missing / total_cells * 100) if total_cells > 0 else 0, 2)
+        duplicate_rows = int(df.duplicated().sum())
+        duplicate_percent = round((duplicate_rows / total_rows * 100) if total_rows > 0 else 0, 2)
+        estimated_size_bytes = int(dataset.file_size) if dataset.file_size else len(file_data)
+
+        overview = {
+            "total_rows": total_rows,
+            "total_columns": total_cols,
+            "total_cells": total_cells,
+            "total_missing": total_missing,
+            "missing_percent": missing_percent,
+            "duplicate_rows": duplicate_rows,
+            "duplicate_percent": duplicate_percent,
+            "estimated_size_bytes": estimated_size_bytes,
+        }
+
+        # ── Helper: classify a column ────────────────────────────────
+        def classify_column(series, col_name):
+            """Return (category, sub_type) for a pandas Series."""
+            if pd.api.types.is_bool_dtype(series):
+                return ("categorical", "binary")
+            if pd.api.types.is_numeric_dtype(series):
+                nunique = series.nunique(dropna=True)
+                if pd.api.types.is_float_dtype(series) or nunique > 20:
+                    return ("numeric", "continuous")
+                return ("numeric", "discrete")
+            # Object / string columns
+            nunique = series.nunique(dropna=True)
+            if nunique <= 2:
+                return ("categorical", "binary")
+            if nunique <= 30:
+                return ("categorical", "nominal")
+            return ("categorical", "text")
+
+        # ── 2. Column type detection & 3. Descriptive stats ──────────
+        columns_info = []
+        numeric_cols = []
+        categorical_cols = []
+
+        for col in df.columns:
+            series = df[col]
+            cat, sub = classify_column(series, col)
+            n_missing = int(series.isna().sum())
+            n_valid = int(series.notna().sum())
+            missing_pct = round((n_missing / total_rows * 100) if total_rows > 0 else 0, 2)
+            n_unique = int(series.nunique(dropna=True))
+
+            col_info = {
+                "name": col,
+                "dtype": str(series.dtype),
+                "category": cat,
+                "sub_type": sub,
+                "n_missing": n_missing,
+                "n_valid": n_valid,
+                "missing_percent": missing_pct,
+                "n_unique": n_unique,
+            }
+
+            if cat == "numeric":
+                numeric_cols.append(col)
+                clean = series.dropna()
+                if len(clean) > 0:
+                    q1 = float(clean.quantile(0.25))
+                    q3 = float(clean.quantile(0.75))
+                    col_info.update({
+                        "mean": round(float(clean.mean()), 4),
+                        "median": round(float(clean.median()), 4),
+                        "std": round(float(clean.std()), 4),
+                        "min": float(clean.min()),
+                        "max": float(clean.max()),
+                        "q1": round(q1, 4),
+                        "q3": round(q3, 4),
+                        "iqr": round(q3 - q1, 4),
+                    })
+
+                    # Histogram data (max 30 bins)
+                    n_bins = min(30, max(10, n_unique))
+                    counts, bin_edges = np.histogram(clean, bins=n_bins)
+                    col_info["histogram"] = {
+                        "bins": [round(float(b), 4) for b in bin_edges[:-1]],
+                        "counts": [int(c) for c in counts],
+                    }
+
+                    # Boxplot data
+                    iqr = q3 - q1
+                    lower_fence = float(q1 - 1.5 * iqr)
+                    upper_fence = float(q3 + 1.5 * iqr)
+                    outlier_mask = (clean < lower_fence) | (clean > upper_fence)
+                    outlier_values = clean[outlier_mask]
+                    col_info["boxplot"] = {
+                        "min": float(clean.min()),
+                        "q1": round(q1, 4),
+                        "median": round(float(clean.median()), 4),
+                        "q3": round(q3, 4),
+                        "max": float(clean.max()),
+                        "lower_fence": round(lower_fence, 4),
+                        "upper_fence": round(upper_fence, 4),
+                        "outlier_count": int(outlier_mask.sum()),
+                        "outliers_sample": [round(float(v), 4) for v in outlier_values.head(50).values],
+                    }
+                else:
+                    col_info.update({"mean": None, "median": None, "std": None,
+                                     "min": None, "max": None, "q1": None,
+                                     "q3": None, "iqr": None,
+                                     "histogram": None, "boxplot": None})
+            else:
+                categorical_cols.append(col)
+                clean = series.dropna()
+                mode_val = str(clean.mode().iloc[0]) if len(clean) > 0 and len(clean.mode()) > 0 else None
+                col_info["mode"] = mode_val
+
+                # Bar chart – top 20 categories
+                if len(clean) > 0:
+                    value_counts = clean.astype(str).value_counts().head(20)
+                    col_info["bar_chart"] = {
+                        "labels": value_counts.index.tolist(),
+                        "counts": [int(v) for v in value_counts.values],
+                    }
+                else:
+                    col_info["bar_chart"] = None
+
+            columns_info.append(col_info)
+
+        # ── 4. Type summary ──────────────────────────────────────────
+        type_summary = {
+            "numeric_count": len(numeric_cols),
+            "categorical_count": len(categorical_cols),
+            "numeric_columns": numeric_cols,
+            "categorical_columns": categorical_cols,
+        }
+
+        # ── 5. Correlation matrix (numeric only) ────────────────────
+        correlation_matrix = None
+        if len(numeric_cols) >= 2:
+            corr = df[numeric_cols].corr()
+            correlation_matrix = {
+                "columns": numeric_cols,
+                "values": [[round(float(corr.iloc[i, j]), 4)
+                            for j in range(len(numeric_cols))]
+                           for i in range(len(numeric_cols))],
+            }
+
+        profiling_result = {
+            "overview": overview,
+            "type_summary": type_summary,
+            "columns": columns_info,
+            "correlation_matrix": correlation_matrix,
+        }
+
+        return jsonify({"success": True, "data": profiling_result}), 200
+
+    except Exception as e:
+        logger.error(f"Error generating profiling for dataset {dataset_id}: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": "profiling_error",
+                        "message": f"Error al generar el profiling: {str(e)}"}), 500
+
 
 @datasets_bp.route('/<int:dataset_id>/evaluations', methods=['GET'])
 @jwt_required()

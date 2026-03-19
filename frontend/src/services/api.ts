@@ -523,6 +523,11 @@ export const datasetsAPI = {
     api.get(`/api/projects/${projectId}/datasets/${datasetIdA}/compare/${datasetIdB}`, {
       timeout: 10000
     }),
+
+  getDatasetProfiling: (id: number) =>
+    api.get(`/api/datasets/${id}/profiling`, {
+      timeout: 30000,
+    }),
 };
 
 // Metrics API

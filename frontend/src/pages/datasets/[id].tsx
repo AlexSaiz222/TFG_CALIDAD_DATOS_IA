@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
+import DataProfilingTab from '../../components/DataProfilingTab';
 import { datasetsAPI, evaluationsAPI, projectsAPI } from '../../services/api';
 import { Dataset, Evaluation, Issue } from '../../types';
 
@@ -331,8 +332,8 @@ const DatasetDetail = () => {
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     
-    // If switching to Issues tab (index 2), load issues from latest completed evaluation
-    if (newValue === 2 && evaluations.length > 0) {
+    // If switching to Issues tab (index 3), load issues from latest completed evaluation
+    if (newValue === 3 && evaluations.length > 0) {
       const latestCompletedEval = evaluations.find((e: Evaluation) => e.status === 'completed');
       if (latestCompletedEval) {
         evaluationsAPI.getIssues(latestCompletedEval.id)
@@ -639,9 +640,10 @@ const DatasetDetail = () => {
             }}
           >
             <Tab label="Preview" id="dataset-tab-0" aria-controls="dataset-tabpanel-0" />
-            <Tab label="Evaluations" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
-            <Tab label="Issues" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
-            <Tab label="Versiones" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
+            <Tab label="Data Profiling" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
+            <Tab label="Evaluations" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
+            <Tab label="Issues" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
+            <Tab label="Versiones" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
           </Tabs>
         </Box>
 
@@ -687,8 +689,13 @@ const DatasetDetail = () => {
           )}
         </TabPanel>
 
-        {/* Evaluations Tab */}
+        {/* Data Profiling Tab */}
         <TabPanel value={tabValue} index={1}>
+          <DataProfilingTab datasetId={dataset.id} />
+        </TabPanel>
+
+        {/* Evaluations Tab */}
+        <TabPanel value={tabValue} index={2}>
           {evaluations.length > 0 ? (
             <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
               <Table aria-label="evaluations table">
@@ -837,7 +844,7 @@ const DatasetDetail = () => {
                               .then(response => {
                                 const data = response.data?.data?.issues || response.data?.data || response.data || [];
                                 setIssues(Array.isArray(data) ? data : []);
-                                setTabValue(2); // Switch to Issues tab
+                                setTabValue(3); // Switch to Issues tab
                               })
                               .catch(error => {
                                 console.error('Error fetching issues:', error);
@@ -887,7 +894,7 @@ const DatasetDetail = () => {
         </TabPanel>
 
         {/* Issues Tab */}
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={3}>
           {issues.length > 0 ? (
             <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
               <Table aria-label="issues table">
@@ -963,7 +970,7 @@ const DatasetDetail = () => {
         </TabPanel>
 
         {/* Versions Tab */}
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={4}>
           <DatasetVersionHistory
             datasetId={dataset.id}
             projectId={dataset.project_id}
