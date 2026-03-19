@@ -608,7 +608,7 @@ const ProjectDetail = () => {
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 500 }}>
-              Datasets del Proyecto
+              Datasets del proyecto
             </Typography>
             <Button
               variant="contained"
