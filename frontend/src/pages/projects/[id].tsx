@@ -32,7 +32,7 @@ import {
   Settings as SettingsIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  Dataset as DatasetIcon,
+  Description as DatasetIcon,
   Assessment as AssessmentIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
@@ -688,13 +688,31 @@ const ProjectDetail = () => {
               </Table>
             </TableContainer>
           ) : (
-            <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
-              <DatasetIcon sx={{ fontSize: 60, color: ORANGE, opacity: 0.7, mb: 2 }} />
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
-                No hay datasets en este proyecto
+            <Box 
+              sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                borderRadius: 2, 
+                border: '2px dashed #E0E0E0',
+                backgroundColor: '#FAFAFA',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  p: 2,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                  mb: 2,
+                }}
+              >
+                <DatasetIcon sx={{ fontSize: 40, color: GREEN }} />
+              </Box>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#1A1A1A' }}>
+                Aún no hay datasets
               </Typography>
-              <Typography variant="body1" sx={{ color: '#555555', mb: 3 }}>
-                Añade un dataset para comenzar a evaluar la calidad de tus datos.
+              <Typography variant="body2" sx={{ color: '#666666' }}>
+                Comienza añadiendo tu primer dataset
               </Typography>
             </Box>
           )}
