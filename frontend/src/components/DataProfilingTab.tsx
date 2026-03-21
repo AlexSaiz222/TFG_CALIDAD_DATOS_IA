@@ -329,17 +329,17 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Completitud"
+              title="Valores nulos"
               value={`${compPct}%`}
               badge={compBadge}
-              insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Todas las columnas completas'}
+              insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Sin valores nulos'}
               onDetail={openAnalysisDetails}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Unicidad"
-              value={`${uniqPct}%`}
+              title="Registros duplicados"
+              value={overview.duplicate_rows > 0 ? `${(100 - uniqPct).toFixed(1)}%` : '0%'}
               badge={uniqBadge}
               insight={overview.duplicate_rows > 0
                 ? `${overview.duplicate_rows.toLocaleString()} fila${overview.duplicate_rows !== 1 ? 's' : ''} duplicada${overview.duplicate_rows !== 1 ? 's' : ''}`
@@ -365,12 +365,12 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       <CollapsibleSection
         id="profiling-analysis-details"
         icon={<ManageSearchIcon sx={{ color: '#00B37E' }} />}
-        title="Análisis de Nulos, Duplicados y Outliers"
+        title="Valores nulos, registros duplicados y outliers"
         subtitle="Completitud, unicidad y valores atípicos"
         open={sections.metricDetails}
         onToggle={() => toggle('metricDetails')}
       >
-        <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} />
+        <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} datasetId={datasetId} />
       </CollapsibleSection>
 
       {/* ── SECTION 3 – Per-column Analysis ── */}

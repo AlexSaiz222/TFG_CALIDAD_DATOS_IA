@@ -528,6 +528,11 @@ export const datasetsAPI = {
     api.get(`/api/datasets/${id}/profiling`, {
       timeout: 30000,
     }),
+
+  getDuplicateRows: (id: number) =>
+    api.get(`/api/datasets/${id}/duplicates`, {
+      timeout: 15000,
+    }),
 };
 
 // Metrics API

@@ -1018,6 +1018,63 @@ def get_dataset_profiling(dataset_id):
                         "message": f"Error al generar el profiling: {str(e)}"}), 500
 
 
+@datasets_bp.route('/<int:dataset_id>/duplicates', methods=['GET'])
+@jwt_required()
+def get_duplicate_rows(dataset_id):
+    """Get actual duplicate rows from a dataset"""
+    try:
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "invalid_token_identity"}), 401
+        
+        dataset = Dataset.query.get(dataset_id)
+        if not dataset:
+            return jsonify({"success": False, "error": "dataset_not_found"}), 404
+        
+        if dataset.project.user_id != current_user_id_int:
+            return jsonify({"success": False, "error": "unauthorized"}), 403
+        
+        minio_service = MinioService()
+        file_data = minio_service.get_file(dataset.file_path)
+        
+        if dataset.file_path.endswith('.csv'):
+            df = pd.read_csv(io.BytesIO(file_data))
+        elif dataset.file_path.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(io.BytesIO(file_data))
+        else:
+            return jsonify({"success": False, "error": "unsupported_format"}), 400
+        
+        # Find duplicate rows
+        duplicated_mask = df.duplicated(keep=False)
+        duplicate_rows = df[duplicated_mask]
+        
+        # Get unique duplicate groups
+        duplicate_groups = []
+        if len(duplicate_rows) > 0:
+            # Group by all columns to find identical rows
+            grouped = duplicate_rows.groupby(list(df.columns), dropna=False)
+            for name, group in grouped:
+                if len(group) > 1:  # Only groups with actual duplicates
+                    duplicate_groups.append({
+                        'count': len(group),
+                        'indices': group.index.tolist(),
+                        'sample': group.head(5).to_dict('records')  # Show up to 5 samples
+                    })
+        
+        return jsonify({
+            "success": True,
+            "total_duplicates": int(duplicated_mask.sum()),
+            "duplicate_groups": duplicate_groups[:50],  # Limit to 50 groups
+            "total_groups": len(duplicate_groups)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting duplicates for dataset {dataset_id}: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": "server_error", "message": str(e)}), 500
+
+
 @datasets_bp.route('/<int:dataset_id>/evaluations', methods=['GET'])
 @jwt_required()
 def list_dataset_evaluations(dataset_id):

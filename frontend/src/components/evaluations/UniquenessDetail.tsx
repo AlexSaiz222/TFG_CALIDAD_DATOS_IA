@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,25 +10,36 @@ import {
   TableHead,
   TableRow,
   Chip,
+  CircularProgress,
+  Button,
+  Collapse,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   ContentCopy as DuplicateIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import { ColumnMetrics } from '../../types';
+import { datasetsAPI } from '../../services/api';
 
 interface UniquenessDetailProps {
   overallUniqueness: number;
   columnMetrics: Record<string, ColumnMetrics>;
   threshold?: number;
+  datasetId?: number;
 }
 
 const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
   overallUniqueness,
   columnMetrics,
   threshold = 1.0,
+  datasetId,
 }) => {
+  const [duplicateData, setDuplicateData] = useState<any>(null);
+  const [loadingDuplicates, setLoadingDuplicates] = useState(false);
+  const [showDuplicates, setShowDuplicates] = useState(false);
   const columns = Object.entries(columnMetrics)
     .map(([name, metrics]) => {
       const total = (metrics.n_nulls ?? 0) + (metrics.n_non_nulls ?? 0);
@@ -54,6 +65,21 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
     if (val >= 1.0) return '#00B37E';
     if (val >= 0.95) return '#FFB800';
     return '#E5484D';
+  };
+
+  const loadDuplicates = async () => {
+    if (!datasetId || loadingDuplicates) return;
+    
+    setLoadingDuplicates(true);
+    try {
+      const response = await datasetsAPI.getDuplicateRows(datasetId);
+      setDuplicateData(response.data);
+      setShowDuplicates(true);
+    } catch (error) {
+      console.error('Error loading duplicate rows:', error);
+    } finally {
+      setLoadingDuplicates(false);
+    }
   };
 
   return (
@@ -106,12 +132,80 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
               <strong>{duplicateRows.toLocaleString()}</strong> fila{duplicateRows !== 1 ? 's' : ''} del dataset {duplicateRows !== 1 ? 'están' : 'está'} completamente duplicada{duplicateRows !== 1 ? 's' : ''} ({((duplicateRows / totalRows) * 100).toFixed(2)}% del total).
             </Typography>
             <Box sx={{ p: 1.5, backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 1, border: '1px solid rgba(229, 72, 77, 0.15)' }}>
-              <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, display: 'block', mb: 0.5 }}>
-                Filas duplicadas detectadas:
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#999', display: 'block', fontStyle: 'italic' }}>
-                Para ver las filas duplicadas específicas, consulta el dataset original o ejecuta una query de duplicados.
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500 }}>
+                  Filas duplicadas detectadas:
+                </Typography>
+                {datasetId && !duplicateData && (
+                  <Button
+                    size="small"
+                    onClick={loadDuplicates}
+                    disabled={loadingDuplicates}
+                    sx={{ fontSize: '0.7rem', textTransform: 'none' }}
+                  >
+                    {loadingDuplicates ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : null}
+                    {loadingDuplicates ? 'Cargando...' : 'Ver filas duplicadas'}
+                  </Button>
+                )}
+                {duplicateData && (
+                  <Button
+                    size="small"
+                    onClick={() => setShowDuplicates(!showDuplicates)}
+                    endIcon={showDuplicates ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    sx={{ fontSize: '0.7rem', textTransform: 'none' }}
+                  >
+                    {showDuplicates ? 'Ocultar' : 'Mostrar'}
+                  </Button>
+                )}
+              </Box>
+              
+              <Collapse in={showDuplicates && duplicateData}>
+                {duplicateData && duplicateData.duplicate_groups && duplicateData.duplicate_groups.length > 0 ? (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1 }}>
+                      Se encontraron {duplicateData.total_groups} grupo{duplicateData.total_groups !== 1 ? 's' : ''} de filas duplicadas:
+                    </Typography>
+                    {duplicateData.duplicate_groups.slice(0, 10).map((group: any, idx: number) => (
+                      <Box key={idx} sx={{ mb: 1.5, p: 1, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E0E0E0' }}>
+                        <Typography variant="caption" sx={{ color: '#E5484D', fontWeight: 600, display: 'block', mb: 0.5 }}>
+                          Grupo {idx + 1}: {group.count} filas idénticas (índices: {group.indices.join(', ')})
+                        </Typography>
+                        <Box sx={{ overflowX: 'auto', maxHeight: 150 }}>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                {group.sample && group.sample.length > 0 && Object.keys(group.sample[0]).map((col: string) => (
+                                  <TableCell key={col} sx={{ fontSize: '0.65rem', fontWeight: 600, whiteSpace: 'nowrap' }}>{col}</TableCell>
+                                ))}
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {group.sample && group.sample.slice(0, 3).map((row: any, rowIdx: number) => (
+                                <TableRow key={rowIdx}>
+                                  {Object.values(row).map((val: any, colIdx: number) => (
+                                    <TableCell key={colIdx} sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                                      {val !== null && val !== undefined ? String(val) : '-'}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </Box>
+                      </Box>
+                    ))}
+                    {duplicateData.total_groups > 10 && (
+                      <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
+                        Mostrando 10 de {duplicateData.total_groups} grupos...
+                      </Typography>
+                    )}
+                  </Box>
+                ) : duplicateData ? (
+                  <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
+                    No se encontraron grupos de filas duplicadas.
+                  </Typography>
+                ) : null}
+              </Collapse>
             </Box>
           </Box>
         </Box>

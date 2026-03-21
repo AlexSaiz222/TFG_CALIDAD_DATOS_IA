@@ -34,6 +34,7 @@ interface MetricDetailsTabsProps {
   overallMetrics: Record<string, any>;
   columnMetrics: Record<string, ColumnMetrics>;
   initialTab?: number;
+  datasetId?: number;
 }
 
 const getStatusIcon = (value: number, threshold: number) => {
@@ -46,6 +47,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   overallMetrics,
   columnMetrics,
   initialTab = 0,
+  datasetId,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -151,6 +153,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
                 <UniquenessDetail
                   overallUniqueness={overallMetrics.uniqueness}
                   columnMetrics={columnMetrics}
+                  datasetId={datasetId}
                 />
               </TabPanel>
             );
