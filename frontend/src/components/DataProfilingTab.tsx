@@ -325,24 +325,6 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           ))}
         </Box>
 
-        {/* Type proportion bar */}
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden' }}>
-            <Box sx={{ width: `${numPct}%`, bgcolor: '#1976d2', transition: 'width 0.3s' }} />
-            <Box sx={{ width: `${catPct}%`, bgcolor: '#7b1fa2', transition: 'width 0.3s' }} />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#1976d2' }} />
-              <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>Numéricas</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#7b1fa2' }} />
-              <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>Categóricas</Typography>
-            </Box>
-          </Box>
-        </Box>
-
         {/* Características del dataset */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
@@ -394,7 +376,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       {/* ── SECTION 3 – Per-column Analysis ── */}
       <CollapsibleSection
         icon={<BarChartIcon sx={{ color: '#00B37E' }} />}
-        title="Análisis por Columna"
+        title="Análisis por columna"
         subtitle="Estadísticas descriptivas y distribuciones"
         count={columns.length}
         open={sections.columns}
@@ -565,7 +547,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       {correlation_matrix && (
         <CollapsibleSection
           icon={<GridOnIcon sx={{ color: '#00B37E' }} />}
-          title="Matriz de Correlación"
+          title="Matriz de correlación"
           subtitle={`${correlation_matrix.columns.length} variables numéricas · Pearson`}
           open={sections.correlation}
           onToggle={() => toggle('correlation')}
