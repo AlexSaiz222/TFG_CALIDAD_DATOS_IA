@@ -74,15 +74,16 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
 
   if (hasCompleteness) {
     tabs.push({
-      label: `Completeness (${(overallMetrics.completeness * 100).toFixed(1)}%)`,
+      label: `Valores nulos (${(overallMetrics.completeness * 100).toFixed(1)}%)`,
       icon: null,
       available: true,
     });
   }
 
   if (hasUniqueness) {
+    const duplicatePercent = ((1 - overallMetrics.uniqueness) * 100).toFixed(1);
     tabs.push({
-      label: `Uniqueness (${(overallMetrics.uniqueness * 100).toFixed(1)}%)`,
+      label: `Registros duplicados (${duplicatePercent}%)`,
       icon: null,
       available: true,
     });

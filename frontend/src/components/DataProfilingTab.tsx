@@ -78,10 +78,12 @@ const correlationColor = (v: number): { bg: string; text: string } => {
   return { bg: `rgb(${b}, ${b}, ${255 - Math.round(abs * 50)})`, text: abs > 0.5 ? '#fff' : '#333' };
 };
 
-const badgeFor = (val: number, thresholds: [number, number] = [0.98, 0.90]) => {
-  if (val >= thresholds[0]) return { label: 'Excelente', bg: 'rgba(0,179,126,0.1)', color: '#00B37E' };
-  if (val >= thresholds[1]) return { label: 'Requiere atención', bg: 'rgba(255,184,0,0.1)', color: '#FFB800' };
-  return { label: 'Crítico', bg: 'rgba(229,72,77,0.1)', color: '#E5484D' };
+const badgeFor = (val: number, thresholds: [number, number, number, number] = [0.98, 0.95, 0.90, 0.80]) => {
+  if (val >= thresholds[0]) return { label: 'Excelente', bg: 'rgba(0,179,126,0.1)', color: '#00B37E' };      // >= 98%
+  if (val >= thresholds[1]) return { label: 'Bueno', bg: 'rgba(52,211,153,0.1)', color: '#34D399' };        // >= 95%
+  if (val >= thresholds[2]) return { label: 'Aceptable', bg: 'rgba(251,191,36,0.1)', color: '#FBB024' };    // >= 90%
+  if (val >= thresholds[3]) return { label: 'Requiere atención', bg: 'rgba(251,146,60,0.1)', color: '#FB923C' }; // >= 80%
+  return { label: 'Crítico', bg: 'rgba(239,68,68,0.1)', color: '#EF4444' };                                 // < 80%
 };
 
 // ── Collapsible Section ─────────────────────────────────────────
@@ -291,7 +293,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
 
   // ── Computed metrics ──────────────────────────────────────────
   const compVal = evalOverallMetrics.completeness ?? 1;
-  const compPct = (compVal * 100).toFixed(1);
+  const nullPct = ((1 - compVal) * 100).toFixed(1); // % de valores nulos
   const nullCols = Object.values(evalColumnMetrics).filter((c: any) => (c.n_nulls || 0) > 0).length;
   const compBadge = badgeFor(compVal);
 
@@ -304,7 +306,9 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   const totalOutlierVals = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.total_values || 0), 0);
   const outlierProp = totalOutlierVals > 0 ? totalOutliers / totalOutlierVals : 0;
   const outlierColCount = Object.values(outlierMap).filter((c: any) => c?.count > 0).length;
-  const outBadge = totalOutliers === 0 ? badgeFor(1) : outlierProp >= 0.05 ? badgeFor(0.5) : outlierProp >= 0.02 ? badgeFor(0.95) : badgeFor(1);
+  // Badge basado en proporción de outliers (densidad): menos outliers = mejor
+  // Invertimos la lógica: 1 - outlierProp para que 0% outliers = 100% "calidad"
+  const outBadge = badgeFor(1 - outlierProp);
 
   const numPct = overview.total_columns > 0 ? Math.round((type_summary.numeric_count / overview.total_columns) * 100) : 0;
   const catPct = 100 - numPct;
@@ -348,7 +352,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           <Grid item xs={12} sm={4}>
             <MetricCard
               title="Valores nulos"
-              value={`${compPct}%`}
+              value={`${nullPct}%`}
               badge={compBadge}
               insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Sin valores nulos'}
               onDetail={openAnalysisDetails}

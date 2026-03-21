@@ -45,8 +45,17 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
   const renderColumnDetail = (colName: string, col: any) => {
     const proportion = col.proportion || (col.total_values > 0 ? col.count / col.total_values : 0);
     const proportionPct = (proportion * 100).toFixed(1);
-    const severityColor = proportion >= 0.20 ? '#E5484D' : proportion >= 0.10 ? '#E5484D' : proportion >= 0.05 ? '#FFB800' : '#00B37E';
-    const severityLabel = proportion >= 0.20 ? 'Critical' : proportion >= 0.10 ? 'High' : proportion >= 0.05 ? 'Medium' : 'Low';
+    // Paleta de 5 colores basada en proporción de outliers (densidad-aware)
+    const severityColor = proportion >= 0.20 ? '#EF4444' :  // Crítico (>= 20%)
+                          proportion >= 0.10 ? '#FB923C' :  // Requiere atención (>= 10%)
+                          proportion >= 0.05 ? '#FBB024' :  // Aceptable (>= 5%)
+                          proportion >= 0.02 ? '#34D399' :  // Bueno (>= 2%)
+                          '#00B37E';                         // Excelente (< 2%)
+    const severityLabel = proportion >= 0.20 ? 'Crítico' : 
+                          proportion >= 0.10 ? 'Alto' : 
+                          proportion >= 0.05 ? 'Medio' : 
+                          proportion >= 0.02 ? 'Bajo' : 
+                          'Muy bajo';
 
     const lb = col.lower_bound ?? col.series_min ?? 0;
     const ub = col.upper_bound ?? col.series_max ?? 100;

@@ -56,15 +56,17 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
     })
     .sort((a, b) => a.uniqueness - b.uniqueness);
 
-  const pct = (overallUniqueness * 100).toFixed(1);
+  const pct = ((1 - overallUniqueness) * 100).toFixed(1); // % de registros duplicados
   const totalRows = columns.length > 0 ? columns[0].total : 0;
   const duplicateRows = totalRows > 0 ? Math.round((1 - overallUniqueness) * totalRows) : 0;
   const columnsWithDuplicates = columns.filter(c => c.uniqueness < 1.0);
 
   const getColor = (val: number): string => {
-    if (val >= 1.0) return '#00B37E';
-    if (val >= 0.95) return '#FFB800';
-    return '#E5484D';
+    if (val >= 0.98) return '#00B37E';  // Excelente
+    if (val >= 0.95) return '#34D399';  // Bueno
+    if (val >= 0.90) return '#FBB024';  // Aceptable
+    if (val >= 0.80) return '#FB923C';  // Requiere atención
+    return '#EF4444';                   // Crítico
   };
 
   const loadDuplicates = async () => {
@@ -95,17 +97,14 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
               ? 'Todas las filas son únicas. No se detectaron duplicados.'
               : `${duplicateRows.toLocaleString()} fila${duplicateRows !== 1 ? 's' : ''} duplicada${duplicateRows !== 1 ? 's' : ''} en ${columnsWithDuplicates.length} columna${columnsWithDuplicates.length !== 1 ? 's' : ''}.`}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#888' }}>
-            Umbral: {(threshold * 100).toFixed(0)}% — cualquier duplicado genera un issue.
-          </Typography>
         </Box>
       </Box>
 
-      {/* ─── Barra global ─── */}
+      {/* ─── Barra global mostrando % de registros duplicados ─── */}
       <Box sx={{ mb: 3 }}>
         <LinearProgress
           variant="determinate"
-          value={overallUniqueness * 100}
+          value={(1 - overallUniqueness) * 100}
           sx={{
             height: 10,
             borderRadius: 5,
@@ -136,7 +135,11 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
                 <Typography variant="caption" sx={{ color: '#666', fontWeight: 500 }}>
                   Filas duplicadas detectadas:
                 </Typography>
-                {datasetId && !duplicateData && (
+                {!datasetId ? (
+                  <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
+                    ID de dataset no disponible
+                  </Typography>
+                ) : !duplicateData ? (
                   <Button
                     size="small"
                     onClick={loadDuplicates}
@@ -146,8 +149,7 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
                     {loadingDuplicates ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : null}
                     {loadingDuplicates ? 'Cargando...' : 'Ver filas duplicadas'}
                   </Button>
-                )}
-                {duplicateData && (
+                ) : (
                   <Button
                     size="small"
                     onClick={() => setShowDuplicates(!showDuplicates)}

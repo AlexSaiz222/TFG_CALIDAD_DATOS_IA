@@ -44,12 +44,14 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
   const totalCells = columns.reduce((sum, c) => sum + c.total, 0);
   const columnsBelow = columns.filter(c => c.completeness < threshold);
   const columnsWithNulls = columns.filter(c => c.nNulls > 0);
-  const pct = (overallCompleteness * 100).toFixed(1);
+  const pct = ((1 - overallCompleteness) * 100).toFixed(1); // % de valores nulos
 
   const getColor = (val: number): string => {
-    if (val >= 0.98) return '#00B37E';
-    if (val >= 0.90) return '#FFB800';
-    return '#E5484D';
+    if (val >= 0.98) return '#00B37E';  // Excelente
+    if (val >= 0.95) return '#34D399';  // Bueno
+    if (val >= 0.90) return '#FBB024';  // Aceptable
+    if (val >= 0.80) return '#FB923C';  // Requiere atención
+    return '#EF4444';                   // Crítico
   };
 
   return (
@@ -66,17 +68,14 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
               ? ` Faltan ${totalNulls.toLocaleString()} valores.`
               : ' Todas las celdas tienen valor.'}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#888' }}>
-            Umbral: {(threshold * 100).toFixed(0)}% — por debajo se genera un issue.
-          </Typography>
         </Box>
       </Box>
 
-      {/* ─── Barra global con marcador de umbral ─── */}
+      {/* ─── Barra global mostrando % de valores nulos ─── */}
       <Box sx={{ position: 'relative', mb: 3 }}>
         <LinearProgress
           variant="determinate"
-          value={overallCompleteness * 100}
+          value={(1 - overallCompleteness) * 100}
           sx={{
             height: 10,
             borderRadius: 5,
@@ -87,30 +86,6 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
             },
           }}
         />
-        <Box
-          sx={{
-            position: 'absolute',
-            left: `${threshold * 100}%`,
-            top: -4,
-            bottom: -4,
-            width: 2,
-            backgroundColor: '#333',
-            opacity: 0.5,
-          }}
-        />
-        <Typography
-          variant="caption"
-          sx={{
-            position: 'absolute',
-            left: `${threshold * 100}%`,
-            top: 14,
-            transform: 'translateX(-50%)',
-            color: '#888',
-            fontSize: '0.65rem',
-          }}
-        >
-          {(threshold * 100).toFixed(0)}%
-        </Typography>
       </Box>
 
       {/* ─── Insight contextual ─── */}
