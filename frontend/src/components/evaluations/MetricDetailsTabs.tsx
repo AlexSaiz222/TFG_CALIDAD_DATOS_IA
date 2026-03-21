@@ -16,6 +16,21 @@ import UniquenessDetail from './UniquenessDetail';
 import OutlierDetail from './OutlierDetail';
 import { ColumnMetrics } from '../../types';
 
+// ══════════════════════════════════════════════════════════════════════════════
+// IMPORTANTE: Este componente se usa TEMPORALMENTE para mostrar características
+// del dataset (completitud, unicidad, outliers).
+//
+// Estas NO son métricas de evaluación de calidad de datos, son características
+// descriptivas intrínsecas del dataset.
+//
+// En el futuro:
+// - Este componente volverá a su propósito original: mostrar SOLO métricas de evaluación
+// - Se creará un nuevo componente específico para características del dataset
+// - La separación permitirá distinguir claramente entre:
+//   * Características del dataset (completitud, unicidad, outliers)
+//   * Métricas de calidad de datos (las que se definan en el sistema de evaluaciones)
+// ══════════════════════════════════════════════════════════════════════════════
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;

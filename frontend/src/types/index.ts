@@ -123,6 +123,20 @@ export interface OutlierInfo {
   indices: number[];
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// IMPORTANTE: ColumnMetrics actualmente representa CARACTERÍSTICAS DEL DATASET
+// NO métricas de evaluación de calidad de datos.
+//
+// Campos de características del dataset (NO métricas):
+// - completeness: Porcentaje de valores no nulos (característica descriptiva)
+// - uniqueness: Porcentaje de valores únicos (característica descriptiva)
+// - outliers: Valores atípicos detectados (característica descriptiva)
+//
+// En el futuro, esta interfaz se refactorizará para:
+// 1. Separar características del dataset en una interfaz dedicada (DatasetCharacteristics)
+// 2. Usar ColumnMetrics SOLO para métricas de evaluación de calidad de datos
+// 3. Distinguir claramente entre propiedades descriptivas y métricas evaluativas
+// ══════════════════════════════════════════════════════════════════════════════
 export interface ColumnMetrics {
   completeness: number;
   uniqueness: number;

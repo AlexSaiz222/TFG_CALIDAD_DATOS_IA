@@ -187,9 +187,20 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   }, [profiling]);
 
   // ── Transform profiling data → evaluation component format ────
+  // ══════════════════════════════════════════════════════════════════════════════
+  // IMPORTANTE: Completitud, Unicidad y Outliers son CARACTERÍSTICAS DEL DATASET
+  // NO son métricas de evaluación de calidad de datos.
+  // 
+  // En el futuro, estas características se separarán del sistema de evaluaciones
+  // para dejar paso a las métricas reales de calidad de datos.
+  // 
+  // Por ahora, se mantiene la compatibilidad con el formato de evaluaciones para
+  // reutilizar los componentes de visualización (MetricDetailsTabs, etc.)
+  // ══════════════════════════════════════════════════════════════════════════════
   const { evalColumnMetrics, evalOverallMetrics } = useMemo(() => {
     if (!profiling) return { evalColumnMetrics: {} as Record<string, ColumnMetrics>, evalOverallMetrics: {} as Record<string, any> };
 
+    // Construir características por columna (NO métricas de evaluación)
     const cm: Record<string, ColumnMetrics> = {};
     const outliers: Record<string, any> = {};
 
@@ -229,12 +240,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     }
 
     const ov = profiling.overview;
+    // Calcular características generales del dataset (NO métricas de evaluación)
     const overallCompleteness = ov.total_cells > 0 ? (ov.total_cells - ov.total_missing) / ov.total_cells : 1;
     const overallUniqueness = ov.total_rows > 0 ? (ov.total_rows - ov.duplicate_rows) / ov.total_rows : 1;
 
     return {
-      evalColumnMetrics: cm,
-      evalOverallMetrics: {
+      evalColumnMetrics: cm, // NOTA: Nombre temporal por compatibilidad, representa características por columna
+      evalOverallMetrics: {  // NOTA: Nombre temporal por compatibilidad, representa características generales
         completeness: overallCompleteness,
         uniqueness: overallUniqueness,
         ...(Object.keys(outliers).length > 0 ? { outliers } : {}),
@@ -325,7 +337,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           ))}
         </Box>
 
-        {/* Características del dataset */}
+        {/* ═══════════════════════════════════════════════════════════════════
+             CARACTERÍSTICAS DEL DATASET (NO métricas de evaluación)
+             Estas tarjetas muestran propiedades intrínsecas del dataset:
+             - Valores nulos (completitud)
+             - Registros duplicados (unicidad)
+             - Outliers (valores atípicos)
+             ═══════════════════════════════════════════════════════════════════ */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <MetricCard
@@ -361,7 +379,17 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
         </Grid>
       </CollapsibleSection>
 
-      {/* ── SECTION 2 – Análisis de Nulos, Duplicados y Outliers ── */}
+      {/* ══════════════════════════════════════════════════════════════════════════════
+           SECTION 2 – Análisis Detallado de Características del Dataset
+           
+           IMPORTANTE: Esta sección muestra CARACTERÍSTICAS DEL DATASET, NO métricas.
+           - Valores nulos (completitud)
+           - Registros duplicados (unicidad)  
+           - Outliers (valores atípicos)
+           
+           En el futuro, esta sección se separará del sistema de evaluaciones para
+           enfocarse exclusivamente en características descriptivas del dataset.
+           ══════════════════════════════════════════════════════════════════════════════ */}
       <CollapsibleSection
         id="profiling-analysis-details"
         icon={<ManageSearchIcon sx={{ color: '#00B37E' }} />}
@@ -370,6 +398,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
         open={sections.metricDetails}
         onToggle={() => toggle('metricDetails')}
       >
+        {/* NOTA: MetricDetailsTabs se reutiliza temporalmente para mostrar características.
+            En el futuro, se creará un componente específico para características del dataset. */}
         <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} datasetId={datasetId} />
       </CollapsibleSection>
 
