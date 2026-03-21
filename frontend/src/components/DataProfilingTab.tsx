@@ -38,8 +38,8 @@ import {
   BubbleChart as BubbleChartIcon,
   GridOn as GridOnIcon,
   Warning as WarningIcon,
-  Assessment as AssessmentIcon,
-  TrendingUp as TrendingUpIcon,
+  Notes as NotesIcon,
+  ManageSearch as ManageSearchIcon,
   ScatterPlot as ScatterPlotIcon,
 } from '@mui/icons-material';
 import { datasetsAPI } from '../services/api';
@@ -99,7 +99,7 @@ const CollapsibleSection: React.FC<{
     <Box
       onClick={onToggle}
       sx={{
-        display: 'flex', alignItems: 'center', gap: 2, px: 3, py: 2, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 2.5, px: 3, py: 2, cursor: 'pointer',
         userSelect: 'none', '&:hover': { bgcolor: '#FAFAFA' }, transition: 'background 0.15s',
       }}
     >
@@ -109,7 +109,7 @@ const CollapsibleSection: React.FC<{
           {title}
           {count !== undefined && <Chip label={count} size="small" sx={{ ml: 1, height: 20, fontSize: '0.7rem', fontWeight: 600 }} />}
         </Typography>
-        {subtitle && <Typography variant="caption" sx={{ color: '#888' }}>{subtitle}</Typography>}
+        {subtitle && !open && <Typography variant="caption" sx={{ color: '#888' }}>{subtitle}</Typography>}
       </Box>
       <IconButton size="small" sx={{ color: '#999' }}>
         {open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
@@ -244,11 +244,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
 
   // ── Section visibility state ──────────────────────────────────
   const defaultOpen: Record<SectionKey, boolean> = {
-    overview: true,
-    metricDetails: true,
-    columns: true,
-    correlation: true,
-    scatter: true,
+    overview: false,
+    metricDetails: false,
+    columns: false,
+    correlation: false,
+    scatter: false,
   };
   const [sections, setSections] = useState<Record<SectionKey, boolean>>(defaultOpen);
 
@@ -302,8 +302,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     <Box>
       {/* ── SECTION 1 – Overview + Metrics ── */}
       <CollapsibleSection
-        icon={<AssessmentIcon sx={{ color: '#00B37E' }} />}
-        title="Resumen del Dataset"
+        icon={<NotesIcon sx={{ color: '#00B37E' }} />}
+        title="Resumen del dataset"
         subtitle={`${overview.total_rows.toLocaleString()} filas · ${overview.total_columns} columnas · ${formatBytes(overview.estimated_size_bytes)}`}
         open={sections.overview}
         onToggle={() => toggle('overview')}
@@ -382,9 +382,9 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       {/* ── SECTION 2 – Metric Details (collapsed by default) ── */}
       <CollapsibleSection
         id="profiling-metric-details"
-        icon={<TrendingUpIcon sx={{ color: '#00B37E' }} />}
+        icon={<ManageSearchIcon sx={{ color: '#00B37E' }} />}
         title="Detalle de Métricas"
-        subtitle="Completitud, Unicidad y Outliers — análisis detallado"
+        subtitle="Análisis de nulos, duplicados y outliers"
         open={sections.metricDetails}
         onToggle={() => toggle('metricDetails')}
       >
@@ -592,14 +592,45 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                     </td>
                     {row.map((v, j) => {
                       const { bg, text } = correlationColor(v);
+                      const isDiagonal = i === j;
+                      const handleClick = () => {
+                        if (!isDiagonal) {
+                          setScatterX(correlation_matrix!.columns[i]);
+                          setScatterY(correlation_matrix!.columns[j]);
+                          setSections(prev => ({ ...prev, scatter: true }));
+                          setTimeout(() => {
+                            document.getElementById('scatter-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }, 300);
+                        }
+                      };
                       return (
-                        <td key={j} style={{
-                          padding: '5px 4px', textAlign: 'center', fontWeight: i === j ? 700 : 500,
-                          fontSize: '0.7rem', color: i === j ? '#333' : text,
-                          backgroundColor: i === j ? '#F5F5F5' : bg, borderRadius: 3, fontFamily: 'monospace',
-                        }}>
-                          <Tooltip title={`${correlation_matrix!.columns[i]} ↔ ${correlation_matrix!.columns[j]}: ${v.toFixed(4)}`}>
-                            <span>{i === j ? '1.00' : v.toFixed(2)}</span>
+                        <td
+                          key={j}
+                          onClick={handleClick}
+                          style={{
+                            padding: '5px 4px', textAlign: 'center', fontWeight: isDiagonal ? 700 : 500,
+                            fontSize: '0.7rem', color: isDiagonal ? '#333' : text,
+                            backgroundColor: isDiagonal ? '#F5F5F5' : bg, borderRadius: 3, fontFamily: 'monospace',
+                            cursor: isDiagonal ? 'default' : 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isDiagonal) {
+                              e.currentTarget.style.transform = 'scale(1.1)';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                              e.currentTarget.style.zIndex = '10';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isDiagonal) {
+                              e.currentTarget.style.transform = 'scale(1)';
+                              e.currentTarget.style.boxShadow = 'none';
+                              e.currentTarget.style.zIndex = '1';
+                            }
+                          }}
+                        >
+                          <Tooltip title={isDiagonal ? `${correlation_matrix!.columns[i]} (diagonal)` : `Click para graficar: ${correlation_matrix!.columns[i]} vs ${correlation_matrix!.columns[j]} (r=${v.toFixed(4)})`}>
+                            <span>{isDiagonal ? '1.00' : v.toFixed(2)}</span>
                           </Tooltip>
                         </td>
                       );
@@ -621,6 +652,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       {/* ── SECTION 5 – Scatter Plot (collapsed by default) ── */}
       {type_summary.numeric_columns.length >= 2 && (
         <CollapsibleSection
+          id="scatter-section"
           icon={<ScatterPlotIcon sx={{ color: '#00B37E' }} />}
           title="Dispersión"
           subtitle="Explora la relación entre dos variables numéricas"
@@ -669,14 +701,37 @@ const MiniBoxplot: React.FC<{ boxplot: NonNullable<ProfilingColumn['boxplot']> }
   return (
     <Box>
       <svg width="100%" height="60" viewBox="0 0 1000 60" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
-        <line x1={lbX} y1="30" x2={q1X} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" />
-        <line x1={q3X} y1="30" x2={ubX} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" />
-        <line x1={lbX} y1="20" x2={lbX} y2="40" stroke="#BBB" strokeWidth="1.5" />
-        <line x1={ubX} y1="20" x2={ubX} y2="40" stroke="#BBB" strokeWidth="1.5" />
-        <rect x={q1X} y="14" width={Math.max(q3X - q1X, 4)} height="32" rx="3" fill="#C8E6C9" stroke="#66BB6A" strokeWidth="1.5" />
-        <line x1={medX} y1="14" x2={medX} y2="46" stroke="#1B5E20" strokeWidth="2.5" />
+        {/* Lower whisker */}
+        <Tooltip title={`Límite inferior: ${boxplot.lower_fence.toFixed(2)}`} arrow>
+          <g>
+            <line x1={lbX} y1="30" x2={q1X} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" style={{ cursor: 'help' }} />
+            <line x1={lbX} y1="20" x2={lbX} y2="40" stroke="#BBB" strokeWidth="1.5" style={{ cursor: 'help' }} />
+          </g>
+        </Tooltip>
+        
+        {/* Upper whisker */}
+        <Tooltip title={`Límite superior: ${boxplot.upper_fence.toFixed(2)}`} arrow>
+          <g>
+            <line x1={q3X} y1="30" x2={ubX} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" style={{ cursor: 'help' }} />
+            <line x1={ubX} y1="20" x2={ubX} y2="40" stroke="#BBB" strokeWidth="1.5" style={{ cursor: 'help' }} />
+          </g>
+        </Tooltip>
+        
+        {/* IQR Box (Q1 to Q3) */}
+        <Tooltip title={`Q1: ${boxplot.q1.toFixed(2)} | Q3: ${boxplot.q3.toFixed(2)}`} arrow>
+          <rect x={q1X} y="14" width={Math.max(q3X - q1X, 4)} height="32" rx="3" fill="#C8E6C9" stroke="#66BB6A" strokeWidth="1.5" style={{ cursor: 'help' }} />
+        </Tooltip>
+        
+        {/* Median line (Q2) */}
+        <Tooltip title={`Mediana (Q2): ${boxplot.median.toFixed(2)}`} arrow>
+          <line x1={medX} y1="14" x2={medX} y2="46" stroke="#1B5E20" strokeWidth="2.5" style={{ cursor: 'help' }} />
+        </Tooltip>
+        
+        {/* Outliers */}
         {boxplot.outliers_sample.slice(0, 25).map((v, i) => (
-          <circle key={i} cx={toX(v)} cy="30" r="3" fill="#E5484D" stroke="#fff" strokeWidth="1" opacity="0.8" />
+          <Tooltip key={i} title={`Outlier: ${v.toFixed(2)}`} arrow>
+            <circle cx={toX(v)} cy="30" r="3" fill="#E5484D" stroke="#fff" strokeWidth="1" opacity="0.8" style={{ cursor: 'help' }} />
+          </Tooltip>
         ))}
       </svg>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 0.5 }}>
