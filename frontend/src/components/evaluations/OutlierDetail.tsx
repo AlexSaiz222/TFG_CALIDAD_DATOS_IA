@@ -16,6 +16,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Tooltip,
 } from '@mui/material';
 
 interface OutlierDetailProps {
@@ -158,35 +159,49 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           <Box>
             {/* SVG Box-plot */}
             <svg width="100%" height="100" viewBox="0 0 1000 100" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
-              {/* Whiskers */}
-              <line x1={lbPct * 10} y1="50" x2={q1Pct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" />
-              <line x1={q3Pct * 10} y1="50" x2={ubPct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" />
+              {/* Lower whisker */}
+              <Tooltip title={`Límite inferior: ${lb.toFixed(2)}`} arrow>
+                <g>
+                  <line x1={lbPct * 10} y1="50" x2={q1Pct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" style={{ cursor: 'help' }} />
+                  <line x1={lbPct * 10} y1="35" x2={lbPct * 10} y2="65" stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
+                </g>
+              </Tooltip>
 
-              {/* Whisker caps */}
-              <line x1={lbPct * 10} y1="35" x2={lbPct * 10} y2="65" stroke="#999" strokeWidth="2" />
-              <line x1={ubPct * 10} y1="35" x2={ubPct * 10} y2="65" stroke="#999" strokeWidth="2" />
+              {/* Upper whisker */}
+              <Tooltip title={`Límite superior: ${ub.toFixed(2)}`} arrow>
+                <g>
+                  <line x1={q3Pct * 10} y1="50" x2={ubPct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" style={{ cursor: 'help' }} />
+                  <line x1={ubPct * 10} y1="35" x2={ubPct * 10} y2="65" stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
+                </g>
+              </Tooltip>
 
               {/* IQR Box */}
-              <rect
-                x={q1Pct * 10}
-                y="25"
-                width={Math.max((q3Pct - q1Pct) * 10, 4)}
-                height="50"
-                rx="4"
-                fill="#C8E6C9"
-                stroke="#66BB6A"
-                strokeWidth="2.5"
-              />
+              <Tooltip title={`Q1: ${q1.toFixed(2)} | Q3: ${q3.toFixed(2)}`} arrow>
+                <rect
+                  x={q1Pct * 10}
+                  y="25"
+                  width={Math.max((q3Pct - q1Pct) * 10, 4)}
+                  height="50"
+                  rx="4"
+                  fill="#C8E6C9"
+                  stroke="#66BB6A"
+                  strokeWidth="2.5"
+                  style={{ cursor: 'help' }}
+                />
+              </Tooltip>
 
               {/* Median line - PROMINENT */}
-              <line
-                x1={medianPct * 10}
-                y1="25"
-                x2={medianPct * 10}
-                y2="75"
-                stroke="#1B5E20"
-                strokeWidth="4"
-              />
+              <Tooltip title={`Mediana (Q2): ${median.toFixed(2)}`} arrow>
+                <line
+                  x1={medianPct * 10}
+                  y1="25"
+                  x2={medianPct * 10}
+                  y2="75"
+                  stroke="#1B5E20"
+                  strokeWidth="4"
+                  style={{ cursor: 'help' }}
+                />
+              </Tooltip>
 
               {/* Median label */}
               <text
@@ -208,9 +223,10 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
 
                 const color = outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D';
                 const radius = outlier.isSuspicious ? 7 : outlier.isExtreme ? 6 : 5;
+                const outlierType = outlier.isSuspicious ? 'Sospechoso' : outlier.isExtreme ? 'Extremo' : 'Moderado';
 
                 return (
-                  <g key={idx}>
+                  <Tooltip key={idx} title={`Outlier ${outlierType}: ${outlier.val.toFixed(2)} (${outlier.iqrMultiple.toFixed(1)}× IQR)`} arrow>
                     <circle
                       cx={Math.max(10, Math.min(990, xPos))}
                       cy="50"
@@ -219,8 +235,9 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                       stroke="#fff"
                       strokeWidth="2"
                       opacity="0.95"
+                      style={{ cursor: 'help' }}
                     />
-                  </g>
+                  </Tooltip>
                 );
               })}
             </svg>

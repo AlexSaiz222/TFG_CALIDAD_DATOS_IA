@@ -256,10 +256,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     setSections(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const openMetricDetails = useCallback(() => {
+  const openAnalysisDetails = useCallback(() => {
     setSections(prev => ({ ...prev, metricDetails: true }));
     setTimeout(() => {
-      document.getElementById('profiling-metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('profiling-analysis-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 300);
   }, []);
 
@@ -343,7 +343,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           </Box>
         </Box>
 
-        {/* Executive Profile cards */}
+        {/* Características del dataset */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <MetricCard
@@ -351,7 +351,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               value={`${compPct}%`}
               badge={compBadge}
               insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Todas las columnas completas'}
-              onDetail={openMetricDetails}
+              onDetail={openAnalysisDetails}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -362,7 +362,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               insight={overview.duplicate_rows > 0
                 ? `${overview.duplicate_rows.toLocaleString()} fila${overview.duplicate_rows !== 1 ? 's' : ''} duplicada${overview.duplicate_rows !== 1 ? 's' : ''}`
                 : 'Sin filas duplicadas'}
-              onDetail={openMetricDetails}
+              onDetail={openAnalysisDetails}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -373,18 +373,18 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               insight={totalOutliers === 0
                 ? 'Sin valores atípicos'
                 : `${outlierColCount} col. afectada${outlierColCount !== 1 ? 's' : ''} (${(outlierProp * 100).toFixed(1)}%)`}
-              onDetail={openMetricDetails}
+              onDetail={openAnalysisDetails}
             />
           </Grid>
         </Grid>
       </CollapsibleSection>
 
-      {/* ── SECTION 2 – Metric Details (collapsed by default) ── */}
+      {/* ── SECTION 2 – Análisis de Nulos, Duplicados y Outliers ── */}
       <CollapsibleSection
-        id="profiling-metric-details"
+        id="profiling-analysis-details"
         icon={<ManageSearchIcon sx={{ color: '#00B37E' }} />}
-        title="Detalle de Métricas"
-        subtitle="Análisis de nulos, duplicados y outliers"
+        title="Análisis de Nulos, Duplicados y Outliers"
+        subtitle="Completitud, unicidad y valores atípicos"
         open={sections.metricDetails}
         onToggle={() => toggle('metricDetails')}
       >
