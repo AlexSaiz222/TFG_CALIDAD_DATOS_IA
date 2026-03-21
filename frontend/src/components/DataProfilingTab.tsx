@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,7 +20,6 @@ import {
   CircularProgress,
   Alert,
   Chip,
-  LinearProgress,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -29,109 +28,121 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  IconButton,
+  Collapse,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
-  Storage as StorageIcon,
+  ExpandLess as ExpandLessIcon,
   BarChart as BarChartIcon,
   BubbleChart as BubbleChartIcon,
   GridOn as GridOnIcon,
   Warning as WarningIcon,
-  ViewColumn as ViewColumnIcon,
-  CheckCircle as CheckCircleIcon,
+  Assessment as AssessmentIcon,
+  TrendingUp as TrendingUpIcon,
+  ScatterPlot as ScatterPlotIcon,
 } from '@mui/icons-material';
 import { datasetsAPI } from '../services/api';
 import type { DataProfilingResult, ProfilingColumn, ColumnMetrics } from '../types';
 import MetricDetailsTabs from './evaluations/MetricDetailsTabs';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  ChartTooltip,
-  Legend,
-  Filler
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
-interface DataProfilingTabProps {
-  datasetId: number;
-}
+// ── Types ───────────────────────────────────────────────────────
+interface DataProfilingTabProps { datasetId: number; }
 
-// ── Shared style constants ──────────────────────────────────────
-const sectionPaper = {
-  elevation: 0,
-  sx: { p: 3, mb: 3, borderRadius: 2, border: '1px solid #EEEEEE' },
-} as const;
-
-const sectionHeader = (icon: React.ReactNode, title: string, subtitle?: string) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
-    {icon}
-    <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>{title}</Typography>
-      {subtitle && (
-        <Typography variant="caption" sx={{ color: '#888' }}>{subtitle}</Typography>
-      )}
-    </Box>
-  </Box>
-);
+type SectionKey = 'overview' | 'metricDetails' | 'columns' | 'correlation' | 'scatter';
 
 // ── Helpers ─────────────────────────────────────────────────────
-function formatBytes(bytes: number): string {
+const formatBytes = (bytes: number): string => {
   if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
+};
 
-function getSubTypeLabel(sub: string): string {
-  const map: Record<string, string> = {
-    continuous: 'Continua',
-    discrete: 'Discreta',
-    binary: 'Binaria',
-    nominal: 'Nominal',
-    text: 'Texto',
-  };
-  return map[sub] || sub;
-}
+const subTypeLabels: Record<string, string> = { continuous: 'Continua', discrete: 'Discreta', binary: 'Binaria', nominal: 'Nominal', text: 'Texto' };
+const getSubTypeLabel = (s: string) => subTypeLabels[s] || s;
+const getCategoryColor = (cat: string) => cat === 'numeric' ? '#1976d2' : '#7b1fa2';
+const completenessColor = (v: number) => v >= 98 ? '#00B37E' : v >= 90 ? '#FFB800' : '#E5484D';
+const formatStat = (v: number | null | undefined) => v == null ? '—' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 4 });
 
-function getCategoryColor(cat: string): string {
-  return cat === 'numeric' ? '#1976d2' : '#7b1fa2';
-}
-
-function getCompletenessColor(val: number): string {
-  if (val >= 98) return '#00B37E';
-  if (val >= 90) return '#FFB800';
-  return '#E5484D';
-}
-
-// Diverging colour scale for correlation: -1 → blue, 0 → white, 1 → red
-function correlationColor(v: number): { bg: string; text: string } {
+const correlationColor = (v: number): { bg: string; text: string } => {
   const abs = Math.abs(v);
   if (abs < 0.05) return { bg: '#FAFAFA', text: '#999' };
-
   if (v > 0) {
     const r = Math.round(220 - abs * 180);
-    const g = Math.round(235 - abs * 180);
     return { bg: `rgb(${255 - Math.round(abs * 50)}, ${r}, ${r})`, text: abs > 0.5 ? '#fff' : '#333' };
   }
   const b = Math.round(220 - abs * 180);
   return { bg: `rgb(${b}, ${b}, ${255 - Math.round(abs * 50)})`, text: abs > 0.5 ? '#fff' : '#333' };
-}
+};
 
-function formatStat(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '—';
-  return Number(value).toLocaleString(undefined, { maximumFractionDigits: 4 });
-}
+const badgeFor = (val: number, thresholds: [number, number] = [0.98, 0.90]) => {
+  if (val >= thresholds[0]) return { label: 'Excelente', bg: 'rgba(0,179,126,0.1)', color: '#00B37E' };
+  if (val >= thresholds[1]) return { label: 'Requiere atención', bg: 'rgba(255,184,0,0.1)', color: '#FFB800' };
+  return { label: 'Crítico', bg: 'rgba(229,72,77,0.1)', color: '#E5484D' };
+};
+
+// ── Collapsible Section ─────────────────────────────────────────
+const CollapsibleSection: React.FC<{
+  id?: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+  count?: number;
+}> = ({ id, icon, title, subtitle, open, onToggle, children, count }) => (
+  <Paper id={id} elevation={0} sx={{ mb: 2, borderRadius: 2, border: '1px solid #EEEEEE', scrollMarginTop: '80px', overflow: 'hidden' }}>
+    <Box
+      onClick={onToggle}
+      sx={{
+        display: 'flex', alignItems: 'center', gap: 2, px: 3, py: 2, cursor: 'pointer',
+        userSelect: 'none', '&:hover': { bgcolor: '#FAFAFA' }, transition: 'background 0.15s',
+      }}
+    >
+      {icon}
+      <Box sx={{ flex: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: '0.95rem' }}>
+          {title}
+          {count !== undefined && <Chip label={count} size="small" sx={{ ml: 1, height: 20, fontSize: '0.7rem', fontWeight: 600 }} />}
+        </Typography>
+        {subtitle && <Typography variant="caption" sx={{ color: '#888' }}>{subtitle}</Typography>}
+      </Box>
+      <IconButton size="small" sx={{ color: '#999' }}>
+        {open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+      </IconButton>
+    </Box>
+    <Collapse in={open} timeout={250}>
+      <Box sx={{ px: 3, pb: 3 }}>{children}</Box>
+    </Collapse>
+  </Paper>
+);
+
+// ── Metric Card ─────────────────────────────────────────────────
+const MetricCard: React.FC<{
+  title: string; value: string;
+  badge: { label: string; bg: string; color: string };
+  insight: string; onDetail: () => void;
+}> = ({ title, value, badge, insight, onDetail }) => (
+  <Paper
+    elevation={0} onClick={onDetail}
+    sx={{
+      p: 2.5, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', height: '100%',
+      transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+    }}
+  >
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+      <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>{title}</Typography>
+      <Chip label={badge.label} size="small" sx={{ bgcolor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.65rem', height: 20 }} />
+    </Box>
+    <Typography variant="h4" sx={{ fontWeight: 700, color: badge.color, mb: 1, lineHeight: 1 }}>{value}</Typography>
+    <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1, minHeight: '2em' }}>{insight}</Typography>
+    <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500 }}>Ver detalle →</Typography>
+  </Paper>
+);
 
 // ── Main Component ──────────────────────────────────────────────
 const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
@@ -231,137 +242,127 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     };
   }, [profiling]);
 
+  // ── Section visibility state ──────────────────────────────────
+  const defaultOpen: Record<SectionKey, boolean> = {
+    overview: true,
+    metricDetails: true,
+    columns: true,
+    correlation: true,
+    scatter: true,
+  };
+  const [sections, setSections] = useState<Record<SectionKey, boolean>>(defaultOpen);
+
+  const toggle = useCallback((key: SectionKey) => {
+    setSections(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const openMetricDetails = useCallback(() => {
+    setSections(prev => ({ ...prev, metricDetails: true }));
+    setTimeout(() => {
+      document.getElementById('profiling-metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
+  }, []);
+
   // ── Render states ─────────────────────────────────────────────
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, gap: 2 }}>
         <CircularProgress sx={{ color: '#00B37E' }} />
-        <Typography variant="body2" sx={{ color: '#666' }}>
-          Generando análisis exploratorio…
-        </Typography>
+        <Typography variant="body2" sx={{ color: '#666' }}>Generando análisis exploratorio…</Typography>
       </Box>
     );
   }
-
-  if (error) {
-    return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
-  }
-
-  if (!profiling) {
-    return <Alert severity="info" sx={{ mt: 2 }}>No hay datos de profiling disponibles.</Alert>;
-  }
+  if (error) return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
+  if (!profiling) return <Alert severity="info" sx={{ mt: 2 }}>No hay datos de profiling disponibles.</Alert>;
 
   const { overview, type_summary, columns, correlation_matrix } = profiling;
 
-  // ── Helper: executive metric card ─────────────────────────────
-  const MetricCard = ({ title, value, badge, insight }: {
-    title: string;
-    value: string;
-    badge: { label: string; bg: string; color: string };
-    insight: string;
-  }) => (
-    <Paper
-      elevation={0}
-      onClick={() => {
-        const el = document.getElementById('profiling-metric-details');
-        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }}
-      sx={{
-        p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-        transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-        height: '100%',
-      }}
-    >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>{title}</Typography>
-        <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
-      </Box>
-      <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{value}</Typography>
-      <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
-      <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
-    </Paper>
-  );
-
-  // ── Executive metrics data ────────────────────────────────────
+  // ── Computed metrics ──────────────────────────────────────────
   const compVal = evalOverallMetrics.completeness ?? 1;
   const compPct = (compVal * 100).toFixed(1);
-  const nullColumns = Object.values(evalColumnMetrics).filter((c: any) => (c.n_nulls || 0) > 0).length;
-  const totalColumns = Object.keys(evalColumnMetrics).length;
-  const compBadge = compVal >= 0.98 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-    : compVal >= 0.90 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-    : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+  const nullCols = Object.values(evalColumnMetrics).filter((c: any) => (c.n_nulls || 0) > 0).length;
+  const compBadge = badgeFor(compVal);
 
   const uniqVal = evalOverallMetrics.uniqueness ?? 1;
   const uniqPct = (uniqVal * 100).toFixed(1);
-  const uniqBadge = overview.duplicate_rows === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-    : overview.duplicate_rows <= 2 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-    : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+  const uniqBadge = overview.duplicate_rows === 0 ? badgeFor(1) : overview.duplicate_rows <= 2 ? badgeFor(0.95) : badgeFor(0.5);
 
-  const outlierData = evalOverallMetrics.outliers || {};
-  const totalOutliers = Object.values(outlierData).reduce((sum: number, col: any) => sum + (col?.count || 0), 0);
-  const totalOutlierValues = Object.values(outlierData).reduce((sum: number, col: any) => sum + (col?.total_values || 0), 0);
-  const outlierProportion = totalOutlierValues > 0 ? totalOutliers / totalOutlierValues : 0;
-  const outlierCols = Object.entries(outlierData).filter(([_, col]: [string, any]) => col?.count > 0).length;
-  const outBadge = outlierProportion >= 0.05 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
-    : outlierProportion >= 0.02 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-    : totalOutliers === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-    : { label: 'Aceptable', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' };
+  const outlierMap = evalOverallMetrics.outliers || {};
+  const totalOutliers = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.count || 0), 0);
+  const totalOutlierVals = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.total_values || 0), 0);
+  const outlierProp = totalOutlierVals > 0 ? totalOutliers / totalOutlierVals : 0;
+  const outlierColCount = Object.values(outlierMap).filter((c: any) => c?.count > 0).length;
+  const outBadge = totalOutliers === 0 ? badgeFor(1) : outlierProp >= 0.05 ? badgeFor(0.5) : outlierProp >= 0.02 ? badgeFor(0.95) : badgeFor(1);
 
-  const numericPct = overview.total_columns > 0 ? Math.round((type_summary.numeric_count / overview.total_columns) * 100) : 0;
-  const categoricalPct = 100 - numericPct;
+  const numPct = overview.total_columns > 0 ? Math.round((type_summary.numeric_count / overview.total_columns) * 100) : 0;
+  const catPct = 100 - numPct;
 
-  // ── Final render ──────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────
   return (
     <Box>
-      {/* ════════════════════════════════════════════════════════════
-          SECTION 1 – Overview + Metrics Summary
-          ════════════════════════════════════════════════════════════ */}
-      <Paper {...sectionPaper}>
-        {sectionHeader(<StorageIcon sx={{ color: '#00B37E' }} />, 'Visión General del Dataset')}
-
-        {/* Volumetry row */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* ── SECTION 1 – Overview + Metrics ── */}
+      <CollapsibleSection
+        icon={<AssessmentIcon sx={{ color: '#00B37E' }} />}
+        title="Resumen del Dataset"
+        subtitle={`${overview.total_rows.toLocaleString()} filas · ${overview.total_columns} columnas · ${formatBytes(overview.estimated_size_bytes)}`}
+        open={sections.overview}
+        onToggle={() => toggle('overview')}
+      >
+        {/* Compact volumetry strip */}
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 3, px: 1 }}>
           {[
-            { label: 'Filas', value: overview.total_rows.toLocaleString(), icon: '📊' },
-            { label: 'Columnas', value: String(overview.total_columns), icon: '📋' },
-            { label: 'Tamaño', value: formatBytes(overview.estimated_size_bytes), icon: '💾' },
-            { label: 'Celdas', value: overview.total_cells.toLocaleString(), icon: '🔢' },
-          ].map(({ label, value }) => (
-            <Grid item xs={6} sm={3} key={label}>
-              <Box sx={{
-                p: 2, textAlign: 'center', bgcolor: '#FAFAFA', borderRadius: 2,
-                border: '1px solid #F0F0F0',
-              }}>
-                <Typography variant="caption" sx={{ color: '#888', fontWeight: 500, display: 'block', mb: 0.5 }}>{label}</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>{value}</Typography>
-              </Box>
-            </Grid>
+            { label: 'Filas', val: overview.total_rows.toLocaleString() },
+            { label: 'Columnas', val: String(overview.total_columns) },
+            { label: 'Celdas', val: overview.total_cells.toLocaleString() },
+            { label: 'Tamaño', val: formatBytes(overview.estimated_size_bytes) },
+            { label: 'Numéricas', val: `${type_summary.numeric_count} (${numPct}%)` },
+            { label: 'Categóricas', val: `${type_summary.categorical_count} (${catPct}%)` },
+          ].map(({ label, val }) => (
+            <Box key={label} sx={{ minWidth: 80 }}>
+              <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', lineHeight: 1 }}>{label}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#333' }}>{val}</Typography>
+            </Box>
           ))}
-        </Grid>
+        </Box>
 
-        {/* Metrics Summary subtitle */}
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#333', display: 'flex', alignItems: 'center', gap: 1 }}>
-          Metrics Summary
-        </Typography>
+        {/* Type proportion bar */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden' }}>
+            <Box sx={{ width: `${numPct}%`, bgcolor: '#1976d2', transition: 'width 0.3s' }} />
+            <Box sx={{ width: `${catPct}%`, bgcolor: '#7b1fa2', transition: 'width 0.3s' }} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#1976d2' }} />
+              <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>Numéricas</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#7b1fa2' }} />
+              <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>Categóricas</Typography>
+            </Box>
+          </Box>
+        </Box>
 
-        {/* Executive metric cards */}
+        {/* Executive Profile cards */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Completeness"
+              title="Completitud"
               value={`${compPct}%`}
               badge={compBadge}
-              insight={nullColumns > 0 ? `${nullColumns} de ${totalColumns} columnas tienen valores nulos` : 'Todas las columnas están completas'}
+              insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Todas las columnas completas'}
+              onDetail={openMetricDetails}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Uniqueness"
+              title="Unicidad"
               value={`${uniqPct}%`}
               badge={uniqBadge}
               insight={overview.duplicate_rows > 0
-                ? `${overview.duplicate_rows.toLocaleString()} fila${overview.duplicate_rows !== 1 ? 's' : ''} completamente duplicada${overview.duplicate_rows !== 1 ? 's' : ''}`
-                : 'Sin filas duplicadas detectadas'}
+                ? `${overview.duplicate_rows.toLocaleString()} fila${overview.duplicate_rows !== 1 ? 's' : ''} duplicada${overview.duplicate_rows !== 1 ? 's' : ''}`
+                : 'Sin filas duplicadas'}
+              onDetail={openMetricDetails}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -370,359 +371,212 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               value={String(totalOutliers)}
               badge={outBadge}
               insight={totalOutliers === 0
-                ? 'Sin valores atípicos detectados'
-                : `${outlierCols} columna${outlierCols !== 1 ? 's' : ''} afectada${outlierCols !== 1 ? 's' : ''} (${(outlierProportion * 100).toFixed(1)}% del total)`}
+                ? 'Sin valores atípicos'
+                : `${outlierColCount} col. afectada${outlierColCount !== 1 ? 's' : ''} (${(outlierProp * 100).toFixed(1)}%)`}
+              onDetail={openMetricDetails}
             />
           </Grid>
         </Grid>
-      </Paper>
+      </CollapsibleSection>
 
-      {/* ════════════════════════════════════════════════════════════
-          SECTION 2 – Metric Details (reuses evaluation components)
-          ════════════════════════════════════════════════════════════ */}
-      <Paper id="profiling-metric-details" elevation={0} sx={{ mb: 3, borderRadius: 2, border: '1px solid #EEEEEE', scrollMarginTop: '80px' }}>
-        <MetricDetailsTabs
-          overallMetrics={evalOverallMetrics}
-          columnMetrics={evalColumnMetrics}
-        />
-      </Paper>
+      {/* ── SECTION 2 – Metric Details (collapsed by default) ── */}
+      <CollapsibleSection
+        id="profiling-metric-details"
+        icon={<TrendingUpIcon sx={{ color: '#00B37E' }} />}
+        title="Detalle de Métricas"
+        subtitle="Completitud, Unicidad y Outliers — análisis detallado"
+        open={sections.metricDetails}
+        onToggle={() => toggle('metricDetails')}
+      >
+        <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} />
+      </CollapsibleSection>
 
-      {/* ════════════════════════════════════════════════════════════
-          SECTION 3 – Type Summary
-          ════════════════════════════════════════════════════════════ */}
-      <Paper {...sectionPaper}>
-        {sectionHeader(
-          <ViewColumnIcon sx={{ color: '#1976d2' }} />,
-          'Tipos de Datos',
-          `${overview.total_columns} columnas · ${type_summary.numeric_count} numéricas · ${type_summary.categorical_count} categóricas`
-        )}
-
-        {/* Type proportion bar */}
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
-            <Box sx={{ width: `${numericPct}%`, bgcolor: '#1976d2', transition: 'width 0.3s' }} />
-            <Box sx={{ width: `${categoricalPct}%`, bgcolor: '#7b1fa2', transition: 'width 0.3s' }} />
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#1976d2' }} />
-              <Typography variant="caption" sx={{ color: '#666' }}>Numéricas {numericPct}%</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#7b1fa2' }} />
-              <Typography variant="caption" sx={{ color: '#666' }}>Categóricas {categoricalPct}%</Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Column type table */}
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#F5F5F5' }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Columna</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Tipo</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Subtipo</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Únicos</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', minWidth: 120 }}>Completitud</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {columns.map((col) => {
-                const compPctCol = 100 - col.missing_percent;
-                return (
-                  <TableRow key={col.name} hover>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{col.name}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={col.category === 'numeric' ? 'NUM' : 'CAT'}
-                        size="small"
-                        sx={{
-                          fontWeight: 700, fontSize: '0.65rem', minWidth: 38, height: 22,
-                          bgcolor: getCategoryColor(col.category) + '18',
-                          color: getCategoryColor(col.category),
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="caption" sx={{ color: '#666' }}>{getSubTypeLabel(col.sub_type)}</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#555' }}>
-                        {col.n_unique.toLocaleString()}
+      {/* ── SECTION 3 – Per-column Analysis ── */}
+      <CollapsibleSection
+        icon={<BarChartIcon sx={{ color: '#00B37E' }} />}
+        title="Análisis por Columna"
+        subtitle="Estadísticas descriptivas y distribuciones"
+        count={columns.length}
+        open={sections.columns}
+        onToggle={() => toggle('columns')}
+      >
+        {columns.map((col) => {
+          const compColPct = 100 - col.missing_percent;
+          return (
+            <Accordion
+              key={col.name}
+              disableGutters
+              elevation={0}
+              sx={{
+                border: '1px solid #E8E8E8', borderRadius: '8px !important', mb: 1,
+                '&::before': { display: 'none' }, overflow: 'hidden',
+              }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2, py: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                  <Chip
+                    label={col.category === 'numeric' ? 'NUM' : 'CAT'}
+                    size="small"
+                    sx={{
+                      fontWeight: 700, fontSize: '0.6rem', minWidth: 36, height: 20,
+                      bgcolor: getCategoryColor(col.category) + '18', color: getCategoryColor(col.category),
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1, fontSize: '0.85rem' }}>{col.name}</Typography>
+                  <Chip label={getSubTypeLabel(col.sub_type)} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 20, borderColor: '#DDD' }} />
+                  <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#888', fontSize: '0.65rem' }}>
+                    {col.n_unique} únicos
+                  </Typography>
+                  {/* Inline mini completeness bar */}
+                  <Tooltip title={`${compColPct.toFixed(1)}% completo · ${col.n_missing} nulos`}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 70 }}>
+                      <Box sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: '#EEEEEE', overflow: 'hidden' }}>
+                        <Box sx={{ width: `${compColPct}%`, height: '100%', borderRadius: 2, bgcolor: completenessColor(compColPct) }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 600, color: completenessColor(compColPct), minWidth: 28 }}>
+                        {compColPct.toFixed(0)}%
                       </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ flex: 1, minWidth: 50 }}>
-                          <LinearProgress
-                            variant="determinate"
-                            value={compPctCol}
-                            sx={{
-                              height: 6, borderRadius: 3, backgroundColor: '#EEEEEE',
-                              '& .MuiLinearProgress-bar': { backgroundColor: getCompletenessColor(compPctCol), borderRadius: 3 },
-                            }}
-                          />
-                        </Box>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: getCompletenessColor(compPctCol), minWidth: 36, textAlign: 'right' }}>
-                          {compPctCol.toFixed(0)}%
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
-      {/* ════════════════════════════════════════════════════════════
-          SECTION 4 – Per-column Analysis
-          ════════════════════════════════════════════════════════════ */}
-      <Paper {...sectionPaper}>
-        {sectionHeader(
-          <BarChartIcon sx={{ color: '#00B37E' }} />,
-          'Análisis por Columna',
-          'Estadísticas descriptivas y distribuciones'
-        )}
-
-        {columns.map((col) => (
-          <Accordion
-            key={col.name}
-            disableGutters
-            elevation={0}
-            sx={{
-              border: '1px solid #E8E8E8',
-              borderRadius: '8px !important',
-              mb: 1.5,
-              '&::before': { display: 'none' },
-              overflow: 'hidden',
-            }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2.5, py: 0.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-                <Chip
-                  label={col.category === 'numeric' ? 'NUM' : 'CAT'}
-                  size="small"
-                  sx={{
-                    fontWeight: 700, fontSize: '0.65rem', minWidth: 38, height: 22,
-                    bgcolor: getCategoryColor(col.category) + '18',
-                    color: getCategoryColor(col.category),
-                  }}
-                />
-                <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1 }}>{col.name}</Typography>
-                <Chip label={getSubTypeLabel(col.sub_type)} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 22, borderColor: '#DDD' }} />
-                {col.missing_percent > 0 ? (
-                  <Tooltip title={`${col.missing_percent}% valores nulos`}>
-                    <Chip
-                      label={`${col.missing_percent.toFixed(1)}% nulls`}
-                      size="small"
-                      sx={{
-                        height: 22, fontSize: '0.65rem', fontWeight: 500,
-                        bgcolor: col.missing_percent > 10 ? 'rgba(229,72,77,0.08)' : col.missing_percent > 3 ? 'rgba(255,184,0,0.08)' : 'rgba(0,179,126,0.08)',
-                        color: col.missing_percent > 10 ? '#E5484D' : col.missing_percent > 3 ? '#FFB800' : '#00B37E',
-                      }}
-                    />
+                    </Box>
                   </Tooltip>
+                </Box>
+              </AccordionSummary>
+
+              <AccordionDetails sx={{ px: 2, pb: 2.5, pt: 0 }}>
+                {col.category === 'numeric' ? (
+                  <>
+                    {/* Stat cards */}
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 1, mb: 2 }}>
+                      {[
+                        { label: 'Media', value: col.mean },
+                        { label: 'Mediana', value: col.median },
+                        { label: 'Desv. Est.', value: col.std },
+                        { label: 'Mín', value: col.min },
+                        { label: 'Máx', value: col.max },
+                        { label: 'Q1', value: col.q1 },
+                        { label: 'Q3', value: col.q3 },
+                        { label: 'IQR', value: col.iqr },
+                      ].map(({ label, value }) => (
+                        <Box key={label} sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem', lineHeight: 1 }}>{label}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.78rem', color: '#333' }}>
+                            {formatStat(value)}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    {/* Charts */}
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={12} md={6}>
+                        {col.histogram && col.histogram.bins.length > 0 ? (
+                          <Box sx={{ p: 1.5, border: '1px solid #F0F0F0', borderRadius: 1.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', display: 'block', mb: 0.5, fontSize: '0.65rem' }}>Histograma</Typography>
+                            <Box sx={{ height: 180 }}>
+                              <Bar
+                                data={{
+                                  labels: col.histogram.bins.map(b => b.toFixed(1)),
+                                  datasets: [{ data: col.histogram.counts, backgroundColor: 'rgba(25,118,210,0.5)', borderColor: 'rgba(25,118,210,0.7)', borderWidth: 1, borderRadius: 2 }],
+                                }}
+                                options={{
+                                  responsive: true, maintainAspectRatio: false,
+                                  plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
+                                  scales: {
+                                    x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 9 }, color: '#BBB' } },
+                                    y: { display: true, beginAtZero: true, grid: { color: '#F5F5F5' }, ticks: { font: { size: 9 }, color: '#BBB' } },
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
+                            <Typography variant="caption" sx={{ color: '#CCC' }}>Sin histograma</Typography>
+                          </Box>
+                        )}
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        {col.boxplot ? (
+                          <Box sx={{ p: 1.5, border: '1px solid #F0F0F0', borderRadius: 1.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', display: 'block', mb: 0.5, fontSize: '0.65rem' }}>Boxplot</Typography>
+                            <MiniBoxplot boxplot={col.boxplot} />
+                          </Box>
+                        ) : (
+                          <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
+                            <Typography variant="caption" sx={{ color: '#CCC' }}>Sin boxplot</Typography>
+                          </Box>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </>
                 ) : (
-                  <CheckCircleIcon sx={{ color: '#00B37E', fontSize: 16 }} />
-                )}
-              </Box>
-            </AccordionSummary>
-
-            <AccordionDetails sx={{ px: 2.5, pb: 3, pt: 0 }}>
-              {/* Completeness bar */}
-              <Box sx={{ mb: 2.5, p: 1.5, bgcolor: '#FAFAFA', borderRadius: 1.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#555' }}>Completitud</Typography>
-                  <Typography variant="caption" sx={{ color: '#888' }}>
-                    {col.n_valid.toLocaleString()} válidos · {col.n_missing.toLocaleString()} nulos
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={100 - col.missing_percent}
-                      sx={{
-                        height: 6, borderRadius: 3, bgcolor: '#E0E0E0',
-                        '& .MuiLinearProgress-bar': { borderRadius: 3, bgcolor: getCompletenessColor(100 - col.missing_percent) },
-                      }}
-                    />
-                  </Box>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: getCompletenessColor(100 - col.missing_percent), minWidth: 40, textAlign: 'right' }}>
-                    {(100 - col.missing_percent).toFixed(1)}%
-                  </Typography>
-                </Box>
-              </Box>
-
-              {col.category === 'numeric' ? (
-                <>
-                  {/* Stat cards grid */}
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 1.5, mb: 2.5 }}>
-                    {[
-                      { label: 'Media', value: col.mean, color: '#333' },
-                      { label: 'Mediana', value: col.median, color: '#1B5E20' },
-                      { label: 'Desv. Est.', value: col.std, color: '#333' },
-                      { label: 'Mínimo', value: col.min, color: '#555' },
-                      { label: 'Máximo', value: col.max, color: '#555' },
-                      { label: 'Q1', value: col.q1, color: '#2E7D32' },
-                      { label: 'Q3', value: col.q3, color: '#2E7D32' },
-                      { label: 'IQR', value: col.iqr, color: '#1976d2' },
-                    ].map(({ label, value, color }) => (
-                      <Box key={label} sx={{ p: 1.5, bgcolor: '#fff', borderRadius: 1, border: '1px solid #EEEEEE' }}>
-                        <Typography variant="caption" sx={{ color: '#888', display: 'block', fontSize: '0.65rem' }}>{label}</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color, fontSize: '0.8rem' }}>
-                          {formatStat(value)}
-                        </Typography>
+                  /* ── Categorical ── */
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={12} md={4}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                        <Box sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem' }}>Únicos</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#333' }}>{col.n_unique.toLocaleString()}</Typography>
+                        </Box>
+                        <Box sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem' }}>Moda</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#7b1fa2', fontSize: '0.78rem', wordBreak: 'break-all' }}>{col.mode || '—'}</Typography>
+                        </Box>
                       </Box>
-                    ))}
-                  </Box>
-
-                  {/* Charts row */}
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      {col.histogram && col.histogram.bins.length > 0 ? (
-                        <Box sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, bgcolor: '#fff' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', display: 'block', mb: 1 }}>
-                            Distribución (Histograma)
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                      {col.bar_chart && col.bar_chart.labels.length > 0 ? (
+                        <Box sx={{ p: 1.5, border: '1px solid #F0F0F0', borderRadius: 1.5 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', display: 'block', mb: 0.5, fontSize: '0.65rem' }}>
+                            Top {Math.min(20, col.bar_chart.labels.length)} categorías
                           </Typography>
                           <Box sx={{ height: 200 }}>
                             <Bar
                               data={{
-                                labels: col.histogram.bins.map(b => b.toFixed(1)),
-                                datasets: [{
-                                  data: col.histogram.counts,
-                                  backgroundColor: 'rgba(25, 118, 210, 0.55)',
-                                  borderColor: 'rgba(25, 118, 210, 0.8)',
-                                  borderWidth: 1,
-                                  borderRadius: 2,
-                                }],
+                                labels: col.bar_chart.labels,
+                                datasets: [{ data: col.bar_chart.counts, backgroundColor: 'rgba(123,31,162,0.45)', borderColor: 'rgba(123,31,162,0.7)', borderWidth: 1, borderRadius: 2 }],
                               }}
                               options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
+                                indexAxis: col.bar_chart.labels.length > 8 ? 'y' as const : 'x' as const,
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
                                 scales: {
-                                  x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 9 }, color: '#999' } },
-                                  y: { display: true, beginAtZero: true, grid: { color: '#F0F0F0' }, ticks: { font: { size: 9 }, color: '#999' } },
+                                  x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#BBB' } },
+                                  y: { grid: { color: '#F5F5F5' }, ticks: { font: { size: 9 }, color: '#BBB' }, beginAtZero: true },
                                 },
                               }}
                             />
                           </Box>
                         </Box>
                       ) : (
-                        <Box sx={{ p: 3, border: '1px dashed #E0E0E0', borderRadius: 2, textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ color: '#999' }}>Sin datos para histograma</Typography>
-                        </Box>
-                      )}
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      {col.boxplot ? (
-                        <Box sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, bgcolor: '#fff' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', display: 'block', mb: 1 }}>
-                            Boxplot
-                          </Typography>
-                          <MiniBoxplot boxplot={col.boxplot} />
-                        </Box>
-                      ) : (
-                        <Box sx={{ p: 3, border: '1px dashed #E0E0E0', borderRadius: 2, textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ color: '#999' }}>Sin datos para boxplot</Typography>
+                        <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
+                          <Typography variant="caption" sx={{ color: '#CCC' }}>Sin datos de distribución</Typography>
                         </Box>
                       )}
                     </Grid>
                   </Grid>
-                </>
-              ) : (
-                /* ── Categorical column ── */
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                      <Box sx={{ p: 1.5, bgcolor: '#fff', borderRadius: 1, border: '1px solid #EEEEEE' }}>
-                        <Typography variant="caption" sx={{ color: '#888', display: 'block', fontSize: '0.65rem' }}>Valores únicos</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#333' }}>
-                          {col.n_unique.toLocaleString()}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ p: 1.5, bgcolor: '#fff', borderRadius: 1, border: '1px solid #EEEEEE' }}>
-                        <Typography variant="caption" sx={{ color: '#888', display: 'block', fontSize: '0.65rem' }}>Moda</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#7b1fa2', fontSize: '0.8rem', wordBreak: 'break-all' }}>
-                          {col.mode || '—'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
+                )}
+              </AccordionDetails>
+            </Accordion>
+          );
+        })}
+      </CollapsibleSection>
 
-                  <Grid item xs={12} md={8}>
-                    {col.bar_chart && col.bar_chart.labels.length > 0 ? (
-                      <Box sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, bgcolor: '#fff' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', display: 'block', mb: 1 }}>
-                          Distribución de Categorías (Top {Math.min(20, col.bar_chart.labels.length)})
-                        </Typography>
-                        <Box sx={{ height: 220 }}>
-                          <Bar
-                            data={{
-                              labels: col.bar_chart.labels,
-                              datasets: [{
-                                data: col.bar_chart.counts,
-                                backgroundColor: 'rgba(123, 31, 162, 0.5)',
-                                borderColor: 'rgba(123, 31, 162, 0.8)',
-                                borderWidth: 1,
-                                borderRadius: 2,
-                              }],
-                            }}
-                            options={{
-                              indexAxis: col.bar_chart.labels.length > 8 ? 'y' as const : 'x' as const,
-                              responsive: true,
-                              maintainAspectRatio: false,
-                              plugins: { legend: { display: false } },
-                              scales: {
-                                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } },
-                                y: { grid: { color: '#F0F0F0' }, ticks: { font: { size: 10 }, color: '#999' }, beginAtZero: true },
-                              },
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    ) : (
-                      <Box sx={{ p: 3, border: '1px dashed #E0E0E0', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="caption" sx={{ color: '#999' }}>Sin datos para gráfico</Typography>
-                      </Box>
-                    )}
-                  </Grid>
-                </Grid>
-              )}
-            </AccordionDetails>
-          </Accordion>
-        ))}
-      </Paper>
-
-      {/* ════════════════════════════════════════════════════════════
-          SECTION 5 – Correlation Matrix
-          ════════════════════════════════════════════════════════════ */}
+      {/* ── SECTION 4 – Correlation Matrix (collapsed by default) ── */}
       {correlation_matrix && (
-        <Paper {...sectionPaper}>
-          {sectionHeader(
-            <GridOnIcon sx={{ color: '#d32f2f' }} />,
-            'Matriz de Correlación',
-            `${correlation_matrix.columns.length} variables numéricas · Coeficiente de Pearson`
-          )}
-
+        <CollapsibleSection
+          icon={<GridOnIcon sx={{ color: '#00B37E' }} />}
+          title="Matriz de Correlación"
+          subtitle={`${correlation_matrix.columns.length} variables numéricas · Pearson`}
+          open={sections.correlation}
+          onToggle={() => toggle('correlation')}
+        >
           <Box sx={{ overflowX: 'auto' }}>
             <table style={{ borderCollapse: 'separate', borderSpacing: 2, fontSize: 12, width: '100%' }}>
               <thead>
                 <tr>
-                  <th style={{ padding: 6, textAlign: 'left' }}></th>
+                  <th style={{ padding: 6 }} />
                   {correlation_matrix.columns.map(c => (
-                    <th key={c} style={{
-                      padding: '8px 6px', fontWeight: 600, fontSize: '0.7rem', color: '#555',
-                      maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      textAlign: 'center',
-                    }}>
+                    <th key={c} style={{ padding: '6px 4px', fontWeight: 600, fontSize: '0.65rem', color: '#888', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
                       <Tooltip title={c}><span>{c.length > 8 ? c.slice(0, 8) + '…' : c}</span></Tooltip>
                     </th>
                   ))}
@@ -731,10 +585,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               <tbody>
                 {correlation_matrix.values.map((row, i) => (
                   <tr key={i}>
-                    <td style={{
-                      padding: '6px 10px', fontWeight: 600, whiteSpace: 'nowrap',
-                      fontSize: '0.75rem', color: '#555',
-                    }}>
+                    <td style={{ padding: '4px 8px', fontWeight: 600, whiteSpace: 'nowrap', fontSize: '0.7rem', color: '#666' }}>
                       <Tooltip title={correlation_matrix!.columns[i]}>
                         <span>{correlation_matrix!.columns[i].length > 12 ? correlation_matrix!.columns[i].slice(0, 12) + '…' : correlation_matrix!.columns[i]}</span>
                       </Tooltip>
@@ -742,19 +593,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                     {row.map((v, j) => {
                       const { bg, text } = correlationColor(v);
                       return (
-                        <td
-                          key={j}
-                          style={{
-                            padding: '7px 6px',
-                            textAlign: 'center',
-                            fontWeight: i === j ? 700 : 500,
-                            fontSize: i === j ? '0.8rem' : '0.75rem',
-                            color: i === j ? '#333' : text,
-                            backgroundColor: i === j ? '#F5F5F5' : bg,
-                            borderRadius: 4,
-                            fontFamily: 'monospace',
-                          }}
-                        >
+                        <td key={j} style={{
+                          padding: '5px 4px', textAlign: 'center', fontWeight: i === j ? 700 : 500,
+                          fontSize: '0.7rem', color: i === j ? '#333' : text,
+                          backgroundColor: i === j ? '#F5F5F5' : bg, borderRadius: 3, fontFamily: 'monospace',
+                        }}>
                           <Tooltip title={`${correlation_matrix!.columns[i]} ↔ ${correlation_matrix!.columns[j]}: ${v.toFixed(4)}`}>
                             <span>{i === j ? '1.00' : v.toFixed(2)}</span>
                           </Tooltip>
@@ -766,38 +609,32 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               </tbody>
             </table>
           </Box>
-
           {/* Color legend */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 2 }}>
-            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600 }}>−1</Typography>
-            <Box sx={{
-              width: 200, height: 10, borderRadius: 5,
-              background: 'linear-gradient(to right, #4466CC, #8899DD, #FAFAFA, #DD9988, #CC6644)',
-            }} />
-            <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600 }}>+1</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1.5 }}>
+            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600, fontSize: '0.65rem' }}>−1</Typography>
+            <Box sx={{ width: 160, height: 8, borderRadius: 4, background: 'linear-gradient(to right, #4466CC, #8899DD, #FAFAFA, #DD9988, #CC6644)' }} />
+            <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600, fontSize: '0.65rem' }}>+1</Typography>
           </Box>
-        </Paper>
+        </CollapsibleSection>
       )}
 
-      {/* ════════════════════════════════════════════════════════════
-          SECTION 6 – Scatter Plot
-          ════════════════════════════════════════════════════════════ */}
+      {/* ── SECTION 5 – Scatter Plot (collapsed by default) ── */}
       {type_summary.numeric_columns.length >= 2 && (
-        <Paper {...sectionPaper}>
-          {sectionHeader(
-            <BubbleChartIcon sx={{ color: '#00B37E' }} />,
-            'Gráfico de Dispersión',
-            'Selecciona dos variables numéricas para visualizar su relación'
-          )}
-
-          <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-            <FormControl size="small" sx={{ minWidth: 180 }}>
+        <CollapsibleSection
+          icon={<ScatterPlotIcon sx={{ color: '#00B37E' }} />}
+          title="Dispersión"
+          subtitle="Explora la relación entre dos variables numéricas"
+          open={sections.scatter}
+          onToggle={() => toggle('scatter')}
+        >
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Eje X</InputLabel>
               <Select value={scatterX} label="Eje X" onChange={(e) => setScatterX(e.target.value)}>
                 {type_summary.numeric_columns.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 180 }}>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Eje Y</InputLabel>
               <Select value={scatterY} label="Eje Y" onChange={(e) => setScatterY(e.target.value)}>
                 {type_summary.numeric_columns.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
@@ -806,76 +643,54 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           </Box>
 
           {scatterX && scatterY && scatterX !== scatterY ? (
-            <Box sx={{ p: 2, border: '1px solid #EEEEEE', borderRadius: 2, bgcolor: '#fff' }}>
-              <ScatterPlot datasetId={datasetId} xCol={scatterX} yCol={scatterY} />
-            </Box>
+            <ScatterPlotChart datasetId={datasetId} xCol={scatterX} yCol={scatterY} />
           ) : (
-            <Box sx={{ p: 4, border: '1px dashed #E0E0E0', borderRadius: 2, textAlign: 'center' }}>
-              <BubbleChartIcon sx={{ fontSize: 40, color: '#DDD', mb: 1 }} />
-              <Typography variant="body2" sx={{ color: '#999' }}>
-                Selecciona dos variables numéricas distintas para ver su relación.
+            <Box sx={{ p: 3, border: '1px dashed #E0E0E0', borderRadius: 1.5, textAlign: 'center' }}>
+              <BubbleChartIcon sx={{ fontSize: 32, color: '#DDD', mb: 0.5 }} />
+              <Typography variant="caption" sx={{ color: '#BBB', display: 'block' }}>
+                Selecciona dos variables numéricas distintas.
               </Typography>
             </Box>
           )}
-        </Paper>
+        </CollapsibleSection>
       )}
     </Box>
   );
 };
 
-// ── Mini Boxplot (SVG – matching OutlierDetail style) ───────────
-interface MiniBoxplotProps {
-  boxplot: NonNullable<ProfilingColumn['boxplot']>;
-}
+// ── Mini Boxplot (SVG) ──────────────────────────────────────────
+const MiniBoxplot: React.FC<{ boxplot: NonNullable<ProfilingColumn['boxplot']> }> = ({ boxplot }) => {
+  const range = boxplot.max - boxplot.min;
+  if (range === 0) return <Typography variant="caption" sx={{ color: '#999' }}>Todos los valores son iguales</Typography>;
 
-const MiniBoxplot: React.FC<MiniBoxplotProps> = ({ boxplot }) => {
-  const sMin = boxplot.min;
-  const sMax = boxplot.max;
-  const range = sMax - sMin;
-  if (range === 0) {
-    return <Typography variant="caption" sx={{ color: '#999' }}>Todos los valores son iguales</Typography>;
-  }
-
-  const toX = (v: number) => Math.max(5, Math.min(995, ((v - sMin) / range) * 990 + 5));
-
-  const lbX = toX(boxplot.lower_fence);
-  const ubX = toX(boxplot.upper_fence);
-  const q1X = toX(boxplot.q1);
-  const q3X = toX(boxplot.q3);
-  const medX = toX(boxplot.median);
+  const toX = (v: number) => Math.max(5, Math.min(995, ((v - boxplot.min) / range) * 990 + 5));
+  const [lbX, ubX, q1X, q3X, medX] = [toX(boxplot.lower_fence), toX(boxplot.upper_fence), toX(boxplot.q1), toX(boxplot.q3), toX(boxplot.median)];
 
   return (
     <Box>
-      <svg width="100%" height="70" viewBox="0 0 1000 70" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
-        {/* Whiskers */}
-        <line x1={lbX} y1="35" x2={q1X} y2="35" stroke="#999" strokeWidth="2" strokeDasharray="4,2" />
-        <line x1={q3X} y1="35" x2={ubX} y2="35" stroke="#999" strokeWidth="2" strokeDasharray="4,2" />
-        {/* Whisker caps */}
-        <line x1={lbX} y1="22" x2={lbX} y2="48" stroke="#999" strokeWidth="2" />
-        <line x1={ubX} y1="22" x2={ubX} y2="48" stroke="#999" strokeWidth="2" />
-        {/* IQR Box */}
-        <rect x={q1X} y="15" width={Math.max(q3X - q1X, 4)} height="40" rx="4" fill="#C8E6C9" stroke="#66BB6A" strokeWidth="2" />
-        {/* Median */}
-        <line x1={medX} y1="15" x2={medX} y2="55" stroke="#1B5E20" strokeWidth="3" />
-        {/* Outlier dots */}
-        {boxplot.outliers_sample.slice(0, 30).map((v, i) => (
-          <circle key={i} cx={toX(v)} cy="35" r="4" fill="#E5484D" stroke="#fff" strokeWidth="1.5" opacity="0.85" />
+      <svg width="100%" height="60" viewBox="0 0 1000 60" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
+        <line x1={lbX} y1="30" x2={q1X} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" />
+        <line x1={q3X} y1="30" x2={ubX} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" />
+        <line x1={lbX} y1="20" x2={lbX} y2="40" stroke="#BBB" strokeWidth="1.5" />
+        <line x1={ubX} y1="20" x2={ubX} y2="40" stroke="#BBB" strokeWidth="1.5" />
+        <rect x={q1X} y="14" width={Math.max(q3X - q1X, 4)} height="32" rx="3" fill="#C8E6C9" stroke="#66BB6A" strokeWidth="1.5" />
+        <line x1={medX} y1="14" x2={medX} y2="46" stroke="#1B5E20" strokeWidth="2.5" />
+        {boxplot.outliers_sample.slice(0, 25).map((v, i) => (
+          <circle key={i} cx={toX(v)} cy="30" r="3" fill="#E5484D" stroke="#fff" strokeWidth="1" opacity="0.8" />
         ))}
       </svg>
-
-      {/* Labels row */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 0.5, mt: 0.5 }}>
-        <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-          {sMin.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 0.5 }}>
+        <Typography variant="caption" sx={{ color: '#BBB', fontFamily: 'monospace', fontSize: '0.6rem' }}>
+          {boxplot.min.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </Typography>
-        <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-          {sMax.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        <Typography variant="caption" sx={{ color: '#BBB', fontFamily: 'monospace', fontSize: '0.6rem' }}>
+          {boxplot.max.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </Typography>
       </Box>
       {boxplot.outlier_count > 0 && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-          <WarningIcon sx={{ color: '#FFB800', fontSize: 13 }} />
-          <Typography variant="caption" sx={{ color: '#888', fontSize: '0.7rem' }}>
+          <WarningIcon sx={{ color: '#FFB800', fontSize: 12 }} />
+          <Typography variant="caption" sx={{ color: '#999', fontSize: '0.65rem' }}>
             {boxplot.outlier_count} outlier{boxplot.outlier_count > 1 ? 's' : ''}
           </Typography>
         </Box>
@@ -884,76 +699,38 @@ const MiniBoxplot: React.FC<MiniBoxplotProps> = ({ boxplot }) => {
   );
 };
 
-// ── Scatter Plot (fetches raw data on demand) ───────────────────
-interface ScatterPlotProps {
-  datasetId: number;
-  xCol: string;
-  yCol: string;
-}
-
-const ScatterPlot: React.FC<ScatterPlotProps> = ({ datasetId, xCol, yCol }) => {
+// ── Scatter Plot (fetches on demand) ────────────────────────────
+const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string }> = ({ datasetId, xCol, yCol }) => {
   const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    const fetchData = async () => {
+    (async () => {
       setLoading(true);
       try {
         const res = await datasetsAPI.previewDataset(datasetId);
         const rows = res.data?.data ?? [];
-        if (!cancelled) {
-          const pts = rows
-            .map((r: any) => ({ x: parseFloat(r[xCol]), y: parseFloat(r[yCol]) }))
-            .filter((p: any) => !isNaN(p.x) && !isNaN(p.y));
-          setPoints(pts);
-        }
-      } catch {
-        if (!cancelled) setPoints([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    fetchData();
+        if (!cancelled) setPoints(rows.map((r: any) => ({ x: parseFloat(r[xCol]), y: parseFloat(r[yCol]) })).filter((p: any) => !isNaN(p.x) && !isNaN(p.y)));
+      } catch { if (!cancelled) setPoints([]); }
+      finally { if (!cancelled) setLoading(false); }
+    })();
     return () => { cancelled = true; };
   }, [datasetId, xCol, yCol]);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress size={24} sx={{ color: '#00B37E' }} />
-      </Box>
-    );
-  }
-
-  if (points.length === 0) {
-    return (
-      <Box sx={{ py: 3, textAlign: 'center' }}>
-        <Typography variant="body2" sx={{ color: '#999' }}>Sin datos suficientes para este par de variables.</Typography>
-      </Box>
-    );
-  }
+  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} sx={{ color: '#00B37E' }} /></Box>;
+  if (points.length === 0) return <Box sx={{ py: 2, textAlign: 'center' }}><Typography variant="caption" sx={{ color: '#BBB' }}>Sin datos suficientes.</Typography></Box>;
 
   return (
-    <Box sx={{ height: 320 }}>
+    <Box sx={{ height: 300 }}>
       <Scatter
-        data={{
-          datasets: [{
-            label: `${xCol} vs ${yCol}`,
-            data: points,
-            backgroundColor: 'rgba(0, 179, 126, 0.4)',
-            borderColor: 'rgba(0, 179, 126, 0.8)',
-            pointRadius: 3,
-            pointHoverRadius: 5,
-          }],
-        }}
+        data={{ datasets: [{ label: `${xCol} vs ${yCol}`, data: points, backgroundColor: 'rgba(0,179,126,0.35)', borderColor: 'rgba(0,179,126,0.7)', pointRadius: 2.5, pointHoverRadius: 4 }] }}
         options={{
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { title: { display: true, text: xCol, color: '#666', font: { weight: 'bold' } }, grid: { color: '#F0F0F0' }, ticks: { color: '#999' } },
-            y: { title: { display: true, text: yCol, color: '#666', font: { weight: 'bold' } }, grid: { color: '#F0F0F0' }, ticks: { color: '#999' } },
+            x: { title: { display: true, text: xCol, color: '#888', font: { weight: 'bold', size: 11 } }, grid: { color: '#F5F5F5' }, ticks: { color: '#BBB', font: { size: 9 } } },
+            y: { title: { display: true, text: yCol, color: '#888', font: { weight: 'bold', size: 11 } }, grid: { color: '#F5F5F5' }, ticks: { color: '#BBB', font: { size: 9 } } },
           },
         }}
       />
