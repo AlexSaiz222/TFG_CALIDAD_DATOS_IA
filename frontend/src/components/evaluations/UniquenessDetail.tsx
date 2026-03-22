@@ -79,6 +79,7 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
       setShowDuplicates(true);
     } catch (error) {
       console.error('Error loading duplicate rows:', error);
+      alert('Error al cargar filas duplicadas: ' + (error as any)?.message || 'Error desconocido');
     } finally {
       setLoadingDuplicates(false);
     }
@@ -161,7 +162,7 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
                 )}
               </Box>
               
-              <Collapse in={showDuplicates && duplicateData}>
+              <Collapse in={showDuplicates && !!duplicateData}>
                 {duplicateData && duplicateData.duplicate_groups && duplicateData.duplicate_groups.length > 0 ? (
                   <Box sx={{ mt: 1 }}>
                     <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1 }}>

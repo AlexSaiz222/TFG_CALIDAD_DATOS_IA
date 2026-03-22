@@ -1033,11 +1033,11 @@ def get_duplicate_rows(dataset_id):
         if not dataset:
             return jsonify({"success": False, "error": "dataset_not_found"}), 404
         
-        if dataset.project.user_id != current_user_id_int:
+        if dataset.project.owner_id != current_user_id_int:
             return jsonify({"success": False, "error": "unauthorized"}), 403
         
         minio_service = MinioService()
-        file_data = minio_service.get_file(dataset.file_path)
+        file_data = minio_service.download_file(dataset.file_path)
         
         if dataset.file_path.endswith('.csv'):
             df = pd.read_csv(io.BytesIO(file_data))
@@ -1053,14 +1053,22 @@ def get_duplicate_rows(dataset_id):
         # Get unique duplicate groups
         duplicate_groups = []
         if len(duplicate_rows) > 0:
-            # Group by all columns to find identical rows
-            grouped = duplicate_rows.groupby(list(df.columns), dropna=False)
-            for name, group in grouped:
+            # Convert DataFrame to string representation for grouping (handles all data types)
+            duplicate_rows_str = duplicate_rows.astype(str)
+            
+            # Create a hash column for grouping identical rows
+            duplicate_rows['_hash'] = duplicate_rows_str.apply(lambda row: hash(tuple(row)), axis=1)
+            
+            # Group by hash to find identical rows
+            grouped = duplicate_rows.groupby('_hash')
+            for hash_val, group in grouped:
                 if len(group) > 1:  # Only groups with actual duplicates
+                    # Remove the hash column before returning
+                    group_clean = group.drop('_hash', axis=1)
                     duplicate_groups.append({
                         'count': len(group),
                         'indices': group.index.tolist(),
-                        'sample': group.head(5).to_dict('records')  # Show up to 5 samples
+                        'sample': group_clean.head(5).to_dict('records')  # Show up to 5 samples
                     })
         
         return jsonify({
