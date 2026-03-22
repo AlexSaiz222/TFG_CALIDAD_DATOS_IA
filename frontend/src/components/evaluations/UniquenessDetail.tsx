@@ -121,15 +121,16 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
       {/* ─── Alerta de filas duplicadas completas ─── */}
       {duplicateRows > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ p: 2, backgroundColor: 'rgba(229, 72, 77, 0.05)', border: '1px solid rgba(229, 72, 77, 0.2)', borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <WarningIcon sx={{ fontSize: 18, color: '#E5484D' }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#E5484D' }}>
-                Filas completamente duplicadas detectadas
+          <Box sx={{ p: 2.5, backgroundColor: 'rgba(229, 72, 77, 0.08)', border: '2px solid rgba(229, 72, 77, 0.3)', borderRadius: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <WarningIcon sx={{ fontSize: 24, color: '#E5484D' }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, color: '#E5484D', fontSize: '1.1rem' }}>
+                 Filas completamente duplicadas detectadas
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ color: '#555', mb: 1.5 }}>
-              <strong>{duplicateRows.toLocaleString()}</strong> fila{duplicateRows !== 1 ? 's' : ''} del dataset {duplicateRows !== 1 ? 'están' : 'está'} completamente duplicada{duplicateRows !== 1 ? 's' : ''} ({((duplicateRows / totalRows) * 100).toFixed(2)}% del total).
+            <Typography variant="body1" sx={{ color: '#333', mb: 2, fontSize: '0.95rem' }}>
+              <strong style={{ fontSize: '1.1rem', color: '#E5484D' }}>{duplicateRows.toLocaleString()}</strong> fila{duplicateRows !== 1 ? 's' : ''} {duplicateRows !== 1 ? 'están' : 'está'} completamente duplicada{duplicateRows !== 1 ? 's' : ''} 
+              <strong> ({((duplicateRows / totalRows) * 100).toFixed(2)}% del total)</strong>.
             </Typography>
             <Box sx={{ p: 1.5, backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 1, border: '1px solid rgba(229, 72, 77, 0.15)' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -217,13 +218,9 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
       {/* ─── Insight contextual ─── */}
       {columnsWithDuplicates.length > 0 && (
         <Box sx={{ p: 1.5, backgroundColor: 'rgba(255, 184, 0, 0.05)', border: '1px solid rgba(255, 184, 0, 0.2)', borderRadius: 2, mb: 2.5 }}>
-          <Typography variant="body2" sx={{ color: '#555', fontSize: '0.8rem' }}>
-            <strong>Insight:</strong>{' '}
-            {columnsWithDuplicates.length === 1
-              ? <>La columna <code style={{ backgroundColor: '#F0F0F0', padding: '1px 4px', borderRadius: 3 }}>{columnsWithDuplicates[0].name}</code> tiene {columnsWithDuplicates[0].duplicates.toLocaleString()} valores duplicados.</>
-              : <>{columnsWithDuplicates.length} columnas tienen valores no únicos.</>}
-            {' '}Es normal que ciertas columnas (como categorías, departamentos, etc.) contengan valores duplicados. 
-            Los issues de unicidad solo se generan cuando se detectan filas completamente duplicadas o duplicados en columnas que deberían ser únicas (como IDs).
+          <Typography variant="body2" sx={{ color: '#666', fontSize: '0.8rem' }}>
+            {columnsWithDuplicates.length} columna{columnsWithDuplicates.length !== 1 ? 's' : ''} con valores repetidos. 
+            Esto es normal en columnas categóricas (especies, departamentos, etc.).
           </Typography>
         </Box>
       )}
@@ -239,8 +236,7 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Columna</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Tipo</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Estado</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Únicos</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Duplicados</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Valores únicos</TableCell>
               <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Total</TableCell>
             </TableRow>
           </TableHead>
@@ -278,36 +274,25 @@ const UniquenessDetail: React.FC<UniquenessDetailProps> = ({
                   ) : (
                     <Chip
                       icon={<DuplicateIcon sx={{ fontSize: '14px !important' }} />}
-                      label={`${col.duplicates.toLocaleString()} duplicado${col.duplicates !== 1 ? 's' : ''}`}
+                      label="Valores repetidos"
                       size="small"
                       sx={{
-                        backgroundColor: col.uniqueness >= 0.95
-                          ? 'rgba(255, 184, 0, 0.1)'
-                          : 'rgba(229, 72, 77, 0.08)',
-                        color: col.uniqueness >= 0.95 ? '#B8860B' : '#E5484D',
-                        fontWeight: 600,
+                        backgroundColor: 'rgba(158, 158, 158, 0.1)',
+                        color: '#666',
+                        fontWeight: 500,
                         height: 24,
                         fontSize: '0.7rem',
                         '& .MuiChip-icon': {
-                          color: col.uniqueness >= 0.95 ? '#B8860B' : '#E5484D',
+                          color: '#666',
                         },
                       }}
                     />
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#555' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#333' }}>
                     {col.nUnique.toLocaleString()}
                   </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  {col.duplicates > 0 ? (
-                    <Typography variant="body2" sx={{ color: getColor(col.uniqueness), fontWeight: 600 }}>
-                      {col.duplicates.toLocaleString()}
-                    </Typography>
-                  ) : (
-                    <Typography variant="body2" sx={{ color: '#CCC' }}>0</Typography>
-                  )}
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="body2" sx={{ color: '#888' }}>{col.total.toLocaleString()}</Typography>
