@@ -262,12 +262,31 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
       legend: { display: false },
       tooltip: {
         mode: 'index' as const,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        padding: 12,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        padding: 14,
         titleFont: { size: 13, weight: 'bold' as const },
         bodyFont: { size: 12 },
         borderColor: '#00B37E',
-        borderWidth: 1,
+        borderWidth: 2,
+        displayColors: false,
+        callbacks: {
+          title: (context: any) => {
+            const index = context[0].dataIndex;
+            const bins = column.histogram!.bins;
+            const binStart = bins[index];
+            const binEnd = bins[index + 1] || bins[index];
+            return `Rango: ${binStart.toFixed(2)} - ${binEnd.toFixed(2)}`;
+          },
+          label: (context: any) => {
+            const count = context.parsed.y;
+            const total = column.histogram!.counts.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((count / total) * 100).toFixed(1);
+            return [
+              `Frecuencia: ${count} valores`,
+              `Porcentaje: ${percentage}%`
+            ];
+          },
+        },
       },
     },
     scales: {
@@ -424,12 +443,28 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        padding: 12,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        padding: 14,
         titleFont: { size: 13, weight: 'bold' as const },
         bodyFont: { size: 12 },
         borderColor: '#7b1fa2',
-        borderWidth: 1,
+        borderWidth: 2,
+        displayColors: false,
+        callbacks: {
+          title: (context: any) => {
+            return `Categoría: ${context[0].label}`;
+          },
+          label: (context: any) => {
+            const count = context.parsed.y || context.parsed.x;
+            const total = column.bar_chart!.counts.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((count / total) * 100).toFixed(1);
+            return [
+              `Frecuencia: ${count} registros`,
+              `Porcentaje: ${percentage}%`,
+              `Total: ${total} registros`
+            ];
+          },
+        },
       },
     },
     scales: {
@@ -896,14 +931,26 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           open={sections.correlation}
           onToggle={() => toggle('correlation')}
         >
-          <Box sx={{ overflowX: 'auto' }}>
-            <table style={{ borderCollapse: 'separate', borderSpacing: 2, fontSize: 12, width: '100%' }}>
+          <Box sx={{ overflowX: 'auto', pb: 1 }}>
+            <table style={{ borderCollapse: 'separate', borderSpacing: 3, fontSize: 12, width: '100%' }}>
               <thead>
                 <tr>
-                  <th style={{ padding: 6 }} />
+                  <th style={{ padding: '8px 6px' }} />
                   {correlation_matrix.columns.map(c => (
-                    <th key={c} style={{ padding: '6px 4px', fontWeight: 600, fontSize: '0.65rem', color: '#888', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
-                      <Tooltip title={c}><span>{c.length > 8 ? c.slice(0, 8) + '…' : c}</span></Tooltip>
+                    <th key={c} style={{ 
+                      padding: '8px 6px', 
+                      fontWeight: 700, 
+                      fontSize: '0.7rem', 
+                      color: '#555', 
+                      maxWidth: 80, 
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis', 
+                      whiteSpace: 'nowrap', 
+                      textAlign: 'center',
+                      background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
+                      borderRadius: '6px 6px 0 0'
+                    }}>
+                      <Tooltip title={c} arrow><span>{c.length > 8 ? c.slice(0, 8) + '…' : c}</span></Tooltip>
                     </th>
                   ))}
                 </tr>
@@ -911,8 +958,16 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               <tbody>
                 {correlation_matrix.values.map((row, i) => (
                   <tr key={i}>
-                    <td style={{ padding: '4px 8px', fontWeight: 600, whiteSpace: 'nowrap', fontSize: '0.7rem', color: '#666' }}>
-                      <Tooltip title={correlation_matrix!.columns[i]}>
+                    <td style={{ 
+                      padding: '8px 10px', 
+                      fontWeight: 700, 
+                      whiteSpace: 'nowrap', 
+                      fontSize: '0.72rem', 
+                      color: '#555',
+                      background: 'linear-gradient(90deg, #fafafa 0%, #f5f5f5 100%)',
+                      borderRadius: '6px 0 0 6px',
+                    }}>
+                      <Tooltip title={correlation_matrix!.columns[i]} arrow>
                         <span>{correlation_matrix!.columns[i].length > 12 ? correlation_matrix!.columns[i].slice(0, 12) + '…' : correlation_matrix!.columns[i]}</span>
                       </Tooltip>
                     </td>
@@ -934,28 +989,71 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                           key={j}
                           onClick={handleClick}
                           style={{
-                            padding: '5px 4px', textAlign: 'center', fontWeight: isDiagonal ? 700 : 500,
-                            fontSize: '0.7rem', color: isDiagonal ? '#333' : text,
-                            backgroundColor: isDiagonal ? '#F5F5F5' : bg, borderRadius: 3, fontFamily: 'monospace',
+                            padding: '8px 6px', 
+                            textAlign: 'center', 
+                            fontWeight: isDiagonal ? 700 : 600,
+                            fontSize: '0.75rem', 
+                            color: isDiagonal ? '#333' : text,
+                            backgroundColor: isDiagonal ? '#F5F5F5' : bg, 
+                            borderRadius: 6, 
+                            fontFamily: 'monospace',
                             cursor: isDiagonal ? 'default' : 'pointer',
-                            transition: 'all 0.2s',
+                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                            border: isDiagonal ? '1px solid #E0E0E0' : '1px solid transparent',
+                            boxShadow: isDiagonal ? 'none' : '0 1px 3px rgba(0,0,0,0.05)',
                           }}
                           onMouseEnter={(e) => {
                             if (!isDiagonal) {
-                              e.currentTarget.style.transform = 'scale(1.1)';
-                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                              e.currentTarget.style.transform = 'scale(1.15)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,179,126,0.25)';
                               e.currentTarget.style.zIndex = '10';
+                              e.currentTarget.style.border = '1px solid #ffffff';
+                              e.currentTarget.style.fontWeight = '700';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isDiagonal) {
                               e.currentTarget.style.transform = 'scale(1)';
-                              e.currentTarget.style.boxShadow = 'none';
+                              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
                               e.currentTarget.style.zIndex = '1';
+                              e.currentTarget.style.border = '1px solid transparent';
+                              e.currentTarget.style.fontWeight = '600';
                             }
                           }}
                         >
-                          <Tooltip title={isDiagonal ? `${correlation_matrix!.columns[i]} (diagonal)` : `Click para graficar: ${correlation_matrix!.columns[i]} vs ${correlation_matrix!.columns[j]} (r=${v.toFixed(4)})`}>
+                          <Tooltip 
+                            title={
+                              isDiagonal ? (
+                                <Box sx={{ textAlign: 'center', py: 0.5 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
+                                    {correlation_matrix!.columns[i]}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>
+                                    Correlación perfecta consigo misma
+                                  </Typography>
+                                </Box>
+                              ) : (
+                                <Box sx={{ textAlign: 'center', py: 0.5 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                    {correlation_matrix!.columns[i]} vs {correlation_matrix!.columns[j]}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ display: 'block' }}>
+                                    Coeficiente: {v.toFixed(4)}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.9 }}>
+                                    {Math.abs(v) < 0.3 ? 'Correlación débil' : 
+                                     Math.abs(v) < 0.7 ? 'Correlación moderada' : 
+                                     'Correlación fuerte'}
+                                    {v > 0 ? ' positiva' : v < 0 ? ' negativa' : ''}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ display: 'block', fontSize: '0.6rem', opacity: 0.7, mt: 0.5, fontStyle: 'italic' }}>
+                                    Click para ver gráfico de dispersión
+                                  </Typography>
+                                </Box>
+                              )
+                            }
+                            arrow
+                          >
                             <span>{isDiagonal ? '1.00' : v.toFixed(2)}</span>
                           </Tooltip>
                         </td>
@@ -967,10 +1065,50 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
             </table>
           </Box>
           {/* Color legend */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1.5 }}>
-            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600, fontSize: '0.65rem' }}>−1</Typography>
-            <Box sx={{ width: 160, height: 8, borderRadius: 4, background: 'linear-gradient(to right, #4466CC, #8899DD, #FAFAFA, #DD9988, #CC6644)' }} />
-            <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600, fontSize: '0.65rem' }}>+1</Typography>
+          <Box sx={{ 
+            mt: 3, 
+            p: 2.5, 
+            background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)', 
+            borderRadius: 2, 
+            border: '1px solid #E8E8E8' 
+          }}>
+            <Typography variant="caption" sx={{ 
+              fontWeight: 700, 
+              fontSize: '0.7rem', 
+              color: '#555', 
+              display: 'block', 
+              mb: 1.5, 
+              textAlign: 'center',
+              letterSpacing: '0.02em'
+            }}>
+              Leyenda de correlación
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ color: '#4466CC', fontWeight: 700, fontSize: '0.75rem', display: 'block' }}>
+                  −1.0
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#888', fontSize: '0.6rem', display: 'block' }}>
+                  Negativa
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                width: 200, 
+                height: 12, 
+                borderRadius: 6, 
+                background: 'linear-gradient(to right, #4466CC, #8899DD, #FAFAFA, #DD9988, #CC6644)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                border: '1px solid #E0E0E0'
+              }} />
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ color: '#CC6644', fontWeight: 700, fontSize: '0.75rem', display: 'block' }}>
+                  +1.0
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#888', fontSize: '0.6rem', display: 'block' }}>
+                  Positiva
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </CollapsibleSection>
       )}
@@ -1069,7 +1207,16 @@ const EnhancedBoxplot: React.FC<{
         </defs>
         
         {/* Lower whisker */}
-        <Tooltip title={`Límite inferior: ${boxplot.lower_fence.toFixed(2)}`} arrow>
+        <Tooltip 
+          title={
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Límite Inferior (Whisker)</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.lower_fence.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valores por debajo son outliers</Typography>
+            </Box>
+          } 
+          arrow
+        >
           <g>
             <line x1={lbX} y1={yCenter} x2={q1X} y2={yCenter} stroke="#999" strokeWidth="2" strokeDasharray="6,3" style={{ cursor: 'help' }} />
             <line x1={lbX} y1={yCenter - 15} x2={lbX} y2={yCenter + 15} stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
@@ -1077,7 +1224,16 @@ const EnhancedBoxplot: React.FC<{
         </Tooltip>
         
         {/* Upper whisker */}
-        <Tooltip title={`Límite superior: ${boxplot.upper_fence.toFixed(2)}`} arrow>
+        <Tooltip 
+          title={
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Límite Superior (Whisker)</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.upper_fence.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valores por encima son outliers</Typography>
+            </Box>
+          } 
+          arrow
+        >
           <g>
             <line x1={q3X} y1={yCenter} x2={ubX} y2={yCenter} stroke="#999" strokeWidth="2" strokeDasharray="6,3" style={{ cursor: 'help' }} />
             <line x1={ubX} y1={yCenter - 15} x2={ubX} y2={yCenter + 15} stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
@@ -1085,7 +1241,17 @@ const EnhancedBoxplot: React.FC<{
         </Tooltip>
         
         {/* IQR Box (Q1 to Q3) */}
-        <Tooltip title={`Q1: ${boxplot.q1.toFixed(2)} | Q3: ${boxplot.q3.toFixed(2)}`} arrow>
+        <Tooltip 
+          title={
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Rango Intercuartílico (IQR)</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Cuartil 1 (Q1): {boxplot.q1.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Cuartil 3 (Q3): {boxplot.q3.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8, mt: 0.5 }}>Contiene el 50% central de los datos</Typography>
+            </Box>
+          } 
+          arrow
+        >
           <rect 
             x={q1X} 
             y={boxY} 
@@ -1100,13 +1266,32 @@ const EnhancedBoxplot: React.FC<{
         </Tooltip>
         
         {/* Median line (Q2) */}
-        <Tooltip title={`Mediana (Q2): ${boxplot.median.toFixed(2)}`} arrow>
+        <Tooltip 
+          title={
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Mediana (Q2)</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.median.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valor central de la distribución</Typography>
+            </Box>
+          } 
+          arrow
+        >
           <line x1={medX} y1={boxY} x2={medX} y2={boxY + boxHeight} stroke="#004D40" strokeWidth="3" style={{ cursor: 'help' }} />
         </Tooltip>
         
         {/* Outliers */}
         {boxplot.outliers_sample.slice(0, isExpanded ? 50 : 25).map((v, i) => (
-          <Tooltip key={i} title={`Outlier: ${v.toFixed(2)}`} arrow>
+          <Tooltip 
+            key={i} 
+            title={
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Valor Atípico (Outlier)</Typography>
+                <Typography variant="caption" sx={{ display: 'block' }}>Valor: {v.toFixed(2)}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Fuera del rango normal</Typography>
+              </Box>
+            } 
+            arrow
+          >
             <circle 
               cx={toX(v)} 
               cy={yCenter} 
