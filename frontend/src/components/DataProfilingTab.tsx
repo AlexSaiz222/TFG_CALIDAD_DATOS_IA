@@ -1141,10 +1141,19 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           {scatterX && scatterY && scatterX !== scatterY ? (
             <ScatterPlotChart datasetId={datasetId} xCol={scatterX} yCol={scatterY} />
           ) : (
-            <Box sx={{ p: 3, border: '1px dashed #E0E0E0', borderRadius: 1.5, textAlign: 'center' }}>
-              <BubbleChartIcon sx={{ fontSize: 32, color: '#DDD', mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: '#BBB', display: 'block' }}>
-                Selecciona dos variables numéricas distintas.
+            <Box sx={{ 
+              p: 4, 
+              border: '2px dashed #E8E8E8', 
+              borderRadius: 2, 
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)'
+            }}>
+              <BubbleChartIcon sx={{ fontSize: 48, color: '#CCC', mb: 1 }} />
+              <Typography variant="body2" sx={{ color: '#999', fontWeight: 500 }}>
+                Selecciona dos variables numéricas distintas
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#BBB', display: 'block', mt: 0.5 }}>
+                Usa los selectores de arriba para elegir las variables
               </Typography>
             </Box>
           )}
@@ -1331,6 +1340,7 @@ const MiniBoxplot = EnhancedBoxplot;
 const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string }> = ({ datasetId, xCol, yCol }) => {
   const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1346,23 +1356,134 @@ const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string
     return () => { cancelled = true; };
   }, [datasetId, xCol, yCol]);
 
+  const chartOptions = (isExpanded: boolean) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        padding: 14,
+        titleFont: { size: 13, weight: 'bold' as const },
+        bodyFont: { size: 12 },
+        borderColor: '#00B37E',
+        borderWidth: 2,
+        displayColors: false,
+        callbacks: {
+          title: () => 'Punto de datos',
+          label: (context: any) => {
+            const xVal = context.parsed.x;
+            const yVal = context.parsed.y;
+            return [
+              `${xCol}: ${xVal.toFixed(2)}`,
+              `${yCol}: ${yVal.toFixed(2)}`
+            ];
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: xCol,
+          color: '#555',
+          font: { weight: 700, size: isExpanded ? 13 : 11 },
+        },
+        grid: { color: '#F0F0F0', lineWidth: 1 },
+        ticks: {
+          color: '#666',
+          font: { size: isExpanded ? 11 : 9, weight: 500 },
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: yCol,
+          color: '#555',
+          font: { weight: 700, size: isExpanded ? 13 : 11 },
+        },
+        grid: { color: '#F0F0F0', lineWidth: 1 },
+        ticks: {
+          color: '#666',
+          font: { size: isExpanded ? 11 : 9, weight: 500 },
+        },
+      },
+    },
+    animation: {
+      duration: 750,
+      easing: 'easeInOutQuart' as const,
+    },
+  });
+
+  const chartData = {
+    datasets: [{
+      label: `${xCol} vs ${yCol}`,
+      data: points,
+      backgroundColor: 'rgba(0,179,126,0.5)',
+      borderColor: 'rgba(0,179,126,0.8)',
+      borderWidth: 1.5,
+      pointRadius: 3.5,
+      pointHoverRadius: 6,
+      pointHoverBackgroundColor: '#00B37E',
+      pointHoverBorderColor: '#fff',
+      pointHoverBorderWidth: 2,
+    }],
+  };
+
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} sx={{ color: '#00B37E' }} /></Box>;
   if (points.length === 0) return <Box sx={{ py: 2, textAlign: 'center' }}><Typography variant="caption" sx={{ color: '#BBB' }}>Sin datos suficientes.</Typography></Box>;
 
   return (
-    <Box sx={{ height: 300 }}>
-      <Scatter
-        data={{ datasets: [{ label: `${xCol} vs ${yCol}`, data: points, backgroundColor: 'rgba(0,179,126,0.35)', borderColor: 'rgba(0,179,126,0.7)', pointRadius: 2.5, pointHoverRadius: 4 }] }}
-        options={{
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { title: { display: true, text: xCol, color: '#888', font: { weight: 'bold', size: 11 } }, grid: { color: '#F5F5F5' }, ticks: { color: '#BBB', font: { size: 9 } } },
-            y: { title: { display: true, text: yCol, color: '#888', font: { weight: 'bold', size: 11 } }, grid: { color: '#F5F5F5' }, ticks: { color: '#BBB', font: { size: 9 } } },
+    <>
+      <Box
+        sx={{
+          height: 300,
+          p: 1.5,
+          border: '1px solid #E8E8E8',
+          borderRadius: 2,
+          position: 'relative',
+          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+          transition: 'all 0.3s',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+            borderColor: '#00B37E',
           },
         }}
-      />
-    </Box>
+      >
+        <IconButton
+          size="small"
+          onClick={() => setModalOpen(true)}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 10,
+            bgcolor: 'white',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            transition: 'all 0.2s',
+            '&:hover': {
+              bgcolor: '#00B37E',
+              color: 'white',
+              transform: 'scale(1.1)',
+            },
+          }}
+        >
+          <FullscreenIcon fontSize="small" />
+        </IconButton>
+        <Scatter data={chartData} options={chartOptions(false)} />
+      </Box>
+
+      <ChartModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={`Dispersión: ${xCol} vs ${yCol}`}
+      >
+        <Box sx={{ height: 450 }}>
+          <Scatter data={chartData} options={chartOptions(true)} />
+        </Box>
+      </ChartModal>
+    </>
   );
 };
 
