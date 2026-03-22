@@ -30,6 +30,10 @@ import {
   InputLabel,
   IconButton,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Fade,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -41,6 +45,10 @@ import {
   Notes as NotesIcon,
   ManageSearch as ManageSearchIcon,
   ScatterPlot as ScatterPlotIcon,
+  Fullscreen as FullscreenIcon,
+  Close as CloseIcon,
+  ZoomIn as ZoomInIcon,
+  ZoomOut as ZoomOutIcon,
 } from '@mui/icons-material';
 import { datasetsAPI } from '../services/api';
 import type { DataProfilingResult, ProfilingColumn, ColumnMetrics } from '../types';
@@ -123,6 +131,75 @@ const CollapsibleSection: React.FC<{
   </Paper>
 );
 
+// ── Chart Modal ────────────────────────────────────────────────
+interface ChartModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+const ChartModal: React.FC<ChartModalProps> = ({ open, onClose, title, children }) => (
+  <Dialog
+    open={open}
+    onClose={onClose}
+    maxWidth="lg"
+    fullWidth
+    TransitionComponent={Fade}
+    PaperProps={{
+      sx: {
+        borderRadius: 3,
+        background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+        overflow: 'hidden',
+      },
+    }}
+  >
+    <DialogTitle
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #E8E8E8',
+        background: 'linear-gradient(90deg, #00B37E08 0%, transparent 100%)',
+        py: 2,
+        px: 3,
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 700,
+          fontSize: '1.1rem',
+          background: 'linear-gradient(135deg, #00B37E 0%, #1976d2 100%)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          letterSpacing: '-0.02em',
+        }}
+      >
+        {title}
+      </Typography>
+      <IconButton
+        onClick={onClose}
+        size="small"
+        sx={{
+          color: '#999',
+          transition: 'all 0.2s',
+          '&:hover': {
+            color: '#E5484D',
+            bgcolor: '#E5484D10',
+            transform: 'rotate(90deg)',
+          },
+        }}
+      >
+        <CloseIcon />
+      </IconButton>
+    </DialogTitle>
+    <DialogContent sx={{ p: 4, minHeight: 500 }}>{children}</DialogContent>
+  </Dialog>
+);
+
 // ── Metric Card ─────────────────────────────────────────────────
 const MetricCard: React.FC<{
   title: string; value: string;
@@ -145,6 +222,289 @@ const MetricCard: React.FC<{
     <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500 }}>Ver detalle →</Typography>
   </Paper>
 );
+
+// ── Enhanced Chart Cards ───────────────────────────────────────
+const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  if (!column.histogram || column.histogram.bins.length === 0) {
+    return (
+      <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ color: '#CCC' }}>Sin histograma</Typography>
+      </Box>
+    );
+  }
+
+  const chartData = {
+    labels: column.histogram.bins.map(b => b.toFixed(1)),
+    datasets: [{
+      data: column.histogram.counts,
+      backgroundColor: (context: any) => {
+        const chart = context.chart;
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return 'rgba(0,179,126,0.5)';
+        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        gradient.addColorStop(0, 'rgba(0,179,126,0.3)');
+        gradient.addColorStop(1, 'rgba(0,179,126,0.8)');
+        return gradient;
+      },
+      borderColor: '#00B37E',
+      borderWidth: 2,
+      borderRadius: 4,
+      hoverBackgroundColor: 'rgba(0,179,126,0.9)',
+    }],
+  };
+
+  const chartOptions = (isExpanded: boolean) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        mode: 'index' as const,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        padding: 12,
+        titleFont: { size: 13, weight: 'bold' as const },
+        bodyFont: { size: 12 },
+        borderColor: '#00B37E',
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      x: {
+        display: true,
+        grid: { display: false },
+        ticks: {
+          maxTicksLimit: isExpanded ? 12 : 6,
+          font: { size: isExpanded ? 11 : 9, weight: 500 },
+          color: '#666',
+        },
+      },
+      y: {
+        display: true,
+        beginAtZero: true,
+        grid: { color: '#F0F0F0', lineWidth: 1 },
+        ticks: {
+          font: { size: isExpanded ? 11 : 9, weight: 500 },
+          color: '#666',
+        },
+      },
+    },
+    animation: {
+      duration: 750,
+      easing: 'easeInOutQuart' as const,
+    },
+  });
+
+  return (
+    <>
+      <Box
+        sx={{
+          p: 1.5,
+          border: '1px solid #E8E8E8',
+          borderRadius: 2,
+          position: 'relative',
+          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+          transition: 'all 0.3s',
+          '&:hover': {
+            borderColor: '#00B37E',
+            boxShadow: '0 4px 12px rgba(0,179,126,0.1)',
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
+            Histograma
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setModalOpen(true)}
+            sx={{
+              bgcolor: 'white',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+              transition: 'all 0.2s',
+              '&:hover': {
+                bgcolor: '#00B37E',
+                color: 'white',
+                transform: 'scale(1.1)',
+              },
+            }}
+          >
+            <FullscreenIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Box sx={{ height: 180 }}>
+          <Bar data={chartData} options={chartOptions(false)} />
+        </Box>
+      </Box>
+
+      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Histograma - ${column.name}`}>
+        <Box sx={{ height: 450 }}>
+          <Bar data={chartData} options={chartOptions(true)} />
+        </Box>
+      </ChartModal>
+    </>
+  );
+};
+
+const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  if (!column.boxplot) {
+    return (
+      <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ color: '#CCC' }}>Sin boxplot</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <>
+      <Box
+        sx={{
+          p: 1.5,
+          border: '1px solid #E8E8E8',
+          borderRadius: 2,
+          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+          transition: 'all 0.3s',
+          '&:hover': {
+            borderColor: '#00B37E',
+            boxShadow: '0 4px 12px rgba(0,179,126,0.1)',
+          },
+        }}
+      >
+        <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', display: 'block', mb: 0.5, fontSize: '0.7rem', letterSpacing: '0.02em' }}>
+          Boxplot
+        </Typography>
+        <EnhancedBoxplot boxplot={column.boxplot} columnName={column.name} onExpand={() => setModalOpen(true)} />
+      </Box>
+
+      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Boxplot - ${column.name}`}>
+        <EnhancedBoxplot boxplot={column.boxplot} columnName={column.name} isExpanded />
+      </ChartModal>
+    </>
+  );
+};
+
+const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  if (!column.bar_chart || column.bar_chart.labels.length === 0) {
+    return (
+      <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ color: '#CCC' }}>Sin datos de distribución</Typography>
+      </Box>
+    );
+  }
+
+  const chartData = {
+    labels: column.bar_chart.labels,
+    datasets: [{
+      data: column.bar_chart.counts,
+      backgroundColor: (context: any) => {
+        const chart = context.chart;
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return 'rgba(123,31,162,0.5)';
+        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        gradient.addColorStop(0, 'rgba(123,31,162,0.4)');
+        gradient.addColorStop(1, 'rgba(123,31,162,0.75)');
+        return gradient;
+      },
+      borderColor: '#7b1fa2',
+      borderWidth: 2,
+      borderRadius: 4,
+      hoverBackgroundColor: 'rgba(123,31,162,0.9)',
+    }],
+  };
+
+  const chartOptions = (isExpanded: boolean) => ({
+    indexAxis: column.bar_chart!.labels.length > 8 ? 'y' as const : 'x' as const,
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        padding: 12,
+        titleFont: { size: 13, weight: 'bold' as const },
+        bodyFont: { size: 12 },
+        borderColor: '#7b1fa2',
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { size: isExpanded ? 11 : 9, weight: 500 },
+          color: '#666',
+        },
+      },
+      y: {
+        grid: { color: '#F0F0F0', lineWidth: 1 },
+        ticks: {
+          font: { size: isExpanded ? 11 : 9, weight: 500 },
+          color: '#666',
+        },
+        beginAtZero: true,
+      },
+    },
+    animation: {
+      duration: 750,
+      easing: 'easeInOutQuart' as const,
+    },
+  });
+
+  return (
+    <>
+      <Box
+        sx={{
+          p: 1.5,
+          border: '1px solid #E8E8E8',
+          borderRadius: 2,
+          position: 'relative',
+          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+          transition: 'all 0.3s',
+          '&:hover': {
+            borderColor: '#7b1fa2',
+            boxShadow: '0 4px 12px rgba(123,31,162,0.1)',
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
+            Top {Math.min(20, column.bar_chart.labels.length)} categorías
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setModalOpen(true)}
+            sx={{
+              bgcolor: 'white',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+              transition: 'all 0.2s',
+              '&:hover': {
+                bgcolor: '#7b1fa2',
+                color: 'white',
+                transform: 'scale(1.1)',
+              },
+            }}
+          >
+            <FullscreenIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Box sx={{ height: 200 }}>
+          <Bar data={chartData} options={chartOptions(false)} />
+        </Box>
+      </Box>
+
+      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Distribución - ${column.name}`}>
+        <Box sx={{ height: 450 }}>
+          <Bar data={chartData} options={chartOptions(true)} />
+        </Box>
+      </ChartModal>
+    </>
+  );
+};
 
 // ── Main Component ──────────────────────────────────────────────
 const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
@@ -494,43 +854,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                     {/* Charts */}
                     <Grid container spacing={1.5}>
                       <Grid item xs={12} md={6}>
-                        {col.histogram && col.histogram.bins.length > 0 ? (
-                          <Box sx={{ p: 1.5, border: '1px solid #F0F0F0', borderRadius: 1.5 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', display: 'block', mb: 0.5, fontSize: '0.65rem' }}>Histograma</Typography>
-                            <Box sx={{ height: 180 }}>
-                              <Bar
-                                data={{
-                                  labels: col.histogram.bins.map(b => b.toFixed(1)),
-                                  datasets: [{ data: col.histogram.counts, backgroundColor: 'rgba(25,118,210,0.5)', borderColor: 'rgba(25,118,210,0.7)', borderWidth: 1, borderRadius: 2 }],
-                                }}
-                                options={{
-                                  responsive: true, maintainAspectRatio: false,
-                                  plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
-                                  scales: {
-                                    x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 9 }, color: '#BBB' } },
-                                    y: { display: true, beginAtZero: true, grid: { color: '#F5F5F5' }, ticks: { font: { size: 9 }, color: '#BBB' } },
-                                  },
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        ) : (
-                          <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
-                            <Typography variant="caption" sx={{ color: '#CCC' }}>Sin histograma</Typography>
-                          </Box>
-                        )}
+                        <EnhancedHistogramCard column={col} />
                       </Grid>
                       <Grid item xs={12} md={6}>
-                        {col.boxplot ? (
-                          <Box sx={{ p: 1.5, border: '1px solid #F0F0F0', borderRadius: 1.5 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', display: 'block', mb: 0.5, fontSize: '0.65rem' }}>Boxplot</Typography>
-                            <MiniBoxplot boxplot={col.boxplot} />
-                          </Box>
-                        ) : (
-                          <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
-                            <Typography variant="caption" sx={{ color: '#CCC' }}>Sin boxplot</Typography>
-                          </Box>
-                        )}
+                        <EnhancedBoxplotCard column={col} />
                       </Grid>
                     </Grid>
                   </>
@@ -550,34 +877,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                       </Box>
                     </Grid>
                     <Grid item xs={12} md={8}>
-                      {col.bar_chart && col.bar_chart.labels.length > 0 ? (
-                        <Box sx={{ p: 1.5, border: '1px solid #F0F0F0', borderRadius: 1.5 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', display: 'block', mb: 0.5, fontSize: '0.65rem' }}>
-                            Top {Math.min(20, col.bar_chart.labels.length)} categorías
-                          </Typography>
-                          <Box sx={{ height: 200 }}>
-                            <Bar
-                              data={{
-                                labels: col.bar_chart.labels,
-                                datasets: [{ data: col.bar_chart.counts, backgroundColor: 'rgba(123,31,162,0.45)', borderColor: 'rgba(123,31,162,0.7)', borderWidth: 1, borderRadius: 2 }],
-                              }}
-                              options={{
-                                indexAxis: col.bar_chart.labels.length > 8 ? 'y' as const : 'x' as const,
-                                responsive: true, maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: {
-                                  x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#BBB' } },
-                                  y: { grid: { color: '#F5F5F5' }, ticks: { font: { size: 9 }, color: '#BBB' }, beginAtZero: true },
-                                },
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      ) : (
-                        <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ color: '#CCC' }}>Sin datos de distribución</Typography>
-                        </Box>
-                      )}
+                      <EnhancedBarChartCard column={col} />
                     </Grid>
                   </Grid>
                 )}
@@ -716,69 +1016,131 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   );
 };
 
-// ── Mini Boxplot (SVG) ──────────────────────────────────────────
-const MiniBoxplot: React.FC<{ boxplot: NonNullable<ProfilingColumn['boxplot']> }> = ({ boxplot }) => {
+// ── Enhanced Boxplot Component ──────────────────────────────────
+const EnhancedBoxplot: React.FC<{ 
+  boxplot: NonNullable<ProfilingColumn['boxplot']>;
+  columnName?: string;
+  onExpand?: () => void;
+  isExpanded?: boolean;
+}> = ({ boxplot, columnName, onExpand, isExpanded = false }) => {
   const range = boxplot.max - boxplot.min;
   if (range === 0) return <Typography variant="caption" sx={{ color: '#999' }}>Todos los valores son iguales</Typography>;
 
   const toX = (v: number) => Math.max(5, Math.min(995, ((v - boxplot.min) / range) * 990 + 5));
   const [lbX, ubX, q1X, q3X, medX] = [toX(boxplot.lower_fence), toX(boxplot.upper_fence), toX(boxplot.q1), toX(boxplot.q3), toX(boxplot.median)];
+  const height = isExpanded ? 120 : 60;
+  const yCenter = height / 2;
+  const boxHeight = isExpanded ? 50 : 32;
+  const boxY = (height - boxHeight) / 2;
 
   return (
-    <Box>
-      <svg width="100%" height="60" viewBox="0 0 1000 60" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
+    <Box sx={{ position: 'relative' }}>
+      {onExpand && (
+        <IconButton
+          size="small"
+          onClick={onExpand}
+          sx={{
+            position: 'absolute',
+            top: -8,
+            right: -8,
+            zIndex: 10,
+            bgcolor: 'white',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            transition: 'all 0.2s',
+            '&:hover': {
+              bgcolor: '#00B37E',
+              color: 'white',
+              transform: 'scale(1.1)',
+            },
+          }}
+        >
+          <FullscreenIcon fontSize="small" />
+        </IconButton>
+      )}
+      <svg width="100%" height={height} viewBox={`0 0 1000 ${height}`} preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
+        <defs>
+          <linearGradient id="boxGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style={{ stopColor: '#00B37E', stopOpacity: 0.3 }} />
+            <stop offset="100%" style={{ stopColor: '#00B37E', stopOpacity: 0.6 }} />
+          </linearGradient>
+          <filter id="shadow">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15" />
+          </filter>
+        </defs>
+        
         {/* Lower whisker */}
         <Tooltip title={`Límite inferior: ${boxplot.lower_fence.toFixed(2)}`} arrow>
           <g>
-            <line x1={lbX} y1="30" x2={q1X} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" style={{ cursor: 'help' }} />
-            <line x1={lbX} y1="20" x2={lbX} y2="40" stroke="#BBB" strokeWidth="1.5" style={{ cursor: 'help' }} />
+            <line x1={lbX} y1={yCenter} x2={q1X} y2={yCenter} stroke="#999" strokeWidth="2" strokeDasharray="6,3" style={{ cursor: 'help' }} />
+            <line x1={lbX} y1={yCenter - 15} x2={lbX} y2={yCenter + 15} stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
           </g>
         </Tooltip>
         
         {/* Upper whisker */}
         <Tooltip title={`Límite superior: ${boxplot.upper_fence.toFixed(2)}`} arrow>
           <g>
-            <line x1={q3X} y1="30" x2={ubX} y2="30" stroke="#BBB" strokeWidth="1.5" strokeDasharray="4,2" style={{ cursor: 'help' }} />
-            <line x1={ubX} y1="20" x2={ubX} y2="40" stroke="#BBB" strokeWidth="1.5" style={{ cursor: 'help' }} />
+            <line x1={q3X} y1={yCenter} x2={ubX} y2={yCenter} stroke="#999" strokeWidth="2" strokeDasharray="6,3" style={{ cursor: 'help' }} />
+            <line x1={ubX} y1={yCenter - 15} x2={ubX} y2={yCenter + 15} stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
           </g>
         </Tooltip>
         
         {/* IQR Box (Q1 to Q3) */}
         <Tooltip title={`Q1: ${boxplot.q1.toFixed(2)} | Q3: ${boxplot.q3.toFixed(2)}`} arrow>
-          <rect x={q1X} y="14" width={Math.max(q3X - q1X, 4)} height="32" rx="3" fill="#C8E6C9" stroke="#66BB6A" strokeWidth="1.5" style={{ cursor: 'help' }} />
+          <rect 
+            x={q1X} 
+            y={boxY} 
+            width={Math.max(q3X - q1X, 4)} 
+            height={boxHeight} 
+            rx="4" 
+            fill="url(#boxGradient)" 
+            stroke="#00B37E" 
+            strokeWidth="2.5" 
+            style={{ cursor: 'help', filter: 'url(#shadow)' }}
+          />
         </Tooltip>
         
         {/* Median line (Q2) */}
         <Tooltip title={`Mediana (Q2): ${boxplot.median.toFixed(2)}`} arrow>
-          <line x1={medX} y1="14" x2={medX} y2="46" stroke="#1B5E20" strokeWidth="2.5" style={{ cursor: 'help' }} />
+          <line x1={medX} y1={boxY} x2={medX} y2={boxY + boxHeight} stroke="#004D40" strokeWidth="3" style={{ cursor: 'help' }} />
         </Tooltip>
         
         {/* Outliers */}
-        {boxplot.outliers_sample.slice(0, 25).map((v, i) => (
+        {boxplot.outliers_sample.slice(0, isExpanded ? 50 : 25).map((v, i) => (
           <Tooltip key={i} title={`Outlier: ${v.toFixed(2)}`} arrow>
-            <circle cx={toX(v)} cy="30" r="3" fill="#E5484D" stroke="#fff" strokeWidth="1" opacity="0.8" style={{ cursor: 'help' }} />
+            <circle 
+              cx={toX(v)} 
+              cy={yCenter} 
+              r={isExpanded ? 5 : 3.5} 
+              fill="#E5484D" 
+              stroke="#fff" 
+              strokeWidth="1.5" 
+              opacity="0.85" 
+              style={{ cursor: 'help', filter: 'url(#shadow)' }}
+            />
           </Tooltip>
         ))}
       </svg>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 0.5 }}>
-        <Typography variant="caption" sx={{ color: '#BBB', fontFamily: 'monospace', fontSize: '0.6rem' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 0.5, mt: 0.5 }}>
+        <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace', fontSize: '0.65rem', fontWeight: 600 }}>
           {boxplot.min.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </Typography>
-        <Typography variant="caption" sx={{ color: '#BBB', fontFamily: 'monospace', fontSize: '0.6rem' }}>
+        <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace', fontSize: '0.65rem', fontWeight: 600 }}>
           {boxplot.max.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </Typography>
       </Box>
       {boxplot.outlier_count > 0 && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-          <WarningIcon sx={{ color: '#FFB800', fontSize: 12 }} />
-          <Typography variant="caption" sx={{ color: '#999', fontSize: '0.65rem' }}>
-            {boxplot.outlier_count} outlier{boxplot.outlier_count > 1 ? 's' : ''}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, justifyContent: 'center' }}>
+          <WarningIcon sx={{ color: '#FFB800', fontSize: 14 }} />
+          <Typography variant="caption" sx={{ color: '#666', fontSize: '0.7rem', fontWeight: 500 }}>
+            {boxplot.outlier_count} outlier{boxplot.outlier_count > 1 ? 's' : ''} detectado{boxplot.outlier_count > 1 ? 's' : ''}
           </Typography>
         </Box>
       )}
     </Box>
   );
 };
+
+const MiniBoxplot = EnhancedBoxplot;
 
 // ── Scatter Plot (fetches on demand) ────────────────────────────
 const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string }> = ({ datasetId, xCol, yCol }) => {
