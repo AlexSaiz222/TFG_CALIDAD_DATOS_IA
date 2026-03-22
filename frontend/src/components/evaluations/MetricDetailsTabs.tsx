@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Tabs,
@@ -66,6 +66,11 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  // Sync activeTab when initialTab prop changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   const hasCompleteness = overallMetrics.completeness !== undefined;
   const hasUniqueness = overallMetrics.uniqueness !== undefined;
   const hasOutliers = overallMetrics.outliers && Object.keys(overallMetrics.outliers).length > 0;
@@ -73,8 +78,9 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   const tabs: Array<{ label: string; icon: React.ReactNode; available: boolean }> = [];
 
   if (hasCompleteness) {
+    const nullPercent = ((1 - overallMetrics.completeness) * 100).toFixed(1);
     tabs.push({
-      label: `Valores nulos (${(overallMetrics.completeness * 100).toFixed(1)}%)`,
+      label: `Valores nulos (${nullPercent}%)`,
       icon: null,
       available: true,
     });

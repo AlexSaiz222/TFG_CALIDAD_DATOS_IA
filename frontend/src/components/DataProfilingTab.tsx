@@ -155,6 +155,9 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   // Scatter-plot selectors
   const [scatterX, setScatterX] = useState<string>('');
   const [scatterY, setScatterY] = useState<string>('');
+  
+  // Initial tab for MetricDetailsTabs (0=Valores nulos, 1=Registros duplicados, 2=Outliers)
+  const [initialMetricTab, setInitialMetricTab] = useState<number>(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -270,12 +273,17 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     setSections(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const openAnalysisDetails = useCallback(() => {
+  const openAnalysisDetails = useCallback((tabIndex: number = 0) => {
+    setInitialMetricTab(tabIndex);
     setSections(prev => ({ ...prev, metricDetails: true }));
     setTimeout(() => {
       document.getElementById('profiling-analysis-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
+    }, 100);
   }, []);
+
+  const openValoresNulos = useCallback(() => openAnalysisDetails(0), [openAnalysisDetails]);
+  const openRegistrosDuplicados = useCallback(() => openAnalysisDetails(1), [openAnalysisDetails]);
+  const openOutliers = useCallback(() => openAnalysisDetails(2), [openAnalysisDetails]);
 
   // ── Render states ─────────────────────────────────────────────
   if (loading) {
@@ -298,8 +306,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   const compBadge = badgeFor(compVal);
 
   const uniqVal = evalOverallMetrics.uniqueness ?? 1;
-  const uniqPct = (uniqVal * 100).toFixed(1);
-  const uniqBadge = overview.duplicate_rows === 0 ? badgeFor(1) : overview.duplicate_rows <= 2 ? badgeFor(0.95) : badgeFor(0.5);
+  const dupPct = ((1 - uniqVal) * 100).toFixed(1); // % de registros duplicados
+  // Badge basado en % de duplicados invertido: menos duplicados = mejor
+  // Si hay 2% duplicados, el badge se calcula como si tuviéramos 98% de "calidad"
+  const uniqBadge = badgeFor(uniqVal);
 
   const outlierMap = evalOverallMetrics.outliers || {};
   const totalOutliers = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.count || 0), 0);
@@ -355,18 +365,18 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               value={`${nullPct}%`}
               badge={compBadge}
               insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Sin valores nulos'}
-              onDetail={openAnalysisDetails}
+              onDetail={openValoresNulos}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
             <MetricCard
               title="Registros duplicados"
-              value={overview.duplicate_rows > 0 ? `${(100 - uniqPct).toFixed(1)}%` : '0%'}
+              value={`${dupPct}%`}
               badge={uniqBadge}
               insight={overview.duplicate_rows > 0
                 ? `${overview.duplicate_rows.toLocaleString()} fila${overview.duplicate_rows !== 1 ? 's' : ''} duplicada${overview.duplicate_rows !== 1 ? 's' : ''}`
                 : 'Sin filas duplicadas'}
-              onDetail={openAnalysisDetails}
+              onDetail={openRegistrosDuplicados}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -377,7 +387,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               insight={totalOutliers === 0
                 ? 'Sin valores atípicos'
                 : `${outlierColCount} col. afectada${outlierColCount !== 1 ? 's' : ''} (${(outlierProp * 100).toFixed(1)}%)`}
-              onDetail={openAnalysisDetails}
+              onDetail={openOutliers}
             />
           </Grid>
         </Grid>
@@ -404,7 +414,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       >
         {/* NOTA: MetricDetailsTabs se reutiliza temporalmente para mostrar características.
             En el futuro, se creará un componente específico para características del dataset. */}
-        <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} datasetId={datasetId} />
+        <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} datasetId={datasetId} initialTab={initialMetricTab} />
       </CollapsibleSection>
 
       {/* ── SECTION 3 – Per-column Analysis ── */}
