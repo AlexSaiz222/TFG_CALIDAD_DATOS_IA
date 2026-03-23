@@ -282,7 +282,8 @@ export interface ProfilingColumn {
 
 export interface CorrelationMatrix {
   columns: string[];
-  values: number[][];
+  pearson: number[][];
+  spearman: number[][];
 }
 
 export interface DataProfilingResult {

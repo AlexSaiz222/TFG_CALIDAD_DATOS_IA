@@ -564,6 +564,9 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   const [scatterX, setScatterX] = useState<string>('');
   const [scatterY, setScatterY] = useState<string>('');
   
+  // Correlation method selector
+  const [correlationMethod, setCorrelationMethod] = useState<'pearson' | 'spearman'>('pearson');
+  
   // Initial tab for MetricDetailsTabs (0=Valores nulos, 1=Registros duplicados, 2=Outliers)
   const [initialMetricTab, setInitialMetricTab] = useState<number>(0);
 
@@ -964,10 +967,48 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
         <CollapsibleSection
           icon={<GridOnIcon sx={{ color: '#00B37E' }} />}
           title="Matriz de correlación"
-          subtitle={`${correlation_matrix.columns.length} variables numéricas · Pearson`}
+          subtitle={`${correlation_matrix.columns.length} variables numéricas · ${correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}`}
           open={sections.correlation}
           onToggle={() => toggle('correlation')}
         >
+          {/* Correlation Method Selector */}
+          <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Método de correlación</InputLabel>
+              <Select
+                value={correlationMethod}
+                label="Método de correlación"
+                onChange={(e) => setCorrelationMethod(e.target.value as 'pearson' | 'spearman')}
+              >
+                <MenuItem value="pearson">Pearson</MenuItem>
+                <MenuItem value="spearman">Spearman</MenuItem>
+              </Select>
+            </FormControl>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 1.5,
+                bgcolor: '#F8F9FA',
+                border: '1px solid #E8E8E8',
+                borderRadius: 1.5,
+                flex: 1,
+                minWidth: 300,
+              }}
+            >
+              <Typography variant="caption" sx={{ color: '#666', display: 'block', lineHeight: 1.4, fontSize: '0.75rem' }}>
+                {correlationMethod === 'pearson' ? (
+                  <>
+                    <strong>Pearson:</strong> Mide relaciones <strong>lineales</strong> entre variables. Sensible a outliers y asume distribución normal.
+                  </>
+                ) : (
+                  <>
+                    <strong>Spearman:</strong> Mide relaciones <strong>monótonas</strong> (no necesariamente lineales). Más <strong>robusto a outliers</strong> y no asume normalidad.
+                  </>
+                )}
+              </Typography>
+            </Paper>
+          </Box>
+
           <Box sx={{ overflowX: 'auto', pb: 1 }}>
             <table style={{ borderCollapse: 'separate', borderSpacing: 3, fontSize: 12, width: '100%' }}>
               <thead>
@@ -993,7 +1034,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                 </tr>
               </thead>
               <tbody>
-                {correlation_matrix.values.map((row, i) => (
+                {(correlationMethod === 'pearson' ? correlation_matrix.pearson : correlation_matrix.spearman).map((row, i) => (
                   <tr key={i}>
                     <td style={{ 
                       padding: '8px 10px', 
@@ -1009,7 +1050,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                       </Tooltip>
                     </td>
                     {row.map((v, j) => {
-                      const { bg, text } = correlationColor(v);
+                      // Get correlation value based on selected method
+                      const corrValue = correlationMethod === 'pearson' 
+                        ? correlation_matrix!.pearson[i][j] 
+                        : correlation_matrix!.spearman[i][j];
+                      const { bg, text } = correlationColor(corrValue);
                       const isDiagonal = i === j;
                       const handleClick = () => {
                         if (!isDiagonal) {
@@ -1075,13 +1120,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                                     {correlation_matrix!.columns[i]} vs {correlation_matrix!.columns[j]}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block' }}>
-                                    Coeficiente: {v.toFixed(4)}
+                                    {correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}: {corrValue.toFixed(4)}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.9 }}>
-                                    {Math.abs(v) < 0.3 ? 'Correlación débil' : 
-                                     Math.abs(v) < 0.7 ? 'Correlación moderada' : 
+                                    {Math.abs(corrValue) < 0.3 ? 'Correlación débil' : 
+                                     Math.abs(corrValue) < 0.7 ? 'Correlación moderada' : 
                                      'Correlación fuerte'}
-                                    {v > 0 ? ' positiva' : v < 0 ? ' negativa' : ''}
+                                    {corrValue > 0 ? ' positiva' : corrValue < 0 ? ' negativa' : ''}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.6rem', opacity: 0.7, mt: 0.5, fontStyle: 'italic' }}>
                                     Click para ver gráfico de dispersión
@@ -1091,7 +1136,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                             }
                             arrow
                           >
-                            <span>{isDiagonal ? '1.00' : v.toFixed(2)}</span>
+                            <span>{isDiagonal ? '1.00' : corrValue.toFixed(2)}</span>
                           </Tooltip>
                         </td>
                       );

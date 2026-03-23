@@ -995,12 +995,18 @@ def get_dataset_profiling(dataset_id):
         # ── 5. Correlation matrix (numeric only) ────────────────────
         correlation_matrix = None
         if len(numeric_cols) >= 2:
-            corr = df[numeric_cols].corr()
+            # Calculate both Pearson and Spearman correlations
+            corr_pearson = df[numeric_cols].corr(method='pearson')
+            corr_spearman = df[numeric_cols].corr(method='spearman')
+            
             correlation_matrix = {
                 "columns": numeric_cols,
-                "values": [[round(float(corr.iloc[i, j]), 4)
+                "pearson": [[round(float(corr_pearson.iloc[i, j]), 4)
                             for j in range(len(numeric_cols))]
                            for i in range(len(numeric_cols))],
+                "spearman": [[round(float(corr_spearman.iloc[i, j]), 4)
+                             for j in range(len(numeric_cols))]
+                            for i in range(len(numeric_cols))],
             }
 
         profiling_result = {
