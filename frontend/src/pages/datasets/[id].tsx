@@ -656,7 +656,7 @@ const DatasetDetail = () => {
           ) : null}
           
           {previewData.length > 0 ? (
-            <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
+            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 420px)', minHeight: 300, overflow: 'auto' }}>
               <Table stickyHeader aria-label="dataset preview table" size="small">
                 <TableHead>
                   <TableRow>
