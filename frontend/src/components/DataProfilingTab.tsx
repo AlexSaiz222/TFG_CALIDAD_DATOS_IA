@@ -433,16 +433,16 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
       backgroundColor: (context: any) => {
         const chart = context.chart;
         const { ctx, chartArea } = chart;
-        if (!chartArea) return 'rgba(123,31,162,0.5)';
+        if (!chartArea) return 'rgba(0,179,126,0.5)';
         const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-        gradient.addColorStop(0, 'rgba(123,31,162,0.4)');
-        gradient.addColorStop(1, 'rgba(123,31,162,0.75)');
+        gradient.addColorStop(0, 'rgba(0,179,126,0.3)');
+        gradient.addColorStop(1, 'rgba(0,179,126,0.8)');
         return gradient;
       },
-      borderColor: '#7b1fa2',
+      borderColor: '#00B37E',
       borderWidth: 2,
       borderRadius: 4,
-      hoverBackgroundColor: 'rgba(123,31,162,0.9)',
+      hoverBackgroundColor: 'rgba(0,179,126,0.9)',
     }],
   };
 
@@ -457,7 +457,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
         padding: 14,
         titleFont: { size: 13, weight: 'bold' as const },
         bodyFont: { size: 12 },
-        borderColor: '#7b1fa2',
+        borderColor: '#00B37E',
         borderWidth: 2,
         displayColors: false,
         callbacks: {
@@ -514,8 +514,8 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
           display: 'flex',
           flexDirection: 'column',
           '&:hover': {
-            borderColor: '#7b1fa2',
-            boxShadow: '0 4px 12px rgba(123,31,162,0.1)',
+            borderColor: '#00B37E',
+            boxShadow: '0 4px 12px rgba(0,179,126,0.1)',
           },
         }}
       >
@@ -531,7 +531,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
               boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
               transition: 'all 0.2s',
               '&:hover': {
-                bgcolor: '#7b1fa2',
+                bgcolor: '#00B37E',
                 color: 'white',
                 transform: 'scale(1.1)',
               },
@@ -932,7 +932,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                           textAlign: 'center'
                         }}>
                           <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>Valores únicos</Typography>
-                          <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#7b1fa2', fontSize: '1.5rem' }}>{col.n_unique.toLocaleString()}</Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#00B37E', fontSize: '1.5rem' }}>{col.n_unique.toLocaleString()}</Typography>
                         </Box>
                         <Box sx={{ 
                           p: 1.5, 
