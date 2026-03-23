@@ -29,6 +29,7 @@ import {
   FormControl,
   InputLabel,
   IconButton,
+  Button,
   Collapse,
   Dialog,
   DialogTitle,
@@ -49,6 +50,7 @@ import {
   Close as CloseIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
+  ViewColumn as ViewColumnIcon,
 } from '@mui/icons-material';
 import { datasetsAPI } from '../services/api';
 import type { DataProfilingResult, ProfilingColumn, ColumnMetrics } from '../types';
@@ -570,6 +572,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   // Initial tab for MetricDetailsTabs (0=Valores nulos, 1=Registros duplicados, 2=Outliers)
   const [initialMetricTab, setInitialMetricTab] = useState<number>(0);
 
+  // Column selection for analysis scope
+  const [selectedColumns, setSelectedColumns] = useState<Set<string>>(new Set());
+  const [columnSelectorOpen, setColumnSelectorOpen] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     const fetchProfiling = async () => {
@@ -599,6 +605,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       const nums = profiling.type_summary.numeric_columns;
       setScatterX(nums[0]);
       setScatterY(nums[1]);
+    }
+  }, [profiling]);
+
+  // Initialize selected columns when profiling loads (all selected by default)
+  useEffect(() => {
+    if (profiling) {
+      setSelectedColumns(new Set(profiling.columns.map(c => c.name)));
     }
   }, [profiling]);
 
@@ -670,6 +683,122 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     };
   }, [profiling]);
 
+  // ── Filtered data based on column selection ────────────────────
+  const {
+    filteredColumns,
+    filteredNumericCols,
+    filteredCatCols,
+    filteredEvalColumnMetrics,
+    filteredEvalOverallMetrics,
+    filteredCorrelation,
+    isFiltered,
+  } = useMemo(() => {
+    if (!profiling) return {
+      filteredColumns: [] as ProfilingColumn[],
+      filteredNumericCols: [] as string[],
+      filteredCatCols: [] as string[],
+      filteredEvalColumnMetrics: {} as Record<string, ColumnMetrics>,
+      filteredEvalOverallMetrics: {} as Record<string, any>,
+      filteredCorrelation: null as DataProfilingResult['correlation_matrix'],
+      isFiltered: false,
+    };
+
+    const allNames = profiling.columns.map(c => c.name);
+    const active = selectedColumns.size === 0 ? new Set(allNames) : selectedColumns;
+    const filtered = active.size < allNames.length;
+
+    // Filter columns
+    const fCols = profiling.columns.filter(c => active.has(c.name));
+    const fNum = fCols.filter(c => c.category === 'numeric').map(c => c.name);
+    const fCat = fCols.filter(c => c.category !== 'numeric').map(c => c.name);
+
+    // Filter column metrics
+    const fcm: Record<string, ColumnMetrics> = {};
+    Array.from(active).forEach(name => {
+      if (evalColumnMetrics[name]) fcm[name] = evalColumnMetrics[name];
+    });
+
+    // Recalculate overall completeness from filtered columns only
+    const totalValid = fCols.reduce((s, c) => s + c.n_valid, 0);
+    const totalMissing = fCols.reduce((s, c) => s + c.n_missing, 0);
+    const totalCells = totalValid + totalMissing;
+    const filteredCompleteness = totalCells > 0 ? totalValid / totalCells : 1;
+
+    // Filter outliers to only selected columns
+    const srcOutliers = evalOverallMetrics.outliers || {};
+    const filteredOutliers: Record<string, any> = {};
+    for (const [name, data] of Object.entries(srcOutliers)) {
+      if (active.has(name)) filteredOutliers[name] = data;
+    }
+
+    const fom: Record<string, any> = {
+      completeness: filteredCompleteness,
+      uniqueness: evalOverallMetrics.uniqueness, // row-level, not affected by column filter
+      ...(Object.keys(filteredOutliers).length > 0 ? { outliers: filteredOutliers } : {}),
+    };
+
+    // Filter correlation matrix to only selected numeric columns
+    let fCorr: DataProfilingResult['correlation_matrix'] = null;
+    if (profiling.correlation_matrix && fNum.length >= 2) {
+      const corrCols = profiling.correlation_matrix.columns;
+      const indices = fNum
+        .map(name => corrCols.indexOf(name))
+        .filter(idx => idx !== -1);
+
+      if (indices.length >= 2) {
+        fCorr = {
+          columns: indices.map(i => corrCols[i]),
+          pearson: indices.map(i => indices.map(j => profiling.correlation_matrix!.pearson[i][j])),
+          spearman: indices.map(i => indices.map(j => profiling.correlation_matrix!.spearman[i][j])),
+        };
+      }
+    }
+
+    return {
+      filteredColumns: fCols,
+      filteredNumericCols: fNum,
+      filteredCatCols: fCat,
+      filteredEvalColumnMetrics: fcm,
+      filteredEvalOverallMetrics: fom,
+      filteredCorrelation: fCorr,
+      isFiltered: filtered,
+    };
+  }, [profiling, selectedColumns, evalColumnMetrics, evalOverallMetrics]);
+
+  // Reset scatter axes when filtered numeric columns change
+  useEffect(() => {
+    if (filteredNumericCols.length >= 2) {
+      if (!filteredNumericCols.includes(scatterX)) setScatterX(filteredNumericCols[0]);
+      if (!filteredNumericCols.includes(scatterY)) setScatterY(filteredNumericCols[1]);
+    }
+  }, [filteredNumericCols]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Column toggle helpers ──────────────────────────────────────
+  const toggleColumn = useCallback((name: string) => {
+    setSelectedColumns(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    if (profiling) setSelectedColumns(new Set(profiling.columns.map(c => c.name)));
+  }, [profiling]);
+
+  const selectNone = useCallback(() => {
+    setSelectedColumns(new Set());
+  }, []);
+
+  const selectByCategory = useCallback((cat: 'numeric' | 'categorical') => {
+    if (profiling) {
+      setSelectedColumns(new Set(
+        profiling.columns.filter(c => cat === 'numeric' ? c.category === 'numeric' : c.category !== 'numeric').map(c => c.name)
+      ));
+    }
+  }, [profiling]);
+
   // ── Section visibility state ──────────────────────────────────
   const defaultOpen: Record<SectionKey, boolean> = {
     overview: false,
@@ -708,29 +837,25 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   if (error) return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
   if (!profiling) return <Alert severity="info" sx={{ mt: 2 }}>No hay datos de profiling disponibles.</Alert>;
 
-  const { overview, type_summary, columns, correlation_matrix } = profiling;
+  const { overview, type_summary, columns } = profiling;
 
-  // ── Computed metrics ──────────────────────────────────────────
-  const compVal = evalOverallMetrics.completeness ?? 1;
-  const nullPct = ((1 - compVal) * 100).toFixed(1); // % de valores nulos
-  const nullCols = Object.values(evalColumnMetrics).filter((c: any) => (c.n_nulls || 0) > 0).length;
+  // ── Computed metrics (use FILTERED data) ───────────────────────
+  const compVal = filteredEvalOverallMetrics.completeness ?? 1;
+  const nullPct = ((1 - compVal) * 100).toFixed(1);
+  const nullCols = Object.values(filteredEvalColumnMetrics).filter((c: any) => (c.n_nulls || 0) > 0).length;
   const compBadge = badgeFor(compVal);
 
-  const uniqVal = evalOverallMetrics.uniqueness ?? 1;
-  const dupPct = ((1 - uniqVal) * 100).toFixed(1); // % de registros duplicados
-  // Badge basado en % de duplicados invertido: menos duplicados = mejor
-  // Si hay 2% duplicados, el badge se calcula como si tuviéramos 98% de "calidad"
+  const uniqVal = filteredEvalOverallMetrics.uniqueness ?? 1;
+  const dupPct = ((1 - uniqVal) * 100).toFixed(1);
   const uniqBadge = badgeFor(uniqVal);
 
-  const outlierMap = evalOverallMetrics.outliers || {};
+  const outlierMap = filteredEvalOverallMetrics.outliers || {};
   const totalOutliers = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.count || 0), 0);
   const totalOutlierVals = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.total_values || 0), 0);
   const outlierProp = totalOutlierVals > 0 ? totalOutliers / totalOutlierVals : 0;
   const outlierColCount = Object.values(outlierMap).filter((c: any) => c?.count > 0).length;
   
   // Badge informativo para outliers (NO indica calidad)
-  // Los outliers pueden ser legítimos o errores según el contexto
-  // Colores: verde (pocos) → amarillo (moderados) → rojo (frecuentes)
   const getOutlierBadge = () => {
     if (totalOutliers === 0) return { label: 'Sin outliers', bg: 'rgba(34,197,94,0.1)', color: '#22C55E' };
     if (outlierProp < 0.01) return { label: 'Muy pocos', bg: 'rgba(132,204,22,0.1)', color: '#84CC16' };
@@ -740,17 +865,124 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   };
   const outBadge = getOutlierBadge();
 
+  // Overview volumetry uses full dataset; filtered counts for type breakdown
   const numPct = overview.total_columns > 0 ? Math.round((type_summary.numeric_count / overview.total_columns) * 100) : 0;
   const catPct = 100 - numPct;
+  const activeCount = selectedColumns.size || columns.length;
+  const excludedCount = columns.length - activeCount;
 
   // ── Render ────────────────────────────────────────────────────
   return (
     <Box>
+      {/* ── Column Scope Selector ── */}
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2,
+          border: '1px solid #E8E8E8',
+          borderRadius: 2,
+          overflow: 'hidden',
+          backgroundColor: '#FAFAFA',
+        }}
+      >
+        {/* Compact header bar - always visible */}
+        <Box
+          onClick={() => setColumnSelectorOpen(prev => !prev)}
+          sx={{
+            display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.2,
+            cursor: 'pointer', userSelect: 'none',
+            '&:hover': { backgroundColor: '#F5F5F5' },
+          }}
+        >
+          <ViewColumnIcon sx={{ fontSize: 18, color: '#00B37E' }} />
+          <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.82rem', color: '#444', flexGrow: 1 }}>
+            Alcance del análisis
+          </Typography>
+          <Chip
+            label={`${activeCount} de ${columns.length} columnas`}
+            size="small"
+            sx={{
+              fontWeight: 600, fontSize: '0.7rem', height: 22,
+              bgcolor: 'rgba(0,179,126,0.1)',
+              color: '#00B37E',
+            }}
+          />
+          {isFiltered && (
+            <Chip
+              label={`${excludedCount} excluida${excludedCount !== 1 ? 's' : ''}`}
+              size="small"
+              sx={{ fontWeight: 500, fontSize: '0.65rem', height: 20, bgcolor: 'rgba(239,68,68,0.08)', color: '#EF4444' }}
+            />
+          )}
+          {columnSelectorOpen ? <ExpandLessIcon sx={{ fontSize: 18, color: '#999' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#999' }} />}
+        </Box>
+
+        {/* Expandable panel */}
+        <Collapse in={columnSelectorOpen}>
+          <Box sx={{ px: 2, pb: 2, pt: 0.5, borderTop: '1px solid #E8E8E8' }}>
+            {/* Quick-action buttons */}
+            <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#888', mr: 0.5, fontSize: '0.68rem' }}>Selección rápida:</Typography>
+              <Button size="small" variant="outlined" onClick={selectAll}
+                sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#CCC', color: '#666' }}
+              >
+                Todas
+              </Button>
+              <Button size="small" variant="outlined" onClick={selectNone}
+                sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#CCC', color: '#666' }}
+              >
+                Ninguna
+              </Button>
+              <Button size="small" variant="outlined" onClick={() => selectByCategory('numeric')}
+                sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#1976d2', color: '#1976d2' }}
+              >
+                Solo numéricas ({type_summary.numeric_count})
+              </Button>
+              <Button size="small" variant="outlined" onClick={() => selectByCategory('categorical')}
+                sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#9C27B0', color: '#9C27B0' }}
+              >
+                Solo categóricas ({type_summary.categorical_count})
+              </Button>
+            </Box>
+
+            {/* Column chips */}
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+              {columns.map(col => {
+                const isActive = selectedColumns.has(col.name);
+                const catColor = col.category === 'numeric' ? '#1976d2' : '#9C27B0';
+                return (
+                  <Chip
+                    key={col.name}
+                    label={col.name}
+                    size="small"
+                    onClick={() => toggleColumn(col.name)}
+                    sx={{
+                      fontSize: '0.7rem', fontWeight: isActive ? 600 : 400, height: 26,
+                      cursor: 'pointer', transition: 'all 0.15s ease',
+                      backgroundColor: isActive ? `${catColor}14` : '#F5F5F5',
+                      color: isActive ? catColor : '#BBB',
+                      border: `1px solid ${isActive ? `${catColor}40` : '#E0E0E0'}`,
+                      textDecoration: isActive ? 'none' : 'line-through',
+                      opacity: isActive ? 1 : 0.7,
+                      '&:hover': {
+                        backgroundColor: isActive ? `${catColor}22` : '#EEEEEE',
+                        opacity: 1,
+                      },
+                    }}
+                  />
+                );
+              })}
+            </Box>
+
+          </Box>
+        </Collapse>
+      </Paper>
+
       {/* ── SECTION 1 – Overview + Metrics ── */}
       <CollapsibleSection
         icon={<NotesIcon sx={{ color: '#00B37E' }} />}
         title="Resumen del dataset"
-        subtitle={`${overview.total_rows.toLocaleString()} filas · ${overview.total_columns} columnas · ${formatBytes(overview.estimated_size_bytes)}`}
+        subtitle={`${overview.total_rows.toLocaleString()} filas · ${overview.total_columns} columnas · ${formatBytes(overview.estimated_size_bytes)}${isFiltered ? ` · ${activeCount} activas` : ''}`}
         open={sections.overview}
         onToggle={() => toggle('overview')}
       >
@@ -758,11 +990,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 3, px: 1 }}>
           {[
             { label: 'Filas', val: overview.total_rows.toLocaleString() },
-            { label: 'Columnas', val: String(overview.total_columns) },
+            { label: 'Columnas', val: isFiltered ? `${activeCount} / ${overview.total_columns}` : String(overview.total_columns) },
             { label: 'Celdas', val: overview.total_cells.toLocaleString() },
             { label: 'Tamaño', val: formatBytes(overview.estimated_size_bytes) },
-            { label: 'Numéricas', val: `${type_summary.numeric_count} (${numPct}%)` },
-            { label: 'Categóricas', val: `${type_summary.categorical_count} (${catPct}%)` },
+            { label: 'Numéricas', val: `${filteredNumericCols.length}${isFiltered ? ` / ${type_summary.numeric_count}` : ''} (${numPct}%)` },
+            { label: 'Categóricas', val: `${filteredCatCols.length}${isFiltered ? ` / ${type_summary.categorical_count}` : ''} (${catPct}%)` },
           ].map(({ label, val }) => (
             <Box key={label} sx={{ minWidth: 80 }}>
               <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', lineHeight: 1 }}>{label}</Typography>
@@ -784,7 +1016,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               title="Valores nulos"
               value={`${nullPct}%`}
               badge={compBadge}
-              insight={nullCols > 0 ? `${nullCols} de ${overview.total_columns} columnas con nulos` : 'Sin valores nulos'}
+              insight={nullCols > 0 ? `${nullCols} de ${activeCount} columnas con nulos` : 'Sin valores nulos'}
               onDetail={openValoresNulos}
             />
           </Grid>
@@ -834,19 +1066,19 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       >
         {/* NOTA: MetricDetailsTabs se reutiliza temporalmente para mostrar características.
             En el futuro, se creará un componente específico para características del dataset. */}
-        <MetricDetailsTabs overallMetrics={evalOverallMetrics} columnMetrics={evalColumnMetrics} datasetId={datasetId} initialTab={initialMetricTab} />
+        <MetricDetailsTabs overallMetrics={filteredEvalOverallMetrics} columnMetrics={filteredEvalColumnMetrics} datasetId={datasetId} initialTab={initialMetricTab} />
       </CollapsibleSection>
 
       {/* ── SECTION 3 – Per-column Analysis ── */}
       <CollapsibleSection
         icon={<BarChartIcon sx={{ color: '#00B37E' }} />}
         title="Análisis por columna"
-        subtitle="Estadísticas descriptivas y distribuciones"
-        count={columns.length}
+        subtitle={isFiltered ? `${filteredColumns.length} de ${columns.length} columnas activas` : 'Estadísticas descriptivas y distribuciones'}
+        count={filteredColumns.length}
         open={sections.columns}
         onToggle={() => toggle('columns')}
       >
-        {columns.map((col) => {
+        {filteredColumns.map((col) => {
           const compColPct = 100 - col.missing_percent;
           return (
             <Accordion
@@ -901,6 +1133,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                         { label: 'Q1', value: col.q1 },
                         { label: 'Q3', value: col.q3 },
                         { label: 'IQR', value: col.iqr },
+                        { label: 'Asimetría', value: col.skewness },
+                        { label: 'Curtosis', value: col.kurtosis },
                       ].map(({ label, value }) => (
                         <Box key={label} sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
                           <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem', lineHeight: 1 }}>{label}</Typography>
@@ -972,11 +1206,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       </CollapsibleSection>
 
       {/* ── SECTION 4 – Correlation Matrix (collapsed by default) ── */}
-      {correlation_matrix && (
+      {filteredCorrelation && (
         <CollapsibleSection
           icon={<GridOnIcon sx={{ color: '#00B37E' }} />}
           title="Matriz de correlación"
-          subtitle={`${correlation_matrix.columns.length} variables numéricas · ${correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}`}
+          subtitle={`${filteredCorrelation.columns.length} variables numéricas · ${correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}`}
           open={sections.correlation}
           onToggle={() => toggle('correlation')}
         >
@@ -1023,7 +1257,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
               <thead>
                 <tr>
                   <th style={{ padding: '8px 6px' }} />
-                  {correlation_matrix.columns.map(c => (
+                  {filteredCorrelation.columns.map(c => (
                     <th key={c} style={{ 
                       padding: '8px 6px', 
                       fontWeight: 700, 
@@ -1043,7 +1277,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                 </tr>
               </thead>
               <tbody>
-                {(correlationMethod === 'pearson' ? correlation_matrix.pearson : correlation_matrix.spearman).map((row, i) => (
+                {(correlationMethod === 'pearson' ? filteredCorrelation.pearson : filteredCorrelation.spearman).map((row, i) => (
                   <tr key={i}>
                     <td style={{ 
                       padding: '8px 10px', 
@@ -1054,21 +1288,21 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                       background: 'linear-gradient(90deg, #fafafa 0%, #f5f5f5 100%)',
                       borderRadius: '6px 0 0 6px',
                     }}>
-                      <Tooltip title={correlation_matrix!.columns[i]} arrow>
-                        <span>{correlation_matrix!.columns[i].length > 12 ? correlation_matrix!.columns[i].slice(0, 12) + '…' : correlation_matrix!.columns[i]}</span>
+                      <Tooltip title={filteredCorrelation!.columns[i]} arrow>
+                        <span>{filteredCorrelation!.columns[i].length > 12 ? filteredCorrelation!.columns[i].slice(0, 12) + '…' : filteredCorrelation!.columns[i]}</span>
                       </Tooltip>
                     </td>
                     {row.map((v, j) => {
                       // Get correlation value based on selected method
                       const corrValue = correlationMethod === 'pearson' 
-                        ? correlation_matrix!.pearson[i][j] 
-                        : correlation_matrix!.spearman[i][j];
+                        ? filteredCorrelation!.pearson[i][j] 
+                        : filteredCorrelation!.spearman[i][j];
                       const { bg, text } = correlationColor(corrValue);
                       const isDiagonal = i === j;
                       const handleClick = () => {
                         if (!isDiagonal) {
-                          setScatterX(correlation_matrix!.columns[i]);
-                          setScatterY(correlation_matrix!.columns[j]);
+                          setScatterX(filteredCorrelation!.columns[i]);
+                          setScatterY(filteredCorrelation!.columns[j]);
                           setSections(prev => ({ ...prev, scatter: true }));
                           setTimeout(() => {
                             document.getElementById('scatter-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1117,7 +1351,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                               isDiagonal ? (
                                 <Box sx={{ textAlign: 'center', py: 0.5 }}>
                                   <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
-                                    {correlation_matrix!.columns[i]}
+                                    {filteredCorrelation!.columns[i]}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>
                                     Correlación perfecta consigo misma
@@ -1126,7 +1360,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                               ) : (
                                 <Box sx={{ textAlign: 'center', py: 0.5 }}>
                                   <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                    {correlation_matrix!.columns[i]} vs {correlation_matrix!.columns[j]}
+                                    {filteredCorrelation!.columns[i]} vs {filteredCorrelation!.columns[j]}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block' }}>
                                     {correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}: {corrValue.toFixed(4)}
@@ -1205,12 +1439,12 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       )}
 
       {/* ── SECTION 5 – Scatter Plot (collapsed by default) ── */}
-      {type_summary.numeric_columns.length >= 2 && (
+      {filteredNumericCols.length >= 2 && (
         <CollapsibleSection
           id="scatter-section"
           icon={<ScatterPlotIcon sx={{ color: '#00B37E' }} />}
           title="Dispersión"
-          subtitle="Explora la relación entre dos variables numéricas"
+          subtitle={isFiltered ? `${filteredNumericCols.length} variables numéricas activas` : 'Explora la relación entre dos variables numéricas'}
           open={sections.scatter}
           onToggle={() => toggle('scatter')}
         >
@@ -1218,13 +1452,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Eje X</InputLabel>
               <Select value={scatterX} label="Eje X" onChange={(e) => setScatterX(e.target.value)}>
-                {type_summary.numeric_columns.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                {filteredNumericCols.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
               </Select>
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Eje Y</InputLabel>
               <Select value={scatterY} label="Eje Y" onChange={(e) => setScatterY(e.target.value)}>
-                {type_summary.numeric_columns.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                {filteredNumericCols.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
               </Select>
             </FormControl>
           </Box>

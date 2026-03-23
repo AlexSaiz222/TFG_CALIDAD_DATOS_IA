@@ -273,6 +273,8 @@ export interface ProfilingColumn {
   q1?: number | null;
   q3?: number | null;
   iqr?: number | null;
+  skewness?: number | null;
+  kurtosis?: number | null;
   histogram?: HistogramData | null;
   boxplot?: BoxplotData | null;
   // Categorical stats

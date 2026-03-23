@@ -934,6 +934,8 @@ def get_dataset_profiling(dataset_id):
                         "q1": round(q1, 4),
                         "q3": round(q3, 4),
                         "iqr": round(q3 - q1, 4),
+                        "skewness": round(float(clean.skew()), 4),
+                        "kurtosis": round(float(clean.kurtosis()), 4),
                     })
 
                     # Histogram data (max 30 bins)
@@ -965,6 +967,7 @@ def get_dataset_profiling(dataset_id):
                     col_info.update({"mean": None, "median": None, "std": None,
                                      "min": None, "max": None, "q1": None,
                                      "q3": None, "iqr": None,
+                                     "skewness": None, "kurtosis": None,
                                      "histogram": None, "boxplot": None})
             else:
                 categorical_cols.append(col)
