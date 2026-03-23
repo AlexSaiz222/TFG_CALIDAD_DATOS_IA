@@ -325,6 +325,9 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
           position: 'relative',
           background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
           transition: 'all 0.3s',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
           '&:hover': {
             borderColor: '#00B37E',
             boxShadow: '0 4px 12px rgba(0,179,126,0.1)',
@@ -352,7 +355,7 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
             <FullscreenIcon fontSize="small" />
           </IconButton>
         </Box>
-        <Box sx={{ height: 180 }}>
+        <Box sx={{ flex: 1, minHeight: 200 }}>
           <Bar data={chartData} options={chartOptions(false)} />
         </Box>
       </Box>
@@ -386,6 +389,9 @@ const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) 
           borderRadius: 2,
           background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
           transition: 'all 0.3s',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
           '&:hover': {
             borderColor: '#00B37E',
             boxShadow: '0 4px 12px rgba(0,179,126,0.1)',
@@ -395,7 +401,11 @@ const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) 
         <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', display: 'block', mb: 0.5, fontSize: '0.7rem', letterSpacing: '0.02em' }}>
           Boxplot
         </Typography>
-        <EnhancedBoxplot boxplot={column.boxplot} columnName={column.name} onExpand={() => setModalOpen(true)} />
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', minHeight: 200 }}>
+          <Box sx={{ width: '100%' }}>
+            <EnhancedBoxplot boxplot={column.boxplot} columnName={column.name} onExpand={() => setModalOpen(true)} />
+          </Box>
+        </Box>
       </Box>
 
       <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Boxplot - ${column.name}`}>
@@ -500,6 +510,9 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
           position: 'relative',
           background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
           transition: 'all 0.3s',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
           '&:hover': {
             borderColor: '#7b1fa2',
             boxShadow: '0 4px 12px rgba(123,31,162,0.1)',
@@ -527,7 +540,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
             <FullscreenIcon fontSize="small" />
           </IconButton>
         </Box>
-        <Box sx={{ height: 200 }}>
+        <Box sx={{ flex: 1, minHeight: 200 }}>
           <Bar data={chartData} options={chartOptions(false)} />
         </Box>
       </Box>
@@ -887,32 +900,56 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                     </Box>
 
                     {/* Charts */}
-                    <Grid container spacing={1.5}>
-                      <Grid item xs={12} md={6}>
-                        <EnhancedHistogramCard column={col} />
+                    <Grid container spacing={1.5} sx={{ alignItems: 'stretch' }}>
+                      <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                        <Box sx={{ width: '100%' }}>
+                          <EnhancedHistogramCard column={col} />
+                        </Box>
                       </Grid>
-                      <Grid item xs={12} md={6}>
-                        <EnhancedBoxplotCard column={col} />
+                      <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+                        <Box sx={{ width: '100%' }}>
+                          <EnhancedBoxplotCard column={col} />
+                        </Box>
                       </Grid>
                     </Grid>
                   </>
                 ) : (
                   /* ── Categorical ── */
-                  <Grid container spacing={1.5}>
-                    <Grid item xs={12} md={4}>
-                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                        <Box sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
-                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem' }}>Únicos</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#333' }}>{col.n_unique.toLocaleString()}</Typography>
+                  <Grid container spacing={1.5} sx={{ alignItems: 'stretch' }}>
+                    <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: 1, 
+                        height: '100%',
+                        justifyContent: 'center'
+                      }}>
+                        <Box sx={{ 
+                          p: 1.5, 
+                          bgcolor: '#FAFAFA', 
+                          borderRadius: 1.5, 
+                          border: '1px solid #F0F0F0',
+                          textAlign: 'center'
+                        }}>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>Valores únicos</Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#7b1fa2', fontSize: '1.5rem' }}>{col.n_unique.toLocaleString()}</Typography>
                         </Box>
-                        <Box sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
-                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem' }}>Moda</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#7b1fa2', fontSize: '0.78rem', wordBreak: 'break-all' }}>{col.mode || '—'}</Typography>
+                        <Box sx={{ 
+                          p: 1.5, 
+                          bgcolor: '#FAFAFA', 
+                          borderRadius: 1.5, 
+                          border: '1px solid #F0F0F0',
+                          textAlign: 'center'
+                        }}>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>Moda (más frecuente)</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#333', fontSize: '0.9rem', wordBreak: 'break-word' }}>{col.mode || '—'}</Typography>
                         </Box>
                       </Box>
                     </Grid>
-                    <Grid item xs={12} md={8}>
-                      <EnhancedBarChartCard column={col} />
+                    <Grid item xs={12} md={8} sx={{ display: 'flex' }}>
+                      <Box sx={{ width: '100%' }}>
+                        <EnhancedBarChartCard column={col} />
+                      </Box>
                     </Grid>
                   </Grid>
                 )}
