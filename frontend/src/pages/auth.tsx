@@ -457,7 +457,7 @@ const AuthPage = () => {
 
           display: { xs: 'none', md: 'flex' },
 
-          width: '55%',
+          width: '57%',
 
           background: 'linear-gradient(165deg, #00D4AA 0%, #00B37E 25%, #00A67E 50%, #008866 75%, #006B52 100%)',
 
@@ -728,7 +728,7 @@ const AuthPage = () => {
 
                  C 250,150 150,250 200,400 
 
-                 C 280,600 0,800 150,1000 
+                 C 260,600 80,800 180,1000 
 
                  L300,1000 
 

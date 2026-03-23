@@ -32,6 +32,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
     columnsWithOutliers.length > 0 ? columnsWithOutliers[0][0] : ''
   );
   const [outlierScaleStates, setOutlierScaleStates] = useState<Record<string, boolean>>({});
+  const [showAllOutliers, setShowAllOutliers] = useState<Record<string, boolean>>({});
 
   if (columnsWithOutliers.length === 0) return null;
 
@@ -328,9 +329,20 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         {/* Outlier values - TABLE LAYOUT for better scannability */}
         {outlierValues.length > 0 && (
           <Box sx={{ p: 2, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
-            <Typography variant="caption" sx={{ color: '#888', fontWeight: 600, display: 'block', mb: 1.5 }}>
-              Valores atípicos detectados ({col.count} total{col.count > 5 ? ', mostrando primeros 5' : ''}):
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Typography variant="caption" sx={{ color: '#888', fontWeight: 600 }}>
+                Valores atípicos detectados ({col.count} total):
+              </Typography>
+              {col.count > 5 && (
+                <Button
+                  size="small"
+                  onClick={() => setShowAllOutliers(prev => ({ ...prev, [colName]: !prev[colName] }))}
+                  sx={{ fontSize: '0.7rem', textTransform: 'none' }}
+                >
+                  {showAllOutliers[colName] ? 'Mostrar solo primeros 5' : `Mostrar todos (${col.count})`}
+                </Button>
+              )}
+            </Box>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -341,7 +353,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {outlierValues.map((outlier: any, idx: number) => (
+                  {(showAllOutliers[colName] ? outlierValues : outlierValues.slice(0, 5)).map((outlier: any, idx: number) => (
                     <TableRow key={idx} sx={{ '&:hover': { backgroundColor: '#F9F9F9' } }}>
                       <TableCell>
                         <Typography
