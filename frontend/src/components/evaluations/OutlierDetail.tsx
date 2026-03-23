@@ -46,17 +46,18 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
   const renderColumnDetail = (colName: string, col: any) => {
     const proportion = col.proportion || (col.total_values > 0 ? col.count / col.total_values : 0);
     const proportionPct = (proportion * 100).toFixed(1);
-    // Paleta de 5 colores basada en proporción de outliers (densidad-aware)
-    const severityColor = proportion >= 0.20 ? '#EF4444' :  // Crítico (>= 20%)
-                          proportion >= 0.10 ? '#FB923C' :  // Requiere atención (>= 10%)
-                          proportion >= 0.05 ? '#FBB024' :  // Aceptable (>= 5%)
-                          proportion >= 0.02 ? '#34D399' :  // Bueno (>= 2%)
-                          '#00B37E';                         // Excelente (< 2%)
-    const severityLabel = proportion >= 0.20 ? 'Crítico' : 
-                          proportion >= 0.10 ? 'Alto' : 
-                          proportion >= 0.05 ? 'Medio' : 
-                          proportion >= 0.02 ? 'Bajo' : 
-                          'Muy bajo';
+    // Paleta de colores basada en densidad de outliers (informativa, NO indica calidad)
+    // Gradiente verde → amarillo → rojo
+    const densityColor = proportion >= 0.20 ? '#EF4444' :  // Muy frecuentes (>= 20%) - rojo
+                         proportion >= 0.10 ? '#F97316' :  // Frecuentes (>= 10%) - naranja
+                         proportion >= 0.05 ? '#EAB308' :  // Moderados (>= 5%) - amarillo
+                         proportion >= 0.02 ? '#84CC16' :  // Pocos (>= 2%) - verde lima
+                         '#22C55E';                         // Muy pocos (< 2%) - verde
+    const densityLabel = proportion >= 0.20 ? 'Muy frecuentes' : 
+                         proportion >= 0.10 ? 'Frecuentes' : 
+                         proportion >= 0.05 ? 'Moderados' : 
+                         proportion >= 0.02 ? 'Pocos' : 
+                         'Muy pocos';
 
     const lb = col.lower_bound ?? col.series_min ?? 0;
     const ub = col.upper_bound ?? col.series_max ?? 100;
@@ -101,25 +102,25 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
 
     return (
       <Box key={colName}>
-        {/* Header with column name, count, and severity */}
+        {/* Header with column name, count, and density */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>{colName}</Typography>
             <Chip
               label={`${col.count} outlier${col.count > 1 ? 's' : ''}`}
               size="small"
-              sx={{ backgroundColor: `${severityColor}20`, color: severityColor, fontWeight: 600 }}
+              sx={{ backgroundColor: `${densityColor}20`, color: densityColor, fontWeight: 600 }}
             />
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Typography variant="body2" sx={{ color: '#666' }}>
-              {col.count} de {col.total_values || 'N/A'} registros · {proportionPct}% afectados
+              {col.count} de {col.total_values || 'N/A'} registros · {proportionPct}% de valores
             </Typography>
             <Chip
-              label={`Severidad: ${severityLabel}`}
+              label={`Densidad: ${densityLabel}`}
               size="small"
               sx={{
-                backgroundColor: severityColor,
+                backgroundColor: densityColor,
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: '0.7rem'
@@ -402,6 +403,26 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
 
   return (
     <Box>
+      {/* Educational context about outliers */}
+      <Alert 
+        severity="info" 
+        sx={{ 
+          mb: 3, 
+          backgroundColor: '#E3F2FD',
+          border: '1px solid #90CAF9',
+          '& .MuiAlert-icon': { color: '#1976d2' }
+        }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1565C0' }}>
+          ⚠️ Los outliers no son automáticamente indicadores de mala calidad
+        </Typography>
+        <Typography variant="caption" sx={{ display: 'block', color: '#1976d2', lineHeight: 1.5 }}>
+          Los valores atípicos pueden ser <strong>legítimos</strong> según el contexto de la variable. Por ejemplo:
+          salarios ejecutivos, transacciones grandes, eventos raros, o mediciones extremas pero válidas.
+          Revisa cada caso individualmente antes de considerar su eliminación o corrección.
+        </Typography>
+      </Alert>
+
       {/* Summary header */}
       <Box sx={summaryContainerSx}>
         <Box>
@@ -433,7 +454,12 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
           {columnsWithOutliers.map(([name, col]: [string, any]) => {
             const prop = col.proportion || (col.total_values > 0 ? col.count / col.total_values : 0);
-            const chipColor = prop >= 0.10 ? '#E5484D' : prop >= 0.05 ? '#FFB800' : '#00B37E';
+            // Gradiente verde → amarillo → rojo
+            const chipColor = prop >= 0.20 ? '#EF4444' : 
+                             prop >= 0.10 ? '#F97316' : 
+                             prop >= 0.05 ? '#EAB308' : 
+                             prop >= 0.02 ? '#84CC16' : 
+                             '#22C55E';
             const isActive = name === selectedColumn;
             return (
               <Chip

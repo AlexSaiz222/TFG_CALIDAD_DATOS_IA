@@ -145,10 +145,10 @@ Tres **MetricCards** interactivas que resumen las características principales:
 ##### **C) Outliers (Valores Atípicos)**
 ```typescript
 <MetricCard
-  title="Outliers"
+  title="Outliers detectados"
   value={String(totalOutliers)}  // Cantidad total de outliers
-  badge={outBadge}               // Badge basado en densidad
-  insight={`${outlierColCount} col. afectada(s) (${outlierProp}%)`}
+  badge={outBadge}               // Badge informativo (NO indica calidad)
+  insight={`${outlierColCount} columna(s) · ${outlierProp}% de valores`}
   onDetail={openOutliers}        // Abre tab 2
 />
 ```
@@ -156,7 +156,14 @@ Tres **MetricCards** interactivas que resumen las características principales:
 **Cálculo de outliers:**
 - Se agregan outliers de todas las columnas numéricas
 - Densidad = `totalOutliers / totalOutlierVals`
-- Badge invertido: menos outliers = mejor calidad
+- **Badge informativo** (NO indica calidad automáticamente):
+  - Sin outliers → "Sin outliers" (verde)
+  - < 1% → "Muy pocos" (azul)
+  - 1-5% → "Algunos" (morado)
+  - 5-10% → "Moderados" (amarillo)
+  - ≥ 10% → "Frecuentes" (naranja)
+
+**IMPORTANTE:** Los outliers NO son automáticamente indicadores de mala calidad. Pueden ser valores legítimos según el contexto de la variable (ej: salarios ejecutivos, transacciones grandes, eventos raros).
 
 ---
 

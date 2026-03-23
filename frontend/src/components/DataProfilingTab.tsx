@@ -727,9 +727,18 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   const totalOutlierVals = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.total_values || 0), 0);
   const outlierProp = totalOutlierVals > 0 ? totalOutliers / totalOutlierVals : 0;
   const outlierColCount = Object.values(outlierMap).filter((c: any) => c?.count > 0).length;
-  // Badge basado en proporción de outliers (densidad): menos outliers = mejor
-  // Invertimos la lógica: 1 - outlierProp para que 0% outliers = 100% "calidad"
-  const outBadge = badgeFor(1 - outlierProp);
+  
+  // Badge informativo para outliers (NO indica calidad)
+  // Los outliers pueden ser legítimos o errores según el contexto
+  // Colores: verde (pocos) → amarillo (moderados) → rojo (frecuentes)
+  const getOutlierBadge = () => {
+    if (totalOutliers === 0) return { label: 'Sin outliers', bg: 'rgba(34,197,94,0.1)', color: '#22C55E' };
+    if (outlierProp < 0.01) return { label: 'Muy pocos', bg: 'rgba(132,204,22,0.1)', color: '#84CC16' };
+    if (outlierProp < 0.05) return { label: 'Algunos', bg: 'rgba(234,179,8,0.1)', color: '#EAB308' };
+    if (outlierProp < 0.10) return { label: 'Moderados', bg: 'rgba(249,115,22,0.1)', color: '#F97316' };
+    return { label: 'Frecuentes', bg: 'rgba(239,68,68,0.1)', color: '#EF4444' };
+  };
+  const outBadge = getOutlierBadge();
 
   const numPct = overview.total_columns > 0 ? Math.round((type_summary.numeric_count / overview.total_columns) * 100) : 0;
   const catPct = 100 - numPct;
@@ -792,12 +801,12 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           </Grid>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Outliers"
+              title="Outliers detectados"
               value={String(totalOutliers)}
               badge={outBadge}
               insight={totalOutliers === 0
-                ? 'Sin valores atípicos'
-                : `${outlierColCount} col. afectada${outlierColCount !== 1 ? 's' : ''} (${(outlierProp * 100).toFixed(1)}%)`}
+                ? 'Sin valores atípicos detectados'
+                : `${outlierColCount} columna${outlierColCount !== 1 ? 's' : ''} · ${(outlierProp * 100).toFixed(1)}% de valores`}
               onDetail={openOutliers}
             />
           </Grid>
