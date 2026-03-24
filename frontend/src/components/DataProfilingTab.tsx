@@ -34,7 +34,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
   Fade,
+  Slider,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -48,9 +50,11 @@ import {
   ScatterPlot as ScatterPlotIcon,
   Fullscreen as FullscreenIcon,
   Close as CloseIcon,
-  ZoomIn as ZoomInIcon,
-  ZoomOut as ZoomOutIcon,
+  UnfoldMore as UnfoldMoreIcon,
+  UnfoldLess as UnfoldLessIcon,
   ViewColumn as ViewColumnIcon,
+  Settings as SettingsIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { datasetsAPI } from '../services/api';
 import type { DataProfilingResult, ProfilingColumn, ColumnMetrics } from '../types';
@@ -204,19 +208,35 @@ const ChartModal: React.FC<ChartModalProps> = ({ open, onClose, title, children 
 
 // ── Metric Card ─────────────────────────────────────────────────
 const MetricCard: React.FC<{
-  title: string; value: string;
+  title: string;
+  value: string;
   badge: { label: string; bg: string; color: string };
-  insight: string; onDetail: () => void;
-}> = ({ title, value, badge, insight, onDetail }) => (
+  insight: string;
+  onDetail?: () => void;
+  configButton?: React.ReactNode;
+}> = ({ title, badge, value, insight, onDetail, configButton }) => (
   <Paper
-    elevation={0} onClick={onDetail}
+    elevation={0}
+    onClick={onDetail}
     sx={{
-      p: 2.5, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', height: '100%',
-      transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+      p: 3,
+      border: '1px solid #EEEEEE',
+      borderRadius: 2,
+      cursor: onDetail ? 'pointer' : 'default',
+      transition: 'all 0.2s',
+      '&:hover': onDetail ? { borderColor: '#00B37E', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } : {},
+      height: '100%',
     }}
   >
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-      <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>{title}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>{title}</Typography>
+        {configButton && (
+          <Box onClick={(e) => e.stopPropagation()}>
+            {configButton}
+          </Box>
+        )}
+      </Box>
       <Chip label={badge.label} size="small" sx={{ bgcolor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.65rem', height: 20 }} />
     </Box>
     <Typography variant="h4" sx={{ fontWeight: 700, color: badge.color, mb: 1, lineHeight: 1 }}>{value}</Typography>
@@ -561,6 +581,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   const [profiling, setProfiling] = useState<DataProfilingResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // IQR factor configuration
+  const [iqrFactor, setIqrFactor] = useState<number>(1.5);
+  const [iqrDialogOpen, setIqrDialogOpen] = useState(false);
+  const [tempIqrFactor, setTempIqrFactor] = useState<number>(1.5);
 
   // Scatter-plot selectors
   const [scatterX, setScatterX] = useState<string>('');
@@ -582,7 +607,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       setLoading(true);
       setError(null);
       try {
-        const res = await datasetsAPI.getDatasetProfiling(datasetId);
+        const res = await datasetsAPI.getDatasetProfiling(datasetId, iqrFactor);
         if (!cancelled) {
           const data = res.data?.data ?? res.data;
           setProfiling(data as DataProfilingResult);
@@ -597,7 +622,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
     };
     fetchProfiling();
     return () => { cancelled = true; };
-  }, [datasetId]);
+  }, [datasetId, iqrFactor]);
 
   // Set default scatter axes once data arrives
   useEffect(() => {
@@ -824,6 +849,20 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
   const openValoresNulos = useCallback(() => openAnalysisDetails(0), [openAnalysisDetails]);
   const openRegistrosDuplicados = useCallback(() => openAnalysisDetails(1), [openAnalysisDetails]);
   const openOutliers = useCallback(() => openAnalysisDetails(2), [openAnalysisDetails]);
+  
+  const handleIqrDialogOpen = () => {
+    setTempIqrFactor(iqrFactor);
+    setIqrDialogOpen(true);
+  };
+  
+  const handleIqrDialogClose = () => {
+    setIqrDialogOpen(false);
+  };
+  
+  const handleIqrFactorApply = () => {
+    setIqrFactor(tempIqrFactor);
+    setIqrDialogOpen(false);
+  };
 
   // ── Render states ─────────────────────────────────────────────
   if (loading) {
@@ -1040,6 +1079,25 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                 ? 'Sin valores atípicos detectados'
                 : `${outlierColCount} columna${outlierColCount !== 1 ? 's' : ''} · ${(outlierProp * 100).toFixed(1)}% de valores`}
               onDetail={openOutliers}
+              configButton={
+                <Tooltip title={`Configurar detección de outliers (Factor IQR actual: ${iqrFactor})`}>
+                  <IconButton
+                    size="small"
+                    onClick={handleIqrDialogOpen}
+                    sx={{
+                      p: 0.5,
+                      ml: 0.5,
+                      color: '#888',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 179, 126, 0.1)',
+                        color: '#00B37E',
+                      },
+                    }}
+                  >
+                    <SettingsIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              }
             />
           </Grid>
         </Grid>
@@ -1484,6 +1542,64 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
           )}
         </CollapsibleSection>
       )}
+
+      {/* ── IQR Factor Configuration Dialog ── */}
+      <Dialog
+        open={iqrDialogOpen}
+        onClose={handleIqrDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Configurar detección de outliers
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 3 }}>
+            Ajusta el factor IQR para controlar la sensibilidad de la detección de outliers. 
+            Valores más altos detectan menos outliers (más permisivo).
+          </Alert>
+          
+          <Typography gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+            Factor IQR: {tempIqrFactor.toFixed(1)}
+          </Typography>
+          
+          <Box sx={{ px: 2, mb: 2 }}>
+            <Slider
+              value={tempIqrFactor}
+              onChange={(_, newValue) => setTempIqrFactor(newValue as number)}
+              min={1.0}
+              max={5.0}
+              step={0.1}
+              marks={[
+                { value: 1.0, label: '1.0' },
+                { value: 1.5, label: '1.5 (Estándar)' },
+                { value: 2.0, label: '2.0' },
+                { value: 3.0, label: '3.0' },
+                { value: 5.0, label: '5.0' }
+              ]}
+              valueLabelDisplay="auto"
+              valueLabelFormat={(value) => value.toFixed(1)}
+            />
+          </Box>
+        
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleIqrDialogClose} color="inherit">
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleIqrFactorApply}
+            variant="contained"
+            sx={{ 
+              bgcolor: '#00B37E', 
+              color: '#FFFFFF',
+              '&:hover': { bgcolor: '#00A070' } 
+            }}
+          >
+            Aplicar y recalcular
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

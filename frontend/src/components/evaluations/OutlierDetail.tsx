@@ -414,7 +414,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         }}
       >
         <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1565C0' }}>
-          ⚠️ Los outliers no son automáticamente indicadores de mala calidad
+           Los outliers no son automáticamente indicadores de mala calidad
         </Typography>
         <Typography variant="caption" sx={{ display: 'block', color: '#1976d2', lineHeight: 1.5 }}>
           Los valores atípicos pueden ser <strong>legítimos</strong> según el contexto de la variable. Por ejemplo:

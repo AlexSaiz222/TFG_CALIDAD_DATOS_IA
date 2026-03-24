@@ -829,8 +829,23 @@ def get_dataset_profiling(dataset_id):
     Returns dataset overview, column type classification, descriptive
     statistics, univariate visualisation data (histograms, boxplots,
     bar charts) and a correlation matrix – all purely informative.
+    
+    Query parameters:
+        iqr_factor (float, optional): Factor for IQR outlier detection. Default: 1.5
+                                      Higher values = less sensitive (fewer outliers)
+                                      Typical range: 1.0 (strict) to 5.0 (permissive)
     """
     try:
+        # Get optional IQR factor from query parameters
+        iqr_factor = request.args.get('iqr_factor', default=1.5, type=float)
+        # Validate iqr_factor range
+        if iqr_factor < 0.5 or iqr_factor > 10.0:
+            return jsonify({
+                "success": False,
+                "error": "invalid_parameter",
+                "message": "iqr_factor debe estar entre 0.5 y 10.0"
+            }), 400
+        
         current_user_id = get_jwt_identity()
         try:
             current_user_id_int = int(current_user_id)
@@ -946,10 +961,10 @@ def get_dataset_profiling(dataset_id):
                         "counts": [int(c) for c in counts],
                     }
 
-                    # Boxplot data
+                    # Boxplot data (using configurable IQR factor)
                     iqr = q3 - q1
-                    lower_fence = float(q1 - 1.5 * iqr)
-                    upper_fence = float(q3 + 1.5 * iqr)
+                    lower_fence = float(q1 - iqr_factor * iqr)
+                    upper_fence = float(q3 + iqr_factor * iqr)
                     outlier_mask = (clean < lower_fence) | (clean > upper_fence)
                     outlier_values = clean[outlier_mask]
                     col_info["boxplot"] = {

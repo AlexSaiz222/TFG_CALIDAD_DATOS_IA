@@ -524,8 +524,9 @@ export const datasetsAPI = {
       timeout: 10000
     }),
 
-  getDatasetProfiling: (id: number) =>
+  getDatasetProfiling: (id: number, iqrFactor?: number) =>
     api.get(`/api/datasets/${id}/profiling`, {
+      params: iqrFactor !== undefined ? { iqr_factor: iqrFactor } : {},
       timeout: 30000,
     }),
 
