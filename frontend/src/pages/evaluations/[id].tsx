@@ -230,7 +230,7 @@ const EvaluationDetail = () => {
           <Box sx={{ flexGrow: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-                Evaluation #{evaluation.id}
+                {dataset?.name || 'Evaluación'}
               </Typography>
               {getStatusChip(evaluation.status)}
             </Box>

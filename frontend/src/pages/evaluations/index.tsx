@@ -355,9 +355,6 @@ const EvaluationsIndex = () => {
                       <Typography variant="body2">
                         {formatDate(run.completed_at || run.created_at)}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: GRAY }}>
-                        #{run.id}
-                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>

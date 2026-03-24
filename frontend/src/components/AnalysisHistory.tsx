@@ -228,9 +228,6 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     <Typography variant="body2" sx={{ fontWeight: isLatest ? 600 : 400 }}>
                       {formatDate(run.completed_at || run.created_at)}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: GRAY }}>
-                      #{run.id}
-                    </Typography>
                   </TableCell>
                   
                   {/* Dataset */}

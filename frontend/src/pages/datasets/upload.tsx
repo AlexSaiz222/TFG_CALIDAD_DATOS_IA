@@ -37,6 +37,7 @@ const DatasetUpload = () => {
   
   const [activeStep, setActiveStep] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [parentDataset, setParentDataset] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +73,22 @@ const DatasetUpload = () => {
 
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    const fetchParentDataset = async () => {
+      if (parentDatasetId) {
+        try {
+          const response = await datasetsAPI.getDataset(parentDatasetId);
+          const datasetData = response.data?.data || response.data;
+          setParentDataset(datasetData);
+        } catch (error) {
+          console.error('Error fetching parent dataset:', error);
+        }
+      }
+    };
+
+    fetchParentDataset();
+  }, [parentDatasetId]);
 
   useEffect(() => {
     // Set project ID from query parameter if available
@@ -295,7 +312,7 @@ const DatasetUpload = () => {
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
             {isNewVersion ? 'Subir nueva versión' : 'Upload Dataset'}
           </Typography>
-          {isNewVersion && (
+          {isNewVersion && parentDataset && (
             <Box sx={{ 
               ml: 2, 
               px: 1.5, 
@@ -306,7 +323,7 @@ const DatasetUpload = () => {
               fontSize: '0.85rem',
               fontWeight: 500,
             }}>
-              Nueva versión del dataset #{parentDatasetId}
+              Nueva versión de {parentDataset.name}
             </Box>
           )}
         </Box>

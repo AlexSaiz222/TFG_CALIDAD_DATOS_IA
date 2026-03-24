@@ -187,7 +187,7 @@ const AnalysisRunDetail = () => {
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Análisis #{analysisRun.id}
+              Análisis de Calidad
             </Typography>
             {project && (
               <Typography variant="body1" sx={{ color: '#555555' }}>
@@ -389,7 +389,7 @@ const AnalysisRunDetail = () => {
               <Grid item xs={12} md={5}>
                 <Box sx={{ textAlign: 'center', p: 2, borderRadius: 2, backgroundColor: '#FAFAFA' }}>
                   <Typography variant="body2" sx={{ color: '#555555', mb: 1 }}>
-                    Análisis Anterior (#{baselineRun.id})
+                    Análisis Anterior
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
                     {baselineRun.quality_score?.toFixed(1) || 0}%
@@ -416,7 +416,7 @@ const AnalysisRunDetail = () => {
               <Grid item xs={12} md={5}>
                 <Box sx={{ textAlign: 'center', p: 2, borderRadius: 2, backgroundColor: 'rgba(0, 179, 126, 0.05)', border: `2px solid ${GREEN}` }}>
                   <Typography variant="body2" sx={{ color: '#555555', mb: 1 }}>
-                    Análisis Actual (#{analysisRun.id})
+                    Análisis Actual
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
                     {analysisRun.quality_score?.toFixed(1) || 0}%
