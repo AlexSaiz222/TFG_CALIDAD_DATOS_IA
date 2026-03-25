@@ -179,10 +179,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
           path: '/profile',
         },
         {
-          id: 'settings-metrics',
-          text: 'Métricas globales',
+          id: 'settings-templates',
+          text: 'Plantillas',
           icon: <TuneIcon />,
-          path: '/settings',
+          path: '/settings/templates',
         },
       ],
     },

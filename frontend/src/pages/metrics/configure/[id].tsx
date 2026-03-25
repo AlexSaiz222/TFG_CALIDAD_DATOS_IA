@@ -582,6 +582,33 @@ const MetricsConfigurationPage = () => {
     setTemplateDialogOpen(true);
   };
 
+  const handleApplyTemplate = () => {
+    if (!selectedTemplate || !selectedTemplate.metrics) {
+      setTemplateDialogOpen(false);
+      return;
+    }
+
+    // Convert template metrics to selected metrics format
+    const templateMetrics = selectedTemplate.metrics.map((tm: any) => {
+      const fullMetric = metrics.find((m: any) => m.id === tm.id || m.id === tm.metric_id);
+      if (!fullMetric) return null;
+      
+      return {
+        id: fullMetric.id,
+        name: fullMetric.name,
+        category: fullMetric.category,
+        description: fullMetric.description,
+        enabled: true,
+        parameters: tm.parameters || fullMetric.parameters || {},
+      };
+    }).filter(Boolean);
+
+    setSelectedMetrics(templateMetrics);
+    setTemplateDialogOpen(false);
+    setSuccess(`Plantilla "${selectedTemplate.name}" aplicada correctamente`);
+    setTimeout(() => setSuccess(null), 3000);
+  };
+
   const handleSaveAsTemplate = async () => {
     if (!newTemplateName.trim() || selectedMetrics.length === 0) return;
     setSavingTemplate(true);
@@ -1349,18 +1376,42 @@ const MetricsConfigurationPage = () => {
       </Dialog>
       
       {/* Diálogo de plantilla */}
-        <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)}>
+        <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)} maxWidth="sm">
           <DialogTitle>Aplicar plantilla</DialogTitle>
           <DialogContent>
-            <DialogContentText>
-              ¿Está seguro de que desea aplicar la plantilla "{selectedTemplate?.name}"? Esto sobrescribirá cualquier
-              configuración existente para las métricas incluidas en la plantilla.
+            <DialogContentText sx={{ mb: 2 }}>
+              ¿Deseas aplicar la plantilla <strong>"{selectedTemplate?.name}"</strong>?
             </DialogContentText>
+            {selectedTemplate && (
+              <Box sx={{ p: 2, backgroundColor: '#F5F5F5', borderRadius: 1, mb: 2 }}>
+                <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+                  Esta plantilla incluye {selectedTemplate.metrics?.length || 0} métricas que se añadirán a tu configuración actual.
+                </Typography>
+                {selectedTemplate.description && (
+                  <Typography variant="caption" sx={{ color: '#999' }}>
+                    {selectedTemplate.description}
+                  </Typography>
+                )}
+              </Box>
+            )}
+            <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
+              Las métricas de la plantilla se añadirán a tu selección actual. Puedes modificarlas después.
+            </Alert>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setTemplateDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyTemplate} sx={{ color: GREEN }}>
-              Aplicar
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#666' }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleApplyTemplate} 
+              variant="contained"
+              sx={{ 
+                backgroundColor: GREEN, 
+                color: '#fff',
+                '&:hover': { backgroundColor: GREEN_HOVER }
+              }}
+            >
+              Aplicar plantilla
             </Button>
           </DialogActions>
         </Dialog>
