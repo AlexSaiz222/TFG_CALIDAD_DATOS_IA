@@ -62,6 +62,8 @@ class MetricTemplate(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     metrics = db.Column(db.JSON, nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # NULL = system template
+    is_system = db.Column(db.Boolean, default=False)  # True for built-in templates
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -77,6 +79,8 @@ class MetricTemplate(db.Model):
                 'name': self.name,
                 'description': self.description,
                 'metrics': Metric._ensure_serializable(self, self.metrics),
+                'owner_id': self.owner_id,
+                'is_system': self.is_system if self.is_system is not None else False,
                 'created_at': self.created_at.isoformat(),
                 'updated_at': self.updated_at.isoformat()
             }

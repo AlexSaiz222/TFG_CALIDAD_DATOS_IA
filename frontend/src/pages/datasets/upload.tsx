@@ -19,7 +19,7 @@ import {
   StepLabel,
   SelectChangeEvent,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Security as SecurityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI } from '../../services/api';
@@ -49,6 +49,8 @@ const DatasetUpload = () => {
   });
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [detectedColumns, setDetectedColumns] = useState<string[]>([]);
+  const [sensitiveColumns, setSensitiveColumns] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -145,12 +147,22 @@ const DatasetUpload = () => {
       }));
     }
     
-    // Generate preview of first few lines
+    // Parse CSV to detect columns and generate preview
     const reader = new FileReader();
     reader.onload = () => {
       const content = reader.result as string;
-      const lines = content.split('\n').slice(0, 5).join('\n');
-      setFilePreview(lines);
+      const lines = content.split('\n');
+      
+      // Extract column names from first line (header)
+      if (lines.length > 0) {
+        const headerLine = lines[0];
+        const columns = headerLine.split(',').map(col => col.trim().replace(/"/g, ''));
+        setDetectedColumns(columns);
+      }
+      
+      // Generate preview of first few lines
+      const preview = lines.slice(0, 5).join('\n');
+      setFilePreview(preview);
     };
     reader.readAsText(selectedFile);
   }, [formData.name, errors.file]);
@@ -247,6 +259,11 @@ const DatasetUpload = () => {
       // Add version tag if uploading new version
       if (isNewVersion && formData.versionTag) {
         formDataToSend.append('version_tag', formData.versionTag);
+      }
+      
+      // Add sensitive columns as JSON string
+      if (sensitiveColumns.length > 0) {
+        formDataToSend.append('sensitive_columns', JSON.stringify(sensitiveColumns));
       }
       
       let response;
@@ -576,6 +593,64 @@ const DatasetUpload = () => {
                     {file?.name} ({(file?.size ? (file.size / 1024 / 1024).toFixed(2) : 0)} MB)
                   </Typography>
                 </Box>
+                
+                {/* Sensitive Columns Selector */}
+                {detectedColumns.length > 0 && (
+                  <Box sx={{ mb: 3, p: 2, border: '1px solid #E0E0E0', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <SecurityIcon sx={{ color: '#E5484D', fontSize: 20 }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Columnas sensibles
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
+                      Marca las columnas que contienen datos sensibles. Sus valores se ofuscarán en las vistas previas.
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {detectedColumns.map((column) => {
+                        const isSelected = sensitiveColumns.includes(column);
+                        return (
+                          <Box
+                            key={column}
+                            onClick={() => {
+                              setSensitiveColumns(prev => 
+                                prev.includes(column) 
+                                  ? prev.filter(c => c !== column)
+                                  : [...prev, column]
+                              );
+                            }}
+                            sx={{
+                              px: 1.5,
+                              py: 0.75,
+                              border: isSelected ? '2px solid #E5484D' : '1px solid #DDD',
+                              borderRadius: 1,
+                              backgroundColor: isSelected ? 'rgba(229,72,77,0.08)' : '#FFF',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: '#E5484D',
+                                backgroundColor: 'rgba(229,72,77,0.04)',
+                              },
+                            }}
+                          >
+                            {isSelected && <VisibilityOffIcon sx={{ fontSize: 14, color: '#E5484D' }} />}
+                            <Typography variant="body2" sx={{ fontWeight: isSelected ? 600 : 400, color: isSelected ? '#E5484D' : '#333', fontSize: '0.85rem' }}>
+                              {column}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                    {sensitiveColumns.length > 0 && (
+                      <Typography variant="caption" sx={{ color: '#E5484D', mt: 1.5, display: 'block', fontWeight: 500 }}>
+                        {sensitiveColumns.length} columna{sensitiveColumns.length !== 1 ? 's' : ''} marcada{sensitiveColumns.length !== 1 ? 's' : ''} como sensible{sensitiveColumns.length !== 1 ? 's' : ''}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
                 
                 {filePreview && (
                   <Box sx={{ mb: 3 }}>

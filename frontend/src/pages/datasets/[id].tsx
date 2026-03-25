@@ -39,6 +39,7 @@ import {
   HourglassEmpty as HourglassEmptyIcon,
   CloudUpload as CloudUploadIcon,
   History as HistoryIcon,
+  VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
@@ -86,6 +87,7 @@ const DatasetDetail = () => {
   const [previewColumns, setPreviewColumns] = useState<string[]>([]);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
+  const [sensitiveColumns, setSensitiveColumns] = useState<string[]>([]);
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -134,6 +136,7 @@ const DatasetDetail = () => {
           row_count: raw.row_count ?? raw.rowCount ?? raw.rows ?? 0,
           column_count: raw.column_count ?? raw.columnCount ?? (Array.isArray(raw.columns) ? raw.columns.length : 0),
           schema: raw.schema ?? [],
+          sensitive_columns: raw.sensitive_columns ?? raw.sensitiveColumns ?? [],
           created_at: raw.created_at ?? raw.createdAt ?? new Date().toISOString(),
           updated_at: raw.updated_at ?? raw.updatedAt ?? new Date().toISOString(),
           evaluation_count: raw.evaluation_count ?? raw.evaluationCount ?? 0,
@@ -146,20 +149,21 @@ const DatasetDetail = () => {
         
         setDataset(normalized);
 
-        // Fetch project details to get the project name
-        try {
-          if (normalized.project_id) {
+        // Fetch project name for breadcrumb
+        if (normalized.project_id) {
+          try {
             const projectResponse = await projectsAPI.getProject(normalized.project_id);
-            if (projectResponse?.data) {
-              // Extract project name from response
-              const projectData = projectResponse.data.data || projectResponse.data;
-              setProjectName(projectData.name || `Project ${normalized.project_id}`);
-            }
+            const projectData = projectResponse.data.data || projectResponse.data;
+            setProjectName(projectData.name || `Project ${normalized.project_id}`);
+          } catch (projErr) {
+            console.warn('Could not load project name:', projErr);
+            setProjectName(`Project ${normalized.project_id}`);
           }
-        } catch (projectError) {
-          console.warn('Error fetching project details:', projectError);
-          // Don't fail the whole page load if project details can't be fetched
-          setProjectName(`Project ${normalized.project_id}`);
+        }
+        
+        // Set sensitive columns from dataset
+        if (normalized.sensitive_columns && Array.isArray(normalized.sensitive_columns)) {
+          setSensitiveColumns(normalized.sensitive_columns);
         }
 
         // Fetch evaluations for this dataset
@@ -660,21 +664,35 @@ const DatasetDetail = () => {
               <Table stickyHeader aria-label="dataset preview table" size="small">
                 <TableHead>
                   <TableRow>
-                    {previewColumns.map((column, index) => (
-                      <TableCell key={index} sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>
-                        {column}
-                      </TableCell>
-                    ))}
+                    {previewColumns.map((column, index) => {
+                      const isSensitive = sensitiveColumns.includes(column);
+                      return (
+                        <TableCell key={index} sx={{ fontWeight: 600, backgroundColor: isSensitive ? 'rgba(229,72,77,0.06)' : '#F5F5F5' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            {column}
+                            {isSensitive && (
+                              <Tooltip title="Columna sensible – valores ofuscados">
+                                <VisibilityOffIcon sx={{ fontSize: 14, color: '#E5484D' }} />
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {previewData.map((row, rowIndex) => (
                     <TableRow key={rowIndex} hover>
-                      {previewColumns.map((column, colIndex) => (
-                        <TableCell key={`${rowIndex}-${colIndex}`}>
-                          {row[column] !== null && row[column] !== undefined ? String(row[column]) : ''}
-                        </TableCell>
-                      ))}
+                      {previewColumns.map((column, colIndex) => {
+                        const isSensitive = sensitiveColumns.includes(column);
+                        const rawValue = row[column] !== null && row[column] !== undefined ? String(row[column]) : '';
+                        return (
+                          <TableCell key={`${rowIndex}-${colIndex}`} sx={isSensitive ? { filter: 'blur(5px)', userSelect: 'none' } : undefined}>
+                            {isSensitive ? '••••••' : rawValue}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -691,7 +709,7 @@ const DatasetDetail = () => {
 
         {/* Data Profiling Tab */}
         <TabPanel value={tabValue} index={1}>
-          <DataProfilingTab datasetId={dataset.id} />
+          <DataProfilingTab datasetId={dataset.id} sensitiveColumns={sensitiveColumns} />
         </TabPanel>
 
         {/* Evaluations Tab */}

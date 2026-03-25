@@ -81,9 +81,23 @@ def get_metric(metric_id):
 @metrics_bp.route('/templates', methods=['GET'])
 @jwt_required()
 def get_metric_templates():
-    """Get all available metric templates"""
+    """Get all available metric templates (system + user's own)"""
     try:
-        templates = MetricTemplate.query.all()
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            current_user_id_int = None
+
+        # Return system templates + templates owned by current user
+        from sqlalchemy import or_
+        query = MetricTemplate.query.filter(
+            or_(
+                MetricTemplate.is_system == True,
+                MetricTemplate.owner_id == current_user_id_int
+            )
+        )
+        templates = query.all()
         
         # Manejar posibles errores de serialización
         templates_data = []
@@ -92,7 +106,6 @@ def get_metric_templates():
                 templates_data.append(template.to_dict())
             except Exception as e:
                 logger.error(f"Error al serializar plantilla {template.id}: {str(e)}")
-                # Incluir versión simplificada si hay error
                 templates_data.append({
                     "id": template.id,
                     "name": template.name,
@@ -161,11 +174,20 @@ def create_metric_template():
                 "message": "Los campos 'name' y 'metrics' son obligatorios"
             }), 400
         
+        # Get current user for ownership
+        current_user_id = get_jwt_identity()
+        try:
+            owner_id = int(current_user_id)
+        except (TypeError, ValueError):
+            owner_id = None
+
         # Create new metric template
         new_template = MetricTemplate(
             name=data['name'],
             description=data.get('description', ''),
-            metrics=data['metrics']
+            metrics=data['metrics'],
+            owner_id=owner_id,
+            is_system=False
         )
         
         # Save template to database
@@ -222,6 +244,27 @@ def update_metric_template(template_id):
                 "message": f"No se encontró la plantilla con ID {template_id}"
             }), 404
         
+        # Verify ownership (only owner can edit non-system templates)
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            current_user_id_int = None
+
+        if template.is_system:
+            return jsonify({
+                "success": False,
+                "error": "cannot_edit_system_template",
+                "message": "No se puede editar una plantilla del sistema"
+            }), 403
+
+        if template.owner_id and template.owner_id != current_user_id_int:
+            return jsonify({
+                "success": False,
+                "error": "unauthorized_access",
+                "message": "No tiene permiso para editar esta plantilla"
+            }), 403
+
         # Update template fields
         if 'name' in data:
             template.name = data['name']
@@ -281,6 +324,27 @@ def delete_metric_template(template_id):
                 "error": "Plantilla no encontrada",
                 "message": f"No se encontró la plantilla con ID {template_id}"
             }), 404
+
+        # Verify ownership
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            current_user_id_int = None
+
+        if template.is_system:
+            return jsonify({
+                "success": False,
+                "error": "cannot_delete_system_template",
+                "message": "No se puede eliminar una plantilla del sistema"
+            }), 403
+
+        if template.owner_id and template.owner_id != current_user_id_int:
+            return jsonify({
+                "success": False,
+                "error": "unauthorized_access",
+                "message": "No tiene permiso para eliminar esta plantilla"
+            }), 403
         
         # Delete template from database
         try:

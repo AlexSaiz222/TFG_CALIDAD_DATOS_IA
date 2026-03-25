@@ -159,8 +159,18 @@ def create_project():
             }
         ]
         
-        # Usar métricas proporcionadas o las por defecto
-        metrics_config = data.get('metrics_config', default_metrics)
+        # Si se proporcionó un template_id, cargar métricas de la plantilla
+        template_id = data.get('template_id')
+        if template_id:
+            from models.metric import MetricTemplate
+            template = MetricTemplate.query.get(template_id)
+            if template and template.metrics:
+                metrics_config = template.metrics
+            else:
+                metrics_config = data.get('metrics_config', default_metrics)
+        else:
+            # Usar métricas proporcionadas o las por defecto
+            metrics_config = data.get('metrics_config', default_metrics)
         
         # Create new project
         new_project = Project(

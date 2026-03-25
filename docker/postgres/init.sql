@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS projects (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    metrics_config JSONB DEFAULT '[]',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS datasets (
     row_count INTEGER,
     column_count INTEGER,
     schema JSONB,
+    sensitive_columns JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -56,6 +58,8 @@ CREATE TABLE IF NOT EXISTS metric_templates (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     metrics JSONB NOT NULL,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    is_system BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -103,22 +107,22 @@ INSERT INTO metrics (name, description, category, parameters) VALUES
 ('feature_correlation', 'Measures correlation between features', 'ml_specific', '{"method": "pearson", "threshold": 0.7}'),
 ('drift', 'Detects data drift between training and production data', 'ml_specific', '{"method": "ks_test", "threshold": 0.05}');
 
--- Insert default metric templates
-INSERT INTO metric_templates (name, description, metrics) VALUES
+-- Insert default metric templates (system templates)
+INSERT INTO metric_templates (name, description, metrics, is_system) VALUES
 ('Basic Data Quality', 'Basic metrics for general data quality assessment', 
  '[{"metric_id": 1, "parameters": {"threshold": 0.95}}, 
    {"metric_id": 2, "parameters": {"threshold": 1.0}}, 
-   {"metric_id": 3, "parameters": {"threshold": 0.9}}]'),
+   {"metric_id": 3, "parameters": {"threshold": 0.9}}]', true),
 ('ML Classification', 'Metrics for classification datasets', 
  '[{"metric_id": 1, "parameters": {"threshold": 0.95}}, 
    {"metric_id": 2, "parameters": {"threshold": 1.0}}, 
    {"metric_id": 8, "parameters": {"threshold": 0.8}}, 
-   {"metric_id": 9, "parameters": {"threshold": 0.7}}]'),
+   {"metric_id": 9, "parameters": {"threshold": 0.7}}]', true),
 ('ML Regression', 'Metrics for regression datasets', 
  '[{"metric_id": 1, "parameters": {"threshold": 0.95}}, 
    {"metric_id": 6, "parameters": {"method": "histogram"}}, 
    {"metric_id": 7, "parameters": {"method": "iqr", "factor": 1.5}}, 
-   {"metric_id": 9, "parameters": {"method": "pearson", "threshold": 0.7}}]');
+   {"metric_id": 9, "parameters": {"method": "pearson", "threshold": 0.7}}]', true);
 
 -- Insert demo user
 INSERT INTO users (username, email, password_hash, first_name, last_name, organization, role)

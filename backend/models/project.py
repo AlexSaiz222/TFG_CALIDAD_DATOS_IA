@@ -11,7 +11,7 @@ class Project(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    metrics_config = db.Column(db.JSON, default=list)
+    metrics_config = db.Column(db.JSON, default=list)  # List of metric configurations
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

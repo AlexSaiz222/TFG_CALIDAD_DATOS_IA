@@ -22,6 +22,7 @@ export interface Project {
   name: string;
   description?: string;
   owner_id: number;
+  metrics_config?: MetricConfig[];
   created_at: string;
   updated_at: string;
   dataset_count: number;
@@ -38,6 +39,7 @@ export interface Dataset {
   row_count: number;
   column_count: number;
   schema: ColumnSchema[];
+  sensitive_columns?: string[];
   created_at: string;
   updated_at: string;
   evaluation_count: number;
@@ -78,6 +80,8 @@ export interface MetricTemplate {
   name: string;
   description?: string;
   metrics: MetricConfig[];
+  owner_id?: number | null;
+  is_system?: boolean;
   created_at: string;
   updated_at: string;
 }

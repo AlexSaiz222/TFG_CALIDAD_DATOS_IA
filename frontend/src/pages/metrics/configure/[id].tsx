@@ -189,6 +189,10 @@ const MetricsConfigurationPage = () => {
   const [selectedMetrics, setSelectedMetrics] = useState<any[]>([]);
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [currentMetric, setCurrentMetric] = useState<any>(null);
+  const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateDescription, setNewTemplateDescription] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   // Timeout de emergencia (se mantiene)
   useEffect(() => {
@@ -576,6 +580,41 @@ const MetricsConfigurationPage = () => {
   const handleTemplateSelect = (template: any) => {
     setSelectedTemplate(template);
     setTemplateDialogOpen(true);
+  };
+
+  const handleSaveAsTemplate = async () => {
+    if (!newTemplateName.trim() || selectedMetrics.length === 0) return;
+    setSavingTemplate(true);
+    try {
+      const templateMetrics = selectedMetrics.map((m: any) => ({
+        metric_id: m.id,
+        parameters: m.parameters || {},
+      }));
+      await metricsAPI.createMetricTemplate({
+        name: newTemplateName.trim(),
+        description: newTemplateDescription.trim(),
+        metrics: templateMetrics,
+      });
+      // Refresh templates list
+      try {
+        const templatesResponse = await metricsAPI.getMetricTemplates() as any;
+        const tData = templatesResponse?.data || [];
+        let arr: any[] = [];
+        if (Array.isArray(tData)) arr = tData;
+        else if (tData.templates && Array.isArray(tData.templates)) arr = tData.templates;
+        setTemplates(arr);
+      } catch (_) { /* ignore refresh error */ }
+      setSuccess('Plantilla guardada correctamente');
+      setSaveTemplateDialogOpen(false);
+      setNewTemplateName('');
+      setNewTemplateDescription('');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: any) {
+      console.error('Error saving template:', err);
+      setError(err.response?.data?.message || 'Error al guardar la plantilla');
+    } finally {
+      setSavingTemplate(false);
+    }
   };
 
   const applyTemplate = () => {
@@ -983,9 +1022,27 @@ const MetricsConfigurationPage = () => {
 
             {/* Métricas seleccionadas */}
             <TabPanel value={tabValue} index={1}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Métricas seleccionadas
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">
+                  Métricas seleccionadas
+                </Typography>
+                {selectedMetrics.length > 0 && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<CloudUploadIcon />}
+                    onClick={() => setSaveTemplateDialogOpen(true)}
+                    sx={{
+                      borderColor: GREEN,
+                      color: GREEN,
+                      textTransform: 'none',
+                      '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
+                    }}
+                  >
+                    Guardar como plantilla
+                  </Button>
+                )}
+              </Box>
               
               {selectedMetrics.length === 0 ? (
                 <Alert severity="info" sx={{ mb: 2 }}>
@@ -1304,6 +1361,47 @@ const MetricsConfigurationPage = () => {
             <Button onClick={() => setTemplateDialogOpen(false)}>Cancelar</Button>
             <Button onClick={applyTemplate} sx={{ color: GREEN }}>
               Aplicar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Diálogo guardar como plantilla */}
+        <Dialog open={saveTemplateDialogOpen} onClose={() => setSaveTemplateDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Guardar como plantilla</DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ mb: 2 }}>
+              Guarda la configuración actual ({selectedMetrics.length} métricas) como una plantilla reutilizable.
+            </DialogContentText>
+            <TextField
+              fullWidth
+              label="Nombre de la plantilla"
+              value={newTemplateName}
+              onChange={(e) => setNewTemplateName(e.target.value)}
+              sx={{ mb: 2 }}
+              size="small"
+              autoFocus
+            />
+            <TextField
+              fullWidth
+              label="Descripción (opcional)"
+              value={newTemplateDescription}
+              onChange={(e) => setNewTemplateDescription(e.target.value)}
+              multiline
+              rows={2}
+              size="small"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSaveTemplateDialogOpen(false)} color="inherit">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveAsTemplate}
+              variant="contained"
+              disabled={savingTemplate || !newTemplateName.trim()}
+              sx={{ bgcolor: GREEN, color: '#fff', '&:hover': { bgcolor: GREEN_HOVER } }}
+            >
+              {savingTemplate ? 'Guardando...' : 'Guardar plantilla'}
             </Button>
           </DialogActions>
         </Dialog>

@@ -625,6 +625,15 @@ def upload_dataset():
             # Process and upload dataset
             dataset_info = dataset_service.process_dataset(file, project_id)
             
+            # Parse sensitive_columns from form data (JSON string)
+            sensitive_columns = []
+            if 'sensitive_columns' in request.form:
+                try:
+                    import json
+                    sensitive_columns = json.loads(request.form.get('sensitive_columns', '[]'))
+                except Exception as e:
+                    logger.warning(f"Error parsing sensitive_columns: {str(e)}")
+            
             # Create new dataset record
             new_dataset = Dataset(
                 name=request.form.get('name', file.filename),
@@ -634,7 +643,8 @@ def upload_dataset():
                 file_size=dataset_info['file_size'],
                 row_count=dataset_info['row_count'],
                 column_count=dataset_info['column_count'],
-                schema=dataset_info['schema']
+                schema=dataset_info['schema'],
+                sensitive_columns=sensitive_columns
             )
             
             # Save dataset to database

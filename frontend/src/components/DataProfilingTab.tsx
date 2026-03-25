@@ -55,6 +55,7 @@ import {
   ViewColumn as ViewColumnIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
+  VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import { datasetsAPI } from '../services/api';
 import type { DataProfilingResult, ProfilingColumn, ColumnMetrics } from '../types';
@@ -63,7 +64,7 @@ import MetricDetailsTabs from './evaluations/MetricDetailsTabs';
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
 // ── Types ───────────────────────────────────────────────────────
-interface DataProfilingTabProps { datasetId: number; }
+interface DataProfilingTabProps { datasetId: number; sensitiveColumns?: string[]; }
 
 type SectionKey = 'overview' | 'metricDetails' | 'columns' | 'correlation' | 'scatter';
 
@@ -577,7 +578,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
 };
 
 // ── Main Component ──────────────────────────────────────────────
-const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
+const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiveColumns = [] }) => {
   const [profiling, setProfiling] = useState<DataProfilingResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1138,13 +1139,14 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
       >
         {filteredColumns.map((col) => {
           const compColPct = 100 - col.missing_percent;
+          const isSensitive = sensitiveColumns.includes(col.name);
           return (
             <Accordion
               key={col.name}
               disableGutters
               elevation={0}
               sx={{
-                border: '1px solid #E8E8E8', borderRadius: '8px !important', mb: 1,
+                border: isSensitive ? '1px solid rgba(229,72,77,0.3)' : '1px solid #E8E8E8', borderRadius: '8px !important', mb: 1,
                 '&::before': { display: 'none' }, overflow: 'hidden',
               }}
             >
@@ -1159,6 +1161,16 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                     }}
                   />
                   <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1, fontSize: '0.85rem' }}>{col.name}</Typography>
+                  {isSensitive && (
+                    <Tooltip title="Columna marcada como sensible – valores ofuscados">
+                      <Chip
+                        icon={<VisibilityOffIcon sx={{ fontSize: 12 }} />}
+                        label="Sensible"
+                        size="small"
+                        sx={{ fontSize: '0.6rem', height: 20, bgcolor: 'rgba(229,72,77,0.08)', color: '#E5484D', fontWeight: 600, '& .MuiChip-icon': { color: '#E5484D' } }}
+                      />
+                    </Tooltip>
+                  )}
                   <Chip label={getSubTypeLabel(col.sub_type)} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 20, borderColor: '#DDD' }} />
                   <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#888', fontSize: '0.65rem' }}>
                     {col.n_unique} únicos
@@ -1177,7 +1189,18 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId }) => {
                 </Box>
               </AccordionSummary>
 
-              <AccordionDetails sx={{ px: 2, pb: 2.5, pt: 0 }}>
+              <AccordionDetails sx={{ px: 2, pb: 2.5, pt: 0, position: 'relative' }}>
+                {isSensitive && (
+                  <Box sx={{
+                    position: 'absolute', inset: 0, zIndex: 2,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    bgcolor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(6px)', borderRadius: 1,
+                  }}>
+                    <VisibilityOffIcon sx={{ fontSize: 32, color: '#E5484D', mb: 1 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#E5484D' }}>Columna sensible</Typography>
+                    <Typography variant="caption" sx={{ color: '#888' }}>Los valores de ejemplo están ofuscados por privacidad</Typography>
+                  </Box>
+                )}
                 {col.category === 'numeric' ? (
                   <>
                     {/* Stat cards */}

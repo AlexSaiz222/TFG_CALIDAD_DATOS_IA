@@ -19,6 +19,7 @@ class Dataset(db.Model):
     row_count = db.Column(db.Integer)
     column_count = db.Column(db.Integer)
     schema = db.Column(db.JSON)
+    sensitive_columns = db.Column(db.JSON, default=list)  # List of column names to mask/blur
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -100,6 +101,7 @@ class Dataset(db.Model):
                 'row_count': row_count,
                 'column_count': column_count,
                 'schema': schema,
+                'sensitive_columns': self._ensure_serializable(self.sensitive_columns) if self.sensitive_columns else [],
                 'created_at': created_at,
                 'updated_at': updated_at,
                 'evaluation_count': evaluation_count,
