@@ -50,17 +50,17 @@ export default function TemplateDetailsDialog({
             </Typography>
           </Box>
         )}
-        
+
         <Box sx={{ p: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1A1A1A', textTransform: 'uppercase' }}>
             Métricas incluidas ({template.metrics?.length || 0})
           </Typography>
-          
+
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {template.metrics?.map((metric: any, index: number) => {
               const colors = categoryColor(metric.category);
               const hasParams = metric.parameters && Object.keys(metric.parameters).length > 0;
-              
+
               return (
                 <Paper
                   key={metric.id ?? metric.metric_id ?? index}
@@ -84,14 +84,14 @@ export default function TemplateDetailsDialog({
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {metric.name}
                     </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        ml: 1.5, 
-                        px: 1, 
-                        py: 0.25, 
-                        borderRadius: 1, 
-                        backgroundColor: colors.bg, 
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        ml: 1.5,
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: 1,
+                        backgroundColor: colors.bg,
                         color: colors.fg,
                         fontWeight: 500,
                         fontSize: '0.65rem'
@@ -100,7 +100,7 @@ export default function TemplateDetailsDialog({
                       {metric.category}
                     </Typography>
                   </Box>
-                  
+
                   {hasParams && (
                     <Box sx={{ pl: 2.5 }}>
                       <Typography variant="caption" sx={{ color: '#666', mb: 0.5, display: 'block', fontWeight: 500 }}>
@@ -135,14 +135,16 @@ export default function TemplateDetailsDialog({
       </DialogContent>
       <Divider />
       <DialogActions sx={{ p: 2 }}>
-        <Button 
-          onClick={onClose} 
-          variant="contained" 
+        <Button
+          onClick={onClose}
+          variant="contained"
           disableElevation
           sx={{
             backgroundColor: GREEN,
+            color: '#FFFFFF',
             '&:hover': {
               backgroundColor: '#00A070',
+              '&.Mui-disabled': { backgroundColor: '#E0E0E0' },
             },
           }}
         >

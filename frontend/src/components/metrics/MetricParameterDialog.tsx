@@ -66,7 +66,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
       ...prev,
       [paramName]: value,
     }));
-    
+
     // Clear error for this parameter
     if (errors[paramName]) {
       setErrors((prev) => {
@@ -157,16 +157,16 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
             type="number"
             value={value}
             onChange={(e) => {
-              const newValue = paramType === 'integer' 
-                ? parseInt(e.target.value, 10) 
+              const newValue = paramType === 'integer'
+                ? parseInt(e.target.value, 10)
                 : parseFloat(e.target.value);
               handleParameterChange(paramName, newValue);
             }}
             error={!!error}
             helperText={error || `Enter a ${paramType} value`}
             InputProps={{
-              inputProps: { 
-                step: paramType === 'integer' ? 1 : 0.01 
+              inputProps: {
+                step: paramType === 'integer' ? 1 : 0.01
               }
             }}
           />
@@ -179,9 +179,9 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               {Array.isArray(value) && value.map((item, index) => (
-                <Chip 
-                  key={index} 
-                  label={item.toString()} 
+                <Chip
+                  key={index}
+                  label={item.toString()}
                   onDelete={() => {
                     const newArray = [...value];
                     newArray.splice(index, 1);
@@ -250,15 +250,15 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
           <Typography variant="body2" color="text.secondary">
             {metric.description || 'No description available'}
           </Typography>
-          <Chip 
-            label={metric.category} 
-            size="small" 
-            sx={{ 
+          <Chip
+            label={metric.category}
+            size="small"
+            sx={{
               mt: 1,
-              backgroundColor: '#F0F9F6', 
+              backgroundColor: '#F0F9F6',
               color: '#00B37E',
               fontWeight: 500,
-            }} 
+            }}
           />
         </Box>
 
@@ -272,21 +272,22 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           variant="contained"
           sx={{
             backgroundColor: '#00B37E',
+            color: '#FFFFFF',
             '&:hover': {
               backgroundColor: '#00A070',
+              '&.Mui-disabled': { backgroundColor: '#E0E0E0' },
             },
           }}
         >
-          Save Parameters
+          Guardar parámetros
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
-
 export default MetricParameterDialog;
