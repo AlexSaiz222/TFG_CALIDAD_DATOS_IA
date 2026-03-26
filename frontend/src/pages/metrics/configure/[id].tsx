@@ -44,6 +44,7 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../../components/layout/MainLayout';
 import TemplateCard from '../../../components/metrics/TemplateCard';
+import TemplateDetailsDialog from '../../../components/metrics/TemplateDetailsDialog';
 import { metricsAPI, projectsAPI } from '../../../services/api';
 import { categoryColor, GREEN, GREEN_HOVER, ORANGE, RED } from '../../../utils/metricColors';
 
@@ -185,6 +186,7 @@ const MetricsConfigurationPage = () => {
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateDescription, setNewTemplateDescription] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [detailsTemplate, setDetailsTemplate] = useState<any>(null);
 
   // Timeout de emergencia (se mantiene)
   useEffect(() => {
@@ -1134,6 +1136,7 @@ const MetricsConfigurationPage = () => {
                             template={template}
                             mode="apply"
                             onApply={handleTemplateSelect}
+                            onViewDetails={setDetailsTemplate}
                           />
                         </Grid>
                       ))}
@@ -1290,6 +1293,13 @@ const MetricsConfigurationPage = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Diálogo detalles de plantilla */}
+        <TemplateDetailsDialog
+          open={!!detailsTemplate}
+          onClose={() => setDetailsTemplate(null)}
+          template={detailsTemplate}
+        />
       </Box>
     </MainLayout>
   );

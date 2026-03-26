@@ -17,6 +17,7 @@ import {
   ContentCopy as CopyIcon,
   CheckCircle as CheckCircleIcon,
   Assignment as TemplateIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { MetricTemplate } from '../../types';
 import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
@@ -32,6 +33,7 @@ interface TemplateCardProps {
   onDuplicate?: (template: MetricTemplate) => void;
   onDelete?: (template: MetricTemplate) => void;
   onApply?: (template: MetricTemplate) => void;
+  onViewDetails?: (template: MetricTemplate) => void;
 }
 
 export default function TemplateCard({
@@ -43,6 +45,7 @@ export default function TemplateCard({
   onDuplicate,
   onDelete,
   onApply,
+  onViewDetails,
 }: TemplateCardProps) {
   const metricCount = template.metrics?.length || 0;
 
@@ -155,7 +158,7 @@ export default function TemplateCard({
             )}
           </Box>
         </CardContent>
-        <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+        <CardActions sx={{ px: 2, pb: 2, pt: 0, gap: 1 }}>
           <Button
             size="small"
             variant="outlined"
@@ -168,6 +171,18 @@ export default function TemplateCard({
             }}
           >
             Aplicar plantilla
+          </Button>
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => onViewDetails?.(template)}
+            sx={{
+              color: '#666',
+              textTransform: 'none',
+              '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
+            }}
+          >
+            Detalles
           </Button>
         </CardActions>
       </Card>
@@ -252,6 +267,15 @@ export default function TemplateCard({
             sx={{ color: '#666', '&:hover': { color: GREEN } }}
           >
             <CopyIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Ver detalles">
+          <IconButton
+            size="small"
+            onClick={() => onViewDetails?.(template)}
+            sx={{ color: '#666', '&:hover': { color: GREEN } }}
+          >
+            <VisibilityIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Eliminar">

@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import TemplateCard from '../../components/metrics/TemplateCard';
+import MetricParameterDialog from '../../components/metrics/MetricParameterDialog';
 import { metricsAPI } from '../../services/api';
 import { MetricTemplate, Metric } from '../../types';
 import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
@@ -42,7 +43,11 @@ const TemplatesSettings = () => {
   // Form states
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
-  const [selectedMetricIds, setSelectedMetricIds] = useState<Set<number>>(new Set());
+  const [selectedMetricsConfig, setSelectedMetricsConfig] = useState<Record<number, any>>({});
+  
+  // Metric Parameter Config Dialog
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [currentMetricToConfig, setCurrentMetricToConfig] = useState<Metric | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -78,13 +83,19 @@ const TemplatesSettings = () => {
       setEditingTemplate(template);
       setTemplateName(template.name);
       setTemplateDescription(template.description || '');
-      const metricIds = template.metrics?.map((m: any) => m.id ?? m.metric_id) || [];
-      setSelectedMetricIds(new Set(metricIds.filter(Boolean)));
+      const metricConfigs: Record<number, any> = {};
+      template.metrics?.forEach((m: any) => {
+        const id = m.id ?? m.metric_id;
+        if (id) {
+          metricConfigs[id] = m.parameters || {};
+        }
+      });
+      setSelectedMetricsConfig(metricConfigs);
     } else {
       setEditingTemplate(null);
       setTemplateName('');
       setTemplateDescription('');
-      setSelectedMetricIds(new Set());
+      setSelectedMetricsConfig({});
     }
     setDialogOpen(true);
   };
@@ -94,15 +105,19 @@ const TemplatesSettings = () => {
     setEditingTemplate(null);
     setTemplateName('');
     setTemplateDescription('');
-    setSelectedMetricIds(new Set());
+    setSelectedMetricsConfig({});
   };
 
   const handleToggleMetric = (metricId: number) => {
-    setSelectedMetricIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(metricId)) newSet.delete(metricId);
-      else newSet.add(metricId);
-      return newSet;
+    setSelectedMetricsConfig((prev) => {
+      const newConfig = { ...prev };
+      if (metricId in newConfig) {
+        delete newConfig[metricId];
+      } else {
+        const metric = allMetrics.find((m) => m.id === metricId);
+        newConfig[metricId] = metric?.parameters || {};
+      }
+      return newConfig;
     });
   };
 
@@ -111,20 +126,21 @@ const TemplatesSettings = () => {
       setError('El nombre de la plantilla es obligatorio');
       return;
     }
-    if (selectedMetricIds.size === 0) {
+    if (Object.keys(selectedMetricsConfig).length === 0) {
       setError('Debes seleccionar al menos una métrica');
       return;
     }
 
     try {
-      const metricsConfig = Array.from(selectedMetricIds).map((id) => {
+      const metricsConfig = Object.entries(selectedMetricsConfig).map(([idStr, parameters]) => {
+        const id = parseInt(idStr, 10);
         const metric = allMetrics.find((m) => m.id === id);
         return {
           metric_id: metric!.id,
           name: metric!.name,
           category: metric!.category,
           enabled: true,
-          parameters: metric!.parameters || {},
+          parameters: parameters || {},
         };
       });
 
@@ -166,8 +182,14 @@ const TemplatesSettings = () => {
     setEditingTemplate(null);
     setTemplateName(`${template.name} (copia)`);
     setTemplateDescription(template.description || '');
-    const metricIds = template.metrics?.map((m: any) => m.id ?? m.metric_id) || [];
-    setSelectedMetricIds(new Set(metricIds.filter(Boolean)));
+    const metricConfigs: Record<number, any> = {};
+    template.metrics?.forEach((m: any) => {
+      const id = m.id ?? m.metric_id;
+      if (id) {
+        metricConfigs[id] = m.parameters || {};
+      }
+    });
+    setSelectedMetricsConfig(metricConfigs);
     setDialogOpen(true);
   };
 
@@ -296,13 +318,13 @@ const TemplatesSettings = () => {
             Selecciona las métricas
           </Typography>
           <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-            {selectedMetricIds.size} métrica{selectedMetricIds.size !== 1 ? 's' : ''} seleccionada{selectedMetricIds.size !== 1 ? 's' : ''}
+            {Object.keys(selectedMetricsConfig).length} métrica{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''} seleccionada{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''}
           </Typography>
 
           <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 1 }}>
             <Grid container spacing={1.5}>
               {allMetrics.map((metric) => {
-                const isSelected = selectedMetricIds.has(metric.id);
+                const isSelected = metric.id in selectedMetricsConfig;
                 const colors = categoryColor(metric.category);
                 return (
                   <Grid item xs={12} sm={6} key={metric.id}>
@@ -313,7 +335,6 @@ const TemplatesSettings = () => {
                         borderWidth: isSelected ? 2 : 1,
                         backgroundColor: isSelected ? colors.bg : '#FAFAFA',
                         transition: 'all 0.2s',
-                        cursor: 'pointer',
                         position: 'relative',
                         '&:hover': {
                           borderColor: colors.fg,
@@ -321,7 +342,10 @@ const TemplatesSettings = () => {
                         },
                       }}
                     >
-                      <CardActionArea onClick={() => handleToggleMetric(metric.id)} sx={{ p: 1.5 }}>
+                      <CardActionArea 
+                        onClick={() => handleToggleMetric(metric.id)} 
+                        sx={{ p: 1.5, pb: isSelected && metric.parameters && Object.keys(metric.parameters).length > 0 ? 0 : 1.5 }}
+                      >
                         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 0.5 }}>
@@ -347,6 +371,32 @@ const TemplatesSettings = () => {
                           )}
                         </Box>
                       </CardActionArea>
+                      {isSelected && metric.parameters && Object.keys(metric.parameters).length > 0 && (
+                        <Box sx={{ px: 1.5, pb: 1, pt: 0.5, display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentMetricToConfig(metric);
+                              setConfigDialogOpen(true);
+                            }}
+                            sx={{
+                              borderColor: colors.fg,
+                              color: colors.fg,
+                              textTransform: 'none',
+                              fontSize: '0.7rem',
+                              py: 0.25,
+                              '&:hover': {
+                                backgroundColor: 'rgba(0,0,0,0.04)',
+                                borderColor: colors.fg,
+                              }
+                            }}
+                          >
+                            Configurar
+                          </Button>
+                        </Box>
+                      )}
                     </Card>
                   </Grid>
                 );
@@ -398,6 +448,27 @@ const TemplatesSettings = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      <MetricParameterDialog
+        open={configDialogOpen}
+        onClose={() => setConfigDialogOpen(false)}
+        metric={currentMetricToConfig}
+        metricConfig={
+          currentMetricToConfig
+            ? {
+                metric_id: currentMetricToConfig.id,
+                parameters: selectedMetricsConfig[currentMetricToConfig.id] || {},
+              }
+            : null
+        }
+        onSave={(updatedConfig) => {
+          setSelectedMetricsConfig((prev) => ({
+            ...prev,
+            [updatedConfig.metric_id]: updatedConfig.parameters,
+          }));
+          setConfigDialogOpen(false);
+        }}
+      />
     </MainLayout>
   );
 };
