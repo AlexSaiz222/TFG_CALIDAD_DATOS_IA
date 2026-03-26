@@ -43,12 +43,9 @@ import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../../components/layout/MainLayout';
+import TemplateCard from '../../../components/metrics/TemplateCard';
 import { metricsAPI, projectsAPI } from '../../../services/api';
-
-const GREEN = '#00B37E';
-const GREEN_HOVER = '#00A070';
-const ORANGE = '#FFB800';
-const RED = '#E5484D';
+import { categoryColor, GREEN, GREEN_HOVER, ORANGE, RED } from '../../../utils/metricColors';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -101,17 +98,14 @@ const MetricsConfigurationPage = () => {
     if (!routerReady) return null;
     const { id } = router.query;
     
-    console.log('ID de proyecto en URL:', id);
 
     // Caso 1: ID válido como string
     if (typeof id === 'string' && id !== 'undefined') {
-      console.log('ID encontrado como string:', id);
       return id;
     }
     
     // Caso 2: ID válido en array
     if (Array.isArray(id) && id.length > 0 && id[0] !== 'undefined') {
-      console.log('ID encontrado en array:', id[0]);
       return id[0];
     }
 
@@ -119,7 +113,6 @@ const MetricsConfigurationPage = () => {
     try {
       const storedId = typeof window !== 'undefined' ? localStorage.getItem('currentProjectId') : null;
       if (storedId) {
-        console.log('ID recuperado de localStorage:', storedId);
         // Actualizar URL sin recargar la página
         router.replace(`/metrics/configure/${storedId}`, undefined, { shallow: true });
         return storedId;
@@ -130,7 +123,6 @@ const MetricsConfigurationPage = () => {
     
     // Caso 4: Redirigir a la lista de proyectos si no hay ID válido
     if (typeof window !== 'undefined' && router.isReady) {
-      console.log('No se encontró ID válido, redirigiendo a la lista de proyectos');
       setTimeout(() => {
         router.push('/projects');
       }, 100);
@@ -228,27 +220,22 @@ const MetricsConfigurationPage = () => {
         // Proyecto
         if (projectIdNum) {
           try {
-            console.log(`Intentando cargar proyecto con ID: ${projectIdNum}`);
             const projectResponse = await projectsAPI.getProject(projectIdNum);
             if (isMounted) {
-              console.log('Proyecto cargado correctamente:', projectResponse.data);
               // Normaliza la respuesta del proyecto al guardarlo en estado
               projectPayload = projectResponse?.data?.data ?? projectResponse?.data;
-              console.log('Payload normalizado del proyecto:', projectPayload);
               setProject(projectPayload);
             }
           } catch (projectError: any) {
             console.error('Error al cargar proyecto:', projectError);
             if (isMounted) {
               // Intentar recuperar el proyecto desde localStorage
-              console.log('Intentando recuperar proyecto desde localStorage');
               const cachedProjects = localStorage.getItem('projects');
               if (cachedProjects) {
                 try {
                   const projects = JSON.parse(cachedProjects);
                   const cachedProject = projects.find((p: any) => p.id === projectIdNum);
                   if (cachedProject) {
-                    console.log('Proyecto recuperado de localStorage:', cachedProject);
                     setProject(cachedProject);
                   } else {
                     const errorMsg = `No se pudo cargar el proyecto con ID ${projectIdNum}. El proyecto no existe en caché.`;
@@ -267,7 +254,6 @@ const MetricsConfigurationPage = () => {
             }
           }
         } else if (useDevFallback && isMounted) {
-          console.log('Usando proyecto de prueba para desarrollo');
           projectPayload = {
             id: 0,
             name: 'Proyecto de Prueba',
@@ -283,34 +269,14 @@ const MetricsConfigurationPage = () => {
         // Métricas
         let metricsData: any[] = [];
         try {
-          console.log('Intentando cargar métricas disponibles');
-          const metricsResponse = await metricsAPI.getMetrics();
-          
-          console.log('Respuesta de métricas:', metricsResponse);
-          
-          if (Array.isArray(metricsResponse.data)) {
-            console.log('Métricas encontradas como array directo');
-            metricsData = metricsResponse.data;
-          } else if (metricsResponse.data && Array.isArray(metricsResponse.data.metrics)) {
-            console.log('Métricas encontradas en propiedad metrics');
-            metricsData = metricsResponse.data.metrics;
-          } else if (metricsResponse.data && typeof metricsResponse.data === 'object') {
-            console.log('Buscando arrays en la respuesta de métricas');
-            const possibleMetricsArrays = Object.values(metricsResponse.data).filter(
-              (v) => Array.isArray(v) && (v as any[]).length > 0
-            ) as any[];
-            
-            if (possibleMetricsArrays.length > 0) {
-              console.log(`Encontrados ${possibleMetricsArrays.length} posibles arrays de métricas`);
-              metricsData = possibleMetricsArrays[0];
-            } else {
-              console.warn('No se encontraron arrays en la respuesta');
-            }
-          } else {
-            console.warn('Formato de respuesta de métricas desconocido:', metricsResponse.data);
+          const metricsResponse = await metricsAPI.getMetrics() as any;
+          const rawData = metricsResponse?.data;
+          if (Array.isArray(rawData)) {
+            metricsData = rawData;
+          } else if (rawData && Array.isArray(rawData.metrics)) {
+            metricsData = rawData.metrics;
           }
           
-          console.log(`Total de métricas encontradas: ${metricsData.length}`);
         } catch (metricsError) {
           console.error('Error al cargar métricas:', metricsError);
           // No interrumpimos el flujo por un error en métricas, solo lo registramos
@@ -338,7 +304,6 @@ const MetricsConfigurationPage = () => {
         let hydratedMetrics = normalizedMetrics;
         let hydratedSelected: any[] = [];
         if (projectObj?.metrics_config && Array.isArray(projectObj.metrics_config)) {
-          console.log('Rehidratando métricas con configuración del proyecto:', projectObj.metrics_config);
           hydratedMetrics = normalizedMetrics.map((metric: any) => {
             // Buscar por nombre (string) ya que metrics_config usa id como string ("completeness", "uniqueness", etc.)
             // mientras que el catálogo de métricas usa id numérico
@@ -354,7 +319,6 @@ const MetricsConfigurationPage = () => {
               }
             );
             if (cfg) {
-              console.log(`Encontrada configuración para métrica ${metric.name} (ID: ${metric.id}):`, cfg);
               const params = cfg.parameters ?? {};
               const configured = {
                 ...metric,
@@ -385,34 +349,15 @@ const MetricsConfigurationPage = () => {
 
         // Plantillas
         try {
-          console.log('Intentando cargar plantillas de métricas');
           const templatesResponse = await metricsAPI.getMetricTemplates() as any;
-          
+
           if (isMounted) {
-            console.log('Respuesta de plantillas:', templatesResponse);
-            const templatesData = templatesResponse.data || [];
-            
-            let templatesArray: any[] = [];
-            
-            if (Array.isArray(templatesData)) {
-              console.log('Plantillas encontradas como array directo');
-              templatesArray = templatesData;
-            } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
-              console.log('Plantillas encontradas en propiedad templates');
-              templatesArray = templatesData.templates;
-            } else if (typeof templatesData === 'object') {
-              console.log('Buscando arrays en la respuesta de plantillas');
-              const possibleTemplatesArrays = Object.values(templatesData).filter(
-                (v) => Array.isArray(v) && (v as any[]).length > 0
-              ) as any[];
-              
-              if (possibleTemplatesArrays.length > 0) {
-                console.log(`Encontrados ${possibleTemplatesArrays.length} posibles arrays de plantillas`);
-                templatesArray = possibleTemplatesArrays[0];
-              }
-            }
-            
-            console.log(`Total de plantillas encontradas: ${templatesArray.length}`);
+            const rawTemplates = templatesResponse?.data;
+            const templatesArray = Array.isArray(rawTemplates)
+              ? rawTemplates
+              : Array.isArray(rawTemplates?.templates)
+                ? rawTemplates.templates
+                : [];
             setTemplates(templatesArray);
           }
         } catch (templateError) {
@@ -420,7 +365,6 @@ const MetricsConfigurationPage = () => {
           if (isMounted) {
             setTemplates([]);
             // No mostramos error al usuario por las plantillas, ya que no son críticas
-            console.warn('No se pudieron cargar las plantillas, continuando sin ellas');
           }
         }
 
@@ -470,7 +414,6 @@ const MetricsConfigurationPage = () => {
         metrics_config: metricsConfig  // Enviar como metrics_config
       };
 
-      console.log('Enviando configuración a la API:', JSON.stringify(configToSave));
       
       // Usa un fallback seguro para el ID al guardar
       const pid = project?.id ?? projectIdNum;
@@ -480,7 +423,6 @@ const MetricsConfigurationPage = () => {
         return;
       }
       
-      console.log('Guardando configuración de métricas para proyecto', pid);
       // Llamada a la API con el formato correcto
       await metricsAPI.saveProjectMetricConfigs(pid, configToSave);
       // Actualización optimista del proyecto local
@@ -644,43 +586,6 @@ const MetricsConfigurationPage = () => {
     }
   };
 
-  const applyTemplate = () => {
-    if (!selectedTemplate) return;
-
-    const updatedMetrics = metrics.map((metric) => {
-      const tmpl = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
-      if (tmpl) {
-        const params = tmpl.parameters || {};
-        return {
-          ...metric,
-          enabled: true,
-          parameters: { ...metric.parameters, ...params },
-          config: { ...metric.config, ...params }, // mantener ambas en sync
-        };
-      }
-      return metric;
-    });
-
-    setMetrics(updatedMetrics);
-
-    const updatedFilteredMetrics = filteredMetrics.map((metric) => {
-      const tmpl = selectedTemplate.metrics.find((m: any) => m.metric_id === metric.id);
-      if (tmpl) {
-        const params = tmpl.parameters || {};
-        return {
-          ...metric,
-          enabled: true,
-          parameters: { ...metric.parameters, ...params },
-          config: { ...metric.config, ...params }, // mantener ambas en sync
-        };
-      }
-      return metric;
-    });
-
-    setFilteredMetrics(updatedFilteredMetrics);
-    setTemplateDialogOpen(false);
-  };
-
   // ======== Render de error temprano con estilo del primer archivo ========
   if (error && !useDevFallback) {
     return (
@@ -705,10 +610,8 @@ const MetricsConfigurationPage = () => {
                   // Intentar recuperar el ID del localStorage
                   const storedId = localStorage.getItem('currentProjectId');
                   if (storedId) {
-                    console.log('Reintentando con ID de localStorage:', storedId);
                     router.push(`/metrics/configure/${storedId}`);
                   } else {
-                    console.log('No hay ID en localStorage, redirigiendo a proyectos');
                     router.push('/projects');
                   }
                 }}
@@ -966,22 +869,8 @@ const MetricsConfigurationPage = () => {
                               label={metric.category}
                               size="small"
                               sx={{
-                                backgroundColor:
-                                  metric.category === 'data_quality'
-                                    ? 'rgba(0, 179, 126, 0.1)'
-                                    : metric.category === 'statistical'
-                                    ? 'rgba(255, 184, 0, 0.12)'
-                                    : metric.category === 'ml_specific'
-                                    ? 'rgba(33, 150, 243, 0.12)'
-                                    : 'rgba(0,0,0,0.06)',
-                                color:
-                                  metric.category === 'data_quality'
-                                    ? GREEN
-                                    : metric.category === 'statistical'
-                                    ? ORANGE
-                                    : metric.category === 'ml_specific'
-                                    ? '#2196F3'
-                                    : '#555555',
+                                backgroundColor: categoryColor(metric.category).bg,
+                                color: categoryColor(metric.category).fg,
                                 fontWeight: 500,
                                 borderRadius: '16px',
                                 textTransform: 'capitalize',
@@ -1196,115 +1085,56 @@ const MetricsConfigurationPage = () => {
                     Aplica una configuración predefinida de métricas para acelerar la puesta en marcha.
                   </Typography>
 
-                  <Grid container spacing={3}>
-                    {!templates || !Array.isArray(templates) || templates.length === 0 ? (
-                      <Grid item xs={12}>
-                        <Paper
-                          elevation={0}
-                          sx={{
-                            p: 5,
-                            textAlign: 'center',
-                            borderRadius: 2,
-                            border: '1px dashed #CCCCCC',
-                            backgroundColor: '#FAFAFA',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            minHeight: '240px',
-                          }}
-                        >
-                          <CloudUploadIcon sx={{ fontSize: 60, color: GREEN, opacity: 0.7, mb: 2 }} />
-                          <Typography variant="h5" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
-                            No hay plantillas disponibles
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: '#555555', maxWidth: '520px' }}>
-                            Crea plantillas en el backend o habilítalas para poder aplicarlas aquí.
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                    ) : (
-                      templates.map((template: any) => (
-                        <Grid item xs={12} md={4} key={template.id}>
-                          <Card
-                            sx={{
-                              height: '100%',
-                              borderRadius: 2,
-                              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-                              transition: 'all 0.3s ease-in-out',
-                              position: 'relative',
-                              overflow: 'visible',
-                              border: '1px solid #eee',
-                              '&:hover': {
-                                transform: 'translateY(-4px)',
-                                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
-                              },
-                              '&::before': {
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '4px',
-                                height: '100%',
-                                backgroundColor: GREEN,
-                                borderTopLeftRadius: 8,
-                                borderBottomLeftRadius: 8,
-                              },
-                            }}
-                          >
-                            <CardContent sx={{ p: 3 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 1 }}>
-                                {template.name}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{
-                                  mb: 2,
-                                  height: '40px',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                }}
-                              >
-                                {template.description}
-                              </Typography>
-                              <Chip
-                                label={`${template.metrics?.length || 0} métricas`}
-                                size="small"
-                                sx={{
-                                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                                  color: GREEN,
-                                  fontWeight: 500,
-                                  borderRadius: '16px',
-                                }}
-                              />
-                            </CardContent>
-                            <CardActions sx={{ px: 3, pb: 2 }}>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => handleTemplateSelect(template)}
-                                sx={{
-                                  borderColor: GREEN,
-                                  color: GREEN,
-                                  textTransform: 'none',
-                                  '&:hover': {
-                                    borderColor: GREEN_HOVER,
-                                    backgroundColor: 'rgba(0, 179, 126, 0.04)',
-                                  },
-                                }}
-                              >
-                                Aplicar plantilla
-                              </Button>
-                            </CardActions>
-                          </Card>
+                  {!templates || !Array.isArray(templates) || templates.length === 0 ? (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 5,
+                        textAlign: 'center',
+                        borderRadius: 2,
+                        border: '2px dashed #E0E0E0',
+                        backgroundColor: '#FAFAFA',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '240px',
+                      }}
+                    >
+                      <CloudUploadIcon sx={{ fontSize: 60, color: GREEN, opacity: 0.7, mb: 2 }} />
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
+                        No hay plantillas disponibles
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#666', maxWidth: '420px', mb: 2 }}>
+                        Crea plantillas desde Configuración &gt; Plantillas para reutilizar configuraciones de métricas.
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => router.push('/settings/templates')}
+                        sx={{
+                          borderColor: GREEN,
+                          color: GREEN,
+                          textTransform: 'none',
+                          '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
+                        }}
+                      >
+                        Ir a Plantillas
+                      </Button>
+                    </Paper>
+                  ) : (
+                    <Grid container spacing={2}>
+                      {templates.map((template: any) => (
+                        <Grid item xs={12} sm={6} md={4} key={template.id}>
+                          <TemplateCard
+                            template={template}
+                            mode="apply"
+                            onApply={handleTemplateSelect}
+                          />
                         </Grid>
-                      ))
-                    )}
-                  </Grid>
+                      ))}
+                    </Grid>
+                  )}
                 </>
               )}
             </TabPanel>

@@ -540,139 +540,23 @@ export const datasetsAPI = {
 export const metricsAPI = {
   // Obtener todas las métricas disponibles
   getMetrics: async () => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      console.log('Timeout en getMetrics - abortando solicitud');
-      controller.abort();
-    }, 8000); // Aumentado a 8 segundos para dar más tiempo a la solicitud
-    
     try {
-      console.log('Iniciando solicitud getMetrics');
-      const response = await api.get('/api/metrics', {
-        signal: controller.signal,
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        },
-        timeout: 8000 // Timeout explícito para axios
-      });
-      clearTimeout(timeoutId);
-      console.log('getMetrics completado con éxito');
-      
-      // Validar la estructura de la respuesta
-      let metricsData = [];
-      if (response && response.data) {
+      const response = await api.get('/api/metrics', { timeout: 8000 });
+
+      // Extract metrics array from response
+      let metricsData: any[] = [];
+      if (response?.data) {
         if (Array.isArray(response.data)) {
           metricsData = response.data;
-          console.log(`Datos de métricas encontrados como array directo, longitud: ${metricsData.length}`);
-        } else if (response.data.metrics && Array.isArray(response.data.metrics)) {
+        } else if (Array.isArray(response.data.metrics)) {
           metricsData = response.data.metrics;
-          console.log(`Datos de métricas encontrados en propiedad metrics, longitud: ${metricsData.length}`);
-        } else if (typeof response.data === 'object') {
-          // Buscar cualquier propiedad de array que pueda contener métricas
-          const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
-          if (possibleArrays.length > 0) {
-            metricsData = possibleArrays[0] as any[];
-            console.log(`Datos de métricas encontrados en otra propiedad, longitud: ${metricsData.length}`);
-          }
         }
       }
-      
-      // Si no se encontraron métricas o el array está vacío, crear métricas de ejemplo
-      if (!metricsData || metricsData.length === 0) {
-        console.log('No se encontraron métricas válidas, creando métricas de ejemplo');
-        metricsData = [
-          {
-            id: 1,
-            name: 'Completeness',
-            description: 'Measures the percentage of non-null values in a dataset',
-            category: 'Data Quality',
-            parameters: { threshold: 0.8 },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            name: 'Uniqueness',
-            description: 'Measures the percentage of unique values in a dataset',
-            category: 'Data Quality',
-            parameters: { columns: [] },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 3,
-            name: 'Consistency',
-            description: 'Checks if data follows consistent patterns',
-            category: 'Data Validation',
-            parameters: { rules: {} },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 4,
-            name: 'Accuracy',
-            description: 'Measures how close the data values are to the true values',
-            category: 'Data Quality',
-            parameters: { reference_data: null },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-      }
-      
-      // Devolver la respuesta con los datos normalizados
-      return { data: metricsData, status: response.status, statusText: response.statusText };
+
+      return { data: metricsData };
     } catch (error: any) {
-      clearTimeout(timeoutId);
-      console.error('Error en getMetrics:', error);
-      
-      // Manejo detallado de errores
-      if (axios.isCancel(error)) {
-        console.warn('Solicitud getMetrics cancelada por timeout o usuario');
-      } else if (axios.isAxiosError(error)) {
-        console.warn(`Error en getMetrics: ${error.message}, status: ${error.response?.status}`);
-        console.warn('Detalles del error:', error.response?.data || 'No hay datos adicionales');
-        
-        // Registrar información de CORS si es relevante
-        if (error.message.includes('CORS') || !error.response) {
-          console.error('Posible error de CORS o red:', error.message);
-        }
-      }
-      
-      // Crear métricas de ejemplo como fallback para cualquier error
-      console.log('Devolviendo métricas de ejemplo debido a error');
-      const exampleMetrics = [
-        {
-          id: 1,
-          name: 'Completeness',
-          description: 'Measures the percentage of non-null values in a dataset',
-          category: 'Data Quality',
-          parameters: { threshold: 0.8 },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          name: 'Uniqueness',
-          description: 'Measures the percentage of unique values in a dataset',
-          category: 'Data Quality',
-          parameters: { columns: [] },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 3,
-          name: 'Consistency',
-          description: 'Checks if data follows consistent patterns',
-          category: 'Data Validation',
-          parameters: { rules: {} },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      return { data: exampleMetrics, status: 200, statusText: 'OK (Fallback)' };
+      console.error('Error en getMetrics:', error?.message || error);
+      return { data: [] };
     }
   },
   
@@ -805,137 +689,25 @@ export const metricsAPI = {
     }),
   
   // Metric templates
-  getMetricTemplates: () => {
-    // Create a fallback for missing endpoint
-    return new Promise((resolve, reject) => {
-      // Set a timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.log('Timeout en getMetricTemplates - abortando solicitud');
-        controller.abort();
-        
-        // Crear plantillas de ejemplo en caso de timeout
-        const exampleTemplates = [
-          {
-            id: 1,
-            name: 'Basic Data Quality',
-            description: 'Basic metrics for data quality assessment',
-            metrics: [
-              { metric_id: 1, parameters: { threshold: 0.9 } },
-              { metric_id: 2, parameters: { columns: ['id', 'name'] } }
-            ],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            name: 'Advanced Validation',
-            description: 'Advanced validation metrics for critical data',
-            metrics: [
-              { metric_id: 1, parameters: { threshold: 0.95 } },
-              { metric_id: 3, parameters: { rules: { minLength: 5 } } }
-            ],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-        
-        console.log('Devolviendo plantillas de ejemplo por timeout');
-        resolve({ data: exampleTemplates });
-      }, 5000); // Timeout más corto (5 segundos)
-      
-      console.log('Iniciando solicitud getMetricTemplates');
-      api.get('/api/metrics/templates', {
-        timeout: 5000,
-        signal: controller.signal,
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        }
-      })
-      .then(response => {
-        clearTimeout(timeoutId);
-        console.log('getMetricTemplates completado con éxito');
-        console.log('Respuesta de plantillas:', JSON.stringify(response.data));
-        
-        // Asegurar que la respuesta sea un array
-        let templatesData;
-        if (!response.data) {
-          console.log('No hay datos en la respuesta, creando array vacío');
-          templatesData = [];
-        } else if (Array.isArray(response.data)) {
-          console.log('Respuesta es un array directo');
+  getMetricTemplates: async () => {
+    try {
+      const response = await api.get('/api/metrics/templates', { timeout: 5000 });
+
+      // Extract templates array from response
+      let templatesData: any[] = [];
+      if (response?.data) {
+        if (Array.isArray(response.data)) {
           templatesData = response.data;
-        } else if (response.data.templates && Array.isArray(response.data.templates)) {
-          console.log('Respuesta contiene un array en la propiedad templates');
+        } else if (Array.isArray(response.data.templates)) {
           templatesData = response.data.templates;
-        } else if (typeof response.data === 'object') {
-          console.log('Respuesta es un objeto, buscando arrays dentro del objeto');
-          const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
-          if (possibleArrays.length > 0) {
-            templatesData = possibleArrays[0] as any[];
-            console.log('Se encontró un array dentro del objeto');
-          } else {
-            console.log('No se encontraron arrays dentro del objeto, creando array vacío');
-            templatesData = [];
-          }
-        } else {
-          console.log('Formato de respuesta desconocido, creando array vacío');
-          templatesData = [];
         }
-        
-        // Si no hay plantillas, crear ejemplos
-        if (templatesData.length === 0) {
-          console.log('No se encontraron plantillas, creando ejemplos');
-          templatesData = [
-            {
-              id: 1,
-              name: 'Basic Data Quality',
-              description: 'Basic metrics for data quality assessment',
-              metrics: [
-                { metric_id: 1, parameters: { threshold: 0.9 } },
-                { metric_id: 2, parameters: { columns: ['id', 'name'] } }
-              ],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: 2,
-              name: 'Advanced Data Quality',
-              description: 'Advanced metrics for comprehensive data quality',
-              metrics: [
-                { metric_id: 3, parameters: { min_value: 0, max_value: 100 } },
-                { metric_id: 4, parameters: { format: 'yyyy-mm-dd' } },
-                { metric_id: 5, parameters: { regex: '[A-Z][a-z]+' } }
-              ],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ];
-        }
-        
-        // Devolver el array procesado
-        console.log(`Devolviendo ${templatesData.length} plantillas`);
-        resolve({ data: templatesData });
-      })
-      .catch(error => {
-        clearTimeout(timeoutId);
-        // Si la solicitud fue abortada por timeout
-        if (error.name === 'AbortError' || error.name === 'CanceledError') {
-          console.warn('Solicitud getMetricTemplates cancelada por timeout');
-          resolve({ data: [] }); // Devolver array vacío en caso de timeout
-        }
-        // If the endpoint doesn't exist, return an empty array instead of rejecting
-        else if (error.response && error.response.status === 404) {
-          console.warn('Endpoint de plantillas de métricas no encontrado, devolviendo array vacío');
-          resolve({ data: [] });
-        } else {
-          console.error('Error en getMetricTemplates:', error);
-          resolve({ data: [] }); // Siempre resolver con array vacío para evitar bloqueos
-        }
-      });
-    });
+      }
+
+      return { data: templatesData };
+    } catch (error: any) {
+      console.error('Error en getMetricTemplates:', error?.message || error);
+      return { data: [] };
+    }
   },
   
   getMetricTemplate: (id: number) => 

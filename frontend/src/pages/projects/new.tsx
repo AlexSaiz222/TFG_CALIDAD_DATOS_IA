@@ -9,36 +9,24 @@ import {
   CircularProgress,
   Alert,
   IconButton,
-  Stepper,
-  Step,
-  StepLabel,
   Card,
-  CardContent,
   CardActionArea,
   Grid,
   Chip,
   Checkbox,
-  FormControlLabel,
   Divider,
-  Tooltip,
-  Collapse,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   CheckCircle as CheckCircleIcon,
   Assignment as TemplateIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Security as SecurityIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
+import TemplateCard from '../../components/metrics/TemplateCard';
 import { projectsAPI, metricsAPI } from '../../services/api';
+import { MetricTemplate } from '../../types';
+import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 import { safeNavigate } from '../../utils/routeTransition';
-
-const GREEN = '#00B37E';
-const GREEN_HOVER = '#00A070';
 
 const steps = ['Información básica', 'Plantilla y métricas', 'Resumen y confirmación'];
 
@@ -53,12 +41,11 @@ const NewProject = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Template & metrics state
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<MetricTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [allMetrics, setAllMetrics] = useState<any[]>([]);
   const [selectedMetricIds, setSelectedMetricIds] = useState<Set<number>>(new Set());
   const [loadingTemplates, setLoadingTemplates] = useState(false);
-
 
   // Global state
   const [loading, setLoading] = useState(false);
@@ -76,22 +63,16 @@ const NewProject = () => {
     try {
       const [templatesRes, metricsRes] = await Promise.all([
         metricsAPI.getMetricTemplates() as Promise<any>,
-        metricsAPI.getMetrics(),
+        metricsAPI.getMetrics() as Promise<any>,
       ]);
 
-      // Parse templates
-      let tData = templatesRes?.data || [];
-      if (!Array.isArray(tData)) {
-        tData = tData.templates || [];
-      }
-      setTemplates(Array.isArray(tData) ? tData : []);
+      const tRaw = templatesRes?.data;
+      const tData = Array.isArray(tRaw) ? tRaw : (tRaw?.templates || []);
+      setTemplates(tData);
 
-      // Parse metrics
-      let mData = metricsRes?.data || [];
-      if (!Array.isArray(mData)) {
-        mData = mData.metrics || [];
-      }
-      setAllMetrics(Array.isArray(mData) ? mData : []);
+      const mRaw = metricsRes?.data;
+      const mData = Array.isArray(mRaw) ? mRaw : (mRaw?.metrics || []);
+      setAllMetrics(mData);
 
       // Default: select completeness, uniqueness, outliers
       if (selectedMetricIds.size === 0) {
@@ -127,9 +108,7 @@ const NewProject = () => {
   };
 
   const handleNext = () => {
-    if (activeStep === 0) {
-      if (!validateStep(0)) return;
-    }
+    if (activeStep === 0 && !validateStep(0)) return;
     setActiveStep((prev) => prev + 1);
   };
 
@@ -137,14 +116,22 @@ const NewProject = () => {
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleTemplateSelect = (templateId: number | null) => {
+  const handleTemplateSelect = (templateOrId: MetricTemplate | number | null) => {
+    // Support both TemplateCard callback (MetricTemplate) and "no template" (null)
+    const templateId = templateOrId === null
+      ? null
+      : typeof templateOrId === 'number'
+        ? templateOrId
+        : templateOrId.id;
+
     setSelectedTemplateId(templateId);
     if (templateId) {
       const tmpl = templates.find((t) => t.id === templateId);
       if (tmpl?.metrics && Array.isArray(tmpl.metrics)) {
         const ids = new Set<number>();
         tmpl.metrics.forEach((m: any) => {
-          if (m.metric_id) ids.add(m.metric_id);
+          const mid = m.metric_id ?? m.id;
+          if (mid) ids.add(mid);
         });
         setSelectedMetricIds(ids);
       }
@@ -158,7 +145,6 @@ const NewProject = () => {
       else next.add(metricId);
       return next;
     });
-    // Deselect template since user customized
     setSelectedTemplateId(null);
   };
 
@@ -170,7 +156,6 @@ const NewProject = () => {
     setError(null);
 
     try {
-      // Build metrics_config from selected metric IDs
       const metricsConfig = Array.from(selectedMetricIds).map((id) => {
         const metric = allMetrics.find((m) => m.id === id);
         return {
@@ -199,19 +184,8 @@ const NewProject = () => {
 
       safeNavigate(`/projects/${newProject.id || newProject.data?.id}`);
     } catch (err: any) {
-      console.error('Error creating project:', err);
       setError(err.response?.data?.message || 'Error al crear el proyecto. Inténtelo de nuevo.');
       setLoading(false);
-    }
-  };
-
-  // --- Render helpers ---
-  const categoryColor = (cat: string) => {
-    switch (cat) {
-      case 'data_quality': return { bg: 'rgba(0,179,126,0.1)', fg: GREEN };
-      case 'statistical': return { bg: 'rgba(255,184,0,0.12)', fg: '#FFB800' };
-      case 'ml_specific': return { bg: 'rgba(33,150,243,0.12)', fg: '#2196F3' };
-      default: return { bg: 'rgba(0,0,0,0.06)', fg: '#555' };
     }
   };
 
@@ -229,30 +203,19 @@ const NewProject = () => {
           </Typography>
         </Box>
 
-        {/* Stepper - Custom Professional Design */}
+        {/* Stepper */}
         <Box sx={{ width: '100%', maxWidth: 900, mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', px: 2 }}>
             {/* Progress line background */}
             <Box sx={{
-              position: 'absolute',
-              top: 20,
-              left: '16.66%',
-              right: '16.66%',
-              height: 3,
-              bgcolor: '#E0E0E0',
-              borderRadius: 1.5,
-              zIndex: 0,
+              position: 'absolute', top: 20, left: '16.66%', right: '16.66%',
+              height: 3, bgcolor: '#E0E0E0', borderRadius: 1.5, zIndex: 0,
             }} />
             {/* Progress line foreground */}
             <Box sx={{
-              position: 'absolute',
-              top: 20,
-              left: '16.66%',
+              position: 'absolute', top: 20, left: '16.66%',
               width: activeStep === 0 ? '0%' : activeStep === 1 ? '25%' : activeStep === 2 ? '50%' : '75%',
-              height: 3,
-              bgcolor: GREEN,
-              borderRadius: 1.5,
-              zIndex: 0,
+              height: 3, bgcolor: GREEN, borderRadius: 1.5, zIndex: 0,
               transition: 'width 0.3s ease-in-out',
             }} />
 
@@ -261,35 +224,22 @@ const NewProject = () => {
               const isCompleted = index < activeStep;
               return (
                 <Box key={label} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 1 }}>
-                  {/* Step circle */}
                   <Box sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    width: 40, height: 40, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     bgcolor: isCompleted || isActive ? GREEN : '#E0E0E0',
                     color: isCompleted || isActive ? '#FFFFFF' : '#999999',
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    mb: 1,
+                    fontWeight: 700, fontSize: '1rem', mb: 1,
                     transition: 'all 0.3s ease-in-out',
                     border: isActive ? `3px solid ${GREEN}` : 'none',
-                    boxShadow: isActive ? `0 0 0 4px rgba(0,179,126,0.15)` : 'none',
+                    boxShadow: isActive ? '0 0 0 4px rgba(0,179,126,0.15)' : 'none',
                   }}>
-                    {isCompleted ? (
-                      <CheckCircleIcon sx={{ fontSize: 20, color: '#FFFFFF' }} />
-                    ) : (
-                      index + 1
-                    )}
+                    {isCompleted ? <CheckCircleIcon sx={{ fontSize: 20, color: '#FFFFFF' }} /> : index + 1}
                   </Box>
-                  {/* Step label */}
                   <Typography variant="body2" sx={{
                     fontWeight: isActive ? 600 : 500,
                     color: isActive ? '#1A1A1A' : isCompleted ? '#555' : '#999',
-                    fontSize: '0.875rem',
-                    textAlign: 'center',
+                    fontSize: '0.875rem', textAlign: 'center',
                     transition: 'all 0.3s ease-in-out',
                   }}>
                     {label}
@@ -309,12 +259,8 @@ const NewProject = () => {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 3, sm: 4 },
-            borderRadius: 2,
-            border: '1px solid #EEEEEE',
-            width: '100%',
-            maxWidth: 900,
-            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)',
+            p: { xs: 3, sm: 4 }, borderRadius: 2, border: '1px solid #EEEEEE',
+            width: '100%', maxWidth: 900, boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)',
           }}
         >
           {/* ===== STEP 0: Basic Info ===== */}
@@ -324,26 +270,15 @@ const NewProject = () => {
                 Información del proyecto
               </Typography>
               <TextField
-                fullWidth
-                label="Nombre del proyecto"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                error={!!errors.name}
-                helperText={errors.name}
-                sx={{ mb: 2 }}
-                required
-                size="small"
+                fullWidth label="Nombre del proyecto" name="name"
+                value={formData.name} onChange={handleChange}
+                error={!!errors.name} helperText={errors.name}
+                sx={{ mb: 2 }} required size="small"
               />
               <TextField
-                fullWidth
-                label="Descripción"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                multiline
-                rows={4}
-                sx={{ mb: 2 }}
+                fullWidth label="Descripción" name="description"
+                value={formData.description} onChange={handleChange}
+                multiline rows={4} sx={{ mb: 2 }}
                 placeholder="Describe brevemente el propósito del proyecto (opcional)"
                 size="small"
               />
@@ -373,14 +308,19 @@ const NewProject = () => {
                       <Card
                         variant="outlined"
                         sx={{
+                          height: '100%',
                           borderColor: selectedTemplateId === null ? GREEN : '#E0E0E0',
                           borderWidth: selectedTemplateId === null ? 2 : 1,
                           transition: 'all 0.2s',
+                          '&:hover': { borderColor: GREEN, boxShadow: '0 2px 8px rgba(0,179,126,0.08)' },
                         }}
                       >
-                        <CardActionArea onClick={() => handleTemplateSelect(null)} sx={{ p: 2 }}>
+                        <CardActionArea
+                          onClick={() => handleTemplateSelect(null)}
+                          sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start' }}
+                        >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <TemplateIcon sx={{ color: selectedTemplateId === null ? GREEN : '#999' }} />
+                            <TemplateIcon sx={{ color: selectedTemplateId === null ? GREEN : '#999', fontSize: 20 }} />
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                               Personalizada
                             </Typography>
@@ -397,38 +337,12 @@ const NewProject = () => {
 
                     {templates.map((tmpl) => (
                       <Grid item xs={12} sm={6} md={4} key={tmpl.id}>
-                        <Card
-                          variant="outlined"
-                          sx={{
-                            borderColor: selectedTemplateId === tmpl.id ? GREEN : '#E0E0E0',
-                            borderWidth: selectedTemplateId === tmpl.id ? 2 : 1,
-                            transition: 'all 0.2s',
-                            position: 'relative',
-                          }}
-                        >
-                          <CardActionArea onClick={() => handleTemplateSelect(tmpl.id)} sx={{ p: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                              <TemplateIcon sx={{ color: selectedTemplateId === tmpl.id ? GREEN : '#999' }} />
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                {tmpl.name}
-                              </Typography>
-                              {tmpl.is_system && (
-                                <Chip label="Sistema" size="small" sx={{ fontSize: '0.7rem', height: 20 }} />
-                              )}
-                            </Box>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                              {tmpl.description || 'Sin descripción'}
-                            </Typography>
-                            <Chip
-                              label={`${tmpl.metrics?.length || 0} métricas`}
-                              size="small"
-                              sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: GREEN, fontWeight: 500 }}
-                            />
-                            {selectedTemplateId === tmpl.id && (
-                              <CheckCircleIcon sx={{ position: 'absolute', top: 8, right: 8, color: GREEN, fontSize: 20 }} />
-                            )}
-                          </CardActionArea>
-                        </Card>
+                        <TemplateCard
+                          template={tmpl}
+                          mode="select"
+                          selected={selectedTemplateId === tmpl.id}
+                          onSelect={handleTemplateSelect}
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -452,20 +366,15 @@ const NewProject = () => {
                           <Box
                             onClick={() => toggleMetric(metric.id)}
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              p: 1.5,
-                              borderRadius: 1.5,
+                              display: 'flex', alignItems: 'center', p: 1.5, borderRadius: 1.5,
                               border: `1px solid ${isSelected ? GREEN : '#E0E0E0'}`,
                               backgroundColor: isSelected ? 'rgba(0,179,126,0.04)' : '#fff',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s',
+                              cursor: 'pointer', transition: 'all 0.15s',
                               '&:hover': { borderColor: GREEN, backgroundColor: 'rgba(0,179,126,0.02)' },
                             }}
                           >
                             <Checkbox
-                              checked={isSelected}
-                              size="small"
+                              checked={isSelected} size="small"
                               sx={{ p: 0.5, mr: 1, color: GREEN, '&.Mui-checked': { color: GREEN } }}
                               tabIndex={-1}
                             />
@@ -474,8 +383,7 @@ const NewProject = () => {
                                 {metric.name}
                               </Typography>
                               <Typography
-                                variant="caption"
-                                color="text.secondary"
+                                variant="caption" color="text.secondary"
                                 sx={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                               >
                                 {metric.description}
@@ -508,7 +416,6 @@ const NewProject = () => {
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1A1A1A' }}>
                 Resumen del proyecto
               </Typography>
-              
               <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
                 Revisa la información antes de crear el proyecto. Podrás modificarla después desde la configuración.
               </Typography>
@@ -551,7 +458,7 @@ const NewProject = () => {
                       Plantilla
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {selectedTemplateId 
+                      {selectedTemplateId
                         ? templates.find(t => t.id === selectedTemplateId)?.name || 'Plantilla personalizada'
                         : 'Personalizada (sin plantilla)'}
                     </Typography>
@@ -584,7 +491,6 @@ const NewProject = () => {
                 </Box>
               </Paper>
 
-              {/* Info box */}
               <Alert severity="info" sx={{ mt: 3 }}>
                 Al crear el proyecto, podrás subir datasets y configurar evaluaciones de calidad de datos.
               </Alert>

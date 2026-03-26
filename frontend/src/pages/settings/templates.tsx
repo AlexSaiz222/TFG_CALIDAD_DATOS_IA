@@ -6,7 +6,6 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -14,49 +13,33 @@ import {
   TextField,
   Chip,
   Card,
-  CardContent,
-  CardActions,
   CardActionArea,
-  Divider,
   Grid,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  ContentCopy as CopyIcon,
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
+import TemplateCard from '../../components/metrics/TemplateCard';
 import { metricsAPI } from '../../services/api';
 import { MetricTemplate, Metric } from '../../types';
-
-const GREEN = '#00B37E';
-const GREEN_HOVER = '#00A070';
-
-const categoryColor = (category: string) => {
-  const colors: Record<string, { bg: string; fg: string }> = {
-    'data quality': { bg: 'rgba(0, 179, 126, 0.1)', fg: '#00B37E' },
-    'data profiling': { bg: 'rgba(33, 150, 243, 0.1)', fg: '#2196F3' },
-    'data validation': { bg: 'rgba(156, 39, 176, 0.1)', fg: '#9C27B0' },
-    'statistical': { bg: 'rgba(255, 152, 0, 0.1)', fg: '#FF9800' },
-  };
-  return colors[category.toLowerCase()] || { bg: 'rgba(158, 158, 158, 0.1)', fg: '#9E9E9E' };
-};
+import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
 const TemplatesSettings = () => {
   const [templates, setTemplates] = useState<MetricTemplate[]>([]);
+  const [systemTemplates, setSystemTemplates] = useState<MetricTemplate[]>([]);
   const [allMetrics, setAllMetrics] = useState<Metric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MetricTemplate | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<MetricTemplate | null>(null);
-  
+
   // Form states
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
@@ -74,36 +57,18 @@ const TemplatesSettings = () => {
         metricsAPI.getMetricTemplates(),
         metricsAPI.getMetrics(),
       ]);
-      
-      console.log('Templates response:', templatesResponse);
-      console.log('Metrics response:', metricsResponse);
-      
-      // Extract templates from response
-      // API returns { data: [...] } directly from api.ts wrapper
-      const templatesData = (templatesResponse as any)?.data?.templates 
-        || (templatesResponse as any)?.data 
+
+      const templatesData = (templatesResponse as any)?.data?.templates
+        || (templatesResponse as any)?.data
         || [];
-      
-      // Filter only user templates (not system templates)
-      const userTemplates = Array.isArray(templatesData) 
-        ? templatesData.filter((t: MetricTemplate) => !t.is_system)
-        : [];
-      
-      console.log('User templates:', userTemplates);
-      setTemplates(userTemplates);
-      
-      // Extract metrics from response
-      // API returns { data: [...] } directly from api.ts wrapper
-      const metricsData = (metricsResponse as any)?.data 
-        || [];
-      
-      console.log('Metrics data:', metricsData);
-      console.log('Is array?', Array.isArray(metricsData));
-      console.log('Length:', metricsData?.length);
-      
+
+      const allTemplates = Array.isArray(templatesData) ? templatesData : [];
+      setTemplates(allTemplates.filter((t: MetricTemplate) => t.is_system !== true));
+      setSystemTemplates(allTemplates.filter((t: MetricTemplate) => t.is_system === true));
+
+      const metricsData = (metricsResponse as any)?.data || [];
       setAllMetrics(Array.isArray(metricsData) ? metricsData : []);
     } catch (err: any) {
-      console.error('Error fetching data:', err);
       setError('Error al cargar las plantillas. Por favor, inténtalo de nuevo.');
     } finally {
       setLoading(false);
@@ -115,8 +80,8 @@ const TemplatesSettings = () => {
       setEditingTemplate(template);
       setTemplateName(template.name);
       setTemplateDescription(template.description || '');
-      const metricIds = template.metrics?.map((m: any) => m.id) || [];
-      setSelectedMetricIds(new Set(metricIds));
+      const metricIds = template.metrics?.map((m: any) => m.id ?? m.metric_id) || [];
+      setSelectedMetricIds(new Set(metricIds.filter(Boolean)));
     } else {
       setEditingTemplate(null);
       setTemplateName('');
@@ -137,11 +102,8 @@ const TemplatesSettings = () => {
   const handleToggleMetric = (metricId: number) => {
     setSelectedMetricIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(metricId)) {
-        newSet.delete(metricId);
-      } else {
-        newSet.add(metricId);
-      }
+      if (newSet.has(metricId)) newSet.delete(metricId);
+      else newSet.add(metricId);
       return newSet;
     });
   };
@@ -151,7 +113,6 @@ const TemplatesSettings = () => {
       setError('El nombre de la plantilla es obligatorio');
       return;
     }
-
     if (selectedMetricIds.size === 0) {
       setError('Debes seleccionar al menos una métrica');
       return;
@@ -161,7 +122,7 @@ const TemplatesSettings = () => {
       const metricsConfig = Array.from(selectedMetricIds).map((id) => {
         const metric = allMetrics.find((m) => m.id === id);
         return {
-          id: metric!.id,
+          metric_id: metric!.id,
           name: metric!.name,
           category: metric!.category,
           enabled: true,
@@ -186,14 +147,12 @@ const TemplatesSettings = () => {
       handleCloseDialog();
       fetchData();
     } catch (err: any) {
-      console.error('Error saving template:', err);
       setError(err.response?.data?.message || 'Error al guardar la plantilla');
     }
   };
 
   const handleDeleteTemplate = async () => {
     if (!templateToDelete) return;
-
     try {
       await metricsAPI.deleteMetricTemplate(templateToDelete.id);
       setSuccess('Plantilla eliminada correctamente');
@@ -201,7 +160,6 @@ const TemplatesSettings = () => {
       setTemplateToDelete(null);
       fetchData();
     } catch (err: any) {
-      console.error('Error deleting template:', err);
       setError(err.response?.data?.message || 'Error al eliminar la plantilla');
     }
   };
@@ -210,8 +168,8 @@ const TemplatesSettings = () => {
     setEditingTemplate(null);
     setTemplateName(`${template.name} (copia)`);
     setTemplateDescription(template.description || '');
-    const metricIds = template.metrics?.map((m: any) => m.id) || [];
-    setSelectedMetricIds(new Set(metricIds));
+    const metricIds = template.metrics?.map((m: any) => m.id ?? m.metric_id) || [];
+    setSelectedMetricIds(new Set(metricIds.filter(Boolean)));
     setDialogOpen(true);
   };
 
@@ -256,7 +214,6 @@ const TemplatesSettings = () => {
             {error}
           </Alert>
         )}
-
         {success && (
           <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
             {success}
@@ -275,7 +232,7 @@ const TemplatesSettings = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: '#999', mb: 1 }}>
-              No hay plantillas personalizadas
+              No tienes plantillas aún
             </Typography>
             <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
               Crea tu primera plantilla para reutilizar configuraciones de métricas en múltiples proyectos
@@ -296,98 +253,36 @@ const TemplatesSettings = () => {
         ) : (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 2 }}>
             {templates.map((template) => (
-              <Card
+              <TemplateCard
                 key={template.id}
-                elevation={0}
-                sx={{
-                  border: '1px solid #E0E0E0',
-                  borderRadius: 2,
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    borderColor: GREEN,
-                    boxShadow: '0 4px 12px rgba(0,179,126,0.1)',
-                  },
+                template={template}
+                mode="manage"
+                onEdit={handleOpenDialog}
+                onDuplicate={handleDuplicateTemplate}
+                onDelete={(t) => {
+                  setTemplateToDelete(t);
+                  setDeleteDialogOpen(true);
                 }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-                      {template.name}
-                    </Typography>
-                    <CheckCircleIcon sx={{ color: GREEN, fontSize: 20 }} />
-                  </Box>
-
-                  {template.description && (
-                    <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                      {template.description}
-                    </Typography>
-                  )}
-
-                  <Divider sx={{ my: 2 }} />
-
-                  <Typography variant="caption" sx={{ color: '#999', textTransform: 'uppercase', fontWeight: 600, mb: 1, display: 'block' }}>
-                    Métricas ({template.metrics?.length || 0})
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 2 }}>
-                    {template.metrics?.slice(0, 4).map((metric: any) => {
-                      const colors = categoryColor(metric.category);
-                      return (
-                        <Chip
-                          key={metric.id}
-                          label={metric.name}
-                          size="small"
-                          sx={{
-                            backgroundColor: colors.bg,
-                            color: colors.fg,
-                            fontWeight: 500,
-                            fontSize: '0.7rem',
-                          }}
-                        />
-                      );
-                    })}
-                    {template.metrics && template.metrics.length > 4 && (
-                      <Chip
-                        label={`+${template.metrics.length - 4}`}
-                        size="small"
-                        sx={{
-                          backgroundColor: '#F5F5F5',
-                          color: '#666',
-                          fontWeight: 500,
-                          fontSize: '0.7rem',
-                        }}
-                      />
-                    )}
-                  </Box>
-                </CardContent>
-
-                <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleOpenDialog(template)}
-                    sx={{ color: '#666', '&:hover': { color: GREEN } }}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDuplicateTemplate(template)}
-                    sx={{ color: '#666', '&:hover': { color: GREEN } }}
-                  >
-                    <CopyIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setTemplateToDelete(template);
-                      setDeleteDialogOpen(true);
-                    }}
-                    sx={{ color: '#666', '&:hover': { color: '#E5484D' } }}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </CardActions>
-              </Card>
+              />
             ))}
+          </Box>
+        )}
+
+        {/* System templates (read-only) */}
+        {systemTemplates.length > 0 && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#999', mb: 2 }}>
+              Plantillas del sistema
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 2 }}>
+              {systemTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  mode="manage"
+                />
+              ))}
+            </Box>
           </Box>
         )}
       </Box>
@@ -501,7 +396,7 @@ const TemplatesSettings = () => {
         <DialogTitle>Eliminar plantilla</DialogTitle>
         <DialogContent>
           <Typography>
-            ¿Estás seguro de que quieres eliminar la plantilla "{templateToDelete?.name}"?
+            ¿Estás seguro de que quieres eliminar la plantilla &quot;{templateToDelete?.name}&quot;?
             Esta acción no se puede deshacer.
           </Typography>
         </DialogContent>
