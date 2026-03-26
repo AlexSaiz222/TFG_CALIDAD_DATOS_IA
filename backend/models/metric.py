@@ -17,18 +17,19 @@ class Metric(db.Model):
     def __repr__(self):
         return f'<Metric {self.name}>'
     
-    def _ensure_serializable(self, obj):
+    @staticmethod
+    def _ensure_serializable(obj):
         """Recursively convert non-serializable types to serializable ones"""
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
             return float(obj)
         elif isinstance(obj, np.ndarray):
-            return self._ensure_serializable(obj.tolist())
+            return Metric._ensure_serializable(obj.tolist())
         elif isinstance(obj, dict):
-            return {key: self._ensure_serializable(value) for key, value in obj.items()}
+            return {key: Metric._ensure_serializable(value) for key, value in obj.items()}
         elif isinstance(obj, list):
-            return [self._ensure_serializable(item) for item in obj]
+            return [Metric._ensure_serializable(item) for item in obj]
         elif isinstance(obj, (datetime, np.datetime64)):
             return obj.isoformat() if hasattr(obj, 'isoformat') else str(obj)
         else:
@@ -42,7 +43,7 @@ class Metric(db.Model):
                 'name': self.name,
                 'description': self.description,
                 'category': self.category,
-                'parameters': self._ensure_serializable(self.parameters),
+                'parameters': Metric._ensure_serializable(self.parameters),
                 'created_at': self.created_at.isoformat(),
                 'updated_at': self.updated_at.isoformat()
             }
@@ -73,12 +74,11 @@ class MetricTemplate(db.Model):
     def to_dict(self):
         """Convert metric template to dictionary with serializable types"""
         try:
-            # Usar el método de la clase Metric para asegurar serialización
             return {
                 'id': self.id,
                 'name': self.name,
                 'description': self.description,
-                'metrics': Metric._ensure_serializable(self, self.metrics),
+                'metrics': Metric._ensure_serializable(self.metrics),
                 'owner_id': self.owner_id,
                 'is_system': self.is_system if self.is_system is not None else False,
                 'created_at': self.created_at.isoformat(),

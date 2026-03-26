@@ -23,18 +23,19 @@ class Project(db.Model):
     def __repr__(self):
         return f'<Project {self.name}>'
     
-    def _ensure_serializable(self, obj):
+    @staticmethod
+    def _ensure_serializable(obj):
         """Recursively convert non-serializable types to serializable ones"""
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
             return float(obj)
         elif isinstance(obj, np.ndarray):
-            return self._ensure_serializable(obj.tolist())
+            return Project._ensure_serializable(obj.tolist())
         elif isinstance(obj, dict):
-            return {key: self._ensure_serializable(value) for key, value in obj.items()}
+            return {key: Project._ensure_serializable(value) for key, value in obj.items()}
         elif isinstance(obj, list):
-            return [self._ensure_serializable(item) for item in obj]
+            return [Project._ensure_serializable(item) for item in obj]
         elif isinstance(obj, (datetime, np.datetime64)):
             return obj.isoformat() if hasattr(obj, 'isoformat') else str(obj)
         else:
@@ -54,7 +55,7 @@ class Project(db.Model):
                 'name': self.name,
                 'description': self.description,
                 'owner_id': self.owner_id,
-                'metrics_config': self._ensure_serializable(self.metrics_config) if self.metrics_config else [],
+                'metrics_config': Project._ensure_serializable(self.metrics_config) if self.metrics_config else [],
                 'created_at': self.created_at.isoformat(),
                 'updated_at': self.updated_at.isoformat(),
                 'dataset_count': dataset_count
