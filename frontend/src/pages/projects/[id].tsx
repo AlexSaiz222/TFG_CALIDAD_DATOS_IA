@@ -599,7 +599,7 @@ const ProjectDetail = () => {
           >
             <Tab label="Datasets" id="project-tab-0" aria-controls="project-tabpanel-0" />
             <Tab label="Métricas" id="project-tab-1" aria-controls="project-tabpanel-1" />
-            <Tab label="Historial de Análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
+            <Tab label="Historial de análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
             <Tab label="Quality Gate" id="project-tab-3" aria-controls="project-tabpanel-3" />
           </Tabs>
         </Box>
@@ -782,18 +782,31 @@ const ProjectDetail = () => {
             </Grid>
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
-              <AssessmentIcon sx={{ fontSize: 60, color: ORANGE, opacity: 0.7, mb: 2 }} />
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 70,
+                  height: 70,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                  mb: 2,
+                }}
+              >
+                <AssessmentIcon sx={{ fontSize: 40, color: GREEN }} />
+              </Box>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#1A1A1A' }}>
                 No hay métricas configuradas
               </Typography>
-              <Typography variant="body1" sx={{ color: '#555555', mb: 3 }}>
+              <Typography variant="body2" sx={{ color: '#666666' }}>
                 Configura métricas para evaluar la calidad de tus datasets.
               </Typography>
             </Box>
           )}
         </TabPanel>
 
-        {/* Pestaña de Historial de Análisis */}
+        {/* Pestaña de Historial de análisis */}
         <TabPanel value={tabValue} index={2}>
           {projectId && (
             <Box>
