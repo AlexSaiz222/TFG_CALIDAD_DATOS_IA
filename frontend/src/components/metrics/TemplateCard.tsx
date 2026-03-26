@@ -72,9 +72,6 @@ export default function TemplateCard({
             <Typography variant="subtitle1" sx={{ fontWeight: 600, flex: 1, lineHeight: 1.3 }}>
               {template.name}
             </Typography>
-            {template.is_system && (
-              <Chip label="Sistema" size="small" sx={{ fontSize: '0.7rem', height: 20 }} />
-            )}
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.4 }}>
             {template.description || 'Sin descripción'}
@@ -115,9 +112,6 @@ export default function TemplateCard({
             <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', lineHeight: 1.3 }}>
               {template.name}
             </Typography>
-            {template.is_system && (
-              <Chip label="Sistema" size="small" sx={{ fontSize: '0.7rem', height: 20, ml: 1 }} />
-            )}
           </Box>
           <Typography
             variant="body2"
@@ -200,9 +194,6 @@ export default function TemplateCard({
           <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', lineHeight: 1.3 }}>
             {template.name}
           </Typography>
-          {template.is_system && (
-            <Chip label="Sistema" size="small" sx={{ fontSize: '0.7rem', height: 20, ml: 1 }} />
-          )}
         </Box>
 
         {template.description && (
@@ -245,42 +236,33 @@ export default function TemplateCard({
       </CardContent>
 
       <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
-        {!template.is_system && (
-          <>
-            <Tooltip title="Editar">
-              <IconButton
-                size="small"
-                onClick={() => onEdit?.(template)}
-                sx={{ color: '#666', '&:hover': { color: GREEN } }}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Duplicar">
-              <IconButton
-                size="small"
-                onClick={() => onDuplicate?.(template)}
-                sx={{ color: '#666', '&:hover': { color: GREEN } }}
-              >
-                <CopyIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Eliminar">
-              <IconButton
-                size="small"
-                onClick={() => onDelete?.(template)}
-                sx={{ color: '#666', '&:hover': { color: '#E5484D' } }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </>
-        )}
-        {template.is_system && (
-          <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
-            Plantilla del sistema (solo lectura)
-          </Typography>
-        )}
+        <Tooltip title="Editar">
+          <IconButton
+            size="small"
+            onClick={() => onEdit?.(template)}
+            sx={{ color: '#666', '&:hover': { color: GREEN } }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Duplicar">
+          <IconButton
+            size="small"
+            onClick={() => onDuplicate?.(template)}
+            sx={{ color: '#666', '&:hover': { color: GREEN } }}
+          >
+            <CopyIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Eliminar">
+          <IconButton
+            size="small"
+            onClick={() => onDelete?.(template)}
+            sx={{ color: '#666', '&:hover': { color: '#E5484D' } }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </CardActions>
     </Card>
   );

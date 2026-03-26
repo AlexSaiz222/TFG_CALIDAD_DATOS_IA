@@ -28,7 +28,6 @@ import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
 const TemplatesSettings = () => {
   const [templates, setTemplates] = useState<MetricTemplate[]>([]);
-  const [systemTemplates, setSystemTemplates] = useState<MetricTemplate[]>([]);
   const [allMetrics, setAllMetrics] = useState<Metric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,8 +62,7 @@ const TemplatesSettings = () => {
         || [];
 
       const allTemplates = Array.isArray(templatesData) ? templatesData : [];
-      setTemplates(allTemplates.filter((t: MetricTemplate) => t.is_system !== true));
-      setSystemTemplates(allTemplates.filter((t: MetricTemplate) => t.is_system === true));
+      setTemplates(allTemplates);
 
       const metricsData = (metricsResponse as any)?.data || [];
       setAllMetrics(Array.isArray(metricsData) ? metricsData : []);
@@ -268,23 +266,6 @@ const TemplatesSettings = () => {
           </Box>
         )}
 
-        {/* System templates (read-only) */}
-        {systemTemplates.length > 0 && (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#999', mb: 2 }}>
-              Plantillas del sistema
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 2 }}>
-              {systemTemplates.map((template) => (
-                <TemplateCard
-                  key={template.id}
-                  template={template}
-                  mode="manage"
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
       </Box>
 
       {/* Create/Edit Dialog */}

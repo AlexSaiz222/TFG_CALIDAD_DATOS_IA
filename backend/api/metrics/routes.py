@@ -89,13 +89,9 @@ def get_metric_templates():
         except (TypeError, ValueError):
             current_user_id_int = None
 
-        # Return system templates + templates owned by current user
-        from sqlalchemy import or_
+        # Return templates owned by current user
         query = MetricTemplate.query.filter(
-            or_(
-                MetricTemplate.is_system == True,
-                MetricTemplate.owner_id == current_user_id_int
-            )
+            MetricTemplate.owner_id == current_user_id_int
         )
         templates = query.all()
         
@@ -251,12 +247,7 @@ def update_metric_template(template_id):
         except (TypeError, ValueError):
             current_user_id_int = None
 
-        if template.is_system:
-            return jsonify({
-                "success": False,
-                "error": "cannot_edit_system_template",
-                "message": "No se puede editar una plantilla del sistema"
-            }), 403
+
 
         if template.owner_id and template.owner_id != current_user_id_int:
             return jsonify({
@@ -332,12 +323,7 @@ def delete_metric_template(template_id):
         except (TypeError, ValueError):
             current_user_id_int = None
 
-        if template.is_system:
-            return jsonify({
-                "success": False,
-                "error": "cannot_delete_system_template",
-                "message": "No se puede eliminar una plantilla del sistema"
-            }), 403
+
 
         if template.owner_id and template.owner_id != current_user_id_int:
             return jsonify({

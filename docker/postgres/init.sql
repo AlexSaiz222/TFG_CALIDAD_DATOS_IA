@@ -107,23 +107,6 @@ INSERT INTO metrics (name, description, category, parameters) VALUES
 ('feature_correlation', 'Measures correlation between features', 'ml_specific', '{"method": "pearson", "threshold": 0.7}'),
 ('drift', 'Detects data drift between training and production data', 'ml_specific', '{"method": "ks_test", "threshold": 0.05}');
 
--- Insert default metric templates (system templates)
-INSERT INTO metric_templates (name, description, metrics, is_system) VALUES
-('Basic Data Quality', 'Basic metrics for general data quality assessment', 
- '[{"metric_id": 1, "parameters": {"threshold": 0.95}}, 
-   {"metric_id": 2, "parameters": {"threshold": 1.0}}, 
-   {"metric_id": 3, "parameters": {"threshold": 0.9}}]', true),
-('ML Classification', 'Metrics for classification datasets', 
- '[{"metric_id": 1, "parameters": {"threshold": 0.95}}, 
-   {"metric_id": 2, "parameters": {"threshold": 1.0}}, 
-   {"metric_id": 8, "parameters": {"threshold": 0.8}}, 
-   {"metric_id": 9, "parameters": {"threshold": 0.7}}]', true),
-('ML Regression', 'Metrics for regression datasets', 
- '[{"metric_id": 1, "parameters": {"threshold": 0.95}}, 
-   {"metric_id": 6, "parameters": {"method": "histogram"}}, 
-   {"metric_id": 7, "parameters": {"method": "iqr", "factor": 1.5}}, 
-   {"metric_id": 9, "parameters": {"method": "pearson", "threshold": 0.7}}]', true);
-
 -- Insert demo user
 INSERT INTO users (username, email, password_hash, first_name, last_name, organization, role)
 VALUES ('demo', 'demo@example.com', '$2b$12$tPBUXAoX8vVQxU9DOiKOh.wPrLg4MR1jueKIGsM3NIHdUmwzKw5cO', 'Demo', 'User', 'Demo Organization', 'admin');
