@@ -40,6 +40,8 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 interface MainLayoutProps {
   children: React.ReactNode;
+  currentPage?: string;
+  breadcrumbItems?: { label: string; href?: string }[];
 }
 
 // Creamos un componente con estilos globales para los keyframes
@@ -54,7 +56,7 @@ const GlobalStyles = () => {
   );
 };
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children, currentPage, breadcrumbItems }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
@@ -271,7 +273,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <DrawerHeader />
-        <Breadcrumbs />
+        <Breadcrumbs currentPage={currentPage} items={breadcrumbItems} />
         {children}
       </Box>
     </Box>

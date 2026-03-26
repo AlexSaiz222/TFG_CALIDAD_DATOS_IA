@@ -556,7 +556,11 @@ const MetricsConfigurationPage = () => {
     setSavingTemplate(true);
     try {
       const templateMetrics = selectedMetrics.map((m: any) => ({
+        id: m.id,
         metric_id: m.id,
+        name: m.name,
+        category: m.category,
+        description: m.description,
         parameters: m.parameters || {},
       }));
       await metricsAPI.createMetricTemplate({
@@ -589,7 +593,7 @@ const MetricsConfigurationPage = () => {
   // ======== Render de error temprano con estilo del primer archivo ========
   if (error && !useDevFallback) {
     return (
-      <MainLayout>
+      <MainLayout currentPage={project ? project.name : undefined}>
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <IconButton onClick={() => router.push('/projects')} sx={{ mr: 2 }}>
@@ -657,7 +661,7 @@ const MetricsConfigurationPage = () => {
 
   // ======== UI principal con estilo del primer archivo ========
   return (
-    <MainLayout>
+    <MainLayout currentPage={project ? project.name : undefined}>
       <Box sx={{ p: 3, mb: 4 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
