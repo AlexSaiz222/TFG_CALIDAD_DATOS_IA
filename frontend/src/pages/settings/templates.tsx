@@ -331,14 +331,14 @@ const TemplatesSettings = () => {
                     <Card
                       variant="outlined"
                       sx={{
-                        borderColor: isSelected ? colors.fg : '#E0E0E0',
+                        borderColor: isSelected ? GREEN : '#E0E0E0',
                         borderWidth: isSelected ? 2 : 1,
-                        backgroundColor: isSelected ? colors.bg : '#FAFAFA',
+                        backgroundColor: isSelected ? 'rgba(0, 179, 126, 0.05)' : '#FAFAFA',
                         transition: 'all 0.2s',
                         position: 'relative',
                         '&:hover': {
-                          borderColor: colors.fg,
-                          boxShadow: `0 2px 8px ${colors.bg}`,
+                          borderColor: GREEN,
+                          boxShadow: `0 4px 12px rgba(0, 179, 126, 0.12)`,
                         },
                       }}
                     >
@@ -367,7 +367,7 @@ const TemplatesSettings = () => {
                             />
                           </Box>
                           {isSelected && (
-                            <CheckCircleIcon sx={{ color: colors.fg, fontSize: 20 }} />
+                            <CheckCircleIcon sx={{ color: GREEN, fontSize: 20 }} />
                           )}
                         </Box>
                       </CardActionArea>
@@ -382,14 +382,14 @@ const TemplatesSettings = () => {
                               setConfigDialogOpen(true);
                             }}
                             sx={{
-                              borderColor: colors.fg,
-                              color: colors.fg,
+                              borderColor: GREEN,
+                              color: GREEN,
                               textTransform: 'none',
                               fontSize: '0.7rem',
                               py: 0.25,
                               '&:hover': {
-                                backgroundColor: 'rgba(0,0,0,0.04)',
-                                borderColor: colors.fg,
+                                backgroundColor: 'rgba(0, 179, 126, 0.04)',
+                                borderColor: GREEN_HOVER,
                               }
                             }}
                           >
