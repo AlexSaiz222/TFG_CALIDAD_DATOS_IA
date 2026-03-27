@@ -735,7 +735,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
 
     // Filter columns
     const fCols = profiling.columns.filter(c => active.has(c.name));
-    const fNum = fCols.filter(c => c.category === 'numeric').map(c => c.name);
+    // Exclude sensitive columns from numeric list used in charts/correlation to avoid exposing distributions
+    const fNum = fCols.filter(c => c.category === 'numeric' && !sensitiveColumns.includes(c.name)).map(c => c.name);
     const fCat = fCols.filter(c => c.category !== 'numeric').map(c => c.name);
 
     // Filter column metrics

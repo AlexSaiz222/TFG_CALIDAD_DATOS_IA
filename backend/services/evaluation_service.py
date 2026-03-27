@@ -496,6 +496,13 @@ class EvaluationService:
                                 higher_is_better=True
                             )
                             
+                            sample_data = json.loads(duplicates.head(5).to_json(orient='records')) if duplicate_count > 0 else []
+                            if dataset.sensitive_columns and sample_data:
+                                for row in sample_data:
+                                    for col in dataset.sensitive_columns:
+                                        if col in row:
+                                            row[col] = "***"
+                                            
                             issues.append({
                                 'evaluation_id': evaluation.id,
                                 'metric_id': metrics_map.get(metric_id),
@@ -503,7 +510,7 @@ class EvaluationService:
                                 'description': f"Dataset contains {duplicate_count} duplicate rows ({(1-row_uniqueness):.2%} of total)",
                                 'affected_rows': {
                                     'count': duplicate_count,
-                                    'sample': json.loads(duplicates.head(5).to_json(orient='records')) if duplicate_count > 0 else []
+                                    'sample': sample_data
                                 },
                                 'issue_type': 'duplicate_rows',
                                 'fingerprint': generate_duplicate_issue_fingerprint(
@@ -592,7 +599,7 @@ class EvaluationService:
                                     'details': {
                                         'valid_count': valid_count,
                                         'invalid_count': invalid_count,
-                                        'examples': invalid_examples
+                                        'examples': ["***" for _ in invalid_examples] if column in (dataset.sensitive_columns or []) else invalid_examples
                                     },
                                     'issue_type': 'consistency',
                                     'fingerprint': generate_pattern_issue_fingerprint(
@@ -629,6 +636,14 @@ class EvaluationService:
                     for column in columns:
                         if column in df.columns and pd.api.types.is_numeric_dtype(df[column]):
                             outliers = self._detect_outliers(df[column], method, factor)
+                            
+                            if outliers['count'] > 0:
+                                # Mask sensitive columns data
+                                if column in (dataset.sensitive_columns or []):
+                                    outliers['sample_values'] = ["***" for _ in outliers.get('sample_values', [])]
+                                    for stat_key in ["series_min", "series_max", "median", "mean", "lower_bound", "upper_bound", "q1", "q3", "iqr", "z_threshold", "std"]:
+                                        outliers.pop(stat_key, None)
+                            
                             outlier_results[column] = outliers
                             
                             if outliers['count'] > 0:

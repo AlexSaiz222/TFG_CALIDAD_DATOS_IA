@@ -271,6 +271,15 @@ def upload_project_dataset(project_id):
                 "message": user_msg
             }), 400  # 400 Bad Request is more appropriate for invalid file format
         
+        # Parse sensitive_columns from form data (JSON string)
+        sensitive_columns = []
+        if 'sensitive_columns' in request.form:
+            try:
+                import json as _json
+                sensitive_columns = _json.loads(request.form.get('sensitive_columns', '[]'))
+            except Exception as _e:
+                logger.warning(f"Error parsing sensitive_columns: {str(_e)}")
+
         # Create new dataset record
         new_dataset = Dataset(
             name=request.form.get('name', file.filename),
@@ -280,7 +289,8 @@ def upload_project_dataset(project_id):
             file_size=dataset_info['file_size'],
             row_count=dataset_info['row_count'],
             column_count=dataset_info['column_count'],
-            schema=dataset_info['schema']
+            schema=dataset_info['schema'],
+            sensitive_columns=sensitive_columns
         )
         
         # Add schema_meta if available
@@ -765,7 +775,15 @@ def preview_dataset(dataset_id):
             # Process the downloaded data directly without downloading again
             preview_data = dataset_service.get_preview_from_bytes(file_data)
             logger.info(f"Successfully generated preview for dataset {dataset_id}: {len(preview_data)} rows")
-            
+
+            # Mask sensitive column values before returning
+            sensitive_cols = dataset.sensitive_columns or []
+            if sensitive_cols and preview_data:
+                for row in preview_data:
+                    for col in sensitive_cols:
+                        if col in row:
+                            row[col] = "***"
+
             # Get column names from the first row or from the dataset service
             columns = []
             if preview_data and len(preview_data) > 0:
@@ -1012,6 +1030,18 @@ def get_dataset_profiling(dataset_id):
 
             columns_info.append(col_info)
 
+        # ── Redact statistics for sensitive columns ──────────────────
+        sensitive_cols = dataset.sensitive_columns or []
+        _REDACTED = {"redacted": True}
+        for col_info in columns_info:
+            if col_info["name"] in sensitive_cols:
+                # Keep structural metadata, remove all value-derived stats
+                for key in ["mean", "median", "std", "min", "max", "q1", "q3",
+                            "iqr", "skewness", "kurtosis", "histogram", "boxplot",
+                            "mode", "bar_chart"]:
+                    col_info.pop(key, None)
+                col_info["redacted"] = True
+
         # ── 4. Type summary ──────────────────────────────────────────
         type_summary = {
             "numeric_count": len(numeric_cols),
@@ -1020,21 +1050,22 @@ def get_dataset_profiling(dataset_id):
             "categorical_columns": categorical_cols,
         }
 
-        # ── 5. Correlation matrix (numeric only) ────────────────────
+        # ── 5. Correlation matrix (numeric only, excluding sensitive) ─
+        safe_numeric_cols = [c for c in numeric_cols if c not in sensitive_cols]
         correlation_matrix = None
-        if len(numeric_cols) >= 2:
+        if len(safe_numeric_cols) >= 2:
             # Calculate both Pearson and Spearman correlations
-            corr_pearson = df[numeric_cols].corr(method='pearson')
-            corr_spearman = df[numeric_cols].corr(method='spearman')
+            corr_pearson = df[safe_numeric_cols].corr(method='pearson')
+            corr_spearman = df[safe_numeric_cols].corr(method='spearman')
             
             correlation_matrix = {
-                "columns": numeric_cols,
+                "columns": safe_numeric_cols,
                 "pearson": [[round(float(corr_pearson.iloc[i, j]), 4)
-                            for j in range(len(numeric_cols))]
-                           for i in range(len(numeric_cols))],
+                            for j in range(len(safe_numeric_cols))]
+                           for i in range(len(safe_numeric_cols))],
                 "spearman": [[round(float(corr_spearman.iloc[i, j]), 4)
-                             for j in range(len(numeric_cols))]
-                            for i in range(len(numeric_cols))],
+                             for j in range(len(safe_numeric_cols))]
+                            for i in range(len(safe_numeric_cols))],
             }
 
         profiling_result = {
@@ -1105,6 +1136,15 @@ def get_duplicate_rows(dataset_id):
                         'sample': group_clean.head(5).to_dict('records')  # Show up to 5 samples
                     })
         
+        # Mask sensitive column values in duplicate samples
+        sensitive_cols = dataset.sensitive_columns or []
+        if sensitive_cols:
+            for group in duplicate_groups:
+                for row in group['sample']:
+                    for col in sensitive_cols:
+                        if col in row:
+                            row[col] = "***"
+
         return jsonify({
             "success": True,
             "total_duplicates": int(duplicated_mask.sum()),
@@ -1850,6 +1890,15 @@ def upload_new_version(project_id, dataset_id):
         # Mark parent as not latest
         parent_dataset.is_latest = False
         
+        # Parse sensitive_columns for the new version (inherit parent if not provided)
+        new_sensitive_columns = parent_dataset.sensitive_columns or []
+        if 'sensitive_columns' in request.form:
+            try:
+                import json as _json
+                new_sensitive_columns = _json.loads(request.form.get('sensitive_columns', '[]'))
+            except Exception as _e:
+                logger.warning(f"Error parsing sensitive_columns for new version: {str(_e)}")
+
         # Create new version
         new_dataset = Dataset(
             name=parent_dataset.name,  # Keep original name
@@ -1863,7 +1912,8 @@ def upload_new_version(project_id, dataset_id):
             parent_dataset_id=parent_dataset.id,
             version=max_version + 1,
             version_tag=request.form.get('version_tag'),
-            is_latest=True
+            is_latest=True,
+            sensitive_columns=new_sensitive_columns
         )
         
         db.session.add(new_dataset)

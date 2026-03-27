@@ -159,13 +159,21 @@ const DatasetUpload = () => {
     const reader = new FileReader();
     reader.onload = () => {
       const content = reader.result as string;
-      const lines = content.split('\n');
+      // Strip UTF-8 BOM if present (files saved from Excel)
+      const cleaned = content.startsWith('\uFEFF') ? content.slice(1) : content;
+      const lines = cleaned.split('\n');
 
-      // Extract column names from first line (header)
+      // Extract column names from first line using delimiter auto-detection
       if (lines.length > 0) {
-        const headerLine = lines[0];
-        const columns = headerLine.split(',').map(col => col.trim().replace(/"/g, ''));
-        setDetectedColumns(columns);
+        const headerLine = lines[0].replace(/\r$/, ''); // Strip Windows line endings
+        // Detect delimiter: pick the one that splits into the most fields
+        const candidates = [',', ';', '\t', '|'];
+        const delimiter = candidates.reduce((best, d) =>
+          headerLine.split(d).length > headerLine.split(best).length ? d : best
+        , ',');
+        const columns = headerLine.split(delimiter)
+          .map(col => col.trim().replace(/^"|"$/g, '')); // Strip surrounding quotes only
+        setDetectedColumns(columns.filter(c => c.length > 0));
       }
 
       // Generate preview of first few lines

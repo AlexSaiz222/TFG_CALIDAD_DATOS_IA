@@ -75,6 +75,16 @@ class Dataset(db.Model):
                 
             try:
                 schema = self._ensure_serializable(self.schema)
+                # Redact sensitive columns stats from schema
+                if schema and isinstance(schema, list) and self.sensitive_columns:
+                    for col_info in schema:
+                        if isinstance(col_info, dict) and col_info.get("name") in self.sensitive_columns:
+                            # Keep metadata, remove stats
+                            for key in ["mean", "median", "std", "min", "max", "q1", "q3", 
+                                        "iqr", "skewness", "kurtosis", "histogram", "boxplot",
+                                        "mode", "bar_chart"]:
+                                col_info.pop(key, None)
+                            col_info["redacted"] = True
             except Exception as e:
                 logger.warning(f"Error al serializar schema del dataset {self.id}: {str(e)}")
                 schema = None
