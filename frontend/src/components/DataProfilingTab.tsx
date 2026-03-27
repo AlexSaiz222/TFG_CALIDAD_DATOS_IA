@@ -582,7 +582,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
   const [profiling, setProfiling] = useState<DataProfilingResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // IQR factor configuration
   const [iqrFactor, setIqrFactor] = useState<number>(1.5);
   const [iqrDialogOpen, setIqrDialogOpen] = useState(false);
@@ -591,10 +591,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
   // Scatter-plot selectors
   const [scatterX, setScatterX] = useState<string>('');
   const [scatterY, setScatterY] = useState<string>('');
-  
+
   // Correlation method selector
   const [correlationMethod, setCorrelationMethod] = useState<'pearson' | 'spearman'>('pearson');
-  
+
   // Initial tab for MetricDetailsTabs (0=Valores nulos, 1=Registros duplicados, 2=Outliers)
   const [initialMetricTab, setInitialMetricTab] = useState<number>(0);
 
@@ -850,16 +850,16 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
   const openValoresNulos = useCallback(() => openAnalysisDetails(0), [openAnalysisDetails]);
   const openRegistrosDuplicados = useCallback(() => openAnalysisDetails(1), [openAnalysisDetails]);
   const openOutliers = useCallback(() => openAnalysisDetails(2), [openAnalysisDetails]);
-  
+
   const handleIqrDialogOpen = () => {
     setTempIqrFactor(iqrFactor);
     setIqrDialogOpen(true);
   };
-  
+
   const handleIqrDialogClose = () => {
     setIqrDialogOpen(false);
   };
-  
+
   const handleIqrFactorApply = () => {
     setIqrFactor(tempIqrFactor);
     setIqrDialogOpen(false);
@@ -894,7 +894,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
   const totalOutlierVals = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.total_values || 0), 0);
   const outlierProp = totalOutlierVals > 0 ? totalOutliers / totalOutlierVals : 0;
   const outlierColCount = Object.values(outlierMap).filter((c: any) => c?.count > 0).length;
-  
+
   // Badge informativo para outliers (NO indica calidad)
   const getOutlierBadge = () => {
     if (totalOutliers === 0) return { label: 'Sin outliers', bg: 'rgba(34,197,94,0.1)', color: '#22C55E' };
@@ -1244,27 +1244,27 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                   /* ── Categorical ── */
                   <Grid container spacing={1.5} sx={{ alignItems: 'stretch' }}>
                     <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        gap: 1, 
+                      <Box sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
                         height: '100%',
                         justifyContent: 'center'
                       }}>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          bgcolor: '#FAFAFA', 
-                          borderRadius: 1.5, 
+                        <Box sx={{
+                          p: 1.5,
+                          bgcolor: '#FAFAFA',
+                          borderRadius: 1.5,
                           border: '1px solid #F0F0F0',
                           textAlign: 'center'
                         }}>
                           <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>Valores únicos</Typography>
                           <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#00B37E', fontSize: '1.5rem' }}>{col.n_unique.toLocaleString()}</Typography>
                         </Box>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          bgcolor: '#FAFAFA', 
-                          borderRadius: 1.5, 
+                        <Box sx={{
+                          p: 1.5,
+                          bgcolor: '#FAFAFA',
+                          borderRadius: 1.5,
                           border: '1px solid #F0F0F0',
                           textAlign: 'center'
                         }}>
@@ -1339,15 +1339,15 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                 <tr>
                   <th style={{ padding: '8px 6px' }} />
                   {filteredCorrelation.columns.map(c => (
-                    <th key={c} style={{ 
-                      padding: '8px 6px', 
-                      fontWeight: 700, 
-                      fontSize: '0.7rem', 
-                      color: '#555', 
-                      maxWidth: 80, 
-                      overflow: 'hidden', 
-                      textOverflow: 'ellipsis', 
-                      whiteSpace: 'nowrap', 
+                    <th key={c} style={{
+                      padding: '8px 6px',
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                      color: '#555',
+                      maxWidth: 80,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                       textAlign: 'center',
                       background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
                       borderRadius: '6px 6px 0 0'
@@ -1360,11 +1360,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
               <tbody>
                 {(correlationMethod === 'pearson' ? filteredCorrelation.pearson : filteredCorrelation.spearman).map((row, i) => (
                   <tr key={i}>
-                    <td style={{ 
-                      padding: '8px 10px', 
-                      fontWeight: 700, 
-                      whiteSpace: 'nowrap', 
-                      fontSize: '0.72rem', 
+                    <td style={{
+                      padding: '8px 10px',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      fontSize: '0.72rem',
                       color: '#555',
                       background: 'linear-gradient(90deg, #fafafa 0%, #f5f5f5 100%)',
                       borderRadius: '6px 0 0 6px',
@@ -1375,8 +1375,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                     </td>
                     {row.map((v, j) => {
                       // Get correlation value based on selected method
-                      const corrValue = correlationMethod === 'pearson' 
-                        ? filteredCorrelation!.pearson[i][j] 
+                      const corrValue = correlationMethod === 'pearson'
+                        ? filteredCorrelation!.pearson[i][j]
                         : filteredCorrelation!.spearman[i][j];
                       const { bg, text } = correlationColor(corrValue);
                       const isDiagonal = i === j;
@@ -1395,13 +1395,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                           key={j}
                           onClick={handleClick}
                           style={{
-                            padding: '8px 6px', 
-                            textAlign: 'center', 
+                            padding: '8px 6px',
+                            textAlign: 'center',
                             fontWeight: isDiagonal ? 700 : 600,
-                            fontSize: '0.75rem', 
+                            fontSize: '0.75rem',
                             color: isDiagonal ? '#333' : text,
-                            backgroundColor: isDiagonal ? '#F5F5F5' : bg, 
-                            borderRadius: 6, 
+                            backgroundColor: isDiagonal ? '#F5F5F5' : bg,
+                            borderRadius: 6,
                             fontFamily: 'monospace',
                             cursor: isDiagonal ? 'default' : 'pointer',
                             transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1427,7 +1427,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                             }
                           }}
                         >
-                          <Tooltip 
+                          <Tooltip
                             title={
                               isDiagonal ? (
                                 <Box sx={{ textAlign: 'center', py: 0.5 }}>
@@ -1447,9 +1447,9 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                                     {correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}: {corrValue.toFixed(4)}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.9 }}>
-                                    {Math.abs(corrValue) < 0.3 ? 'Correlación débil' : 
-                                     Math.abs(corrValue) < 0.7 ? 'Correlación moderada' : 
-                                     'Correlación fuerte'}
+                                    {Math.abs(corrValue) < 0.3 ? 'Correlación débil' :
+                                      Math.abs(corrValue) < 0.7 ? 'Correlación moderada' :
+                                        'Correlación fuerte'}
                                     {corrValue > 0 ? ' positiva' : corrValue < 0 ? ' negativa' : ''}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.6rem', opacity: 0.7, mt: 0.5, fontStyle: 'italic' }}>
@@ -1471,19 +1471,19 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
             </table>
           </Box>
           {/* Color legend */}
-          <Box sx={{ 
-            mt: 3, 
-            p: 2.5, 
-            background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)', 
-            borderRadius: 2, 
-            border: '1px solid #E8E8E8' 
+          <Box sx={{
+            mt: 3,
+            p: 2.5,
+            background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)',
+            borderRadius: 2,
+            border: '1px solid #E8E8E8'
           }}>
-            <Typography variant="caption" sx={{ 
-              fontWeight: 700, 
-              fontSize: '0.7rem', 
-              color: '#555', 
-              display: 'block', 
-              mb: 1.5, 
+            <Typography variant="caption" sx={{
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              color: '#555',
+              display: 'block',
+              mb: 1.5,
               textAlign: 'center',
               letterSpacing: '0.02em'
             }}>
@@ -1498,10 +1498,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                   Negativa
                 </Typography>
               </Box>
-              <Box sx={{ 
-                width: 200, 
-                height: 12, 
-                borderRadius: 6, 
+              <Box sx={{
+                width: 200,
+                height: 12,
+                borderRadius: 6,
                 background: 'linear-gradient(to right, #4466CC, #8899DD, #FAFAFA, #DD9988, #CC6644)',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
                 border: '1px solid #E0E0E0'
@@ -1547,10 +1547,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
           {scatterX && scatterY && scatterX !== scatterY ? (
             <ScatterPlotChart datasetId={datasetId} xCol={scatterX} yCol={scatterY} />
           ) : (
-            <Box sx={{ 
-              p: 4, 
-              border: '2px dashed #E8E8E8', 
-              borderRadius: 2, 
+            <Box sx={{
+              p: 4,
+              border: '2px dashed #E8E8E8',
+              borderRadius: 2,
               textAlign: 'center',
               background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)'
             }}>
@@ -1578,14 +1578,14 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         </DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 3 }}>
-            Ajusta el factor IQR para controlar la sensibilidad de la detección de outliers. 
+            Ajusta el factor IQR para controlar la sensibilidad de la detección de outliers.
             Valores más altos detectan menos outliers (más permisivo).
           </Alert>
-          
+
           <Typography gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
             Factor IQR: {tempIqrFactor.toFixed(1)}
           </Typography>
-          
+
           <Box sx={{ px: 2, mb: 2 }}>
             <Slider
               value={tempIqrFactor}
@@ -1604,19 +1604,19 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
               valueLabelFormat={(value) => value.toFixed(1)}
             />
           </Box>
-        
+
         </DialogContent>
         <DialogActions>
           <Button onClick={handleIqrDialogClose} color="inherit">
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={handleIqrFactorApply}
             variant="contained"
-            sx={{ 
-              bgcolor: '#00B37E', 
+            sx={{
+              bgcolor: '#00B37E',
               color: '#FFFFFF',
-              '&:hover': { bgcolor: '#00A070' } 
+              '&:hover': { bgcolor: '#00A070' }
             }}
           >
             Aplicar y recalcular
@@ -1628,7 +1628,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
 };
 
 // ── Enhanced Boxplot Component ──────────────────────────────────
-const EnhancedBoxplot: React.FC<{ 
+const EnhancedBoxplot: React.FC<{
   boxplot: NonNullable<ProfilingColumn['boxplot']>;
   columnName?: string;
   onExpand?: () => void;
@@ -1678,16 +1678,16 @@ const EnhancedBoxplot: React.FC<{
             <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15" />
           </filter>
         </defs>
-        
+
         {/* Lower whisker */}
-        <Tooltip 
+        <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Límite Inferior (Whisker)</Typography>
               <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.lower_fence.toFixed(2)}</Typography>
               <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valores por debajo son outliers</Typography>
             </Box>
-          } 
+          }
           arrow
         >
           <g>
@@ -1695,16 +1695,16 @@ const EnhancedBoxplot: React.FC<{
             <line x1={lbX} y1={yCenter - 15} x2={lbX} y2={yCenter + 15} stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
           </g>
         </Tooltip>
-        
+
         {/* Upper whisker */}
-        <Tooltip 
+        <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Límite Superior (Whisker)</Typography>
               <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.upper_fence.toFixed(2)}</Typography>
               <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valores por encima son outliers</Typography>
             </Box>
-          } 
+          }
           arrow
         >
           <g>
@@ -1712,9 +1712,9 @@ const EnhancedBoxplot: React.FC<{
             <line x1={ubX} y1={yCenter - 15} x2={ubX} y2={yCenter + 15} stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
           </g>
         </Tooltip>
-        
+
         {/* IQR Box (Q1 to Q3) */}
-        <Tooltip 
+        <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Rango Intercuartílico (IQR)</Typography>
@@ -1722,57 +1722,57 @@ const EnhancedBoxplot: React.FC<{
               <Typography variant="caption" sx={{ display: 'block' }}>Cuartil 3 (Q3): {boxplot.q3.toFixed(2)}</Typography>
               <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8, mt: 0.5 }}>Contiene el 50% central de los datos</Typography>
             </Box>
-          } 
+          }
           arrow
         >
-          <rect 
-            x={q1X} 
-            y={boxY} 
-            width={Math.max(q3X - q1X, 4)} 
-            height={boxHeight} 
-            rx="4" 
-            fill="url(#boxGradient)" 
-            stroke="#00B37E" 
-            strokeWidth="2.5" 
+          <rect
+            x={q1X}
+            y={boxY}
+            width={Math.max(q3X - q1X, 4)}
+            height={boxHeight}
+            rx="4"
+            fill="url(#boxGradient)"
+            stroke="#00B37E"
+            strokeWidth="2.5"
             style={{ cursor: 'help', filter: 'url(#shadow)' }}
           />
         </Tooltip>
-        
+
         {/* Median line (Q2) */}
-        <Tooltip 
+        <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Mediana (Q2)</Typography>
               <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.median.toFixed(2)}</Typography>
               <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valor central de la distribución</Typography>
             </Box>
-          } 
+          }
           arrow
         >
           <line x1={medX} y1={boxY} x2={medX} y2={boxY + boxHeight} stroke="#004D40" strokeWidth="3" style={{ cursor: 'help' }} />
         </Tooltip>
-        
+
         {/* Outliers */}
         {boxplot.outliers_sample.slice(0, isExpanded ? 50 : 25).map((v, i) => (
-          <Tooltip 
-            key={i} 
+          <Tooltip
+            key={i}
             title={
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Valor Atípico (Outlier)</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Valor atípico (Outlier)</Typography>
                 <Typography variant="caption" sx={{ display: 'block' }}>Valor: {v.toFixed(2)}</Typography>
                 <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Fuera del rango normal</Typography>
               </Box>
-            } 
+            }
             arrow
           >
-            <circle 
-              cx={toX(v)} 
-              cy={yCenter} 
-              r={isExpanded ? 5 : 3.5} 
-              fill="#E5484D" 
-              stroke="#fff" 
-              strokeWidth="1.5" 
-              opacity="0.85" 
+            <circle
+              cx={toX(v)}
+              cy={yCenter}
+              r={isExpanded ? 5 : 3.5}
+              fill="#E5484D"
+              stroke="#fff"
+              strokeWidth="1.5"
+              opacity="0.85"
               style={{ cursor: 'help', filter: 'url(#shadow)' }}
             />
           </Tooltip>

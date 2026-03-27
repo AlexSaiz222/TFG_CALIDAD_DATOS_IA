@@ -49,15 +49,15 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
     // Paleta de colores basada en densidad de outliers (informativa, NO indica calidad)
     // Gradiente verde → amarillo → rojo
     const densityColor = proportion >= 0.20 ? '#EF4444' :  // Muy frecuentes (>= 20%) - rojo
-                         proportion >= 0.10 ? '#F97316' :  // Frecuentes (>= 10%) - naranja
-                         proportion >= 0.05 ? '#EAB308' :  // Moderados (>= 5%) - amarillo
-                         proportion >= 0.02 ? '#84CC16' :  // Pocos (>= 2%) - verde lima
-                         '#22C55E';                         // Muy pocos (< 2%) - verde
-    const densityLabel = proportion >= 0.20 ? 'Muy frecuentes' : 
-                         proportion >= 0.10 ? 'Frecuentes' : 
-                         proportion >= 0.05 ? 'Moderados' : 
-                         proportion >= 0.02 ? 'Pocos' : 
-                         'Muy pocos';
+      proportion >= 0.10 ? '#F97316' :  // Frecuentes (>= 10%) - naranja
+        proportion >= 0.05 ? '#EAB308' :  // Moderados (>= 5%) - amarillo
+          proportion >= 0.02 ? '#84CC16' :  // Pocos (>= 2%) - verde lima
+            '#22C55E';                         // Muy pocos (< 2%) - verde
+    const densityLabel = proportion >= 0.20 ? 'Muy frecuentes' :
+      proportion >= 0.10 ? 'Frecuentes' :
+        proportion >= 0.05 ? 'Moderados' :
+          proportion >= 0.02 ? 'Pocos' :
+            'Muy pocos';
 
     const lb = col.lower_bound ?? col.series_min ?? 0;
     const ub = col.upper_bound ?? col.series_max ?? 100;
@@ -234,7 +234,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
 
                 const color = outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D';
                 const radius = outlier.isSuspicious ? 7 : outlier.isExtreme ? 6 : 5;
-                const outlierType = outlier.isSuspicious ? 'Sospechoso' : outlier.isExtreme ? 'Extremo' : 'Moderado';
+                const outlierType = outlier.isSuspicious ? 'Sospechoso' : outlier.isExtreme ? 'Extremo' : 'moderado';
 
                 return (
                   <Tooltip key={idx} title={`Outlier ${outlierType}: ${outlier.val.toFixed(2)} (${outlier.iqrMultiple.toFixed(1)}× IQR)`} arrow>
@@ -404,17 +404,17 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
   return (
     <Box>
       {/* Educational context about outliers */}
-      <Alert 
-        severity="info" 
-        sx={{ 
-          mb: 3, 
+      <Alert
+        severity="info"
+        sx={{
+          mb: 3,
           backgroundColor: '#E3F2FD',
           border: '1px solid #90CAF9',
           '& .MuiAlert-icon': { color: '#1976d2' }
         }}
       >
         <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1565C0' }}>
-           Los outliers no son automáticamente indicadores de mala calidad
+          Los outliers no son automáticamente indicadores de mala calidad
         </Typography>
         <Typography variant="caption" sx={{ display: 'block', color: '#1976d2', lineHeight: 1.5 }}>
           Los valores atípicos pueden ser <strong>legítimos</strong> según el contexto de la variable. Por ejemplo:
@@ -455,11 +455,11 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           {columnsWithOutliers.map(([name, col]: [string, any]) => {
             const prop = col.proportion || (col.total_values > 0 ? col.count / col.total_values : 0);
             // Gradiente verde → amarillo → rojo
-            const chipColor = prop >= 0.20 ? '#EF4444' : 
-                             prop >= 0.10 ? '#F97316' : 
-                             prop >= 0.05 ? '#EAB308' : 
-                             prop >= 0.02 ? '#84CC16' : 
-                             '#22C55E';
+            const chipColor = prop >= 0.20 ? '#EF4444' :
+              prop >= 0.10 ? '#F97316' :
+                prop >= 0.05 ? '#EAB308' :
+                  prop >= 0.02 ? '#84CC16' :
+                    '#22C55E';
             const isActive = name === selectedColumn;
             return (
               <Chip

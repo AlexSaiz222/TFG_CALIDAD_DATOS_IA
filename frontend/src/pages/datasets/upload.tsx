@@ -25,16 +25,16 @@ import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI } from '../../services/api';
 import { Project } from '../../types';
 
-const steps = ['Select Project', 'Upload File', 'Review & Confirm'];
+const steps = ['Selecciona un proyecto', 'Añade un archivo', 'Revisa y confirma'];
 
 const DatasetUpload = () => {
   const router = useRouter();
   const { projectId: queryProjectId, parentId: queryParentId } = router.query;
-  
+
   // Check if this is a new version upload
   const isNewVersion = !!queryParentId;
   const parentDatasetId = queryParentId ? Number(queryParentId) : null;
-  
+
   const [activeStep, setActiveStep] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
   const [parentDataset, setParentDataset] = useState<any>(null);
@@ -99,7 +99,7 @@ const DatasetUpload = () => {
         ...prev,
         projectId: Number(queryProjectId)
       }));
-      
+
       // If project ID is provided, skip to step 2
       setActiveStep(1);
     }
@@ -107,9 +107,9 @@ const DatasetUpload = () => {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
-    
+
     const selectedFile = acceptedFiles[0];
-    
+
     // Check if file is CSV
     if (!selectedFile.name.endsWith('.csv')) {
       setErrors(prev => ({
@@ -118,7 +118,7 @@ const DatasetUpload = () => {
       }));
       return;
     }
-    
+
     // Check file size (max 10MB)
     if (selectedFile.size > 10 * 1024 * 1024) {
       setErrors(prev => ({
@@ -127,9 +127,9 @@ const DatasetUpload = () => {
       }));
       return;
     }
-    
+
     setFile(selectedFile);
-    
+
     // Set default name from filename if not already set
     if (!formData.name) {
       const fileName = selectedFile.name.replace('.csv', '');
@@ -138,7 +138,7 @@ const DatasetUpload = () => {
         name: fileName
       }));
     }
-    
+
     // Clear file error if exists
     if (errors.file) {
       setErrors(prev => ({
@@ -146,20 +146,20 @@ const DatasetUpload = () => {
         file: ''
       }));
     }
-    
+
     // Parse CSV to detect columns and generate preview
     const reader = new FileReader();
     reader.onload = () => {
       const content = reader.result as string;
       const lines = content.split('\n');
-      
+
       // Extract column names from first line (header)
       if (lines.length > 0) {
         const headerLine = lines[0];
         const columns = headerLine.split(',').map(col => col.trim().replace(/"/g, ''));
         setDetectedColumns(columns);
       }
-      
+
       // Generate preview of first few lines
       const preview = lines.slice(0, 5).join('\n');
       setFilePreview(preview);
@@ -181,7 +181,7 @@ const DatasetUpload = () => {
       ...prev,
       [name as string]: value
     }));
-    
+
     // Clear error when field is edited
     if (errors[name as string]) {
       setErrors(prev => ({
@@ -193,19 +193,19 @@ const DatasetUpload = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.projectId) {
       newErrors.projectId = 'Please select a project';
     }
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Dataset name is required';
     }
-    
+
     if (!file) {
       newErrors.file = 'Please upload a CSV file';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -218,7 +218,7 @@ const DatasetUpload = () => {
       }));
       return;
     }
-    
+
     if (activeStep === 1 && !file) {
       setErrors(prev => ({
         ...prev,
@@ -226,7 +226,7 @@ const DatasetUpload = () => {
       }));
       return;
     }
-    
+
     setActiveStep(prevStep => prevStep + 1);
   };
 
@@ -234,40 +234,48 @@ const DatasetUpload = () => {
     setActiveStep(prevStep => prevStep - 1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
     if (!validateForm()) {
       return;
     }
-    
+
+    // Ensure we only submit on the last step
+    if (activeStep < steps.length - 1) {
+      handleNext();
+      return;
+    }
+
     setUploading(true);
     setError(null);
-    
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name);
-      
+
       if (formData.description) {
         formDataToSend.append('description', formData.description);
       }
-      
+
       if (file) {
         formDataToSend.append('file', file);
       }
-      
+
       // Add version tag if uploading new version
       if (isNewVersion && formData.versionTag) {
         formDataToSend.append('version_tag', formData.versionTag);
       }
-      
+
       // Add sensitive columns as JSON string
       if (sensitiveColumns.length > 0) {
         formDataToSend.append('sensitive_columns', JSON.stringify(sensitiveColumns));
       }
-      
+
       let response;
-      
+
       if (isNewVersion && parentDatasetId) {
         // Upload as new version of existing dataset
         console.log('Uploading new version for dataset ID:', parentDatasetId);
@@ -278,21 +286,21 @@ const DatasetUpload = () => {
         response = await datasetsAPI.uploadDataset(formData.projectId, formDataToSend);
       }
       console.log('Upload response:', response);
-      
+
       // Normalize the response structure to handle different API response formats
       // This handles nested data structures like {data: {data: {...}}} or {data: {...}}
       const payload = response?.data?.data ?? response?.data ?? response;
       const datasetId = payload?.id ?? payload?.dataset?.id;
-      
+
       if (!datasetId) {
         console.error('Dataset ID not found in response:', response);
         setError('Upload complete, pero no pude obtener el ID del dataset del servidor.');
         setUploading(false);
         return;
       }
-      
+
       console.log('Successfully extracted dataset ID:', datasetId);
-      
+
       // Use replace instead of push to prevent the upload page from staying in history
       router.replace(`/datasets/${datasetId}`);
     } catch (error: any) {
@@ -304,37 +312,37 @@ const DatasetUpload = () => {
 
   return (
     <MainLayout>
-      <Box sx={{ 
-        mb: 4, 
+      <Box sx={{
+        mb: 4,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%',
         px: 2
       }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
           mb: 3,
           width: '100%',
           maxWidth: 800
         }}>
-          <IconButton 
-            onClick={() => router.back()} 
+          <IconButton
+            onClick={() => router.back()}
             sx={{ mr: 2 }}
             aria-label="back"
           >
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            {isNewVersion ? 'Subir nueva versión' : 'Upload Dataset'}
+            {isNewVersion ? 'Subir nueva versión' : 'Subir dataset'}
           </Typography>
           {isNewVersion && parentDataset && (
-            <Box sx={{ 
-              ml: 2, 
-              px: 1.5, 
-              py: 0.5, 
-              backgroundColor: 'rgba(23, 69, 79, 0.1)', 
+            <Box sx={{
+              ml: 2,
+              px: 1.5,
+              py: 0.5,
+              backgroundColor: 'rgba(23, 69, 79, 0.1)',
               borderRadius: 1,
               color: '#17454F',
               fontSize: '0.85rem',
@@ -391,13 +399,13 @@ const DatasetUpload = () => {
             ))}
           </Stepper>
 
-          <Box component="form" onSubmit={handleSubmit}>
+          <Box>
             {activeStep === 0 && (
               <Box>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Select Project
+                  Selecciona un proyecto
                 </Typography>
-                
+
                 {loading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                     <CircularProgress />
@@ -435,9 +443,9 @@ const DatasetUpload = () => {
             {activeStep === 1 && (
               <Box>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Upload File
+                  Subir archivo
                 </Typography>
-                
+
                 <Box
                   {...getRootProps()}
                   sx={{
@@ -482,13 +490,13 @@ const DatasetUpload = () => {
                     </Box>
                   )}
                 </Box>
-                
+
                 {errors.file && (
                   <Typography color="error" variant="body2" sx={{ mb: 2 }}>
                     {errors.file}
                   </Typography>
                 )}
-                
+
                 {filePreview && (
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -510,7 +518,7 @@ const DatasetUpload = () => {
                     </Paper>
                   </Box>
                 )}
-                
+
                 <TextField
                   fullWidth
                   label="Dataset Name"
@@ -522,7 +530,7 @@ const DatasetUpload = () => {
                   sx={{ mb: 3 }}
                   required
                 />
-                
+
                 <TextField
                   fullWidth
                   label="Description"
@@ -534,7 +542,7 @@ const DatasetUpload = () => {
                   sx={{ mb: 3 }}
                   placeholder="Enter a description for your dataset (optional)"
                 />
-                
+
                 {isNewVersion && (
                   <TextField
                     fullWidth
@@ -555,7 +563,7 @@ const DatasetUpload = () => {
                 <Typography variant="h6" sx={{ mb: 3 }}>
                   Review & Confirm
                 </Typography>
-                
+
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     Project
@@ -564,7 +572,7 @@ const DatasetUpload = () => {
                     {projects && projects.find(p => p.id === formData.projectId)?.name || 'Unknown Project'}
                   </Typography>
                 </Box>
-                
+
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     Dataset Name
@@ -573,7 +581,7 @@ const DatasetUpload = () => {
                     {formData.name}
                   </Typography>
                 </Box>
-                
+
                 {formData.description && (
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
@@ -584,7 +592,7 @@ const DatasetUpload = () => {
                     </Typography>
                   </Box>
                 )}
-                
+
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     File
@@ -593,7 +601,7 @@ const DatasetUpload = () => {
                     {file?.name} ({(file?.size ? (file.size / 1024 / 1024).toFixed(2) : 0)} MB)
                   </Typography>
                 </Box>
-                
+
                 {/* Sensitive Columns Selector */}
                 {detectedColumns.length > 0 && (
                   <Box sx={{ mb: 3, p: 2, border: '1px solid #E0E0E0', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
@@ -613,8 +621,8 @@ const DatasetUpload = () => {
                           <Box
                             key={column}
                             onClick={() => {
-                              setSensitiveColumns(prev => 
-                                prev.includes(column) 
+                              setSensitiveColumns(prev =>
+                                prev.includes(column)
                                   ? prev.filter(c => c !== column)
                                   : [...prev, column]
                               );
@@ -651,7 +659,7 @@ const DatasetUpload = () => {
                     )}
                   </Box>
                 )}
-                
+
                 {filePreview && (
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
@@ -675,9 +683,10 @@ const DatasetUpload = () => {
                 )}
               </Box>
             )}
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
               <Button
+                type="button"
                 variant="outlined"
                 onClick={activeStep === 0 ? () => router.back() : handleBack}
                 disabled={uploading}
@@ -692,10 +701,10 @@ const DatasetUpload = () => {
               >
                 {activeStep === 0 ? 'Cancel' : 'Back'}
               </Button>
-              
+
               {activeStep === steps.length - 1 ? (
                 <Button
-                  type="submit"
+                  onClick={handleSubmit}
                   variant="contained"
                   disabled={uploading}
                   sx={{
@@ -706,10 +715,11 @@ const DatasetUpload = () => {
                     },
                   }}
                 >
-                  {uploading ? <CircularProgress size={24} /> : 'Upload Dataset'}
+                  {uploading ? <CircularProgress size={24} /> : 'Subir dataset'}
                 </Button>
               ) : (
                 <Button
+                  type="button"
                   variant="contained"
                   onClick={handleNext}
                   sx={{
