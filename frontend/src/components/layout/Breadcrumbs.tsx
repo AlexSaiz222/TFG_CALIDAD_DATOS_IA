@@ -27,6 +27,7 @@ const routeLabels: Record<string, string> = {
   templates: 'Plantillas',
   new: 'Nuevo',
   upload: 'Subir',
+  edit: 'Editar',
   compare: 'Comparar',
   runs: 'Análisis',
   metrics: 'Métricas',
@@ -112,7 +113,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const breadcrumbs: BreadcrumbItem[] = [];
     let currentPath = '';
-    const nonClickableSegments = ['settings', 'metrics', 'configure'];
+    const nonClickableSegments = ['settings', 'metrics', 'configure', 'edit'];
 
     pathSegments.forEach((segment, index) => {
       currentPath += `/${segment}`;

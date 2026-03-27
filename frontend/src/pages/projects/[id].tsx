@@ -475,7 +475,7 @@ const ProjectDetail = () => {
 
   // Renderizado principal
   return (
-    <MainLayout>
+    <MainLayout currentPage={project.name}>
       <Box sx={{ mb: 4 }}>
         {/* Cabecera */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>

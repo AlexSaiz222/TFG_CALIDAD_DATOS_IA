@@ -18,12 +18,20 @@ import {
   Step,
   StepLabel,
   SelectChangeEvent,
+  Grid,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Security as SecurityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
+import {
+  ArrowBack as ArrowBackIcon,
+  Security as SecurityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  CheckCircle as CheckCircleIcon,
+  Description as DescriptionIcon,
+} from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI } from '../../services/api';
 import { Project } from '../../types';
+import { GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
 const steps = ['Selecciona un proyecto', 'Añade un archivo', 'Revisa y confirma'];
 
@@ -325,7 +333,7 @@ const DatasetUpload = () => {
           alignItems: 'center',
           mb: 3,
           width: '100%',
-          maxWidth: 800
+          maxWidth: 900
         }}>
           <IconButton
             onClick={() => router.back()}
@@ -356,48 +364,66 @@ const DatasetUpload = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 3,
+            p: { xs: 3, sm: 4 },
             borderRadius: 2,
             border: '1px solid #EEEEEE',
-            maxWidth: 800,
+            maxWidth: 900,
             width: '100%',
+            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)',
           }}
         >
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 3, width: '100%', maxWidth: 900 }}>
               {error}
             </Alert>
           )}
 
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel
-                  sx={{
-                    // Círculo activo
-                    '& .MuiStepIcon-root.Mui-active': {
-                      color: '#00B37E',
-                    },
-                    // Círculo completado
-                    '& .MuiStepIcon-root.Mui-completed': {
-                      color: '#00B37E',
-                    },
-                    // Círculo inactivo
-                    '& .MuiStepIcon-root': {
-                      color: '#CCCCCC',
-                    },
-                    // Texto dentro del círculo (número)
-                    '& .MuiStepIcon-text': {
-                      fill: '#FFFFFF !important', // siempre blanco
-                      fontWeight: 'bold',         // en negrita
-                    },
-                  }}
-                >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+          {/* Stepper */}
+          <Box sx={{ width: '100%', maxWidth: 900, mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', px: 2 }}>
+              {/* Progress line track */}
+              <Box sx={{
+                position: 'absolute', top: 20, left: '16.66%', right: '16.66%',
+                height: 3, bgcolor: '#E0E0E0', borderRadius: 1.5, zIndex: 0,
+              }}>
+                {/* Progress line fill */}
+                <Box sx={{
+                  width: activeStep === 0 ? '0%' : activeStep === 1 ? '50%' : '100%',
+                  height: '100%', bgcolor: GREEN, borderRadius: 1.5,
+                  transition: 'width 0.3s ease-in-out',
+                }} />
+              </Box>
+
+              {steps.map((label, index) => {
+                const isActive = index === activeStep;
+                const isCompleted = index < activeStep;
+                return (
+                  <Box key={label} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 1 }}>
+                    <Box sx={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      bgcolor: isCompleted || isActive ? GREEN : '#E0E0E0',
+                      color: isCompleted || isActive ? '#FFFFFF' : '#999999',
+                      fontWeight: 700, fontSize: '1rem', mb: 1,
+                      transition: 'all 0.3s ease-in-out',
+                      border: isActive ? `3px solid ${GREEN}` : 'none',
+                      boxShadow: isActive ? '0 0 0 4px rgba(0,179,126,0.15)' : 'none',
+                    }}>
+                      {isCompleted ? <CheckCircleIcon sx={{ fontSize: 20, color: '#FFFFFF' }} /> : index + 1}
+                    </Box>
+                    <Typography variant="body2" sx={{
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive ? '#1A1A1A' : isCompleted ? '#555' : '#999',
+                      fontSize: '0.875rem', textAlign: 'center',
+                      transition: 'all 0.3s ease-in-out',
+                    }}>
+                      {label}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
 
           <Box>
             {activeStep === 0 && (
@@ -497,27 +523,7 @@ const DatasetUpload = () => {
                   </Typography>
                 )}
 
-                {filePreview && (
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                      Preview:
-                    </Typography>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        backgroundColor: '#F5F5F5',
-                        borderRadius: 1,
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        overflow: 'auto',
-                        maxHeight: '150px', // Reduced height
-                      }}
-                    >
-                      <pre style={{ margin: 0 }}>{filePreview}</pre>
-                    </Paper>
-                  </Box>
-                )}
+
 
                 <TextField
                   fullWidth
@@ -560,131 +566,128 @@ const DatasetUpload = () => {
 
             {activeStep === 2 && (
               <Box>
-                <Typography variant="h6" sx={{ mb: 3 }}>
-                  Review & Confirm
+                <Typography variant="h5" sx={{ mb: 4, fontWeight: 700, color: '#1A1A1A' }}>
+                  Resumen y anonimización
                 </Typography>
 
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                    Project
+                {/* Resumen del Dataset */}
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
+                    Resumen del Dataset
                   </Typography>
-                  <Typography variant="body1">
-                    {projects && projects.find(p => p.id === formData.projectId)?.name || 'Unknown Project'}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                    Dataset Name
-                  </Typography>
-                  <Typography variant="body1">
-                    {formData.name}
-                  </Typography>
-                </Box>
-
-                {formData.description && (
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                      Description
-                    </Typography>
-                    <Typography variant="body1">
-                      {formData.description}
-                    </Typography>
-                  </Box>
-                )}
-
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                    File
-                  </Typography>
-                  <Typography variant="body1">
-                    {file?.name} ({(file?.size ? (file.size / 1024 / 1024).toFixed(2) : 0)} MB)
-                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: '#FAFAFA', borderColor: '#EAEAEA' }}>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>Proyecto</Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          {projects && projects.find(p => p.id === formData.projectId)?.name || 'Unknown Project'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>Nombre del Dataset</Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          {formData.name}
+                        </Typography>
+                      </Grid>
+                      {formData.description && (
+                        <Grid item xs={12}>
+                          <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>Descripción</Typography>
+                          <Typography variant="body2" sx={{ color: '#444' }}>
+                            {formData.description}
+                          </Typography>
+                        </Grid>
+                      )}
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1.5, bgcolor: '#FFF', borderRadius: 1, border: '1px solid #EEE' }}>
+                          <DescriptionIcon sx={{ color: GREEN, fontSize: 20 }} />
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {file?.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#888', ml: 'auto' }}>
+                            ({(file?.size ? (file.size / 1024 / 1024).toFixed(2) : 0)} MB)
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Paper>
                 </Box>
 
                 {/* Sensitive Columns Selector */}
                 {detectedColumns.length > 0 && (
-                  <Box sx={{ mb: 3, p: 2, border: '1px solid #E0E0E0', borderRadius: 2, backgroundColor: '#FAFAFA' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <SecurityIcon sx={{ color: '#E5484D', fontSize: 20 }} />
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        Columnas sensibles
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                      Marca las columnas que contienen datos sensibles. Sus valores se ofuscarán en las vistas previas.
+                  <Box sx={{ mb: 4 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
+                      Privacidad de Datos
                     </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {detectedColumns.map((column) => {
-                        const isSelected = sensitiveColumns.includes(column);
-                        return (
-                          <Box
-                            key={column}
-                            onClick={() => {
-                              setSensitiveColumns(prev =>
-                                prev.includes(column)
-                                  ? prev.filter(c => c !== column)
-                                  : [...prev, column]
-                              );
-                            }}
-                            sx={{
-                              px: 1.5,
-                              py: 0.75,
-                              border: isSelected ? '2px solid #E5484D' : '1px solid #DDD',
-                              borderRadius: 1,
-                              backgroundColor: isSelected ? 'rgba(229,72,77,0.08)' : '#FFF',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 0.5,
-                              transition: 'all 0.2s',
-                              '&:hover': {
-                                borderColor: '#E5484D',
-                                backgroundColor: 'rgba(229,72,77,0.04)',
-                              },
-                            }}
-                          >
-                            {isSelected && <VisibilityOffIcon sx={{ fontSize: 14, color: '#E5484D' }} />}
-                            <Typography variant="body2" sx={{ fontWeight: isSelected ? 600 : 400, color: isSelected ? '#E5484D' : '#333', fontSize: '0.85rem' }}>
-                              {column}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
+                    <Box sx={{ p: 3, border: '1px solid #FFE0E0', borderRadius: 2, backgroundColor: '#FFF5F5' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+                        <Box sx={{ bgcolor: '#FFE0E0', p: 1, borderRadius: '50%', display: 'flex' }}>
+                          <SecurityIcon sx={{ color: '#E5484D', fontSize: 24 }} />
+                        </Box>
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#E5484D', mb: 0.5 }}>
+                            Selección de columnas sensibles
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#666' }}>
+                            Es crucial proteger la información personal. Por favor, selecciona a continuación cualquier columna que contenga datos confidenciales.
+                            <strong> Sus valores serán enmascarados/anonimizados automáticamente.</strong>
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {detectedColumns.map((column) => {
+                          const isSelected = sensitiveColumns.includes(column);
+                          return (
+                            <Box
+                              key={column}
+                              onClick={() => {
+                                setSensitiveColumns(prev =>
+                                  prev.includes(column)
+                                    ? prev.filter(c => c !== column)
+                                    : [...prev, column]
+                                );
+                              }}
+                              sx={{
+                                px: 2,
+                                py: 1,
+                                border: isSelected ? '2px solid #E5484D' : '1px solid #DDD',
+                                borderRadius: 2,
+                                backgroundColor: isSelected ? 'rgba(229,72,77,0.08)' : '#FFF',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                  borderColor: '#E5484D',
+                                  backgroundColor: 'rgba(229,72,77,0.04)',
+                                },
+                              }}
+                            >
+                              {isSelected && <VisibilityOffIcon sx={{ fontSize: 16, color: '#E5484D' }} />}
+                              <Typography variant="body2" sx={{ fontWeight: isSelected ? 600 : 500, color: isSelected ? '#E5484D' : '#333' }}>
+                                {column}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                      {sensitiveColumns.length > 0 && (
+                        <Typography variant="body2" sx={{ color: '#E5484D', mt: 2, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <VisibilityOffIcon sx={{ fontSize: 16 }} />
+                          {sensitiveColumns.length} columna{sensitiveColumns.length !== 1 ? 's' : ''} protegida{sensitiveColumns.length !== 1 ? 's' : ''}.
+                        </Typography>
+                      )}
                     </Box>
-                    {sensitiveColumns.length > 0 && (
-                      <Typography variant="caption" sx={{ color: '#E5484D', mt: 1.5, display: 'block', fontWeight: 500 }}>
-                        {sensitiveColumns.length} columna{sensitiveColumns.length !== 1 ? 's' : ''} marcada{sensitiveColumns.length !== 1 ? 's' : ''} como sensible{sensitiveColumns.length !== 1 ? 's' : ''}
-                      </Typography>
-                    )}
                   </Box>
                 )}
 
-                {filePreview && (
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                      Preview:
-                    </Typography>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        backgroundColor: '#F5F5F5',
-                        borderRadius: 1,
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        overflow: 'auto',
-                        maxHeight: '150px', // Reduced height
-                      }}
-                    >
-                      <pre style={{ margin: 0 }}>{filePreview}</pre>
-                    </Paper>
-                  </Box>
-                )}
+
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            {/* ===== Navigation buttons ===== */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 2, borderTop: '1px solid #EEE' }}>
               <Button
                 type="button"
                 variant="outlined"
@@ -699,7 +702,7 @@ const DatasetUpload = () => {
                   },
                 }}
               >
-                {activeStep === 0 ? 'Cancel' : 'Back'}
+                {activeStep === 0 ? 'Cancelar' : 'Anterior'}
               </Button>
 
               {activeStep === steps.length - 1 ? (
@@ -708,14 +711,15 @@ const DatasetUpload = () => {
                   variant="contained"
                   disabled={uploading}
                   sx={{
-                    backgroundColor: '#00B37E',
+                    backgroundColor: GREEN,
                     color: '#FFFFFF',
+                    px: 4,
                     '&:hover': {
-                      backgroundColor: '#00A070',
+                      backgroundColor: GREEN_HOVER,
                     },
                   }}
                 >
-                  {uploading ? <CircularProgress size={24} /> : 'Subir dataset'}
+                  {uploading ? <CircularProgress size={20} color="inherit" /> : 'Subir dataset'}
                 </Button>
               ) : (
                 <Button
@@ -723,14 +727,14 @@ const DatasetUpload = () => {
                   variant="contained"
                   onClick={handleNext}
                   sx={{
-                    backgroundColor: '#00B37E',
+                    backgroundColor: GREEN,
                     color: '#FFFFFF',
                     '&:hover': {
-                      backgroundColor: '#00A070',
+                      backgroundColor: GREEN_HOVER,
                     },
                   }}
                 >
-                  Next
+                  Siguiente
                 </Button>
               )}
             </Box>

@@ -475,7 +475,7 @@ const DatasetDetail = () => {
   }
 
   return (
-    <MainLayout>
+    <MainLayout currentPage={dataset.name}>
       <Box sx={{ mb: 4 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>

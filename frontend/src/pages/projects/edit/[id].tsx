@@ -32,11 +32,11 @@ const EditProject = () => {
   useEffect(() => {
     const fetchProject = async () => {
       if (!id) return;
-      
+
       setFetchLoading(true);
       try {
         const response = await projectsAPI.getProject(Number(id));
-        const projectData = response.data || response;
+        const projectData = response?.data?.data ?? response?.data ?? response;
         setProject(projectData);
         setFormData({
           name: projectData.name || '',
@@ -61,7 +61,7 @@ const EditProject = () => {
       ...prev,
       [name]: value,
     }));
-    
+
     // Clear error when field is edited
     if (errors[name]) {
       setErrors((prev) => ({
@@ -73,33 +73,33 @@ const EditProject = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Project name is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !id) {
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       await projectsAPI.updateProject(Number(id), formData);
-      
+
       // Clear projects cache to ensure the updated project appears correctly
       if (window.localStorage) {
         localStorage.removeItem('projectsCache');
       }
-      
+
       // Navigate back to project detail page
       safeNavigate(`/projects/${id}`);
     } catch (error: any) {
@@ -133,31 +133,31 @@ const EditProject = () => {
   }
 
   return (
-    <MainLayout>
-      <Box sx={{ 
-        display: 'flex', 
+    <MainLayout currentPage={project.name}>
+      <Box sx={{
+        display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%',
         mb: 4,
         px: 3
       }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
           mb: 3,
           width: '100%',
           maxWidth: 700
         }}>
-          <IconButton 
-            onClick={() => router.back()} 
+          <IconButton
+            onClick={() => router.back()}
             sx={{ mr: 2 }}
             aria-label="back"
           >
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Edit Project
+            Editar proyecto
           </Typography>
         </Box>
 
@@ -192,7 +192,7 @@ const EditProject = () => {
               size="small"
               variant="outlined"
             />
-            
+
             <TextField
               fullWidth
               label="Description"
@@ -206,10 +206,10 @@ const EditProject = () => {
               size="small"
               variant="outlined"
             />
-            
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'flex-end', 
+
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
               gap: 2,
               mt: 2
             }}>
