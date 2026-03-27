@@ -37,7 +37,7 @@ import {
   Error as ErrorIcon,
   Warning as WarningIcon,
   HourglassEmpty as HourglassEmptyIcon,
-  CloudUpload as CloudUploadIcon,
+  FileUpload as FileUploadIcon,
   History as HistoryIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
@@ -112,10 +112,10 @@ const DatasetDetail = () => {
 
       try {
         console.log('Fetching dataset with ID:', datasetId);
-        
+
         // Fetch dataset details
         const datasetResponse = await datasetsAPI.getDataset(datasetId);
-        
+
         // Check if we got a valid response
         if (!datasetResponse?.data) {
           console.error('No data returned for dataset:', datasetId);
@@ -123,7 +123,7 @@ const DatasetDetail = () => {
           setLoading(false);
           return;
         }
-        
+
         // Normalizar el objeto dataset para manejar diferentes formatos de respuesta
         const raw = datasetResponse?.data?.data ?? datasetResponse?.data ?? {};
         const normalized: Dataset = {
@@ -146,7 +146,7 @@ const DatasetDetail = () => {
           version_tag: raw.version_tag ?? raw.versionTag,
           is_latest: raw.is_latest ?? raw.isLatest ?? true,
         };
-        
+
         setDataset(normalized);
 
         // Fetch project name for breadcrumb
@@ -160,7 +160,7 @@ const DatasetDetail = () => {
             setProjectName(`Project ${normalized.project_id}`);
           }
         }
-        
+
         // Set sensitive columns from dataset
         if (normalized.sensitive_columns && Array.isArray(normalized.sensitive_columns)) {
           setSensitiveColumns(normalized.sensitive_columns);
@@ -172,11 +172,11 @@ const DatasetDetail = () => {
           // Extraer las evaluaciones de la estructura de respuesta
           const evaluationsData = evaluationsResponse?.data?.data || evaluationsResponse?.data || [];
           // Sort evaluations by ID descending (newest first)
-          const sortedEvaluations = Array.isArray(evaluationsData) 
+          const sortedEvaluations = Array.isArray(evaluationsData)
             ? evaluationsData.sort((a: Evaluation, b: Evaluation) => b.id - a.id)
             : [];
           setEvaluations(sortedEvaluations);
-          
+
           // Fetch issues if there are evaluations
           if (Array.isArray(evaluationsData) && evaluationsData.length > 0) {
             const latestEvaluation = evaluationsData[0];
@@ -192,7 +192,7 @@ const DatasetDetail = () => {
           }
         } catch (evalError: any) {
           console.warn('Error fetching evaluations:', evalError);
-          
+
           // Si es un error 404, simplemente consideramos que no hay evaluaciones
           if (evalError?.response?.status === 404) {
             console.log('No evaluations endpoint found, treating as empty evaluations');
@@ -217,17 +217,17 @@ const DatasetDetail = () => {
           }
         } catch (previewError: any) {
           console.warn('Error fetching preview data:', previewError);
-          
+
           // Extraer mensaje de error para mostrar al usuario
-          const errorMessage = previewError?.response?.data?.message || 
-                              previewError?.message || 
-                              'No se pudo cargar la vista previa';
-          
+          const errorMessage = previewError?.response?.data?.message ||
+            previewError?.message ||
+            'No se pudo cargar la vista previa';
+
           // Si es un error de CSV sin columnas o vacío, mostrar mensaje más amigable
-          if (errorMessage.includes('No columns to parse') || 
-              errorMessage.includes('Error reading CSV')) {
-            setPreviewError('El archivo CSV podría estar vacío o tener un formato incorrecto. ' + 
-                          'Verifica que tenga encabezados y contenido válido.');
+          if (errorMessage.includes('No columns to parse') ||
+            errorMessage.includes('Error reading CSV')) {
+            setPreviewError('El archivo CSV podría estar vacío o tener un formato incorrecto. ' +
+              'Verifica que tenga encabezados y contenido válido.');
           } else {
             setPreviewError(errorMessage);
           }
@@ -283,20 +283,20 @@ const DatasetDetail = () => {
             const statusResponse = await evaluationsAPI.getEvaluationStatus(evalId);
             // La respuesta tiene estructura: { success, data: { status: { status, progress, current_step, ... } } }
             const statusData = statusResponse.data?.data?.status || statusResponse.data?.data || statusResponse.data;
-            
+
             console.log(`Polling evaluation ${evalId}:`, statusData);
             console.log(`Quality score from status:`, statusData.quality_score, typeof statusData.quality_score);
-            
+
             setEvaluations((prev: Evaluation[]) => prev.map((evaluation: Evaluation) => {
               if (evaluation.id === evalId) {
                 const newStatus = statusData.status;
                 const wasCompleted = evaluation.status !== 'completed' && newStatus === 'completed';
                 const wasFailed = evaluation.status !== 'failed' && newStatus === 'failed';
-                
+
                 if (wasCompleted || wasFailed) {
                   setRunningEvaluation(false);
                 }
-                
+
                 if (wasCompleted) {
                   // Cargar issues cuando se complete
                   evaluationsAPI.getIssues(evalId)
@@ -306,7 +306,7 @@ const DatasetDetail = () => {
                     })
                     .catch(err => console.warn('Error fetching issues:', err));
                 }
-                
+
                 return {
                   ...evaluation,
                   status: statusData.status,
@@ -335,7 +335,7 @@ const DatasetDetail = () => {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-    
+
     // If switching to Issues tab (index 3), load issues from latest completed evaluation
     if (newValue === 3 && evaluations.length > 0) {
       const latestCompletedEval = evaluations.find((e: Evaluation) => e.status === 'completed');
@@ -363,11 +363,11 @@ const DatasetDetail = () => {
 
   const handleDeleteConfirm = async () => {
     if (!dataset) return;
-    
+
     setDeleteLoading(true);
     try {
       await datasetsAPI.deleteDataset(dataset.id);
-      
+
       // Redirect to project page
       router.push(`/projects/${dataset.project_id}`);
     } catch (error) {
@@ -380,24 +380,24 @@ const DatasetDetail = () => {
 
   const handleRunEvaluation = async () => {
     if (!dataset) return;
-    
+
     setRunningEvaluation(true);
     setError(null);
-    
+
     try {
       // Pass an empty metrics config as the second parameter
       const response = await evaluationsAPI.createEvaluation(dataset.id, {});
-      
+
       // Extraer la evaluación de la estructura de respuesta
       // La respuesta tiene formato: { success: true, data: { evaluation: {...} } }
       const newEvaluation = response.data?.data?.evaluation || response.data;
-      
+
       console.log('Evaluation response:', response.data);
       console.log('Extracted evaluation:', newEvaluation);
-      
+
       // Add the new evaluation to the list - el useEffect de polling se encargará de actualizar el estado
       setEvaluations((prev: Evaluation[]) => [newEvaluation, ...prev]);
-      
+
       // No necesitamos polling aquí - el useEffect de polling automático se encarga de todo
     } catch (error: any) {
       console.error('Error running evaluation:', error);
@@ -518,7 +518,7 @@ const DatasetDetail = () => {
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <Button
               variant="outlined"
-              startIcon={<CloudUploadIcon />}
+              startIcon={<FileUploadIcon />}
               onClick={() => router.push(`/datasets/upload?parentId=${dataset.id}&projectId=${dataset.project_id}`)}
               sx={{
                 borderColor: '#17454F',
@@ -581,9 +581,9 @@ const DatasetDetail = () => {
               <Typography variant="body2" sx={{ color: '#555555' }}>
                 Project
               </Typography>
-              <Typography 
-                variant="body1" 
-                sx={{ 
+              <Typography
+                variant="body1"
+                sx={{
                   fontWeight: 500,
                   cursor: 'pointer',
                   '&:hover': {
@@ -658,7 +658,7 @@ const DatasetDetail = () => {
               {previewError}
             </Alert>
           ) : null}
-          
+
           {previewData.length > 0 ? (
             <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 420px)', minHeight: 300, overflow: 'auto' }}>
               <Table stickyHeader aria-label="dataset preview table" size="small">
@@ -742,9 +742,9 @@ const DatasetDetail = () => {
                                 ) : (
                                   <HourglassEmptyIcon sx={{ color: '#00B37E', fontSize: 18 }} />
                                 )}
-                                <Typography variant="body2" sx={{ 
+                                <Typography variant="body2" sx={{
                                   fontWeight: 500,
-                                  color: evaluation.status === 'pending' ? '#FFB800' : '#00B37E' 
+                                  color: evaluation.status === 'pending' ? '#FFB800' : '#00B37E'
                                 }}>
                                   {evaluation.status === 'pending' ? 'En cola' : 'Procesando'}
                                 </Typography>
@@ -754,7 +754,7 @@ const DatasetDetail = () => {
                                   </Typography>
                                 )}
                               </Box>
-                              <LinearProgress 
+                              <LinearProgress
                                 variant={evaluation.status === 'pending' ? 'indeterminate' : 'determinate'}
                                 value={evaluation.progress || 0}
                                 sx={{
@@ -930,12 +930,12 @@ const DatasetDetail = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {getIssueSeverityIcon(issue.severity)}
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
+                          <Typography
+                            variant="body2"
+                            sx={{
                               textTransform: 'capitalize',
-                              color: issue.severity === 'high' ? '#E5484D' : 
-                                     issue.severity === 'medium' ? '#FFB800' : '#00B37E'
+                              color: issue.severity === 'high' ? '#E5484D' :
+                                issue.severity === 'medium' ? '#FFB800' : '#00B37E'
                             }}
                           >
                             {issue.severity}
@@ -946,11 +946,11 @@ const DatasetDetail = () => {
                       <TableCell>
                         {issue.affected_columns && issue.affected_columns.length > 0
                           ? issue.affected_columns.map((col: any) => {
-                              if (typeof col === 'string') return col;
-                              if (col?.column) return col.column;
-                              if (col?.name) return col.name;
-                              return JSON.stringify(col);
-                            }).join(', ')
+                            if (typeof col === 'string') return col;
+                            if (col?.column) return col.column;
+                            if (col?.name) return col.name;
+                            return JSON.stringify(col);
+                          }).join(', ')
                           : 'N/A'}
                       </TableCell>
                       <TableCell>{issue.description}</TableCell>
@@ -962,8 +962,8 @@ const DatasetDetail = () => {
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-                {evaluations.length > 0 
-                  ? 'No issues found in the latest evaluation.' 
+                {evaluations.length > 0
+                  ? 'No issues found in the latest evaluation.'
                   : 'Run an evaluation to identify data quality issues.'}
               </Typography>
               {evaluations.length === 0 && (
@@ -1018,9 +1018,9 @@ const DatasetDetail = () => {
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             autoFocus
             disabled={deleteLoading}
           >

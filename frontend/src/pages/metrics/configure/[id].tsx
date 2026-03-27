@@ -37,7 +37,7 @@ import {
   Save as SaveIcon,
   Info as InfoIcon,
   Assessment as AssessmentIcon,
-  CloudUpload as CloudUploadIcon,
+  FileUpload as FileUploadIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
   Settings as SettingsIcon,
@@ -98,13 +98,13 @@ const MetricsConfigurationPage = () => {
   const projectIdFromUrl = useMemo(() => {
     if (!routerReady) return null;
     const { id } = router.query;
-    
+
 
     // Caso 1: ID válido como string
     if (typeof id === 'string' && id !== 'undefined') {
       return id;
     }
-    
+
     // Caso 2: ID válido en array
     if (Array.isArray(id) && id.length > 0 && id[0] !== 'undefined') {
       return id[0];
@@ -121,14 +121,14 @@ const MetricsConfigurationPage = () => {
     } catch (error) {
       console.error('Error al acceder a localStorage:', error);
     }
-    
+
     // Caso 4: Redirigir a la lista de proyectos si no hay ID válido
     if (typeof window !== 'undefined' && router.isReady) {
       setTimeout(() => {
         router.push('/projects');
       }, 100);
     }
-    
+
     return null;
   }, [router.query, routerReady, router]);
 
@@ -278,7 +278,7 @@ const MetricsConfigurationPage = () => {
           } else if (rawData && Array.isArray(rawData.metrics)) {
             metricsData = rawData.metrics;
           }
-          
+
         } catch (metricsError) {
           console.error('Error al cargar métricas:', metricsError);
           // No interrumpimos el flujo por un error en métricas, solo lo registramos
@@ -300,7 +300,7 @@ const MetricsConfigurationPage = () => {
           enabled: false,
           config: {},
         }));
-        
+
         // Rehidratación con config guardada en el proyecto (usar metric_id y la variable local normalizedMetrics)
         const projectObj = projectPayload ?? project; // Usar projectPayload si existe, o project como fallback
         let hydratedMetrics = normalizedMetrics;
@@ -416,7 +416,7 @@ const MetricsConfigurationPage = () => {
         metrics_config: metricsConfig  // Enviar como metrics_config
       };
 
-      
+
       // Usa un fallback seguro para el ID al guardar
       const pid = project?.id ?? projectIdNum;
       if (!pid) {
@@ -424,7 +424,7 @@ const MetricsConfigurationPage = () => {
         setSaving(false);
         return;
       }
-      
+
       // Llamada a la API con el formato correcto
       await metricsAPI.saveProjectMetricConfigs(pid, configToSave);
       // Actualización optimista del proyecto local
@@ -437,10 +437,10 @@ const MetricsConfigurationPage = () => {
     } catch (err: any) {
       console.error('Error al guardar la configuración de métricas:', err);
       // Mejorar el mensaje de error para incluir más detalles
-      const errorMessage = err.response?.status === 404 
-        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${project?.id ?? projectIdNum}/metrics/config` 
+      const errorMessage = err.response?.status === 404
+        ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${project?.id ?? projectIdNum}/metrics/config`
         : err.response?.data?.message || err.message || 'Error al guardar la configuración de métricas';
-      
+
       setError(errorMessage);
     } finally {
       setSaving(false);
@@ -477,34 +477,34 @@ const MetricsConfigurationPage = () => {
   const handleAddMetric = (metric: any) => {
     // Check if metric is already selected
     const isAlreadySelected = selectedMetrics.some(m => m.id === metric.id);
-    
+
     if (isAlreadySelected) {
       // Si ya está seleccionada, la quitamos (efecto toggle)
       setSelectedMetrics(selectedMetrics.filter(m => m.id !== metric.id));
       return;
     }
-    
+
     // Add metric to selectedMetrics sin abrir el modal de configuración
     // Asegurarse de que tenga parameters y config
     setSelectedMetrics([
-      ...selectedMetrics, 
+      ...selectedMetrics,
       { ...metric, parameters: metric.parameters ?? {}, config: metric.config ?? {} }
     ]);
   };
-  
+
   const handleRemoveMetric = (metricId: number) => {
     setSelectedMetrics(selectedMetrics.filter(metric => metric.id !== metricId));
   };
-  
+
   const handleConfigureMetric = (metric: any) => {
     setCurrentMetric({ ...metric });
     setConfigDialogOpen(true);
   };
-  
+
   const handleConfigDialogClose = () => {
     setConfigDialogOpen(false);
   };
-  
+
   const handleConfigDialogSave = (configuredMetric: any) => {
     // Update the metric in selectedMetrics
     // Asegurarse de que parameters y config estén sincronizados
@@ -513,8 +513,8 @@ const MetricsConfigurationPage = () => {
       parameters: configuredMetric.parameters || {},
       config: configuredMetric.config || {}
     };
-    
-    const updatedSelectedMetrics = selectedMetrics.map(metric => 
+
+    const updatedSelectedMetrics = selectedMetrics.map(metric =>
       metric.id === updatedMetric.id ? updatedMetric : metric
     );
     setSelectedMetrics(updatedSelectedMetrics);
@@ -536,7 +536,7 @@ const MetricsConfigurationPage = () => {
     const templateMetrics = selectedTemplate.metrics.map((tm: any) => {
       const fullMetric = metrics.find((m: any) => m.id === tm.id || m.id === tm.metric_id);
       if (!fullMetric) return null;
-      
+
       return {
         id: fullMetric.id,
         name: fullMetric.name,
@@ -605,12 +605,12 @@ const MetricsConfigurationPage = () => {
               Configuración de métricas
             </Typography>
           </Box>
-          <Alert 
+          <Alert
             severity="error"
             sx={{ mb: 3 }}
             action={
-              <Button 
-                color="inherit" 
+              <Button
+                color="inherit"
                 size="small"
                 onClick={() => {
                   // Intentar recuperar el ID del localStorage
@@ -697,12 +697,12 @@ const MetricsConfigurationPage = () => {
 
         {/* Mensajes */}
         {error && (
-          <Alert 
-            severity="error" 
+          <Alert
+            severity="error"
             sx={{ mb: 3 }}
             action={
-              <Button 
-                color="inherit" 
+              <Button
+                color="inherit"
                 size="small"
                 onClick={() => {
                   // Intentar recuperar el ID del localStorage
@@ -952,7 +952,7 @@ const MetricsConfigurationPage = () => {
                   <Button
                     variant="outlined"
                     size="small"
-                    startIcon={<CloudUploadIcon />}
+                    startIcon={<FileUploadIcon />}
                     onClick={() => setSaveTemplateDialogOpen(true)}
                     sx={{
                       borderColor: GREEN,
@@ -965,7 +965,7 @@ const MetricsConfigurationPage = () => {
                   </Button>
                 )}
               </Box>
-              
+
               {selectedMetrics.length === 0 ? (
                 <Alert severity="info" sx={{ mb: 2 }}>
                   No has seleccionado ninguna métrica. Añade métricas desde la pestaña "Métricas disponibles".
@@ -1107,7 +1107,7 @@ const MetricsConfigurationPage = () => {
                         minHeight: '240px',
                       }}
                     >
-                      <CloudUploadIcon sx={{ fontSize: 60, color: GREEN, opacity: 0.7, mb: 2 }} />
+                      <FileUploadIcon sx={{ fontSize: 60, color: GREEN, opacity: 0.7, mb: 2 }} />
                       <Typography variant="h6" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
                         No hay plantillas disponibles
                       </Typography>
@@ -1149,70 +1149,70 @@ const MetricsConfigurationPage = () => {
         )}
 
         {/* Diálogo de configuración de métricas */}
-      <Dialog
-        open={configDialogOpen}
-        onClose={handleConfigDialogClose}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Configurar métrica: {currentMetric?.name}
-        </DialogTitle>
-        <DialogContent>
-          {currentMetric && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Parámetros
-              </Typography>
-              
-              {Object.keys(currentMetric.parameters || {}).length === 0 ? (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  Esta métrica no tiene parámetros configurables.
-                </Alert>
-              ) : (
-                <Grid container spacing={2}>
-                  {Object.entries(currentMetric.parameters || {}).map(([key, value]: [string, any]) => (
-                    <Grid item xs={12} sm={6} key={key}>
-                      <TextField
-                        fullWidth
-                        label={key}
-                        value={value}
-                        onChange={(e) => {
-                          const updatedMetric = { ...currentMetric };
-                          updatedMetric.parameters = { ...updatedMetric.parameters };
-                          updatedMetric.parameters[key] = e.target.value;
-                          setCurrentMetric(updatedMetric);
-                        }}
-                        variant="outlined"
-                        margin="normal"
-                        helperText={`Parámetro: ${key}`}
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleConfigDialogClose} color="inherit">
-            Cancelar
-          </Button>
-          <Button 
-            onClick={() => handleConfigDialogSave(currentMetric)}
-            variant="contained"
-            sx={{ 
-              bgcolor: GREEN, 
-              color: '#FFFFFF',
-              '&:hover': { bgcolor: GREEN_HOVER } 
-            }}
-          >
-            Guardar configuración
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Diálogo de plantilla */}
+        <Dialog
+          open={configDialogOpen}
+          onClose={handleConfigDialogClose}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            Configurar métrica: {currentMetric?.name}
+          </DialogTitle>
+          <DialogContent>
+            {currentMetric && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Parámetros
+                </Typography>
+
+                {Object.keys(currentMetric.parameters || {}).length === 0 ? (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Esta métrica no tiene parámetros configurables.
+                  </Alert>
+                ) : (
+                  <Grid container spacing={2}>
+                    {Object.entries(currentMetric.parameters || {}).map(([key, value]: [string, any]) => (
+                      <Grid item xs={12} sm={6} key={key}>
+                        <TextField
+                          fullWidth
+                          label={key}
+                          value={value}
+                          onChange={(e) => {
+                            const updatedMetric = { ...currentMetric };
+                            updatedMetric.parameters = { ...updatedMetric.parameters };
+                            updatedMetric.parameters[key] = e.target.value;
+                            setCurrentMetric(updatedMetric);
+                          }}
+                          variant="outlined"
+                          margin="normal"
+                          helperText={`Parámetro: ${key}`}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleConfigDialogClose} color="inherit">
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => handleConfigDialogSave(currentMetric)}
+              variant="contained"
+              sx={{
+                bgcolor: GREEN,
+                color: '#FFFFFF',
+                '&:hover': { bgcolor: GREEN_HOVER }
+              }}
+            >
+              Guardar configuración
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Diálogo de plantilla */}
         <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)} maxWidth="sm">
           <DialogTitle>Aplicar plantilla</DialogTitle>
           <DialogContent>
@@ -1239,11 +1239,11 @@ const MetricsConfigurationPage = () => {
             <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#666' }}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleApplyTemplate} 
+            <Button
+              onClick={handleApplyTemplate}
               variant="contained"
-              sx={{ 
-                backgroundColor: GREEN, 
+              sx={{
+                backgroundColor: GREEN,
                 color: '#fff',
                 '&:hover': { backgroundColor: GREEN_HOVER }
               }}

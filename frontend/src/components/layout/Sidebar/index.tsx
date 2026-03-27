@@ -15,7 +15,7 @@ import {
   Folder as FolderIcon,
   FolderOpen as FolderOpenIcon,
   Storage as StorageIcon,
-  CloudUpload as CloudUploadIcon,
+  FileUpload as FileUploadIcon,
   Add as AddIcon,
   Assessment as AssessmentIcon,
   History as HistoryIcon,
@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isCollapsed, toggleCollapsed, setCollapsed } = useSidebar();
   const { isAuthenticated } = useAuth();
-  const [projects, setProjects] = useState<Array<{id: number; name: string}>>([]);
+  const [projects, setProjects] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
     if (isMobile) {
@@ -64,13 +64,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   // Fetch projects for dynamic menu (only when authenticated)
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     const fetchProjects = async () => {
       try {
         const res = await projectsAPI.getProjects();
         // The API returns { data: { projects: [...] } } or { data: [...] } or directly [...]
-        let projectsList: Array<{id: number; name: string}> = [];
-        
+        let projectsList: Array<{ id: number; name: string }> = [];
+
         if (res?.data?.data?.projects) {
           projectsList = res.data.data.projects;
         } else if (res?.data?.projects) {
@@ -82,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         } else if (Array.isArray(res)) {
           projectsList = res;
         }
-        
+
         setProjects(projectsList.slice(0, 8));
       } catch (error) {
         console.error('Error fetching projects for sidebar:', error);
@@ -130,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     {
       id: 'datasets-upload',
       text: 'Subir dataset',
-      icon: <CloudUploadIcon />,
+      icon: <FileUploadIcon />,
       path: '/datasets/upload',
     },
   ];
