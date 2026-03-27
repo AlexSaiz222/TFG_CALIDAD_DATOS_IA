@@ -24,6 +24,7 @@ const routeLabels: Record<string, string> = {
   evaluations: 'Historial de análisis',
   profile: 'Perfil',
   settings: 'Configuración',
+  templates: 'Plantillas',
   new: 'Nuevo',
   upload: 'Subir',
   compare: 'Comparar',
@@ -111,6 +112,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const breadcrumbs: BreadcrumbItem[] = [];
     let currentPath = '';
+    const nonClickableSegments = ['settings', 'metrics', 'configure'];
 
     pathSegments.forEach((segment, index) => {
       currentPath += `/${segment}`;
@@ -136,9 +138,12 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
         }
       }
 
+      // No hacer clicables las rutas que sabemos que no tienen una página 'index'
+      const isClickable = !isLast && !nonClickableSegments.includes(segment);
+
       breadcrumbs.push({
         label,
-        href: isLast ? undefined : currentPath,
+        href: isClickable ? currentPath : undefined,
       });
     });
 
