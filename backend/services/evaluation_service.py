@@ -18,7 +18,11 @@ from utils.fingerprint_utils import (
     generate_column_issue_fingerprint,
     generate_pattern_issue_fingerprint,
     generate_duplicate_issue_fingerprint,
-    generate_outlier_issue_fingerprint
+    generate_outlier_issue_fingerprint,
+    generate_syntactic_accuracy_fingerprint,
+    generate_logical_consistency_fingerprint,
+    generate_class_balance_fingerprint,
+    generate_timeliness_fingerprint,
 )
 
 logger = logging.getLogger(__name__)
@@ -690,8 +694,775 @@ class EvaluationService:
                         processed_metrics.append('outliers')
                         metric_scores.append(outlier_score * weight)
             
+                elif metric_id == 'syntactic_accuracy':
+                    # Syntactic Accuracy: validate values against expected types/patterns
+                    import re as re_module
+
+                    # Built-in pattern library
+                    SYNTACTIC_PATTERNS = {
+                        'email': r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
+                        'url': r'^https?://[^\s]+$',
+                        'phone_es': r'^(\+34)?[6-9]\d{8}$',
+                        'phone_intl': r'^\+?\d{1,4}[\s\-]?\(?\d{1,4}\)?[\s\-]?\d{4,14}$',
+                        'dni_es': r'^\d{8}[A-Za-z]$',
+                        'date_iso': r'^\d{4}-\d{2}-\d{2}$',
+                        'date_eu': r'^\d{2}/\d{2}/\d{4}$',
+                        'integer': r'^-?\d+$',
+                        'decimal': r'^-?\d+[.,]?\d*$',
+                        'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+                        'ip_v4': r'^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$',
+                        'postal_code_es': r'^\d{5}$',
+                        'credit_card': r'^\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}$',
+                    }
+
+                    auto_detect = parameters.get('auto_detect_types', True)
+                    custom_patterns = parameters.get('custom_patterns', {})
+                    user_columns = parameters.get('columns', [])
+                    accuracy_threshold = parameters.get('threshold', 0.95)
+
+                    # Build column -> (expected_type, pattern) mapping
+                    column_checks = {}
+
+                    # 1. User-defined column checks
+                    for col_cfg in user_columns:
+                        if isinstance(col_cfg, dict):
+                            col_name = col_cfg.get('column', '')
+                            exp_type = col_cfg.get('expected_type', '')
+                            custom_pat = col_cfg.get('pattern', '')
+                            if col_name and col_name in df.columns:
+                                if custom_pat:
+                                    column_checks[col_name] = (exp_type or 'custom', custom_pat)
+                                elif exp_type in SYNTACTIC_PATTERNS:
+                                    column_checks[col_name] = (exp_type, SYNTACTIC_PATTERNS[exp_type])
+
+                    # 2. User-defined custom patterns (key=column, value=pattern)
+                    for col_name, pattern_str in custom_patterns.items():
+                        if col_name in df.columns and col_name not in column_checks:
+                            column_checks[col_name] = ('custom', pattern_str)
+
+                    # 3. Auto-detect types for string columns not already assigned
+                    if auto_detect:
+                        string_cols = [c for c in df.columns
+                                       if df[c].dtype == 'object' and c not in column_checks]
+                        for col in string_cols:
+                            sample = df[col].dropna().head(100).astype(str)
+                            if len(sample) == 0:
+                                continue
+
+                            best_type = None
+                            best_rate = 0.0
+
+                            for type_name, pattern_str in SYNTACTIC_PATTERNS.items():
+                                try:
+                                    regex = re_module.compile(pattern_str)
+                                    match_count = sum(1 for v in sample if regex.match(str(v)))
+                                    match_rate = match_count / len(sample)
+                                    if match_rate > best_rate and match_rate >= 0.60:
+                                        best_rate = match_rate
+                                        best_type = type_name
+                                except re_module.error:
+                                    continue
+
+                            if best_type:
+                                column_checks[col] = (best_type, SYNTACTIC_PATTERNS[best_type])
+
+                    # 4. Validate each column
+                    accuracy_results = {}
+                    conformance_scores = []
+
+                    for col_name, (expected_type, pattern_str) in column_checks.items():
+                        try:
+                            regex = re_module.compile(pattern_str)
+                        except re_module.error:
+                            logger.warning(f"[SYNTACTIC] Invalid regex for column '{col_name}': {pattern_str}")
+                            continue
+
+                        non_null = df[col_name].dropna()
+                        if len(non_null) == 0:
+                            continue
+
+                        valid_count = 0
+                        invalid_count = 0
+                        invalid_samples = []
+
+                        for value in non_null:
+                            str_value = str(value)
+                            if regex.match(str_value):
+                                valid_count += 1
+                            else:
+                                invalid_count += 1
+                                if len(invalid_samples) < 5:
+                                    invalid_samples.append(str_value)
+
+                        total_checked = valid_count + invalid_count
+                        conformance_rate = valid_count / total_checked if total_checked > 0 else 1.0
+                        conformance_scores.append(conformance_rate)
+
+                        # Mask sensitive columns
+                        if col_name in (dataset.sensitive_columns or []):
+                            invalid_samples = ['***' for _ in invalid_samples]
+
+                        accuracy_results[col_name] = {
+                            'expected_type': expected_type,
+                            'pattern': pattern_str,
+                            'conformance_rate': float(conformance_rate),
+                            'valid_count': valid_count,
+                            'invalid_count': invalid_count,
+                            'total_checked': total_checked,
+                            'sample_invalid': invalid_samples,
+                        }
+
+                        # Generate issue if below threshold
+                        if conformance_rate < accuracy_threshold:
+                            severity = self._calculate_dynamic_severity(
+                                actual_value=conformance_rate,
+                                threshold=accuracy_threshold,
+                                metric_type='completeness',
+                                higher_is_better=True
+                            )
+
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get('syntactic_accuracy'),
+                                'severity': severity,
+                                'description': (
+                                    f"Column '{col_name}' has {invalid_count} values not matching "
+                                    f"expected type '{expected_type}' ({conformance_rate:.2%} conformance)"
+                                ),
+                                'affected_columns': [{
+                                    'column': col_name,
+                                    'expected_type': expected_type,
+                                    'invalid_count': invalid_count,
+                                    'conformance_rate': float(conformance_rate),
+                                }],
+                                'issue_type': 'syntactic_accuracy',
+                                'fingerprint': generate_syntactic_accuracy_fingerprint(
+                                    column_name=col_name,
+                                    expected_type=expected_type,
+                                    pattern=pattern_str
+                                ),
+                            })
+
+                    # Overall score
+                    overall_conformance = (
+                        sum(conformance_scores) / len(conformance_scores)
+                        if conformance_scores else 1.0
+                    )
+
+                    results['syntactic_accuracy'] = {
+                        'overall_conformance': float(overall_conformance),
+                        'columns_checked': len(column_checks),
+                        'columns': accuracy_results,
+                    }
+                    processed_metrics.append('syntactic_accuracy')
+                    metric_scores.append(overall_conformance * weight)
+
+                    logger.info(
+                        f"[SYNTACTIC] Checked {len(column_checks)} columns, "
+                        f"overall conformance: {overall_conformance:.2%}"
+                    )
+
+                elif metric_id == 'logical_consistency':
+                    # Logical Consistency: cross-field validation rules
+                    import re as re_module
+
+                    rules = parameters.get('rules', [])
+
+                    if not rules:
+                        logger.info("[CONSISTENCY] No rules configured, skipping")
+                    else:
+                        # Blacklist of dangerous tokens for safe evaluation
+                        FORBIDDEN_TOKENS = [
+                            'import', '__', 'exec', 'eval', 'compile',
+                            'globals', 'locals', 'getattr', 'setattr', 'delattr',
+                            'open', 'os.', 'sys.', 'subprocess', 'shutil',
+                            'lambda', 'def ', 'class ',
+                        ]
+
+                        consistency_results = []
+                        compliance_scores = []
+
+                        for rule_idx, rule in enumerate(rules):
+                            rule_name = rule.get('name', f'Regla {rule_idx + 1}')
+                            expression = rule.get('expression', '')
+                            rule_type = rule.get('type', 'violation')  # violation | if_then
+
+                            if not expression:
+                                continue
+
+                            # Sanitize expression
+                            expr_lower = expression.lower()
+                            is_safe = True
+                            for token in FORBIDDEN_TOKENS:
+                                if token in expr_lower:
+                                    logger.warning(
+                                        f"[CONSISTENCY] Blocked unsafe expression in rule '{rule_name}': "
+                                        f"contains '{token}'"
+                                    )
+                                    is_safe = False
+                                    break
+
+                            if not is_safe:
+                                issues.append({
+                                    'evaluation_id': evaluation.id,
+                                    'metric_id': metrics_map.get('logical_consistency'),
+                                    'severity': 'high',
+                                    'description': (
+                                        f"Rule '{rule_name}' contains forbidden tokens and was blocked for safety"
+                                    ),
+                                    'affected_columns': [],
+                                    'issue_type': 'logical_consistency',
+                                    'fingerprint': generate_logical_consistency_fingerprint(
+                                        rule_expression=expression,
+                                        rule_name=rule_name
+                                    ),
+                                })
+                                continue
+
+                            try:
+                                total_rows = len(df)
+
+                                if rule_type == 'if_then':
+                                    # Format: {"condition": "col == 'X'", "assertion": "col2.notna()"}
+                                    condition = rule.get('condition', '')
+                                    assertion = rule.get('assertion', '')
+
+                                    if not condition or not assertion:
+                                        # Try parsing from expression: "IF ... THEN ..."
+                                        if_match = re_module.match(
+                                            r'(?:IF|Si|WHEN|Cuando)\s+(.+?)\s+(?:THEN|Entonces|THEN)\s+(.+)',
+                                            expression, re_module.IGNORECASE
+                                        )
+                                        if if_match:
+                                            condition = if_match.group(1).strip()
+                                            assertion = if_match.group(2).strip()
+                                        else:
+                                            logger.warning(
+                                                f"[CONSISTENCY] Could not parse IF-THEN rule '{rule_name}': {expression}"
+                                            )
+                                            continue
+
+                                    # Find rows where condition is true
+                                    condition_rows = df.query(condition)
+
+                                    if len(condition_rows) == 0:
+                                        # Condition never met, rule passes
+                                        compliance_rate = 1.0
+                                        violation_count = 0
+                                        sample_violations = []
+                                    else:
+                                        # Among condition rows, find which violate assertion
+                                        # Negate assertion: rows where assertion is FALSE are violations
+                                        try:
+                                            passing_rows = condition_rows.query(assertion)
+                                            violation_count = len(condition_rows) - len(passing_rows)
+                                            violating_indices = condition_rows.index.difference(passing_rows.index)
+                                            violation_df = df.loc[violating_indices]
+                                        except Exception:
+                                            # If assertion can't be queried (e.g. notna()), try negation
+                                            try:
+                                                negated = f"not ({assertion})"
+                                                violation_df = condition_rows.query(negated)
+                                                violation_count = len(violation_df)
+                                            except Exception:
+                                                # Last resort: evaluate assertion as boolean mask
+                                                violation_df = pd.DataFrame()
+                                                violation_count = 0
+
+                                        compliance_rate = 1 - (violation_count / total_rows) if total_rows > 0 else 1.0
+
+                                        # Sample violations
+                                        sample_data = json.loads(
+                                            violation_df.head(5).to_json(orient='records')
+                                        ) if violation_count > 0 else []
+                                        # Mask sensitive columns
+                                        if dataset.sensitive_columns and sample_data:
+                                            for row in sample_data:
+                                                for sc in dataset.sensitive_columns:
+                                                    if sc in row:
+                                                        row[sc] = "***"
+                                        sample_violations = sample_data
+
+                                else:
+                                    # Default: expression directly selects violating rows
+                                    # e.g. "end_date < start_date" returns rows that violate the rule
+                                    violation_df = df.query(expression)
+                                    violation_count = len(violation_df)
+                                    compliance_rate = 1 - (violation_count / total_rows) if total_rows > 0 else 1.0
+
+                                    sample_data = json.loads(
+                                        violation_df.head(5).to_json(orient='records')
+                                    ) if violation_count > 0 else []
+                                    if dataset.sensitive_columns and sample_data:
+                                        for row in sample_data:
+                                            for sc in dataset.sensitive_columns:
+                                                if sc in row:
+                                                    row[sc] = "***"
+                                    sample_violations = sample_data
+
+                                compliance_scores.append(compliance_rate)
+
+                                # Extract affected columns from expression
+                                affected_cols = [
+                                    c for c in df.columns
+                                    if c in expression or c in rule.get('condition', '') or c in rule.get('assertion', '')
+                                ]
+
+                                rule_result = {
+                                    'name': rule_name,
+                                    'expression': expression,
+                                    'type': rule_type,
+                                    'violation_count': violation_count,
+                                    'total_rows': total_rows,
+                                    'compliance_rate': float(compliance_rate),
+                                    'affected_columns': affected_cols,
+                                    'sample_violations': sample_violations if violation_count > 0 else [],
+                                }
+                                consistency_results.append(rule_result)
+
+                                # Generate issue if violations found
+                                if violation_count > 0:
+                                    violation_pct = violation_count / total_rows if total_rows > 0 else 0
+                                    severity = self._calculate_dynamic_severity(
+                                        actual_value=compliance_rate,
+                                        threshold=1.0,
+                                        metric_type='completeness',
+                                        higher_is_better=True
+                                    )
+
+                                    issues.append({
+                                        'evaluation_id': evaluation.id,
+                                        'metric_id': metrics_map.get('logical_consistency'),
+                                        'severity': severity,
+                                        'description': (
+                                            f"Rule '{rule_name}' violated in {violation_count} rows "
+                                            f"({violation_pct:.2%} of dataset)"
+                                        ),
+                                        'affected_columns': [{'column': c} for c in affected_cols],
+                                        'affected_rows': {
+                                            'count': violation_count,
+                                            'sample': sample_violations[:5],
+                                        },
+                                        'issue_type': 'logical_consistency',
+                                        'fingerprint': generate_logical_consistency_fingerprint(
+                                            rule_expression=expression,
+                                            rule_name=rule_name
+                                        ),
+                                    })
+
+                            except Exception as rule_error:
+                                logger.error(
+                                    f"[CONSISTENCY] Error evaluating rule '{rule_name}': {rule_error}"
+                                )
+                                consistency_results.append({
+                                    'name': rule_name,
+                                    'expression': expression,
+                                    'type': rule_type,
+                                    'error': str(rule_error),
+                                    'violation_count': 0,
+                                    'total_rows': len(df),
+                                    'compliance_rate': None,
+                                    'affected_columns': [],
+                                    'sample_violations': [],
+                                })
+
+                        # Overall score
+                        overall_compliance = (
+                            sum(compliance_scores) / len(compliance_scores)
+                            if compliance_scores else 1.0
+                        )
+
+                        results['logical_consistency'] = {
+                            'overall_compliance': float(overall_compliance),
+                            'rules_evaluated': len(consistency_results),
+                            'rules_with_violations': sum(
+                                1 for r in consistency_results if r.get('violation_count', 0) > 0
+                            ),
+                            'rules': consistency_results,
+                        }
+                        processed_metrics.append('logical_consistency')
+                        metric_scores.append(overall_compliance * weight)
+
+                        logger.info(
+                            f"[CONSISTENCY] Evaluated {len(consistency_results)} rules, "
+                            f"overall compliance: {overall_compliance:.2%}"
+                        )
+
+                elif metric_id == 'class_balance':
+                    # Class Balance: measure distribution balance of categorical variables
+                    auto_detect = parameters.get('auto_detect', True)
+                    user_columns = parameters.get('columns', [])
+                    max_cardinality = parameters.get('max_cardinality', 50)
+                    threshold_high = parameters.get('imbalance_threshold_high', 0.90)
+                    threshold_low = parameters.get('imbalance_threshold_low', 0.05)
+
+                    # Select columns to analyze
+                    target_columns = []
+
+                    if user_columns:
+                        target_columns = [c for c in user_columns if c in df.columns]
+
+                    if auto_detect:
+                        for col in df.columns:
+                            if col in target_columns:
+                                continue
+                            n_unique = df[col].nunique(dropna=True)
+                            if n_unique <= 1:
+                                continue  # Skip constant columns
+                            if n_unique <= max_cardinality:
+                                # Categorical-like: object/category or int with few values
+                                if df[col].dtype == 'object' or str(df[col].dtype) == 'category':
+                                    target_columns.append(col)
+                                elif pd.api.types.is_integer_dtype(df[col]) and n_unique <= 20:
+                                    target_columns.append(col)
+
+                    balance_results = {}
+                    balance_scores = []
+
+                    for col in target_columns:
+                        non_null = df[col].dropna()
+                        if len(non_null) == 0:
+                            continue
+
+                        value_counts = non_null.value_counts(normalize=True)
+                        n_classes = len(value_counts)
+
+                        if n_classes <= 1:
+                            balance_index = 0.0
+                            entropy_val = 0.0
+                            max_entropy = 0.0
+                        else:
+                            # Shannon entropy (numpy-based, no scipy needed)
+                            probs = value_counts.values
+                            entropy_val = float(-np.sum(probs * np.log2(probs + 1e-12)))
+                            max_entropy = float(np.log2(n_classes))
+                            balance_index = float((entropy_val / max_entropy) * 100) if max_entropy > 0 else 100.0
+
+                        balance_scores.append(balance_index / 100.0)
+
+                        # Frequency table (top 20 + others)
+                        abs_counts = non_null.value_counts()
+                        freq_table = {}
+                        for i, (val, count) in enumerate(abs_counts.items()):
+                            if i < 20:
+                                freq_table[str(val)] = {
+                                    'count': int(count),
+                                    'proportion': float(value_counts.iloc[i]),
+                                }
+                            else:
+                                # Aggregate remaining
+                                others_count = int(abs_counts.iloc[20:].sum())
+                                others_prop = float(value_counts.iloc[20:].sum())
+                                freq_table['__others__'] = {
+                                    'count': others_count,
+                                    'proportion': others_prop,
+                                    'num_classes': n_classes - 20,
+                                }
+                                break
+
+                        dominant_class = str(value_counts.index[0])
+                        dominant_prop = float(value_counts.iloc[0])
+                        minority_class = str(value_counts.index[-1])
+                        minority_prop = float(value_counts.iloc[-1])
+
+                        # Mask sensitive columns
+                        if col in (dataset.sensitive_columns or []):
+                            dominant_class = '***'
+                            minority_class = '***'
+                            freq_table = {'***': {'count': len(non_null), 'proportion': 1.0}}
+
+                        alerts = []
+                        if dominant_prop >= threshold_high:
+                            alerts.append(f"Clase dominante '{dominant_class}' ocupa {dominant_prop:.1%} del total")
+                        if minority_prop <= threshold_low and n_classes > 1:
+                            alerts.append(f"Clase minoritaria '{minority_class}' solo ocupa {minority_prop:.1%} del total")
+
+                        balance_results[col] = {
+                            'balance_index': round(balance_index, 2),
+                            'entropy': round(entropy_val, 4),
+                            'max_entropy': round(max_entropy, 4),
+                            'num_classes': n_classes,
+                            'total_values': len(non_null),
+                            'frequency_table': freq_table,
+                            'dominant_class': {'value': dominant_class, 'proportion': round(dominant_prop, 4)},
+                            'minority_class': {'value': minority_class, 'proportion': round(minority_prop, 4)},
+                            'alerts': alerts,
+                        }
+
+                        # Generate issues for imbalanced columns
+                        if dominant_prop >= threshold_high:
+                            severity = self._calculate_dynamic_severity(
+                                actual_value=dominant_prop,
+                                threshold=0.0,
+                                metric_type='outliers',
+                                higher_is_better=False
+                            )
+
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get('class_balance'),
+                                'severity': severity,
+                                'description': (
+                                    f"Column '{col}' is highly imbalanced: dominant class "
+                                    f"'{dominant_class}' represents {dominant_prop:.1%} of values "
+                                    f"(balance index: {balance_index:.1f}/100)"
+                                ),
+                                'affected_columns': [{
+                                    'column': col,
+                                    'dominant_class': dominant_class,
+                                    'dominant_proportion': round(dominant_prop, 4),
+                                    'balance_index': round(balance_index, 2),
+                                }],
+                                'issue_type': 'class_balance',
+                                'fingerprint': generate_class_balance_fingerprint(
+                                    column_name=col,
+                                    imbalance_type='dominant_class'
+                                ),
+                            })
+
+                        if minority_prop <= threshold_low and n_classes > 1:
+                            # Only generate separate issue if not already covered by dominant
+                            severity_min = 'medium' if minority_prop < 0.02 else 'low'
+
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get('class_balance'),
+                                'severity': severity_min,
+                                'description': (
+                                    f"Column '{col}' has underrepresented minority class "
+                                    f"'{minority_class}' at {minority_prop:.2%} of values"
+                                ),
+                                'affected_columns': [{
+                                    'column': col,
+                                    'minority_class': minority_class,
+                                    'minority_proportion': round(minority_prop, 4),
+                                    'balance_index': round(balance_index, 2),
+                                }],
+                                'issue_type': 'class_balance',
+                                'fingerprint': generate_class_balance_fingerprint(
+                                    column_name=col,
+                                    imbalance_type='minority_class'
+                                ),
+                            })
+
+                    # Overall score
+                    overall_balance = (
+                        sum(balance_scores) / len(balance_scores)
+                        if balance_scores else 1.0
+                    )
+
+                    results['class_balance'] = {
+                        'overall_balance_index': round(overall_balance * 100, 2),
+                        'columns_analyzed': len(balance_results),
+                        'columns_with_alerts': sum(
+                            1 for r in balance_results.values() if r.get('alerts')
+                        ),
+                        'columns': balance_results,
+                    }
+                    processed_metrics.append('class_balance')
+                    metric_scores.append(overall_balance * weight)
+
+                    logger.info(
+                        f"[CLASS_BALANCE] Analyzed {len(balance_results)} columns, "
+                        f"overall balance index: {overall_balance * 100:.1f}/100"
+                    )
+
+                elif metric_id == 'timeliness':
+                    # Timeliness: measure data freshness and recency
+                    auto_detect = parameters.get('auto_detect', True)
+                    user_columns = parameters.get('columns', [])
+                    staleness_days = parameters.get('staleness_threshold_days', 30)
+
+                    now = pd.Timestamp.now()
+
+                    # Identify date columns
+                    date_columns = {}  # col_name -> parsed Series
+
+                    # 1. User-specified columns
+                    for col in user_columns:
+                        if col in df.columns:
+                            parsed = pd.to_datetime(df[col], errors='coerce', infer_datetime_format=True)
+                            success_rate = parsed.notna().sum() / len(df) if len(df) > 0 else 0
+                            if success_rate > 0.3:
+                                date_columns[col] = parsed
+
+                    # 2. Auto-detect date columns
+                    if auto_detect:
+                        for col in df.columns:
+                            if col in date_columns:
+                                continue
+
+                            # Already datetime dtype
+                            if pd.api.types.is_datetime64_any_dtype(df[col]):
+                                date_columns[col] = df[col]
+                                continue
+
+                            # Try parsing object columns (sample first for performance)
+                            if df[col].dtype == 'object':
+                                sample = df[col].dropna().head(50)
+                                if len(sample) == 0:
+                                    continue
+                                try:
+                                    parsed_sample = pd.to_datetime(
+                                        sample, errors='coerce', infer_datetime_format=True
+                                    )
+                                    sample_success = parsed_sample.notna().sum() / len(sample)
+                                    if sample_success >= 0.50:
+                                        # Good match on sample, parse full column
+                                        parsed_full = pd.to_datetime(
+                                            df[col], errors='coerce', infer_datetime_format=True
+                                        )
+                                        date_columns[col] = parsed_full
+                                except Exception:
+                                    continue
+
+                    # Analyze each date column
+                    timeliness_results = {}
+                    freshness_scores = []
+
+                    for col_name, parsed_series in date_columns.items():
+                        valid_dates = parsed_series.dropna()
+                        if len(valid_dates) == 0:
+                            continue
+
+                        parse_success_rate = float(parsed_series.notna().sum() / len(df)) if len(df) > 0 else 0
+                        max_date = valid_dates.max()
+                        min_date = valid_dates.min()
+                        age_days = (now - max_date).days if pd.notna(max_date) else None
+                        date_range_days = (max_date - min_date).days if pd.notna(max_date) and pd.notna(min_date) else None
+
+                        is_stale = age_days is not None and age_days > staleness_days
+
+                        # Freshness score for this column
+                        if age_days is None:
+                            col_freshness = 0.0
+                        elif age_days <= staleness_days:
+                            col_freshness = 1.0
+                        else:
+                            # Linear decay: drops to 0 at 2x the threshold
+                            col_freshness = max(0.0, 1.0 - (age_days - staleness_days) / staleness_days)
+
+                        freshness_scores.append(col_freshness)
+
+                        # Format human-readable age
+                        if age_days is not None:
+                            if age_days == 0:
+                                age_human = 'Hoy'
+                            elif age_days == 1:
+                                age_human = '1 dia'
+                            elif age_days < 30:
+                                age_human = f'{age_days} dias'
+                            elif age_days < 365:
+                                months = age_days // 30
+                                remaining_days = age_days % 30
+                                age_human = f'{months} mes{"es" if months > 1 else ""}'
+                                if remaining_days > 0:
+                                    age_human += f' y {remaining_days} dia{"s" if remaining_days > 1 else ""}'
+                            else:
+                                years = age_days // 365
+                                remaining_months = (age_days % 365) // 30
+                                age_human = f'{years} ano{"s" if years > 1 else ""}'
+                                if remaining_months > 0:
+                                    age_human += f' y {remaining_months} mes{"es" if remaining_months > 1 else ""}'
+                        else:
+                            age_human = 'Desconocido'
+
+                        timeliness_results[col_name] = {
+                            'max_date': max_date.isoformat() if pd.notna(max_date) else None,
+                            'min_date': min_date.isoformat() if pd.notna(min_date) else None,
+                            'age_days': int(age_days) if age_days is not None else None,
+                            'age_human': age_human,
+                            'date_range_days': int(date_range_days) if date_range_days is not None else None,
+                            'parse_success_rate': round(parse_success_rate, 4),
+                            'valid_dates_count': len(valid_dates),
+                            'is_stale': is_stale,
+                            'freshness_score': round(col_freshness, 4),
+                            'staleness_threshold_days': staleness_days,
+                        }
+
+                        # Generate issue for stale columns
+                        if is_stale:
+                            # Severity based on how far past threshold
+                            ratio = age_days / staleness_days if staleness_days > 0 else 10
+                            if ratio >= 10:
+                                severity = 'critical'
+                            elif ratio >= 3:
+                                severity = 'high'
+                            elif ratio >= 1:
+                                severity = 'medium'
+                            else:
+                                severity = 'low'
+
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get('timeliness'),
+                                'severity': severity,
+                                'description': (
+                                    f"Column '{col_name}' contains stale data: most recent record "
+                                    f"is {age_human} old (threshold: {staleness_days} days)"
+                                ),
+                                'affected_columns': [{
+                                    'column': col_name,
+                                    'age_days': int(age_days),
+                                    'max_date': max_date.isoformat(),
+                                    'freshness_score': round(col_freshness, 4),
+                                }],
+                                'issue_type': 'timeliness',
+                                'fingerprint': generate_timeliness_fingerprint(
+                                    column_name=col_name,
+                                    staleness_threshold_days=staleness_days
+                                ),
+                            })
+
+                        # Generate info issue for poor date parsing
+                        if parse_success_rate < 0.80 and len(df) > 10:
+                            issues.append({
+                                'evaluation_id': evaluation.id,
+                                'metric_id': metrics_map.get('timeliness'),
+                                'severity': 'low',
+                                'description': (
+                                    f"Column '{col_name}' has low date parse success rate "
+                                    f"({parse_success_rate:.1%}): some values may not be valid dates"
+                                ),
+                                'affected_columns': [{
+                                    'column': col_name,
+                                    'parse_success_rate': round(parse_success_rate, 4),
+                                }],
+                                'issue_type': 'timeliness',
+                                'fingerprint': generate_issue_fingerprint(
+                                    issue_type='timeliness',
+                                    column_name=col_name,
+                                    rule_key='parse_quality_check'
+                                ),
+                            })
+
+                    # Overall freshness score
+                    overall_freshness = (
+                        sum(freshness_scores) / len(freshness_scores)
+                        if freshness_scores else 1.0
+                    )
+
+                    results['timeliness'] = {
+                        'overall_freshness_score': round(overall_freshness, 4),
+                        'columns_analyzed': len(timeliness_results),
+                        'columns_stale': sum(
+                            1 for r in timeliness_results.values() if r.get('is_stale')
+                        ),
+                        'staleness_threshold_days': staleness_days,
+                        'analysis_timestamp': now.isoformat(),
+                        'columns': timeliness_results,
+                    }
+                    processed_metrics.append('timeliness')
+                    metric_scores.append(overall_freshness * weight)
+
+                    logger.info(
+                        f"[TIMELINESS] Analyzed {len(timeliness_results)} date columns, "
+                        f"overall freshness: {overall_freshness:.2%}, "
+                        f"stale: {sum(1 for r in timeliness_results.values() if r.get('is_stale'))}"
+                    )
+
             self._update_progress(evaluation_id, 75, "Analizando métricas por columna...", analysis_run_id)
-            
+
             # Calculate column-level metrics for all columns
             column_metrics = {}
             total_columns = len(df.columns)

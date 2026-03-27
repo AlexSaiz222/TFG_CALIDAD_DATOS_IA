@@ -14,6 +14,10 @@ import {
 import CompletenessDetail from './CompletenessDetail';
 import UniquenessDetail from './UniquenessDetail';
 import OutlierDetail from './OutlierDetail';
+import SyntacticAccuracyDetail from './SyntacticAccuracyDetail';
+import LogicalConsistencyDetail from './LogicalConsistencyDetail';
+import ClassBalanceDetail from './ClassBalanceDetail';
+import TimelinessDetail from './TimelinessDetail';
 import { ColumnMetrics } from '../../types';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -74,6 +78,10 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   const hasCompleteness = overallMetrics.completeness !== undefined;
   const hasUniqueness = overallMetrics.uniqueness !== undefined;
   const hasOutliers = overallMetrics.outliers && Object.keys(overallMetrics.outliers).length > 0;
+  const hasSyntacticAccuracy = overallMetrics.syntactic_accuracy && overallMetrics.syntactic_accuracy.columns;
+  const hasLogicalConsistency = overallMetrics.logical_consistency && overallMetrics.logical_consistency.rules;
+  const hasClassBalance = overallMetrics.class_balance && overallMetrics.class_balance.columns;
+  const hasTimeliness = overallMetrics.timeliness && overallMetrics.timeliness.columns;
 
   const tabs: Array<{ label: string; icon: React.ReactNode; available: boolean }> = [];
 
@@ -101,6 +109,45 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
     );
     tabs.push({
       label: `Outliers (${totalOutliers})`,
+      icon: null,
+      available: true,
+    });
+  }
+
+  if (hasSyntacticAccuracy) {
+    const conformancePct = (overallMetrics.syntactic_accuracy.overall_conformance * 100).toFixed(1);
+    tabs.push({
+      label: `Exactitud sintactica (${conformancePct}%)`,
+      icon: null,
+      available: true,
+    });
+  }
+
+  if (hasLogicalConsistency) {
+    const violations = overallMetrics.logical_consistency.rules_with_violations || 0;
+    tabs.push({
+      label: `Consistencia logica (${violations} violaciones)`,
+      icon: null,
+      available: true,
+    });
+  }
+
+  if (hasClassBalance) {
+    const balanceIdx = overallMetrics.class_balance.overall_balance_index?.toFixed(0) || '?';
+    tabs.push({
+      label: `Equilibrio de clases (${balanceIdx}/100)`,
+      icon: null,
+      available: true,
+    });
+  }
+
+  if (hasTimeliness) {
+    const staleCount = overallMetrics.timeliness.columns_stale || 0;
+    const freshPct = (overallMetrics.timeliness.overall_freshness_score * 100).toFixed(0);
+    tabs.push({
+      label: staleCount > 0
+        ? `Actualidad (${staleCount} obsoletas)`
+        : `Actualidad (${freshPct}%)`,
       icon: null,
       available: true,
     });
@@ -186,6 +233,42 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
             panels.push(
               <TabPanel key="outliers" value={safeTab} index={tabIdx}>
                 <OutlierDetail outliers={overallMetrics.outliers} />
+              </TabPanel>
+            );
+            tabIdx++;
+          }
+
+          if (hasSyntacticAccuracy) {
+            panels.push(
+              <TabPanel key="syntactic_accuracy" value={safeTab} index={tabIdx}>
+                <SyntacticAccuracyDetail data={overallMetrics.syntactic_accuracy} />
+              </TabPanel>
+            );
+            tabIdx++;
+          }
+
+          if (hasLogicalConsistency) {
+            panels.push(
+              <TabPanel key="logical_consistency" value={safeTab} index={tabIdx}>
+                <LogicalConsistencyDetail data={overallMetrics.logical_consistency} />
+              </TabPanel>
+            );
+            tabIdx++;
+          }
+
+          if (hasClassBalance) {
+            panels.push(
+              <TabPanel key="class_balance" value={safeTab} index={tabIdx}>
+                <ClassBalanceDetail data={overallMetrics.class_balance} />
+              </TabPanel>
+            );
+            tabIdx++;
+          }
+
+          if (hasTimeliness) {
+            panels.push(
+              <TabPanel key="timeliness" value={safeTab} index={tabIdx}>
+                <TimelinessDetail data={overallMetrics.timeliness} />
               </TabPanel>
             );
             tabIdx++;

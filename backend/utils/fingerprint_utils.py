@@ -223,6 +223,94 @@ def generate_duplicate_issue_fingerprint(
         )
 
 
+def generate_syntactic_accuracy_fingerprint(
+    column_name: str,
+    expected_type: str,
+    pattern: Optional[str] = None
+) -> str:
+    """Genera fingerprint para issues de exactitud sintáctica.
+
+    Args:
+        column_name: Nombre de la columna afectada
+        expected_type: Tipo esperado (email, url, phone_es, dni_es, etc.)
+        pattern: Patrón regex usado para la validación (opcional)
+
+    Returns:
+        str: Fingerprint de 16 caracteres
+    """
+    extra = {"expected_type": expected_type}
+    if pattern:
+        extra["pattern"] = pattern
+
+    return generate_issue_fingerprint(
+        issue_type="syntactic_accuracy",
+        column_name=column_name,
+        rule_key="type_conformance_check",
+        extra_params=extra
+    )
+
+
+def generate_logical_consistency_fingerprint(
+    rule_expression: str,
+    rule_name: Optional[str] = None
+) -> str:
+    """Genera fingerprint para issues de consistencia lógica.
+
+    Args:
+        rule_expression: Expresión de la regla que se violó
+        rule_name: Nombre descriptivo de la regla (opcional)
+
+    Returns:
+        str: Fingerprint de 16 caracteres
+    """
+    return generate_issue_fingerprint(
+        issue_type="logical_consistency",
+        rule_key="cross_field_check",
+        extra_params={"expression": rule_expression}
+    )
+
+
+def generate_class_balance_fingerprint(
+    column_name: str,
+    imbalance_type: str = "general"
+) -> str:
+    """Genera fingerprint para issues de equilibrio de clases.
+
+    Args:
+        column_name: Nombre de la columna afectada
+        imbalance_type: Tipo de desbalance ('dominant_class' o 'minority_class')
+
+    Returns:
+        str: Fingerprint de 16 caracteres
+    """
+    return generate_issue_fingerprint(
+        issue_type="class_balance",
+        column_name=column_name,
+        rule_key=f"balance_{imbalance_type}"
+    )
+
+
+def generate_timeliness_fingerprint(
+    column_name: str,
+    staleness_threshold_days: int = 30
+) -> str:
+    """Genera fingerprint para issues de actualidad/frescura de datos.
+
+    Args:
+        column_name: Nombre de la columna de fecha afectada
+        staleness_threshold_days: Umbral de días configurado
+
+    Returns:
+        str: Fingerprint de 16 caracteres
+    """
+    return generate_issue_fingerprint(
+        issue_type="timeliness",
+        column_name=column_name,
+        rule_key="staleness_check",
+        extra_params={"threshold_days": staleness_threshold_days}
+    )
+
+
 def generate_outlier_issue_fingerprint(
     column_name: str,
     method: str = "iqr",
