@@ -3,7 +3,7 @@
 ## Resumen de Cambios
 
 Se ha creado una migración para:
-1. **Eliminar métricas obsoletas** de la base de datos: `drift`, `distribution`, `accuracy`
+1. **Eliminar métricas obsoletas** de la base de datos: `drift`, `distribution`, `accuracy`, `consistency`
 2. **Traducir descripciones al español** para todas las métricas existentes
 3. **Actualizar referencias en el frontend** para eliminar métricas obsoletas
 
@@ -50,6 +50,7 @@ flask db upgrade --sql > migration.sql
 - ❌ `drift` - Ya no disponible
 - ❌ `distribution` - Ya no disponible  
 - ❌ `accuracy` - Ya no disponible (reemplazada por `syntactic_accuracy`)
+- ❌ `consistency` - Ya no disponible (su funcionalidad está cubierta por `syntactic_accuracy` con patrones custom)
 
 ### Métricas Actualizadas (Traducciones)
 
@@ -57,7 +58,6 @@ flask db upgrade --sql > migration.sql
 |---------|---------------------------|------------------------|
 | `completeness` | Measures the percentage of non-null values | Mide el porcentaje de valores no nulos en cada columna. Detecta campos vacíos, nulos o faltantes que pueden afectar la calidad del análisis. |
 | `uniqueness` | Detects duplicate rows and measures value variability | Detecta filas duplicadas y mide la variabilidad de valores únicos por columna. Identifica problemas de duplicación y baja cardinalidad. |
-| `consistency` | Validates values match a specific regex pattern | Valida que los valores cumplan con un patrón regex específico. Detecta inconsistencias de formato en campos como teléfonos, códigos postales o identificadores. |
 | `outliers` | Detects outliers in numeric columns | Detecta valores atípicos en columnas numéricas usando métodos estadísticos (IQR, Z-score). Identifica datos anómalos que pueden ser errores o casos excepcionales. |
 | `syntactic_accuracy` | Validates that values conform to expected data types... | Valida que los valores cumplan con el tipo de dato esperado, patrones regex o restricciones de longitud. Detecta violaciones de formato como emails inválidos, fechas malformadas o IDs incorrectos. |
 | `logical_consistency` | Validates cross-field logical rules within each record | Valida reglas lógicas entre campos dentro de cada registro. Detecta inconsistencias como un paciente fallecido con cita futura o una fecha de fin anterior a la fecha de inicio. |
@@ -73,7 +73,7 @@ Después de aplicar la migración, verifica:
 3. **Base de datos**: 
    ```sql
    -- Verificar que las métricas obsoletas fueron eliminadas
-   SELECT name FROM metrics WHERE name IN ('drift', 'distribution', 'accuracy');
+   SELECT name FROM metrics WHERE name IN ('drift', 'distribution', 'accuracy', 'consistency');
    -- Debería devolver 0 filas
    
    -- Verificar que las descripciones están en español

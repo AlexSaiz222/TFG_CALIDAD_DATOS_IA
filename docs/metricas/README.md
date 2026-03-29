@@ -1,6 +1,6 @@
 # Sistema de Métricas de Calidad de Datos
 
-Este directorio documenta las 8 métricas de calidad de datos implementadas en el sistema. Cada archivo detalla la teoría, el algoritmo exacto, la generación de issues y ejemplos prácticos de una métrica concreta.
+Este directorio documenta las 7 métricas de calidad de datos implementadas en el sistema. Cada archivo detalla la teoría, el algoritmo exacto, la generación de issues y ejemplos prácticos de una métrica concreta.
 
 ## Índice de métricas
 
@@ -8,7 +8,6 @@ Este directorio documenta las 8 métricas de calidad de datos implementadas en e
 |----|---------|----------|
 | `completeness` | [completeness.md](completeness.md) | Porcentaje de valores no nulos |
 | `uniqueness` | [uniqueness.md](uniqueness.md) | Duplicados y variabilidad por columna |
-| `consistency` | [consistency.md](consistency.md) | Conformidad con un patrón regex |
 | `outliers` | [outliers.md](outliers.md) | Valores atípicos en columnas numéricas |
 | `syntactic_accuracy` | [syntactic_accuracy.md](syntactic_accuracy.md) | Formato correcto según tipo de dato |
 | `logical_consistency` | [logical_consistency.md](logical_consistency.md) | Reglas IF-THEN entre columnas |
@@ -24,7 +23,6 @@ BaseMetric (base.py)
     │
     ├── CompletenessMetric
     ├── UniquenessMetric
-    ├── ConsistencyMetric
     ├── OutliersMetric
     ├── SyntacticAccuracyMetric
     ├── LogicalConsistencyMetric

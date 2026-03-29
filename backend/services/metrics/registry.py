@@ -1,7 +1,6 @@
 """Registro central de métricas: mapea metric_id → clase de métrica."""
 from .completeness import CompletenessMetric
 from .uniqueness import UniquenessMetric
-from .consistency import ConsistencyMetric
 from .outliers import OutliersMetric
 from .syntactic_accuracy import SyntacticAccuracyMetric
 from .logical_consistency import LogicalConsistencyMetric
@@ -11,8 +10,6 @@ from .timeliness import TimelinessMetric
 METRIC_REGISTRY: dict = {
     "completeness": CompletenessMetric,
     "uniqueness": UniquenessMetric,
-    "consistency": ConsistencyMetric,
-    "consistency_pattern": ConsistencyMetric,
     "outliers": OutliersMetric,
     "syntactic_accuracy": SyntacticAccuracyMetric,
     "logical_consistency": LogicalConsistencyMetric,

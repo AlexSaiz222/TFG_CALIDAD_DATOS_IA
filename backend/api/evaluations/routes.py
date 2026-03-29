@@ -773,7 +773,6 @@ def compare_evaluations():
         category_mapping = {
             'completeness': 'completeness',
             'uniqueness': 'uniqueness',
-            'consistency_pattern': 'consistency',
             'outliers': 'accuracy'
         }
         

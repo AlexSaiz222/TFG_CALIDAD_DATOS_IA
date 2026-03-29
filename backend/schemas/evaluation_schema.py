@@ -18,9 +18,9 @@ class MetricSchema(Schema):
     def validate_metric_id(self, value):
         """Valida que el ID de la métrica sea válido"""
         valid_metrics = [
-            'completeness', 'accuracy', 'consistency', 'consistency_pattern', 'uniqueness',
+            'completeness', 'uniqueness',
             'timeliness', 'validity', 'integrity', 'conformity',
-            'outliers', 'correlation', 'distribution',
+            'outliers', 'correlation',
             'syntactic_accuracy', 'logical_consistency', 'class_balance',
         ]
         if value not in valid_metrics:

@@ -17,7 +17,7 @@ branch_labels = None
 depends_on = None
 
 # Métricas obsoletas a eliminar
-OBSOLETE_METRICS = ['drift', 'distribution', 'accuracy']
+OBSOLETE_METRICS = ['drift', 'distribution', 'accuracy', 'consistency']
 
 # Traducciones de métricas existentes (nombre, descripción, categoría, parámetros)
 METRIC_TRANSLATIONS = [
@@ -32,12 +32,6 @@ METRIC_TRANSLATIONS = [
         'Detecta filas duplicadas y mide la variabilidad de valores únicos por columna. Identifica problemas de duplicación y baja cardinalidad.',
         'data_quality',
         {"threshold": 1.0, "columns": []}
-    ),
-    (
-        'consistency',
-        'Valida que los valores cumplan con un patrón regex específico. Detecta inconsistencias de formato en campos como teléfonos, códigos postales o identificadores.',
-        'data_quality',
-        {"column": "", "pattern": "", "threshold": 0.95}
     ),
     (
         'outliers',
@@ -140,7 +134,6 @@ def downgrade():
     english_translations = [
         ('completeness', 'Measures the percentage of non-null values', 'data_quality'),
         ('uniqueness', 'Detects duplicate rows and measures value variability', 'data_quality'),
-        ('consistency', 'Validates values match a specific regex pattern', 'data_quality'),
         ('outliers', 'Detects outliers in numeric columns', 'data_quality'),
         ('syntactic_accuracy', 'Validates that values conform to expected data types, regex patterns, or length constraints', 'accuracy'),
         ('logical_consistency', 'Validates cross-field logical rules within each record', 'consistency'),
