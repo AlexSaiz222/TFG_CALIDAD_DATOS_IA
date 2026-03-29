@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { Metric, MetricConfig } from '../../types';
+import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
 
 interface MetricParameterDialogProps {
   open: boolean;
@@ -133,6 +134,17 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
     const paramType = getParameterType(defaultValue);
     const value = parameters[paramName] !== undefined ? parameters[paramName] : defaultValue;
     const error = errors[paramName] || '';
+
+    // Visual rule editor for logical_consistency rules array
+    if (metric?.name === 'logical_consistency' && paramName === 'rules') {
+      const rules: LogicalRule[] = Array.isArray(value) ? value : [];
+      return (
+        <LogicalConsistencyRuleEditor
+          rules={rules}
+          onChange={(updatedRules) => handleParameterChange('rules', updatedRules)}
+        />
+      );
+    }
 
     switch (paramType) {
       case 'boolean':
@@ -263,11 +275,15 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
         </Box>
 
         <Grid container spacing={3}>
-          {Object.entries(metric.parameters).map(([paramName, defaultValue]) => (
-            <Grid item xs={12} sm={6} key={paramName}>
-              {renderParameterInput(paramName, defaultValue)}
-            </Grid>
-          ))}
+          {Object.entries(metric.parameters).map(([paramName, defaultValue]) => {
+            const isFullWidth =
+              metric.name === 'logical_consistency' && paramName === 'rules';
+            return (
+              <Grid item xs={12} sm={isFullWidth ? 12 : 6} key={paramName}>
+                {renderParameterInput(paramName, defaultValue)}
+              </Grid>
+            );
+          })}
         </Grid>
       </DialogContent>
       <DialogActions>
