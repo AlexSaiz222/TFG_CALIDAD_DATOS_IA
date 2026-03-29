@@ -504,7 +504,7 @@ const EvaluationDetail = () => {
                             sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
                           >
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Syntactic Accuracy</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Exactitud sintáctica</Typography>
                               <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
                             </Box>
                             <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
@@ -749,14 +749,14 @@ const EvaluationDetail = () => {
                         {filteredIssues.map((issue) => {
                           const getMetricName = (desc: string): string => {
                             const lower = desc.toLowerCase();
-                            if (lower.includes('completeness') || lower.includes('null') || lower.includes('missing')) return 'Completeness';
-                            if (lower.includes('unique') || lower.includes('duplicate')) return 'Uniqueness';
+                            if (lower.includes('completeness') || lower.includes('null') || lower.includes('missing')) return 'Completitud';
+                            if (lower.includes('unique') || lower.includes('duplicate')) return 'Unicidad';
                             if (lower.includes('outlier') || lower.includes('atípico')) return 'Outliers';
-                            if (lower.includes('variability') || lower.includes('variabilidad')) return 'Uniqueness';
-                            if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Syntactic Accuracy';
-                            if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Class Balance';
-                            if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Timeliness';
-                            if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule')) return 'Logical Consistency';
+                            if (lower.includes('variability') || lower.includes('variabilidad')) return 'Unicidad';
+                            if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Exactitud sintáctica';
+                            if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Equilibrio de clases';
+                            if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Actualidad';
+                            if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule')) return 'Consistencia lógica';
                             return 'General';
                           };
 

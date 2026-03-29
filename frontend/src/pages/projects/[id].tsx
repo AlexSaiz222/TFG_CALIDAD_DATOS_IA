@@ -168,10 +168,6 @@ const ProjectDetail = () => {
               'feature_correlation': {
                 name: 'feature_correlation',
                 description: 'Measures correlation between features'
-              },
-              'drift': {
-                name: 'drift',
-                description: 'Detects data drift between training and production data'
               }
             };
             

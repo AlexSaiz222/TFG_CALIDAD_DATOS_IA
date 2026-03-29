@@ -7,7 +7,7 @@
 
 ## 1. Descripción teórica
 
-La precisión sintáctica mide **qué porcentaje de los valores de cada columna respetan el formato esperado según su tipo de dato**. A diferencia de la métrica `consistency` (que valida una sola columna con un patrón libre), esta métrica:
+La precisión sintáctica mide **qué porcentaje de los valores de cada columna respetan el formato esperado según su tipo de dato**. Esta métrica:
 
 1. Trabaja sobre **múltiples columnas** a la vez.
 2. Usa un **catálogo de 13 tipos predefinidos** con sus patrones regex.

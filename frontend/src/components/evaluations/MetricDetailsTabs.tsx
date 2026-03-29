@@ -117,7 +117,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   if (hasSyntacticAccuracy) {
     const conformancePct = (overallMetrics.syntactic_accuracy.overall_conformance * 100).toFixed(1);
     tabs.push({
-      label: `Exactitud sintactica (${conformancePct}%)`,
+      label: `Exactitud sintáctica (${conformancePct}%)`,
       icon: null,
       available: true,
     });
@@ -126,7 +126,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   if (hasLogicalConsistency) {
     const violations = overallMetrics.logical_consistency.rules_with_violations || 0;
     tabs.push({
-      label: `Consistencia logica (${violations} violaciones)`,
+      label: `Consistencia lógica (${violations} violaciones)`,
       icon: null,
       available: true,
     });

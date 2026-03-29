@@ -21,7 +21,7 @@ import {
   History as HistoryIcon,
   Settings as SettingsIcon,
   Person as PersonIcon,
-  Tune as TuneIcon,
+  PostAdd as PostAddIcon,
   List as ListIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -181,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         {
           id: 'settings-templates',
           text: 'Plantillas',
-          icon: <TuneIcon />,
+          icon: <PostAddIcon />,
           path: '/settings/templates',
         },
       ],

@@ -6,7 +6,7 @@ Documentación de las 4 nuevas métricas implementadas siguiendo la arquitectura
 
 ## Índice
 
-1. [Exactitud Sintáctica](#1-exactitud-sintáctica-syntactic_accuracy)
+1. [Exactitud sintáctica](#1-exactitud-sintáctica-syntactic_accuracy)
 2. [Consistencia Lógica](#2-consistencia-lógica-logical_consistency)
 3. [Equilibrio de Clases](#3-equilibrio-de-clases-class_balance)
 4. [Actualidad](#4-actualidad-timeliness)
@@ -15,7 +15,7 @@ Documentación de las 4 nuevas métricas implementadas siguiendo la arquitectura
 
 ---
 
-## 1. Exactitud Sintáctica (`syntactic_accuracy`)
+## 1. Exactitud sintáctica (`syntactic_accuracy`)
 
 ### ¿Qué mide?
 

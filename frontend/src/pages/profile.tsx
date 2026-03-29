@@ -62,7 +62,7 @@ const ProfilePage = () => {
       
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to update profile');
+      setError(err.response?.data?.message || err.message || 'Error al actualizar el perfil');
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ const ProfilePage = () => {
       <Container maxWidth="lg" sx={{ py: 3 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Profile
+            Perfil
           </Typography>
         </Box>
 
@@ -95,7 +95,7 @@ const ProfilePage = () => {
 
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
-            Profile updated successfully
+            Perfil actualizado correctamente
           </Alert>
         )}
 
@@ -140,14 +140,14 @@ const ProfilePage = () => {
 
           <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 500 }}>
-              Personal Information
+              Información personal
             </Typography>
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="First Name"
+                  label="Nombre"
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
@@ -157,7 +157,7 @@ const ProfilePage = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Last Name"
+                  label="Apellido"
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
@@ -178,13 +178,13 @@ const ProfilePage = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Username"
+                  label="Nombre de usuario"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
                   disabled
                   variant="outlined"
-                  helperText="Username cannot be changed"
+                  helperText="El nombre de usuario no se puede cambiar"
                 />
               </Grid>
             </Grid>
@@ -204,7 +204,7 @@ const ProfilePage = () => {
                   py: 1
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Guardar cambios'}
               </Button>
             </Box>
           </Box>
