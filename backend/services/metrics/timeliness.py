@@ -1,0 +1,199 @@
+"""Métrica de actualidad: frescura y antigüedad de columnas de fecha."""
+import logging
+
+import pandas as pd
+
+from utils.fingerprint_utils import generate_issue_fingerprint, generate_timeliness_fingerprint
+from .base import BaseMetric, MetricResult
+
+logger = logging.getLogger(__name__)
+
+
+class TimelinessMetric(BaseMetric):
+    log_prefix = "TIMELINESS"
+
+    def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
+        weight = parameters.get("weight", 1.0)
+        auto_detect = parameters.get("auto_detect", True)
+        user_columns = parameters.get("columns", [])
+        staleness_days = parameters.get("staleness_threshold_days", 30)
+
+        now = pd.Timestamp.now()
+        date_columns = {}
+
+        for col in user_columns:
+            if col in df.columns:
+                parsed = pd.to_datetime(df[col], errors="coerce", infer_datetime_format=True)
+                success_rate = parsed.notna().sum() / len(df) if len(df) > 0 else 0
+                if success_rate > 0.3:
+                    date_columns[col] = parsed
+
+        if auto_detect:
+            for col in df.columns:
+                if col in date_columns:
+                    continue
+                if pd.api.types.is_datetime64_any_dtype(df[col]):
+                    date_columns[col] = df[col]
+                    continue
+                if df[col].dtype == "object":
+                    sample = df[col].dropna().head(50)
+                    if len(sample) == 0:
+                        continue
+                    try:
+                        parsed_sample = pd.to_datetime(
+                            sample, errors="coerce", infer_datetime_format=True
+                        )
+                        if parsed_sample.notna().sum() / len(sample) >= 0.50:
+                            date_columns[col] = pd.to_datetime(
+                                df[col], errors="coerce", infer_datetime_format=True
+                            )
+                    except Exception:
+                        continue
+
+        timeliness_results = {}
+        freshness_scores = []
+        issues = []
+
+        for col_name, parsed_series in date_columns.items():
+            valid_dates = parsed_series.dropna()
+            if len(valid_dates) == 0:
+                continue
+
+            parse_success_rate = float(
+                parsed_series.notna().sum() / len(df)
+            ) if len(df) > 0 else 0
+            max_date = valid_dates.max()
+            min_date = valid_dates.min()
+            age_days = (now - max_date).days if pd.notna(max_date) else None
+            date_range_days = (
+                (max_date - min_date).days
+                if pd.notna(max_date) and pd.notna(min_date)
+                else None
+            )
+
+            is_stale = age_days is not None and age_days > staleness_days
+
+            if age_days is None:
+                col_freshness = 0.0
+            elif age_days <= staleness_days:
+                col_freshness = 1.0
+            else:
+                col_freshness = max(0.0, 1.0 - (age_days - staleness_days) / staleness_days)
+
+            freshness_scores.append(col_freshness)
+            age_human = self._format_age(age_days)
+
+            timeliness_results[col_name] = {
+                "max_date": max_date.isoformat() if pd.notna(max_date) else None,
+                "min_date": min_date.isoformat() if pd.notna(min_date) else None,
+                "age_days": int(age_days) if age_days is not None else None,
+                "age_human": age_human,
+                "date_range_days": int(date_range_days) if date_range_days is not None else None,
+                "parse_success_rate": round(parse_success_rate, 4),
+                "valid_dates_count": len(valid_dates),
+                "is_stale": is_stale,
+                "freshness_score": round(col_freshness, 4),
+                "staleness_threshold_days": staleness_days,
+            }
+
+            if is_stale:
+                ratio = age_days / staleness_days if staleness_days > 0 else 10
+                if ratio >= 10:
+                    severity = "critical"
+                elif ratio >= 3:
+                    severity = "high"
+                elif ratio >= 1:
+                    severity = "medium"
+                else:
+                    severity = "low"
+
+                issues.append({
+                    "evaluation_id": evaluation_id,
+                    "metric_id": metrics_map.get("timeliness"),
+                    "severity": severity,
+                    "description": (
+                        f"Column '{col_name}' contains stale data: most recent record "
+                        f"is {age_human} old (threshold: {staleness_days} days)"
+                    ),
+                    "affected_columns": [{
+                        "column": col_name,
+                        "age_days": int(age_days),
+                        "max_date": max_date.isoformat(),
+                        "freshness_score": round(col_freshness, 4),
+                    }],
+                    "issue_type": "timeliness",
+                    "fingerprint": generate_timeliness_fingerprint(
+                        column_name=col_name,
+                        staleness_threshold_days=staleness_days,
+                    ),
+                })
+
+            if parse_success_rate < 0.80 and len(df) > 10:
+                issues.append({
+                    "evaluation_id": evaluation_id,
+                    "metric_id": metrics_map.get("timeliness"),
+                    "severity": "low",
+                    "description": (
+                        f"Column '{col_name}' has low date parse success rate "
+                        f"({parse_success_rate:.1%}): some values may not be valid dates"
+                    ),
+                    "affected_columns": [{
+                        "column": col_name,
+                        "parse_success_rate": round(parse_success_rate, 4),
+                    }],
+                    "issue_type": "timeliness",
+                    "fingerprint": generate_issue_fingerprint(
+                        issue_type="timeliness",
+                        column_name=col_name,
+                        rule_key="parse_quality_check",
+                    ),
+                })
+
+        overall_freshness = (
+            sum(freshness_scores) / len(freshness_scores) if freshness_scores else 1.0
+        )
+
+        logger.info(
+            f"[{self.log_prefix}] analyzed={len(timeliness_results)} cols, "
+            f"stale={sum(1 for r in timeliness_results.values() if r.get('is_stale'))}, "
+            f"freshness={overall_freshness:.2%}"
+        )
+        return MetricResult(
+            metric_id="timeliness",
+            score=overall_freshness * weight,
+            results={"timeliness": {
+                "overall_freshness_score": round(overall_freshness, 4),
+                "columns_analyzed": len(timeliness_results),
+                "columns_stale": sum(
+                    1 for r in timeliness_results.values() if r.get("is_stale")
+                ),
+                "staleness_threshold_days": staleness_days,
+                "analysis_timestamp": now.isoformat(),
+                "columns": timeliness_results,
+            }},
+            issues=issues,
+        )
+
+    @staticmethod
+    def _format_age(age_days):
+        if age_days is None:
+            return "Desconocido"
+        if age_days == 0:
+            return "Hoy"
+        if age_days == 1:
+            return "1 dia"
+        if age_days < 30:
+            return f"{age_days} dias"
+        if age_days < 365:
+            months = age_days // 30
+            remaining = age_days % 30
+            result = f'{months} mes{"es" if months > 1 else ""}'
+            if remaining > 0:
+                result += f' y {remaining} dia{"s" if remaining > 1 else ""}'
+            return result
+        years = age_days // 365
+        remaining_months = (age_days % 365) // 30
+        result = f'{years} ano{"s" if years > 1 else ""}'
+        if remaining_months > 0:
+            result += f' y {remaining_months} mes{"es" if remaining_months > 1 else ""}'
+        return result
