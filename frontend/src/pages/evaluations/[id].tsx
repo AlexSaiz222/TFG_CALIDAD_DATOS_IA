@@ -482,6 +482,143 @@ const EvaluationDetail = () => {
                       );
                     })()}
 
+                    {/* Syntactic Accuracy Executive Card */}
+                    {overallMetrics.syntactic_accuracy && (() => {
+                      const sa = overallMetrics.syntactic_accuracy;
+                      const value = sa.overall_conformance ?? 0;
+                      const percentage = (value * 100).toFixed(1);
+
+                      const badge = value >= 0.95 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : value >= 0.80 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+
+                      const insight = sa.columns_checked
+                        ? `${sa.columns_checked} columna${sa.columns_checked !== 1 ? 's' : ''} analizadas`
+                        : 'Sin columnas analizadas';
+
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Syntactic Accuracy</Typography>
+                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
+                            </Box>
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
+
+                    {/* Logical Consistency Executive Card */}
+                    {overallMetrics.logical_consistency && overallMetrics.logical_consistency.rules && (() => {
+                      const lc = overallMetrics.logical_consistency;
+                      const value = lc.overall_compliance ?? 0;
+                      const percentage = (value * 100).toFixed(1);
+                      const withViolations = lc.rules_with_violations ?? 0;
+                      const total = lc.rules_evaluated ?? (lc.rules?.length ?? 0);
+
+                      const badge = withViolations === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : withViolations <= 1  ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+
+                      const insight = withViolations === 0
+                        ? `${total} regla${total !== 1 ? 's' : ''} sin violaciones`
+                        : `${withViolations} de ${total} regla${total !== 1 ? 's' : ''} con violaciones`;
+
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Logical Consistency</Typography>
+                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
+                            </Box>
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
+
+                    {/* Class Balance Executive Card */}
+                    {overallMetrics.class_balance && (() => {
+                      const cb = overallMetrics.class_balance;
+                      const value = cb.overall_balance_index ?? 0;
+                      const display = value.toFixed(1);
+                      const alerts = cb.columns_with_alerts ?? 0;
+
+                      const badge = value >= 80 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : value >= 60 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+
+                      const insight = alerts === 0
+                        ? 'Sin desequilibrios detectados'
+                        : `${alerts} columna${alerts !== 1 ? 's' : ''} con desequilibrio`;
+
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Class Balance</Typography>
+                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
+                            </Box>
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{display}%</Typography>
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
+
+                    {/* Timeliness Executive Card */}
+                    {overallMetrics.timeliness && (() => {
+                      const tl = overallMetrics.timeliness;
+                      const value = tl.overall_freshness_score ?? 0;
+                      const percentage = (value * 100).toFixed(1);
+                      const stale = tl.columns_stale ?? 0;
+                      const analyzed = tl.columns_analyzed ?? 0;
+
+                      const badge = value >= 0.90 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                                  : value >= 0.70 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+
+                      const insight = stale === 0
+                        ? `${analyzed} columna${analyzed !== 1 ? 's' : ''} actualizadas`
+                        : `${stale} de ${analyzed} columna${analyzed !== 1 ? 's' : ''} desactualizadas`;
+
+                      return (
+                        <Grid item xs={12} sm={4}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Timeliness</Typography>
+                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
+                            </Box>
+                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
+                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
+                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })()}
+
                     {/* Outliers Executive Card */}
                     {overallMetrics.outliers && (() => {
                       const totalOutliers = Object.values(overallMetrics.outliers).reduce(
@@ -616,6 +753,10 @@ const EvaluationDetail = () => {
                             if (lower.includes('unique') || lower.includes('duplicate')) return 'Uniqueness';
                             if (lower.includes('outlier') || lower.includes('atípico')) return 'Outliers';
                             if (lower.includes('variability') || lower.includes('variabilidad')) return 'Uniqueness';
+                            if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Syntactic Accuracy';
+                            if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Class Balance';
+                            if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Timeliness';
+                            if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule')) return 'Logical Consistency';
                             return 'General';
                           };
 
@@ -679,6 +820,7 @@ const EvaluationDetail = () => {
 
             {/* Metric Details - Collapsible Tabs */}
             <Accordion
+              id="metric-details"
               elevation={0}
               defaultExpanded={true}
               sx={{

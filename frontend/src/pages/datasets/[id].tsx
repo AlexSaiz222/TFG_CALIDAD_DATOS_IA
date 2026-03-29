@@ -87,6 +87,7 @@ const DatasetDetail = () => {
   const [previewColumns, setPreviewColumns] = useState<string[]>([]);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
+  const [projectMetricsConfig, setProjectMetricsConfig] = useState<any[]>([]);
   const [sensitiveColumns, setSensitiveColumns] = useState<string[]>([]);
   const fetchedRef = useRef(false);
 
@@ -155,6 +156,9 @@ const DatasetDetail = () => {
             const projectResponse = await projectsAPI.getProject(normalized.project_id);
             const projectData = projectResponse.data.data || projectResponse.data;
             setProjectName(projectData.name || `Project ${normalized.project_id}`);
+            if (Array.isArray(projectData.metrics_config)) {
+              setProjectMetricsConfig(projectData.metrics_config);
+            }
           } catch (projErr) {
             console.warn('Could not load project name:', projErr);
             setProjectName(`Project ${normalized.project_id}`);
@@ -381,12 +385,16 @@ const DatasetDetail = () => {
   const handleRunEvaluation = async () => {
     if (!dataset) return;
 
+    if (projectMetricsConfig.length === 0) {
+      setError('Este proyecto no tiene métricas configuradas. Ve a la configuración del proyecto para añadir métricas antes de ejecutar una evaluación.');
+      return;
+    }
+
     setRunningEvaluation(true);
     setError(null);
 
     try {
-      // Pass an empty metrics config as the second parameter
-      const response = await evaluationsAPI.createEvaluation(dataset.id, {});
+      const response = await evaluationsAPI.createEvaluation(dataset.id, projectMetricsConfig);
 
       // Extraer la evaluación de la estructura de respuesta
       // La respuesta tiene formato: { success: true, data: { evaluation: {...} } }

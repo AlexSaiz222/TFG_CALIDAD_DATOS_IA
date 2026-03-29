@@ -45,6 +45,7 @@ import {
 import MainLayout from '../../../components/layout/MainLayout';
 import TemplateCard from '../../../components/metrics/TemplateCard';
 import TemplateDetailsDialog from '../../../components/metrics/TemplateDetailsDialog';
+import SmartMetricConfigDialog from '../../../components/metrics/SmartMetricConfigDialog';
 import { metricsAPI, projectsAPI } from '../../../services/api';
 import { categoryColor, GREEN, GREEN_HOVER, ORANGE, RED } from '../../../utils/metricColors';
 
@@ -1149,68 +1150,12 @@ const MetricsConfigurationPage = () => {
         )}
 
         {/* Diálogo de configuración de métricas */}
-        <Dialog
+        <SmartMetricConfigDialog
           open={configDialogOpen}
           onClose={handleConfigDialogClose}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            Configurar métrica: {currentMetric?.name}
-          </DialogTitle>
-          <DialogContent>
-            {currentMetric && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Parámetros
-                </Typography>
-
-                {Object.keys(currentMetric.parameters || {}).length === 0 ? (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    Esta métrica no tiene parámetros configurables.
-                  </Alert>
-                ) : (
-                  <Grid container spacing={2}>
-                    {Object.entries(currentMetric.parameters || {}).map(([key, value]: [string, any]) => (
-                      <Grid item xs={12} sm={6} key={key}>
-                        <TextField
-                          fullWidth
-                          label={key}
-                          value={value}
-                          onChange={(e) => {
-                            const updatedMetric = { ...currentMetric };
-                            updatedMetric.parameters = { ...updatedMetric.parameters };
-                            updatedMetric.parameters[key] = e.target.value;
-                            setCurrentMetric(updatedMetric);
-                          }}
-                          variant="outlined"
-                          margin="normal"
-                          helperText={`Parámetro: ${key}`}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleConfigDialogClose} color="inherit">
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => handleConfigDialogSave(currentMetric)}
-              variant="contained"
-              sx={{
-                bgcolor: GREEN,
-                color: '#FFFFFF',
-                '&:hover': { bgcolor: GREEN_HOVER }
-              }}
-            >
-              Guardar configuración
-            </Button>
-          </DialogActions>
-        </Dialog>
+          metric={currentMetric}
+          onSave={handleConfigDialogSave}
+        />
 
         {/* Diálogo de plantilla */}
         <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)} maxWidth="sm">
