@@ -1,7 +1,7 @@
 """Move sensitive_columns from projects to datasets
 
 Revision ID: move_sensitive_to_datasets
-Revises: add_templates_and_sensitive_columns
+Revises: add_templates_sensitive_cols
 Create Date: 2024-03-25 14:10:00.000000
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'move_sensitive_to_datasets'
-down_revision = 'add_templates_and_sensitive_columns'
+down_revision = 'add_templates_sensitive_cols'
 branch_labels = None
 depends_on = None
 

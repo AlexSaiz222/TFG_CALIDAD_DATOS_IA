@@ -1126,7 +1126,7 @@ const MetricsConfigurationPage = () => {
                           '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
                         }}
                       >
-                        Ir a Plantillas
+                        Ir a plantillas
                       </Button>
                     </Paper>
                   ) : (

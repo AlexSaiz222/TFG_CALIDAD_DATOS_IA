@@ -94,18 +94,15 @@ CREATE TABLE IF NOT EXISTS issues (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default metrics
+-- Insert default metrics (Spanish descriptions, active metrics only)
 INSERT INTO metrics (name, description, category, parameters) VALUES
-('completeness', 'Measures the presence of null values in the dataset', 'data_quality', '{"threshold": 0.95}'),
-('uniqueness', 'Identifies duplicate records in the dataset', 'data_quality', '{"threshold": 1.0}'),
-('consistency', 'Checks if data follows consistent patterns and formats', 'data_quality', '{"threshold": 0.9}'),
-('accuracy', 'Validates data against known reference values', 'data_quality', '{"threshold": 0.9}'),
-('timeliness', 'Assesses if data is up-to-date', 'data_quality', '{"threshold": 0.8}'),
-('distribution', 'Analyzes the statistical distribution of numeric columns', 'statistical', '{"method": "histogram"}'),
-('outliers', 'Detects outliers using statistical methods', 'statistical', '{"method": "iqr", "factor": 1.5}'),
-('class_balance', 'Evaluates balance of target classes for classification tasks', 'ml_specific', '{"threshold": 0.8}'),
-('feature_correlation', 'Measures correlation between features', 'ml_specific', '{"method": "pearson", "threshold": 0.7}'),
-('drift', 'Detects data drift between training and production data', 'ml_specific', '{"method": "ks_test", "threshold": 0.05}');
+('completeness', 'Mide el porcentaje de valores no nulos en cada columna. Detecta campos vacíos, nulos o faltantes que pueden afectar la calidad del análisis.', 'data_quality', '{"threshold": 0.95, "columns": []}'),
+('uniqueness', 'Detecta filas duplicadas y mide la variabilidad de valores únicos por columna. Identifica problemas de duplicación y baja cardinalidad.', 'data_quality', '{"threshold": 1.0, "columns": []}'),
+('outliers', 'Detecta valores atípicos en columnas numéricas usando métodos estadísticos (IQR, Z-score). Identifica datos anómalos que pueden ser errores o casos excepcionales.', 'data_quality', '{"method": "iqr", "factor": 1.5, "columns": [], "auto_detect": true}'),
+('syntactic_accuracy', 'Valida que los valores cumplan con el tipo de dato esperado, patrones regex o restricciones de longitud. Detecta errores de formato y valores mal tipados.', 'accuracy', '{"columns": [], "custom_patterns": {}, "auto_detect_types": true, "threshold": 0.95}'),
+('logical_consistency', 'Valida reglas lógicas entre campos dentro de cada registro. Detecta inconsistencias como fechas de fin anteriores a fechas de inicio o valores mutuamente excluyentes.', 'consistency', '{"rules": []}'),
+('class_balance', 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.', 'distribution', '{"columns": [], "threshold": 0.8, "auto_detect": true}'),
+('timeliness', 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.', 'data_quality', '{"date_columns": [], "max_age_days": 365, "expected_range": null, "auto_detect": true}');
 
 -- Insert demo user
 INSERT INTO users (username, email, password_hash, first_name, last_name, organization, role)

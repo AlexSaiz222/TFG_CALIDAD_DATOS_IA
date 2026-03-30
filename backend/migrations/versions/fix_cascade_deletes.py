@@ -1,7 +1,7 @@
 """Fix cascade deletes for project relationships
 
 Revision ID: fix_cascade_deletes
-Revises: add_updated_at_to_analysis_runs
+Revises: add_updated_at_analysis
 Create Date: 2026-03-17 16:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'fix_cascade_deletes'
-down_revision = 'add_updated_at_to_analysis_runs'
+down_revision = 'add_updated_at_analysis'
 branch_labels = None
 depends_on = None
 
