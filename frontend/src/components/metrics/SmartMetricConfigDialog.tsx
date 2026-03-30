@@ -325,6 +325,7 @@ const FORMAT_OPTIONS = [
   { value: 'url', label: 'URL' },
   { value: 'uuid', label: 'UUID' },
   { value: 'ip_v4', label: 'Dirección IP (v4)' },
+  { value: 'credit_card', label: 'Tarjeta de crédito' },
 ];
 const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
   const autoDetect = params.auto_detect_types !== false;
@@ -586,23 +587,22 @@ const RULE_TEMPLATES = [
     category: 'Valores',
     rules: [
       { name: 'Sin valores negativos', type: 'violation' as const, expression: 'mi_columna < 0', hint: 'Detecta valores menores que cero. Reemplaza "mi_columna" con el nombre de tu columna.' },
-      { name: 'Campo obligatorio', type: 'violation' as const, expression: 'mi_columna.isnull()', hint: 'Detecta registros donde el campo está vacío.' },
-      { name: 'Sin duplicados en clave', type: 'violation' as const, expression: 'mi_columna.duplicated()', hint: 'Detecta valores repetidos en una columna que debe ser única.' },
+      { name: 'Campo obligatorio', type: 'violation' as const, expression: 'mi_columna != mi_columna', hint: 'Detecta registros donde el campo está vacío (NaN != NaN es true). Reemplaza "mi_columna" con el nombre de tu columna.' },
+      { name: 'Rango de valores', type: 'violation' as const, expression: 'mi_columna < 0 or mi_columna > 1000', hint: 'Detecta valores fuera de un rango esperado. Ajusta los límites y el nombre de la columna.' },
     ],
   },
   {
     category: 'Fechas',
     rules: [
       { name: 'Fecha fin posterior a inicio', type: 'violation' as const, expression: 'fecha_fin < fecha_inicio', hint: 'La fecha de fin debe ser posterior a la de inicio.' },
-      { name: 'Fecha no futura', type: 'violation' as const, expression: 'fecha_registro > @pd.Timestamp.now()', hint: 'El registro no debe tener fechas en el futuro.' },
     ],
   },
   {
     category: 'Reglas SI…ENTONCES',
     rules: [
-      { name: 'Si activo, campo requerido', type: 'if_then' as const, condition: 'estado == "activo"', assertion: 'campo_requerido.notna()', hint: 'Si el estado es "activo", el campo indicado debe estar relleno.' },
-      { name: 'Si fallecido, sin cita futura', type: 'if_then' as const, condition: 'estado == "fallecido"', assertion: 'proxima_cita.isna()', hint: 'Si el paciente está fallecido, no debe tener cita futura asignada.' },
+      { name: 'Si activo, campo requerido', type: 'if_then' as const, condition: 'estado == "activo"', assertion: 'campo_requerido == campo_requerido', hint: 'Si el estado es "activo", el campo indicado debe estar relleno (campo == campo es false para NaN).' },
       { name: 'Si cantidad > 0, precio > 0', type: 'if_then' as const, condition: 'cantidad > 0', assertion: 'precio > 0', hint: 'Si hay una cantidad, debe existir un precio.' },
+      { name: 'Si pagado, importe positivo', type: 'if_then' as const, condition: 'estado == "pagado"', assertion: 'importe > 0', hint: 'Si el estado es "pagado", el importe debe ser mayor que cero.' },
     ],
   },
 ];

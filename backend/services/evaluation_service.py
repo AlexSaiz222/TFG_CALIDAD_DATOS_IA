@@ -330,7 +330,8 @@ class EvaluationService:
             # Track processed metrics for quality score calculation
             processed_metrics = []
             metric_scores = []
-            
+            metric_weights = []
+
             # Process each configured metric
             for metric_index, metric_config in enumerate(metrics_config):
                 # Calculate progress: 25% to 70% for metrics processing
@@ -338,10 +339,10 @@ class EvaluationService:
                 metric_id = metric_config.get('id')
                 parameters = metric_config.get('parameters', {})
                 weight = metric_config.get('weight', 1.0)
-                
+
                 # Update progress for current metric
                 self._update_progress(evaluation_id, metric_progress, f"Analizando métrica: {metric_id}...", analysis_run_id)
-                
+
                 # Inject weight so metric classes can read it from parameters
                 parameters["weight"] = weight
 
@@ -353,6 +354,7 @@ class EvaluationService:
                     if metric_result.score is not None:
                         processed_metrics.append(metric_id)
                         metric_scores.append(metric_result.score)
+                        metric_weights.append(weight)
                     results.update(metric_result.results)
                     issues.extend(metric_result.issues)
                 except KeyError:
@@ -401,8 +403,11 @@ class EvaluationService:
             
             self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...", analysis_run_id)
             
-            # Calculate overall quality score with issue-based penalty
-            base_score = sum(metric_scores) / len(metric_scores) if metric_scores else 0.0
+            # Calculate overall quality score using weighted average
+            # Each metric already returns score * weight, so we divide by the
+            # sum of weights to get a proper weighted mean.
+            total_weight = sum(metric_weights) if metric_weights else 1.0
+            base_score = sum(metric_scores) / total_weight if metric_scores else 0.0
             
             # Apply penalty based on detected issues (severity-weighted)
             high_count = sum(1 for i in issues if i.get('severity') == 'high')

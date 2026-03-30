@@ -37,7 +37,7 @@ Si `auto_detect=True`, se analiza cada columna no cubierta por `columns`:
 1. **Columnas con dtype datetime:** se incluyen directamente.
 2. **Columnas de tipo `object`:** se toma una muestra de hasta 50 valores y se intenta parsearlos como fechas. Si **≥ 50 %** de la muestra se parsea correctamente, la columna se incluye.
 
-Para las columnas especificadas en `columns`, el umbral de parseo mínimo es **30 %** (más permisivo que la auto-detección).
+Para las columnas especificadas en `columns`, el umbral de parseo mínimo es **50 %** (el mismo que la auto-detección).
 
 ### Cálculo de frescura por columna
 

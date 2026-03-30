@@ -25,7 +25,7 @@ class TimelinessMetric(BaseMetric):
             if col in df.columns:
                 parsed = pd.to_datetime(df[col], errors="coerce", infer_datetime_format=True)
                 success_rate = parsed.notna().sum() / len(df) if len(df) > 0 else 0
-                if success_rate > 0.3:
+                if success_rate >= 0.50:
                     date_columns[col] = parsed
 
         if auto_detect:

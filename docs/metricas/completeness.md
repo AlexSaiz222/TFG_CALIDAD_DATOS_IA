@@ -192,7 +192,7 @@ completeness = 1 - (0.00 + 0.167 + 0.50 + 0.333) / 4
 
 **Resultado:**
 - Score: `0.75` → por debajo del umbral `0.95`.
-- Issue global: severidad `high` (0.75 < 0.70 no, pero distancia = 0.20 > 0.15 → `high`).
-- Issue por columna `email`: completitud 50 % < 98 % → severidad `critical` (0.50 < 0.50 umbral... justo en el límite → `high`).
-- Issue por columna `edad`: completitud 67 % < 98 % → severidad `high`.
-- Issue por columna `nombre`: completitud 83 % < 98 % → severidad `high` (distancia = 0.15, en el límite).
+- Issue global: severidad `high` (distancia = 0.95 − 0.75 = 0.20 > 0.15 → `high`).
+- Issue por columna `email`: completitud 50 % < 98 % → severidad `high` (0.50 no es `< 0.50`, así que no llega a `critical`; distancia = 0.48 > 0.15 → `high`).
+- Issue por columna `edad`: completitud 67 % < 98 % → severidad `high` (0.67 < 0.70 → `high`).
+- Issue por columna `nombre`: completitud 83 % < 98 % → severidad `high` (distancia = 0.98 − 0.83 = 0.15 > 0.05 → `medium` o `high` según umbral exacto).
