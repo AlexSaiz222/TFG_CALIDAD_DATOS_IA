@@ -56,7 +56,7 @@ with app.app_context():
             'name': 'timeliness',
             'description': 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.',
             'category': 'data_quality',
-            'parameters': {"date_columns": [], "max_age_days": 365, "expected_range": None, "auto_detect": True}
+            'parameters': {"columns": [], "staleness_threshold_days": 30, "auto_detect": True}
         },
         {
             'name': 'class_balance',

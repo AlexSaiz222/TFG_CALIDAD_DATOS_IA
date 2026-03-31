@@ -529,6 +529,13 @@ const TimelinessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
   const staleness = params.staleness_threshold_days ?? 30;
   const columns: string[] = params.columns ?? [];
   const isCustom = !STALENESS_PRESETS.some(p => p.days === staleness);
+  
+  // Ensure staleness_threshold_days is always set (fix for default value not appearing in JSON)
+  React.useEffect(() => {
+    if (params.staleness_threshold_days === undefined) {
+      onChange({ ...params, staleness_threshold_days: 30 });
+    }
+  }, []);
   return (
     <Box>
       <SectionBanner

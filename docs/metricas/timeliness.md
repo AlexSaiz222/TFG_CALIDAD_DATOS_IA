@@ -21,10 +21,17 @@ La métrica calcula la antigüedad del valor de fecha más reciente de cada colu
 
 | Parámetro | Tipo | Valor por defecto | Descripción |
 |-----------|------|-------------------|-------------|
-| `columns` | `list[str]` | `[]` | Columnas de fecha a analizar explícitamente. |
-| `auto_detect` | `bool` | `true` | Si es true, detecta automáticamente columnas de fecha. |
-| `staleness_threshold_days` | `int` | `30` | Número de días máximo antes de considerar los datos "obsoletos". |
+| `columns` | `list[str]` | `[]` | Columnas de fecha a analizar explícitamente. Si está vacío y `auto_detect=true`, se detectan automáticamente. |
+| `auto_detect` | `bool` | `true` | Si es true, detecta automáticamente columnas de fecha (timestamp, date, datetime). |
+| `staleness_threshold_days` | `int` | `30` | Número de días máximo antes de considerar los datos "obsoletos". Si la fecha más reciente supera este umbral, se genera una alerta. |
 | `weight` | `float` | `1.0` | Peso en el Quality Score global. |
+
+### Parámetros obsoletos (no usar)
+
+Los siguientes parámetros aparecían en versiones antiguas pero **no están implementados** y se ignoran:
+- `date_columns` → usar `columns` en su lugar
+- `max_age_days` → usar `staleness_threshold_days` en su lugar  
+- `expected_range` → no implementado, se ignora
 
 ---
 
