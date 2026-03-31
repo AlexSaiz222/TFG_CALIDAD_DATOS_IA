@@ -195,7 +195,7 @@ const TimelinessDetail: React.FC<TimelinessDetailProps> = ({ data }) => {
                   <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                     {col.date_range_days !== null
                       ? col.date_range_days >= 365
-                        ? `${(col.date_range_days / 365).toFixed(1)} anos`
+                        ? `${(col.date_range_days / 365).toFixed(1)} años`
                         : col.date_range_days >= 30
                           ? `${Math.round(col.date_range_days / 30)} meses`
                           : `${col.date_range_days} dias`

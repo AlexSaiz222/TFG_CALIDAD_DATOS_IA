@@ -6,6 +6,7 @@ export { default as OutlierDetail } from './OutlierDetail';
 export { default as CompletenessDetail } from './CompletenessDetail';
 export { default as UniquenessDetail } from './UniquenessDetail';
 export { default as MetricDetailsTabs } from './MetricDetailsTabs';
+export { default as ExecutiveMetricCard } from './ExecutiveMetricCard';
 export { default as SyntacticAccuracyDetail } from './SyntacticAccuracyDetail';
 export { default as LogicalConsistencyDetail } from './LogicalConsistencyDetail';
 export { default as ClassBalanceDetail } from './ClassBalanceDetail';

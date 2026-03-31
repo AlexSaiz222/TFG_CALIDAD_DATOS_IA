@@ -106,7 +106,7 @@ El método `_format_age()` convierte los días en texto:
 | 1 | `"1 dia"` |
 | < 30 | `"N dias"` |
 | < 365 | `"N meses [y M dias]"` |
-| ≥ 365 | `"N anos [y M meses]"` |
+| ≥ 365 | `"N años [y M meses]"` |
 
 ---
 

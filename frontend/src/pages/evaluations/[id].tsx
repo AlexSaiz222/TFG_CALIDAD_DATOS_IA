@@ -20,6 +20,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  LinearProgress,
+  Collapse,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -32,9 +34,11 @@ import {
   Assessment as AssessmentIcon,
   ExpandMore as ExpandMoreIcon,
   Info as InfoIcon,
+  Speed as SpeedIcon,
+  GridView as GridViewIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
-import { QualityScoreGauge, MetricCard, ColumnMetricsTable, IssuesSummary, MetricDetailsTabs } from '../../components/evaluations';
+import { QualityScoreGauge, MetricCard, ColumnMetricsTable, IssuesSummary, MetricDetailsTabs, ExecutiveMetricCard } from '../../components/evaluations';
 import { evaluationsAPI, datasetsAPI } from '../../services/api';
 import { Evaluation, Issue, Dataset } from '../../types';
 
@@ -49,7 +53,11 @@ const EvaluationDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [activeDetailTab, setActiveDetailTab] = useState(0);
+  const [detailsExpanded, setDetailsExpanded] = useState(true);
+  const [scoreExpanded, setScoreExpanded] = useState(true);
 
   useEffect(() => {
     const fetchEvaluationData = async () => {
@@ -180,9 +188,24 @@ const EvaluationDetail = () => {
     );
   };
 
-  const filteredIssues = selectedSeverity
-    ? issues.filter((issue) => issue.severity === selectedSeverity)
-    : issues;
+  const getMetricName = (desc: string): string => {
+    const lower = desc.toLowerCase();
+    if (lower.includes('completeness') || lower.includes('completitud') || lower.includes('null') || lower.includes('missing')) return 'Completitud';
+    if (lower.includes('unique') || lower.includes('duplicate') || lower.includes('unicidad') || lower.includes('duplicad')) return 'Unicidad';
+    if (lower.includes('outlier') || lower.includes('atípico')) return 'Outliers';
+    if (lower.includes('variability') || lower.includes('variabilidad')) return 'Unicidad';
+    if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Exactitud sintáctica';
+    if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Equilibrio de clases';
+    if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Actualidad';
+    if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule') || lower.includes('regla')) return 'Consistencia lógica';
+    return 'General';
+  };
+
+  const filteredIssues = issues.filter((issue) => {
+    const matchesSeverity = selectedSeverity ? issue.severity === selectedSeverity : true;
+    const matchesMetric = selectedMetric ? getMetricName(issue.description) === selectedMetric : true;
+    return matchesSeverity && matchesMetric;
+  });
 
   if (loading) {
     return (
@@ -319,394 +342,266 @@ const EvaluationDetail = () => {
         {/* Completed state - Results */}
         {evaluation.status === 'completed' && (
           <>
-            {/* Quality Score and Metrics Summary */}
-            <Grid id="executive-summary" container spacing={3} sx={{ mb: 4, scrollMarginTop: '120px' }}>
-              <Grid item xs={12} md={4}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    border: '1px solid #EEEEEE',
-                    borderRadius: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
-                  }}
-                >
-                  <QualityScoreGauge
-                    score={evaluation.quality_score || overallMetrics.quality_score || 0}
-                    size="large"
-                  />
-                </Paper>
-              </Grid>
+            {/* Quality Score and Metrics Summary — Unified Grid */}
+            {(() => {
+              // Build metric cards data and compute tab indices for click-to-tab navigation
+              const metricCards: Array<{ title: string; value: string; badge: { label: string; bg: string; color: string }; insight: string; tabKey: string }> = [];
 
-              <Grid item xs={12} md={8}>
-                <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    Resumen de métricas
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {/* Completeness Executive Card */}
-                    {overallMetrics.completeness !== undefined && (() => {
-                      const value = overallMetrics.completeness;
-                      const percentage = (value * 100).toFixed(1);
-                      const nullColumns = Object.values(columnMetrics).filter((col: any) => (col.n_nulls || 0) > 0).length;
-                      const totalColumns = Object.keys(columnMetrics).length;
-                      
-                      const badge = value >= 0.98 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : value >= 0.90 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
-                      
-                      const insight = nullColumns > 0 
-                        ? `${nullColumns} de ${totalColumns} columnas tienen valores nulos`
-                        : 'Todas las columnas están completas';
-                      
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => {
-                              const el = document.getElementById('metric-details');
-                              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }}
-                            sx={{
-                              p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-                              transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-                              height: '100%',
-                            }}
-                          >
-                            {/* Header con badge */}
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
-                                Completitud
-                              </Typography>
-                              <Chip 
-                                label={badge.label}
-                                size="small"
-                                sx={{ 
-                                  backgroundColor: badge.bg,
-                                  color: badge.color,
-                                  fontWeight: 500,
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                }}
-                              />
-                            </Box>
-                            
-                            {/* Valor principal */}
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>
-                              {percentage}%
-                            </Typography>
-                            
-                            {/* Hallazgo clave */}
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>
-                              {insight}
-                            </Typography>
-                            
-                            {/* CTA */}
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>
-                              Ver detalle →
-                            </Typography>
-                          </Paper>
+              if (overallMetrics.completeness !== undefined) {
+                const v = overallMetrics.completeness;
+                const nullCols = Object.values(columnMetrics).filter((col: any) => (col.n_nulls || 0) > 0).length;
+                const totalCols = Object.keys(columnMetrics).length;
+                metricCards.push({
+                  title: 'Completitud',
+                  value: `${(v * 100).toFixed(1)}%`,
+                  badge: v >= 0.98 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : v >= 0.90 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
+                  insight: nullCols > 0 ? `${nullCols} de ${totalCols} columnas tienen valores nulos` : 'Todas las columnas están completas',
+                  tabKey: 'completeness',
+                });
+              }
+
+              if (overallMetrics.uniqueness !== undefined) {
+                const v = overallMetrics.uniqueness;
+                const totalRows = Object.values(columnMetrics).length > 0
+                  ? (columnMetrics[Object.keys(columnMetrics)[0]]?.n_nulls || 0) + (columnMetrics[Object.keys(columnMetrics)[0]]?.n_non_nulls || 0)
+                  : 0;
+                const dupes = totalRows > 0 ? Math.round((1 - v) * totalRows) : 0;
+                metricCards.push({
+                  title: 'Unicidad',
+                  value: `${(v * 100).toFixed(1)}%`,
+                  badge: dupes === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : dupes <= 2 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
+                  insight: dupes > 0 ? `${dupes} fila${dupes !== 1 ? 's' : ''} completamente duplicada${dupes !== 1 ? 's' : ''}` : 'Sin filas duplicadas detectadas',
+                  tabKey: 'uniqueness',
+                });
+              }
+
+              if (overallMetrics.outliers && Object.keys(overallMetrics.outliers).length > 0) {
+                const totalOut = Object.values(overallMetrics.outliers).reduce((s: number, c: any) => s + (c?.count || 0), 0);
+                const totalVals = Object.values(overallMetrics.outliers).reduce((s: number, c: any) => s + (c?.total_values || 0), 0);
+                const prop = totalVals > 0 ? totalOut / totalVals : 0;
+                const colsAffected = Object.entries(overallMetrics.outliers).filter(([_, c]: [string, any]) => c?.count > 0).length;
+                const mostAffected = Object.entries(overallMetrics.outliers)
+                  .filter(([_, c]: [string, any]) => c?.count > 0)
+                  .sort(([_, a]: [string, any], [__, b]: [string, any]) => (b?.count || 0) - (a?.count || 0))[0];
+                metricCards.push({
+                  title: 'Outliers',
+                  value: `${totalOut}`,
+                  badge: prop >= 0.05 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
+                       : prop >= 0.02 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : totalOut === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : { label: 'Aceptable', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' },
+                  insight: totalOut === 0 ? 'Sin valores atípicos detectados'
+                         : colsAffected === 1 && mostAffected ? `${colsAffected} columna afectada (${mostAffected[0]}, ${(prop * 100).toFixed(1)}%)`
+                         : `${colsAffected} columnas afectadas (${(prop * 100).toFixed(1)}% del total)`,
+                  tabKey: 'outliers',
+                });
+              }
+
+              if (overallMetrics.syntactic_accuracy?.columns) {
+                const sa = overallMetrics.syntactic_accuracy;
+                const v = sa.overall_conformance ?? 0;
+                metricCards.push({
+                  title: 'Exactitud sintáctica',
+                  value: `${(v * 100).toFixed(1)}%`,
+                  badge: v >= 0.95 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : v >= 0.80 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
+                  insight: sa.columns_checked ? `${sa.columns_checked} columna${sa.columns_checked !== 1 ? 's' : ''} analizadas` : 'Sin columnas analizadas',
+                  tabKey: 'syntactic_accuracy',
+                });
+              }
+
+              if (overallMetrics.logical_consistency?.rules) {
+                const lc = overallMetrics.logical_consistency;
+                const v = lc.overall_compliance ?? 0;
+                const withViol = lc.rules_with_violations ?? 0;
+                const total = lc.rules_evaluated ?? (lc.rules?.length ?? 0);
+                metricCards.push({
+                  title: 'Consistencia lógica',
+                  value: `${(v * 100).toFixed(1)}%`,
+                  badge: withViol === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : withViol <= 1 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
+                  insight: withViol === 0 ? `${total} regla${total !== 1 ? 's' : ''} sin violaciones` : `${withViol} de ${total} regla${total !== 1 ? 's' : ''} con violaciones`,
+                  tabKey: 'logical_consistency',
+                });
+              }
+
+              if (overallMetrics.class_balance?.columns) {
+                const cb = overallMetrics.class_balance;
+                const v = cb.overall_balance_index ?? 0;
+                const alerts = cb.columns_with_alerts ?? 0;
+                metricCards.push({
+                  title: 'Equilibrio de clases',
+                  value: `${v.toFixed(1)}%`,
+                  badge: v >= 80 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : v >= 60 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
+                  insight: alerts === 0 ? 'Sin desequilibrios detectados' : `${alerts} columna${alerts !== 1 ? 's' : ''} con desequilibrio`,
+                  tabKey: 'class_balance',
+                });
+              }
+
+              if (overallMetrics.timeliness?.columns) {
+                const tl = overallMetrics.timeliness;
+                const v = tl.overall_freshness_score ?? 0;
+                const stale = tl.columns_stale ?? 0;
+                const analyzed = tl.columns_analyzed ?? 0;
+                metricCards.push({
+                  title: 'Actualidad',
+                  value: `${(v * 100).toFixed(1)}%`,
+                  badge: v >= 0.90 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : v >= 0.70 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
+                  insight: stale === 0 ? `${analyzed} columna${analyzed !== 1 ? 's' : ''} actualizadas` : `${stale} de ${analyzed} columna${analyzed !== 1 ? 's' : ''} desactualizadas`,
+                  tabKey: 'timeliness',
+                });
+              }
+
+              // Tab order in MetricDetailsTabs: completeness, uniqueness, outliers, syntactic_accuracy, logical_consistency, class_balance, timeliness
+              const tabOrder = ['completeness', 'uniqueness', 'outliers', 'syntactic_accuracy', 'logical_consistency', 'class_balance', 'timeliness'];
+              const availableTabs = tabOrder.filter(key => {
+                if (key === 'completeness') return overallMetrics.completeness !== undefined;
+                if (key === 'uniqueness') return overallMetrics.uniqueness !== undefined;
+                if (key === 'outliers') return overallMetrics.outliers && Object.keys(overallMetrics.outliers).length > 0;
+                if (key === 'syntactic_accuracy') return overallMetrics.syntactic_accuracy?.columns;
+                if (key === 'logical_consistency') return overallMetrics.logical_consistency?.rules;
+                if (key === 'class_balance') return overallMetrics.class_balance?.columns;
+                if (key === 'timeliness') return overallMetrics.timeliness?.columns;
+                return false;
+              });
+
+              const scrollToTab = (tabKey: string) => {
+                const idx = availableTabs.indexOf(tabKey);
+                if (idx >= 0) setActiveDetailTab(idx);
+                // Expand the accordion if collapsed, then scroll after DOM updates
+                if (!detailsExpanded) {
+                  setDetailsExpanded(true);
+                  setTimeout(() => {
+                    document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 300);
+                } else {
+                  document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              };
+
+              const score = evaluation.quality_score || overallMetrics.quality_score || 0;
+              const scoreColor = score >= 80 ? '#00B37E' : score >= 60 ? '#FFB800' : '#E5484D';
+              const scoreColorBg = score >= 80 ? 'rgba(0, 179, 126, 0.1)' : score >= 60 ? 'rgba(255, 184, 0, 0.1)' : 'rgba(229, 72, 77, 0.1)';
+              const scoreVerdict = score >= 90 ? 'Excelente' : score >= 80 ? 'Bueno' : score >= 60 ? 'Aceptable' : score >= 40 ? 'Deficiente' : 'Crítico';
+              const metricsEvaluated = metricCards.length;
+              const totalIssues = issues.length;
+
+              const accordionSx = {
+                mb: 3,
+                border: '1px solid #E0E0E0',
+                borderRadius: '8px !important',
+                backgroundColor: '#FFFFFF',
+                '&:before': { display: 'none' },
+              };
+
+              return (
+                <Box id="executive-summary" sx={{ scrollMarginTop: '120px' }}>
+                  {/* ── Puntuación de calidad ── */}
+                  <Paper elevation={0} sx={{ mb: 3, border: '1px solid #E0E0E0', borderRadius: 2, overflow: 'hidden' }}>
+                    {/* Cabecera siempre visible */}
+                    <Box sx={{ px: 3, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SpeedIcon sx={{ color: '#888', fontSize: 20 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>Puntuación de calidad</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Chip
+                          label={scoreVerdict}
+                          size="small"
+                          sx={{ backgroundColor: scoreColorBg, color: scoreColor, fontWeight: 600, fontSize: '0.75rem' }}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={() => setScoreExpanded(v => !v)}
+                          sx={{ color: '#888' }}
+                        >
+                          <ExpandMoreIcon sx={{ transition: 'transform 0.2s', transform: scoreExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    {/* Cuerpo colapsable */}
+                    <Collapse in={scoreExpanded}>
+                      <Box sx={{ px: 3, pb: 3 }}>
+                        {/* Score numérico */}
+                        <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: scoreColor, lineHeight: 1, mb: 2 }}>
+                          {Math.round(score)}
+                          <Typography component="span" variant="h5" sx={{ color: '#BBBBBB', fontWeight: 400, ml: 0.5 }}>/100</Typography>
+                        </Typography>
+
+                        {/* Barra de progreso */}
+                        <LinearProgress
+                          variant="determinate"
+                          value={score}
+                          sx={{
+                            height: 10,
+                            borderRadius: 5,
+                            mb: 2.5,
+                            backgroundColor: '#EEEEEE',
+                            '& .MuiLinearProgress-bar': { borderRadius: 5, backgroundColor: scoreColor },
+                          }}
+                        />
+
+                        {/* Stats */}
+                        <Typography variant="body2" sx={{ color: '#888' }}>
+                          {metricsEvaluated} métrica{metricsEvaluated !== 1 ? 's' : ''} evaluada{metricsEvaluated !== 1 ? 's' : ''}
+                          {' · '}
+                          <Box component="span" sx={{ color: totalIssues > 0 ? '#E5484D' : '#00B37E', fontWeight: 600 }}>
+                            {totalIssues} issue{totalIssues !== 1 ? 's' : ''} detectado{totalIssues !== 1 ? 's' : ''}
+                          </Box>
+                        </Typography>
+                      </Box>
+                    </Collapse>
+                  </Paper>
+
+                  {/* ── Resumen de métricas ── */}
+                  {metricCards.length > 0 && (
+                    <Accordion elevation={0} defaultExpanded={true} sx={{ ...accordionSx, mb: 4 }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 3, py: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <GridViewIcon sx={{ color: '#888', fontSize: 20 }} />
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            Resumen de métricas
+                          </Typography>
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ px: 3, pb: 3 }}>
+                        <Grid container spacing={2}>
+                          {metricCards.map((card) => (
+                            <ExecutiveMetricCard
+                              key={card.tabKey}
+                              title={card.title}
+                              value={card.value}
+                              badge={card.badge}
+                              insight={card.insight}
+                              onClickDetail={() => scrollToTab(card.tabKey)}
+                            />
+                          ))}
                         </Grid>
-                      );
-                    })()}
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
+                </Box>
+              );
+            })()}
 
-                    {/* Uniqueness Executive Card */}
-                    {overallMetrics.uniqueness !== undefined && (() => {
-                      const value = overallMetrics.uniqueness;
-                      const percentage = (value * 100).toFixed(1);
-                      const totalRows = Object.values(columnMetrics).length > 0 
-                        ? (columnMetrics[Object.keys(columnMetrics)[0]]?.n_nulls || 0) + (columnMetrics[Object.keys(columnMetrics)[0]]?.n_non_nulls || 0)
-                        : 0;
-                      const duplicateRows = totalRows > 0 ? Math.round((1 - value) * totalRows) : 0;
-                      
-                      const badge = duplicateRows === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : duplicateRows <= 2 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
-                      
-                      const insight = duplicateRows > 0
-                        ? `${duplicateRows} fila${duplicateRows !== 1 ? 's' : ''} completamente duplicada${duplicateRows !== 1 ? 's' : ''}`
-                        : 'Sin filas duplicadas detectadas';
-                      
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => {
-                              const el = document.getElementById('metric-details');
-                              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }}
-                            sx={{
-                              p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-                              transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-                              height: '100%',
-                            }}
-                          >
-                            {/* Header con badge */}
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
-                                Unicidad
-                              </Typography>
-                              <Chip 
-                                label={badge.label}
-                                size="small"
-                                sx={{ 
-                                  backgroundColor: badge.bg,
-                                  color: badge.color,
-                                  fontWeight: 500,
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                }}
-                              />
-                            </Box>
-                            
-                            {/* Valor principal */}
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>
-                              {percentage}%
-                            </Typography>
-                            
-                            {/* Hallazgo clave */}
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>
-                              {insight}
-                            </Typography>
-                            
-                            {/* CTA */}
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>
-                              Ver detalle →
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })()}
-
-                    {/* Syntactic Accuracy Executive Card */}
-                    {overallMetrics.syntactic_accuracy && (() => {
-                      const sa = overallMetrics.syntactic_accuracy;
-                      const value = sa.overall_conformance ?? 0;
-                      const percentage = (value * 100).toFixed(1);
-
-                      const badge = value >= 0.95 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : value >= 0.80 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
-
-                      const insight = sa.columns_checked
-                        ? `${sa.columns_checked} columna${sa.columns_checked !== 1 ? 's' : ''} analizadas`
-                        : 'Sin columnas analizadas';
-
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Exactitud sintáctica</Typography>
-                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })()}
-
-                    {/* Logical Consistency Executive Card */}
-                    {overallMetrics.logical_consistency && overallMetrics.logical_consistency.rules && (() => {
-                      const lc = overallMetrics.logical_consistency;
-                      const value = lc.overall_compliance ?? 0;
-                      const percentage = (value * 100).toFixed(1);
-                      const withViolations = lc.rules_with_violations ?? 0;
-                      const total = lc.rules_evaluated ?? (lc.rules?.length ?? 0);
-
-                      const badge = withViolations === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : withViolations <= 1  ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
-
-                      const insight = withViolations === 0
-                        ? `${total} regla${total !== 1 ? 's' : ''} sin violaciones`
-                        : `${withViolations} de ${total} regla${total !== 1 ? 's' : ''} con violaciones`;
-
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Consistencia lógica</Typography>
-                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })()}
-
-                    {/* Class Balance Executive Card */}
-                    {overallMetrics.class_balance && (() => {
-                      const cb = overallMetrics.class_balance;
-                      const value = cb.overall_balance_index ?? 0;
-                      const display = value.toFixed(1);
-                      const alerts = cb.columns_with_alerts ?? 0;
-
-                      const badge = value >= 80 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : value >= 60 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
-
-                      const insight = alerts === 0
-                        ? 'Sin desequilibrios detectados'
-                        : `${alerts} columna${alerts !== 1 ? 's' : ''} con desequilibrio`;
-
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Equilibrio de clases</Typography>
-                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{display}%</Typography>
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })()}
-
-                    {/* Timeliness Executive Card */}
-                    {overallMetrics.timeliness && (() => {
-                      const tl = overallMetrics.timeliness;
-                      const value = tl.overall_freshness_score ?? 0;
-                      const percentage = (value * 100).toFixed(1);
-                      const stale = tl.columns_stale ?? 0;
-                      const analyzed = tl.columns_analyzed ?? 0;
-
-                      const badge = value >= 0.90 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : value >= 0.70 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
-
-                      const insight = stale === 0
-                        ? `${analyzed} columna${analyzed !== 1 ? 's' : ''} actualizadas`
-                        : `${stale} de ${analyzed} columna${analyzed !== 1 ? 's' : ''} desactualizadas`;
-
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => { document.getElementById('metric-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                            sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Actualidad</Typography>
-                              <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>{insight}</Typography>
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>Ver detalle →</Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })()}
-
-                    {/* Outliers Executive Card */}
-                    {overallMetrics.outliers && (() => {
-                      const totalOutliers = Object.values(overallMetrics.outliers).reduce(
-                        (sum: number, col: any) => sum + (col?.count || 0), 0
-                      );
-                      const totalValues = Object.values(overallMetrics.outliers).reduce(
-                        (sum: number, col: any) => sum + (col?.total_values || 0), 0
-                      );
-                      const overallProportion = totalValues > 0 ? totalOutliers / totalValues : 0;
-                      const columnsAffected = Object.entries(overallMetrics.outliers).filter(([_, col]: [string, any]) => col?.count > 0).length;
-                      
-                      const badge = overallProportion >= 0.05 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
-                                  : overallProportion >= 0.02 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                                  : totalOutliers === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                                  : { label: 'Aceptable', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' };
-                      
-                      const mostAffectedCol = Object.entries(overallMetrics.outliers)
-                        .filter(([_, col]: [string, any]) => col?.count > 0)
-                        .sort(([_, a]: [string, any], [__, b]: [string, any]) => (b?.count || 0) - (a?.count || 0))[0];
-                      
-                      const insight = totalOutliers === 0
-                        ? 'Sin valores atípicos detectados'
-                        : columnsAffected === 1 && mostAffectedCol
-                        ? `${columnsAffected} columna afectada (${mostAffectedCol[0]}, ${(overallProportion * 100).toFixed(1)}%)`
-                        : `${columnsAffected} columnas afectadas (${(overallProportion * 100).toFixed(1)}% del total)`;
-                      
-                      return (
-                        <Grid item xs={12} sm={4}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => {
-                              const el = document.getElementById('metric-details');
-                              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }}
-                            sx={{
-                              p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer',
-                              transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
-                              height: '100%',
-                            }}
-                          >
-                            {/* Header con badge */}
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
-                                Outliers
-                              </Typography>
-                              <Chip 
-                                label={badge.label}
-                                size="small"
-                                sx={{ 
-                                  backgroundColor: badge.bg,
-                                  color: badge.color,
-                                  fontWeight: 500,
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                }}
-                              />
-                            </Box>
-                            
-                            {/* Valor principal */}
-                            <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>
-                              {totalOutliers}
-                            </Typography>
-                            
-                            {/* Hallazgo clave */}
-                            <Typography variant="body2" sx={{ color: '#555', mb: 2, fontSize: '0.875rem', minHeight: '2.5em' }}>
-                              {insight}
-                            </Typography>
-                            
-                            {/* CTA */}
-                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500, fontSize: '0.75rem' }}>
-                              Ver detalle →
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })()}
-                  </Grid>
-                </Paper>
-              </Grid>
-            </Grid>
-
-            {/* Priority Issues Section - Collapsible */}
+            {/* Issues detectados - Collapsible */}
             <Accordion
               id="priority-issues"
               elevation={0}
               defaultExpanded={true}
               sx={{
-                mb: 4,
+                mb: 3,
                 border: '1px solid #E0E0E0',
                 borderRadius: '8px !important',
                 backgroundColor: '#FFFFFF',
@@ -721,7 +616,7 @@ const EvaluationDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <WarningIcon sx={{ color: '#888', fontSize: 20 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Issues Detected ({issues.length})
+                    Issues detectados ({issues.length})
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -733,6 +628,9 @@ const EvaluationDetail = () => {
                       issues={issues}
                       onFilterChange={(severity) => setSelectedSeverity(severity)}
                       selectedSeverity={selectedSeverity}
+                      onMetricFilterChange={(metric) => setSelectedMetric(metric)}
+                      selectedMetric={selectedMetric}
+                      getMetricName={getMetricName}
                     />
                   </Box>
                   <TableContainer sx={{ maxHeight: 400 }}>
@@ -753,19 +651,6 @@ const EvaluationDetail = () => {
                             if (severity === 'medium') return 'Media';
                             if (severity === 'low') return 'Baja';
                             return severity;
-                          };
-
-                          const getMetricName = (desc: string): string => {
-                            const lower = desc.toLowerCase();
-                            if (lower.includes('completeness') || lower.includes('completitud') || lower.includes('null') || lower.includes('missing')) return 'Completitud';
-                            if (lower.includes('unique') || lower.includes('duplicate') || lower.includes('unicidad') || lower.includes('duplicad')) return 'Unicidad';
-                            if (lower.includes('outlier') || lower.includes('atípico')) return 'Outliers';
-                            if (lower.includes('variability') || lower.includes('variabilidad')) return 'Unicidad';
-                            if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Exactitud sintáctica';
-                            if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Equilibrio de clases';
-                            if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Actualidad';
-                            if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule') || lower.includes('regla')) return 'Consistencia lógica';
-                            return 'General';
                           };
 
                           return (
@@ -829,13 +714,14 @@ const EvaluationDetail = () => {
               </AccordionDetails>
             </Accordion>
 
-            {/* Metric Details - Collapsible Tabs */}
+            {/* Detalles de métricas - Collapsible Tabs */}
             <Accordion
               id="metric-details"
               elevation={0}
-              defaultExpanded={true}
+              expanded={detailsExpanded}
+              onChange={(_, expanded) => setDetailsExpanded(expanded)}
               sx={{
-                mb: 4,
+                mb: 3,
                 border: '1px solid #E0E0E0',
                 borderRadius: '8px !important',
                 backgroundColor: '#FFFFFF',
@@ -858,6 +744,8 @@ const EvaluationDetail = () => {
                 <MetricDetailsTabs
                   overallMetrics={overallMetrics}
                   columnMetrics={columnMetrics}
+                  initialTab={activeDetailTab}
+                  datasetId={evaluation.dataset_id}
                 />
               </AccordionDetails>
             </Accordion>
@@ -872,15 +760,15 @@ const EvaluationDetail = () => {
               </Paper>
             )}
 
-            {/* Score Calculation - Collapsed by default */}
+            {/* Cálculo de puntuación - Collapsed by default */}
             {overallMetrics.score_breakdown && (
-              <Accordion 
-                elevation={0} 
+              <Accordion
+                elevation={0}
                 defaultExpanded={false}
-                sx={{ 
-                  mb: 4, 
-                  border: '1px solid #E0E0E0', 
-                  borderRadius: '8px !important', 
+                sx={{
+                  mb: 3,
+                  border: '1px solid #E0E0E0',
+                  borderRadius: '8px !important',
                   backgroundColor: '#FFFFFF',
                   '&:before': { display: 'none' },
                   scrollMarginTop: '80px',

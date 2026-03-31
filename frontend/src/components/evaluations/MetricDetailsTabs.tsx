@@ -5,6 +5,11 @@ import {
   Tab,
   Paper,
   Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -68,6 +73,8 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   initialTab = 0,
   datasetId,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Sync activeTab when initialTab prop changes
@@ -83,73 +90,46 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   const hasClassBalance = overallMetrics.class_balance && overallMetrics.class_balance.columns;
   const hasTimeliness = overallMetrics.timeliness && overallMetrics.timeliness.columns;
 
-  const tabs: Array<{ label: string; icon: React.ReactNode; available: boolean }> = [];
+  const tabs: Array<{ name: string; summary: string }> = [];
 
   if (hasCompleteness) {
     const nullPercent = ((1 - overallMetrics.completeness) * 100).toFixed(1);
-    tabs.push({
-      label: `Valores nulos (${nullPercent}%)`,
-      icon: null,
-      available: true,
-    });
+    tabs.push({ name: 'Completitud', summary: `${nullPercent}% nulos` });
   }
 
   if (hasUniqueness) {
     const duplicatePercent = ((1 - overallMetrics.uniqueness) * 100).toFixed(1);
-    tabs.push({
-      label: `Registros duplicados (${duplicatePercent}%)`,
-      icon: null,
-      available: true,
-    });
+    tabs.push({ name: 'Unicidad', summary: `${duplicatePercent}% duplicados` });
   }
 
   if (hasOutliers) {
     const totalOutliers = Object.values(overallMetrics.outliers).reduce(
       (sum: number, col: any) => sum + (col?.count || 0), 0
     );
-    tabs.push({
-      label: `Outliers (${totalOutliers})`,
-      icon: null,
-      available: true,
-    });
+    tabs.push({ name: 'Outliers', summary: `${totalOutliers} detectados` });
   }
 
   if (hasSyntacticAccuracy) {
     const conformancePct = (overallMetrics.syntactic_accuracy.overall_conformance * 100).toFixed(1);
-    tabs.push({
-      label: `Exactitud sintáctica (${conformancePct}%)`,
-      icon: null,
-      available: true,
-    });
+    tabs.push({ name: 'Exactitud sintáctica', summary: `${conformancePct}%` });
   }
 
   if (hasLogicalConsistency) {
     const violations = overallMetrics.logical_consistency.rules_with_violations || 0;
-    tabs.push({
-      label: `Consistencia lógica (${violations} violaciones)`,
-      icon: null,
-      available: true,
-    });
+    tabs.push({ name: 'Consistencia lógica', summary: `${violations} violaciones` });
   }
 
   if (hasClassBalance) {
     const balanceIdx = overallMetrics.class_balance.overall_balance_index?.toFixed(0) || '?';
-    tabs.push({
-      label: `Equilibrio de clases (${balanceIdx}/100)`,
-      icon: null,
-      available: true,
-    });
+    tabs.push({ name: 'Equilibrio de clases', summary: `${balanceIdx}/100` });
   }
 
   if (hasTimeliness) {
     const staleCount = overallMetrics.timeliness.columns_stale || 0;
     const freshPct = (overallMetrics.timeliness.overall_freshness_score * 100).toFixed(0);
     tabs.push({
-      label: staleCount > 0
-        ? `Actualidad (${staleCount} obsoletas)`
-        : `Actualidad (${freshPct}%)`,
-      icon: null,
-      available: true,
+      name: 'Actualidad',
+      summary: staleCount > 0 ? `${staleCount} obsoletas` : `${freshPct}%`,
     });
   }
 
@@ -167,35 +147,70 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
 
   return (
     <Paper id="metric-details" elevation={0} sx={{ border: '1px solid #EEEEEE', borderRadius: 2, scrollMarginTop: '80px' }}>
-      <Tabs
-        value={safeTab}
-        onChange={(_, newValue) => setActiveTab(newValue)}
-        variant="fullWidth"
-        sx={{
-          borderBottom: '1px solid #EEEEEE',
-          '& .MuiTab-root': {
-            textTransform: 'none',
-            fontWeight: 500,
-            fontSize: '0.875rem',
-            minHeight: 48,
-          },
-          '& .Mui-selected': {
-            fontWeight: 600,
-          },
-        }}
-      >
-        {tabs.map((tab, idx) => (
-          <Tab
-            key={idx}
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                {tab.icon}
-                {tab.label}
-              </Box>
-            }
-          />
-        ))}
-      </Tabs>
+      {/* Mobile: Dropdown selector */}
+      {isMobile ? (
+        <FormControl fullWidth sx={{ p: 2, borderBottom: '1px solid #EEEEEE' }}>
+          <Select
+            value={safeTab}
+            onChange={(e) => setActiveTab(e.target.value as number)}
+            size="small"
+            sx={{
+              '& .MuiSelect-select': {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              },
+            }}
+          >
+            {tabs.map((tab, idx) => (
+              <MenuItem key={idx} value={idx}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{tab.name}</Typography>
+                  <Typography variant="caption" sx={{ color: '#888', ml: 1 }}>{tab.summary}</Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      ) : (
+        /* Desktop/Tablet: Scrollable tabs */
+        <Tabs
+          value={safeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{
+            borderBottom: '1px solid #EEEEEE',
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              minHeight: 56,
+              minWidth: 120,
+            },
+            '& .Mui-selected': {
+              fontWeight: 600,
+            },
+          }}
+        >
+          {tabs.map((tab, idx) => (
+            <Tab
+              key={idx}
+              label={
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+                    {tab.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#888', lineHeight: 1.2 }}>
+                    {tab.summary}
+                  </Typography>
+                </Box>
+              }
+            />
+          ))}
+        </Tabs>
+      )}
 
       <Box sx={{ p: 3 }}>
         {/* Render tab content based on which metrics are available */}
