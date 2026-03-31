@@ -1,16 +1,47 @@
 \chapter{Resumen}
 
-El presente documento es un ejemplo de memoria del Trabajo de Fin Grado según el formato y criterios del Grado en Ingeniería Informática de la Facultad de Ciencias Sociales y Tecnologías de la Información de Talavera de la Reina. La intención es que este texto sirva además como una serie de consejos sobre tipografía, \LaTeX, redacción y estructura de la memoria que podrían resultar de ayuda. Por este motivo, se aconseja consultar también el código fuente de este documento, que usa la clase \LaTeX{} \gitatfg{}:
+La calidad de los datos constituye un factor determinante en el éxito de los
+proyectos de inteligencia artificial y aprendizaje automático.  Sin embargo,
+las herramientas disponibles para su evaluación presentan limitaciones
+significativas: las bibliotecas basadas en código imponen una barrera técnica
+elevada, mientras que los \emph{scripts} ad~hoc carecen de estandarización,
+historización y mecanismos de decisión automatizados.
 
- \url{https://github.com/anarubioruiz/gita-tfg}
+Este Trabajo Fin de Grado presenta \dataqual, una plataforma web
+\emph{full-stack} para la evaluación automatizada de la calidad de datos.
+La plataforma implementa siete métricas de calidad alineadas con los
+estándares ISO/IEC~25012 e ISO/IEC~5259, un motor extensible basado en
+\emph{plugins}, un sistema de \emph{fingerprinting} SHA-256 para la
+trazabilidad de incidencias entre evaluaciones y \emph{Quality Gates}
+configurables inspirados en SonarQube.  El sistema se despliega como ocho
+servicios Docker orquestados con Docker~Compose, combinando una interfaz web
+interactiva (Next.js, React) con una API RESTful (Flask, Python) y
+procesamiento asíncrono (Celery, Redis).
 
-Si encuentras cualquier error o tienes alguna sugerencia, por favor, utiliza el \emph{issue tracker} del proyecto \gitatfg{} en:
-
-\url{https://github.com/anarubioruiz/gita-tfg/issues}
-
-El resumen debería estar formado por dos o tres párrafos resaltando lo más destacable del documento. No es una introducción al problema, es decir, debería incluir los logros más importantes del proyecto. Suele ser más sencillo escribirlo cuando la memoria está prácticamente terminada. Debería caber en esta página (es decir, esta cara).
+La plataforma ha sido validada con conjuntos de datos reales, demostrando
+su capacidad para diagnosticar problemas de calidad, rastrear su evolución y
+proporcionar señales claras de aptitud de los datos mediante \emph{Quality
+Gates} con estados PASSED, WARNING y FAILED.
 
 
 \chapter{Abstract}
 
-English version of the previous page.
+Data quality is a determining factor in the success of artificial
+intelligence and machine learning projects.  However, the tools available for
+its assessment have significant limitations: code-based libraries impose a
+high technical barrier, while ad~hoc scripts lack standardisation,
+historisation and automated decision mechanisms.
+
+This undergraduate thesis presents \dataqual, a full-stack web platform for
+automated data quality evaluation.  The platform implements seven quality
+metrics aligned with the ISO/IEC~25012 and ISO/IEC~5259 standards, an
+extensible plugin-based engine, a SHA-256 fingerprinting system for issue
+traceability across evaluations, and configurable Quality Gates inspired by
+SonarQube.  The system is deployed as eight Docker services orchestrated with
+Docker~Compose, combining an interactive web interface (Next.js, React) with
+a RESTful API (Flask, Python) and asynchronous processing (Celery, Redis).
+
+The platform has been validated with real-world datasets, demonstrating its
+ability to diagnose quality problems, track their evolution, and provide
+clear data fitness signals through Quality Gates with PASSED, WARNING and
+FAILED states.
