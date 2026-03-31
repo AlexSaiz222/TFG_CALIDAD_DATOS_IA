@@ -194,6 +194,14 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
 const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
   const threshold = params.threshold ?? 0.95;
   const columns: string[] = params.columns ?? [];
+  
+  React.useEffect(() => {
+    const needsUpdate = params.threshold === undefined || params.columns === undefined;
+    if (needsUpdate) {
+      onChange({ threshold: params.threshold ?? 0.95, columns: params.columns ?? [], ...params });
+    }
+  }, []);
+  
   return (
     <Box>
       <SectionBanner
@@ -224,6 +232,14 @@ const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
 const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
   const threshold = params.threshold ?? 1.0;
   const columns: string[] = params.columns ?? [];
+  
+  React.useEffect(() => {
+    const needsUpdate = params.threshold === undefined || params.columns === undefined;
+    if (needsUpdate) {
+      onChange({ threshold: params.threshold ?? 1.0, columns: params.columns ?? [], ...params });
+    }
+  }, []);
+  
   return (
     <Box>
       <SectionBanner
@@ -263,6 +279,14 @@ const OutliersConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({
   const factor = params.factor ?? 1.5;
   const columns: string[] = params.columns ?? [];
   const activeSensitivity = SENSITIVITY_PRESETS.find(p => p.factor === factor);
+  
+  React.useEffect(() => {
+    const needsUpdate = params.method === undefined || params.factor === undefined || params.columns === undefined;
+    if (needsUpdate) {
+      onChange({ method: params.method ?? 'iqr', factor: params.factor ?? 1.5, columns: params.columns ?? [], ...params });
+    }
+  }, []);
+  
   return (
     <Box>
       <SectionBanner
@@ -352,6 +376,13 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
   const columnRules: Array<{ column: string; expected_type: string }> = params.columns ?? [];
   const [newCol, setNewCol] = useState('');
   const [newType, setNewType] = useState('email');
+  
+  React.useEffect(() => {
+    const needsUpdate = params.auto_detect_types === undefined || params.threshold === undefined || params.columns === undefined;
+    if (needsUpdate) {
+      onChange({ auto_detect_types: params.auto_detect_types !== false, threshold: params.threshold ?? 0.95, columns: params.columns ?? [], ...params });
+    }
+  }, []);
 
   const addRule = () => {
     if (!newCol.trim()) return;
@@ -448,6 +479,27 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
   const thresholdHigh = params.imbalance_threshold_high ?? 0.90;
   const thresholdLow = params.imbalance_threshold_low ?? 0.05;
   const columns: string[] = params.columns ?? [];
+  
+  React.useEffect(() => {
+    const needsUpdate = 
+      params.auto_detect === undefined ||
+      params.imbalance_threshold_high === undefined ||
+      params.imbalance_threshold_low === undefined ||
+      params.max_cardinality === undefined ||
+      params.columns === undefined;
+    
+    if (needsUpdate) {
+      onChange({
+        auto_detect: params.auto_detect !== false,
+        imbalance_threshold_high: params.imbalance_threshold_high ?? 0.90,
+        imbalance_threshold_low: params.imbalance_threshold_low ?? 0.05,
+        max_cardinality: params.max_cardinality ?? 50,
+        columns: params.columns ?? [],
+        ...params,
+      });
+    }
+  }, []);
+  
   return (
     <Box>
       <SectionBanner
@@ -530,10 +582,20 @@ const TimelinessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
   const columns: string[] = params.columns ?? [];
   const isCustom = !STALENESS_PRESETS.some(p => p.days === staleness);
   
-  // Ensure staleness_threshold_days is always set (fix for default value not appearing in JSON)
+  // Ensure all default parameters are set (fix for default values not appearing in JSON)
   React.useEffect(() => {
-    if (params.staleness_threshold_days === undefined) {
-      onChange({ ...params, staleness_threshold_days: 30 });
+    const needsUpdate = 
+      params.staleness_threshold_days === undefined ||
+      params.auto_detect === undefined ||
+      params.columns === undefined;
+    
+    if (needsUpdate) {
+      onChange({
+        auto_detect: params.auto_detect !== false,
+        columns: params.columns ?? [],
+        staleness_threshold_days: params.staleness_threshold_days ?? 30,
+        ...params,
+      });
     }
   }, []);
   return (

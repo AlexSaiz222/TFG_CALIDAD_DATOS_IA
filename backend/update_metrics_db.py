@@ -50,7 +50,7 @@ with app.app_context():
             'name': 'outliers',
             'description': 'Detecta valores atípicos en columnas numéricas usando métodos estadísticos (IQR, Z-score). Identifica datos anómalos que pueden ser errores o casos excepcionales.',
             'category': 'data_quality',
-            'parameters': {"method": "iqr", "factor": 1.5, "columns": [], "auto_detect": True}
+            'parameters': {"method": "iqr", "factor": 1.5, "columns": []}
         },
         {
             'name': 'timeliness',
@@ -62,7 +62,7 @@ with app.app_context():
             'name': 'class_balance',
             'description': 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.',
             'category': 'distribution',
-            'parameters': {"columns": [], "threshold": 0.8, "auto_detect": True}
+            'parameters': {"columns": [], "auto_detect": True, "imbalance_threshold_high": 0.90, "imbalance_threshold_low": 0.05, "max_cardinality": 50}
         }
     ]
     
@@ -80,7 +80,7 @@ with app.app_context():
             'name': 'syntactic_accuracy',
             'description': 'Valida que los valores cumplan con el tipo de dato esperado, patrones regex o restricciones de longitud. Detecta errores de formato y valores mal tipados.',
             'category': 'accuracy',
-            'parameters': {"columns": [], "custom_patterns": {}, "auto_detect_types": True, "threshold": 0.95}
+            'parameters': {"columns": [], "auto_detect_types": True, "threshold": 0.95}
         },
         {
             'name': 'logical_consistency',
