@@ -60,8 +60,8 @@ class UniquenessMetric(BaseMetric):
                 "metric_id": metrics_map.get("uniqueness"),
                 "severity": severity,
                 "description": (
-                    f"Low variability in {col_issue['column_type']} column "
-                    f"'{col_issue['column']}' ({col_issue['variability']:.2%} unique values)"
+                    f"Baja variabilidad en columna {col_issue['column_type']} "
+                    f"'{col_issue['column']}' ({col_issue['variability']:.2%} valores únicos)"
                 ),
                 "affected_columns": [col_issue],
                 "issue_type": "low_variability",
@@ -91,8 +91,8 @@ class UniquenessMetric(BaseMetric):
                     "metric_id": metrics_map.get("uniqueness"),
                     "severity": severity,
                     "description": (
-                        f"Dataset contains {duplicate_count} duplicate rows "
-                        f"({(1 - row_uniqueness):.2%} of total)"
+                        f"El dataset contiene {duplicate_count} filas duplicadas "
+                        f"({(1 - row_uniqueness):.2%} del total)"
                     ),
                     "affected_rows": {"count": duplicate_count, "sample": sample_data},
                     "issue_type": "duplicate_rows",
@@ -118,8 +118,8 @@ class UniquenessMetric(BaseMetric):
                     "metric_id": metrics_map.get("uniqueness"),
                     "severity": severity,
                     "description": (
-                        f"Column '{col}' expected to be unique but contains "
-                        f"{duplicate_count} duplicate values ({col_uniqueness:.2%} unique)"
+                        f"La columna '{col}' se esperaba única pero contiene "
+                        f"{duplicate_count} valores duplicados ({col_uniqueness:.2%} únicos)"
                     ),
                     "affected_columns": [{
                         "column": col,

@@ -39,8 +39,8 @@ class CompletenessMetric(BaseMetric):
                 "metric_id": metrics_map.get("completeness"),
                 "severity": severity,
                 "description": (
-                    f"Dataset completeness ({completeness:.2%}) is below "
-                    f"threshold ({threshold:.2%})"
+                    f"La completitud del dataset ({completeness:.2%}) está por debajo "
+                    f"del umbral ({threshold:.2%})"
                 ),
                 "affected_columns": problem_columns,
                 "issue_type": "completeness",
@@ -62,7 +62,7 @@ class CompletenessMetric(BaseMetric):
                     "evaluation_id": evaluation_id,
                     "metric_id": metrics_map.get("completeness"),
                     "severity": col_severity,
-                    "description": f"Column '{col}' has low completeness ({col_completeness:.2%})",
+                    "description": f"La columna '{col}' tiene baja completitud ({col_completeness:.2%})",
                     "affected_columns": [{"column": col, "null_rate": float(1 - col_completeness)}],
                     "issue_type": "completeness",
                     "fingerprint": generate_column_issue_fingerprint(

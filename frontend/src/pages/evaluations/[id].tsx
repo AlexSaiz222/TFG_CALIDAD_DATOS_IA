@@ -345,7 +345,7 @@ const EvaluationDetail = () => {
               <Grid item xs={12} md={8}>
                 <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, height: '100%' }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    Metrics Summary
+                    Resumen de métricas
                   </Typography>
                   <Grid container spacing={2}>
                     {/* Completeness Executive Card */}
@@ -380,7 +380,7 @@ const EvaluationDetail = () => {
                             {/* Header con badge */}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                               <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
-                                Completeness
+                                Completitud
                               </Typography>
                               <Chip 
                                 label={badge.label}
@@ -448,7 +448,7 @@ const EvaluationDetail = () => {
                             {/* Header con badge */}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                               <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>
-                                Uniqueness
+                                Unicidad
                               </Typography>
                               <Chip 
                                 label={badge.label}
@@ -539,7 +539,7 @@ const EvaluationDetail = () => {
                             sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
                           >
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Logical Consistency</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Consistencia lógica</Typography>
                               <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
                             </Box>
                             <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
@@ -573,7 +573,7 @@ const EvaluationDetail = () => {
                             sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
                           >
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Class Balance</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Equilibrio de clases</Typography>
                               <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
                             </Box>
                             <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{display}%</Typography>
@@ -608,7 +608,7 @@ const EvaluationDetail = () => {
                             sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: '#1976d2', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }, height: '100%' }}
                           >
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Timeliness</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>Actualidad</Typography>
                               <Chip label={badge.label} size="small" sx={{ backgroundColor: badge.bg, color: badge.color, fontWeight: 500, fontSize: '0.7rem', height: 20 }} />
                             </Box>
                             <Typography variant="h3" sx={{ fontWeight: 700, color: badge.color, mb: 1.5, lineHeight: 1 }}>{percentage}%</Typography>
@@ -739,24 +739,32 @@ const EvaluationDetail = () => {
                     <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Severity</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Severidad</TableCell>
                           <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Métrica</TableCell>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Description</TableCell>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Affected Columns</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Descripción</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Columnas Afectadas</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredIssues.map((issue) => {
+                          const getSeverityLabel = (severity: string): string => {
+                            if (severity === 'critical') return 'Crítica';
+                            if (severity === 'high') return 'Alta';
+                            if (severity === 'medium') return 'Media';
+                            if (severity === 'low') return 'Baja';
+                            return severity;
+                          };
+
                           const getMetricName = (desc: string): string => {
                             const lower = desc.toLowerCase();
-                            if (lower.includes('completeness') || lower.includes('null') || lower.includes('missing')) return 'Completitud';
-                            if (lower.includes('unique') || lower.includes('duplicate')) return 'Unicidad';
+                            if (lower.includes('completeness') || lower.includes('completitud') || lower.includes('null') || lower.includes('missing')) return 'Completitud';
+                            if (lower.includes('unique') || lower.includes('duplicate') || lower.includes('unicidad') || lower.includes('duplicad')) return 'Unicidad';
                             if (lower.includes('outlier') || lower.includes('atípico')) return 'Outliers';
                             if (lower.includes('variability') || lower.includes('variabilidad')) return 'Unicidad';
                             if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Exactitud sintáctica';
                             if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Equilibrio de clases';
                             if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Actualidad';
-                            if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule')) return 'Consistencia lógica';
+                            if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule') || lower.includes('regla')) return 'Consistencia lógica';
                             return 'General';
                           };
 
@@ -765,22 +773,25 @@ const EvaluationDetail = () => {
                               <TableCell>
                                 <Chip
                                   size="small"
-                                  label={issue.severity}
+                                  label={getSeverityLabel(issue.severity)}
                                   sx={{
                                     backgroundColor:
-                                      issue.severity === 'high'
+                                      issue.severity === 'critical'
+                                        ? 'rgba(139, 0, 0, 0.1)'
+                                        : issue.severity === 'high'
                                         ? 'rgba(229, 72, 77, 0.1)'
                                         : issue.severity === 'medium'
                                         ? 'rgba(255, 184, 0, 0.1)'
                                         : 'rgba(0, 179, 126, 0.1)',
                                     color:
-                                      issue.severity === 'high'
+                                      issue.severity === 'critical'
+                                        ? '#8B0000'
+                                        : issue.severity === 'high'
                                         ? '#E5484D'
                                         : issue.severity === 'medium'
                                         ? '#FFB800'
                                         : '#00B37E',
                                     fontWeight: 500,
-                                    textTransform: 'capitalize',
                                   }}
                                 />
                               </TableCell>
@@ -811,7 +822,7 @@ const EvaluationDetail = () => {
                 <Box sx={{ p: 4, textAlign: 'center', border: '1px dashed #CCCCCC', borderRadius: 2 }}>
                   <CheckCircleIcon sx={{ fontSize: 48, color: '#00B37E', mb: 1 }} />
                   <Typography variant="body1" sx={{ color: '#555555' }}>
-                    No issues detected. Your data quality is excellent!
+                    No se detectaron problemas. ¡La calidad de tus datos es excelente!
                   </Typography>
                 </Box>
               )}
@@ -839,7 +850,7 @@ const EvaluationDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <AssessmentIcon sx={{ color: '#888', fontSize: 20 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Metric Details
+                    Detalles de métricas
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -855,7 +866,7 @@ const EvaluationDetail = () => {
             {false && Object.keys(columnMetrics).length > 0 && (
               <Paper id="column-metrics" elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2, scrollMarginTop: '80px' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Column Metrics ({Object.keys(columnMetrics).length} columns)
+                  Métricas por Columna ({Object.keys(columnMetrics).length} columnas)
                 </Typography>
                 <ColumnMetricsTable columnMetrics={columnMetrics} />
               </Paper>
@@ -883,7 +894,7 @@ const EvaluationDetail = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <InfoIcon sx={{ color: '#888', fontSize: 20 }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Score Calculation
+                      Cálculo de puntuación
                     </Typography>
                   </Box>
                 </AccordionSummary>
@@ -895,7 +906,7 @@ const EvaluationDetail = () => {
                 {/* Step 1: Metric Scores */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#333' }}>
-                    1. Scores por métrica
+                    1. Puntuaciones por métrica
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     {Object.entries(overallMetrics.score_breakdown.metric_scores || {}).map(([metric, score]: [string, any]) => {
@@ -914,7 +925,7 @@ const EvaluationDetail = () => {
                     })}
                   </Box>
                   <Typography variant="body2" sx={{ mt: 1, color: '#888' }}>
-                    Base Score (promedio) = <strong>{(overallMetrics.score_breakdown.base_score * 100).toFixed(1)}%</strong>
+                    Puntuación base (promedio) = <strong>{(overallMetrics.score_breakdown.base_score * 100).toFixed(1)}%</strong>
                   </Typography>
                 </Box>
 
@@ -974,7 +985,7 @@ const EvaluationDetail = () => {
                                (overallMetrics.score_breakdown.final_score || 0) >= 0.5 ? 'rgba(255, 184, 0, 0.2)' : 'rgba(229, 72, 77, 0.2)',
                 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#333' }}>
-                    3. Score Final
+                    3. Puntuación final
                   </Typography>
                   <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
                     {(overallMetrics.score_breakdown.base_score * 100).toFixed(1)}% (base) − {(overallMetrics.score_breakdown.issue_penalty * 100).toFixed(1)}% (penalización) = {' '}

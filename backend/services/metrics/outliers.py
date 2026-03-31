@@ -51,8 +51,8 @@ class OutliersMetric(BaseMetric):
                     "metric_id": metrics_map.get("outliers"),
                     "severity": severity,
                     "description": (
-                        f"Column '{col}' contains {outliers['count']} outliers "
-                        f"({proportion:.1%} of values)"
+                        f"La columna '{col}' contiene {outliers['count']} valores atípicos "
+                        f"({proportion:.1%} de los valores)"
                     ),
                     "affected_columns": [{
                         "column": col,

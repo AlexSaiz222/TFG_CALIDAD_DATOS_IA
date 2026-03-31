@@ -54,7 +54,7 @@ class LogicalConsistencyMetric(BaseMetric):
                     "metric_id": metrics_map.get("logical_consistency"),
                     "severity": "high",
                     "description": (
-                        f"Rule '{rule_name}' contains forbidden tokens and was blocked for safety"
+                        f"La regla '{rule_name}' contiene tokens prohibidos y fue bloqueada por seguridad"
                     ),
                     "affected_columns": [],
                     "issue_type": "logical_consistency",
@@ -99,8 +99,8 @@ class LogicalConsistencyMetric(BaseMetric):
                         "metric_id": metrics_map.get("logical_consistency"),
                         "severity": severity,
                         "description": (
-                            f"Rule '{rule_name}' violated in {violation_count} rows "
-                            f"({violation_pct:.2%} of dataset)"
+                            f"La regla '{rule_name}' se violó en {violation_count} filas "
+                            f"({violation_pct:.2%} del dataset)"
                         ),
                         "affected_columns": [{"column": c} for c in affected_cols],
                         "affected_rows": {

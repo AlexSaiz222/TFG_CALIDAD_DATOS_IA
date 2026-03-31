@@ -126,8 +126,8 @@ class SyntacticAccuracyMetric(BaseMetric):
                     "metric_id": metrics_map.get("syntactic_accuracy"),
                     "severity": severity,
                     "description": (
-                        f"Column '{col_name}' has {invalid_count} values not matching "
-                        f"expected type '{expected_type}' ({conformance_rate:.2%} conformance)"
+                        f"La columna '{col_name}' tiene {invalid_count} valores que no coinciden "
+                        f"con el tipo esperado '{expected_type}' ({conformance_rate:.2%} de conformidad)"
                     ),
                     "affected_columns": [{
                         "column": col_name,

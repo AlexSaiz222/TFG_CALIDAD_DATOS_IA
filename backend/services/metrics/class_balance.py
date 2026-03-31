@@ -113,9 +113,9 @@ class ClassBalanceMetric(BaseMetric):
                     "metric_id": metrics_map.get("class_balance"),
                     "severity": severity,
                     "description": (
-                        f"Column '{col}' is highly imbalanced: dominant class "
-                        f"'{dominant_class}' represents {dominant_prop:.1%} of values "
-                        f"(balance index: {balance_index:.1f}/100)"
+                        f"La columna '{col}' está muy desequilibrada: la clase dominante "
+                        f"'{dominant_class}' representa el {dominant_prop:.1%} de los valores "
+                        f"(índice de equilibrio: {balance_index:.1f}/100)"
                     ),
                     "affected_columns": [{
                         "column": col,
@@ -135,8 +135,8 @@ class ClassBalanceMetric(BaseMetric):
                     "metric_id": metrics_map.get("class_balance"),
                     "severity": "medium" if minority_prop < 0.02 else "low",
                     "description": (
-                        f"Column '{col}' has underrepresented minority class "
-                        f"'{minority_class}' at {minority_prop:.2%} of values"
+                        f"La columna '{col}' tiene una clase minoritaria subrepresentada "
+                        f"'{minority_class}' con {minority_prop:.2%} de los valores"
                     ),
                     "affected_columns": [{
                         "column": col,

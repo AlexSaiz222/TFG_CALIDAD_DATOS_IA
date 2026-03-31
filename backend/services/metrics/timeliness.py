@@ -112,8 +112,8 @@ class TimelinessMetric(BaseMetric):
                     "metric_id": metrics_map.get("timeliness"),
                     "severity": severity,
                     "description": (
-                        f"Column '{col_name}' contains stale data: most recent record "
-                        f"is {age_human} old (threshold: {staleness_days} days)"
+                        f"La columna '{col_name}' contiene datos desactualizados: el registro más reciente "
+                        f"tiene {age_human} de antigüedad (umbral: {staleness_days} días)"
                     ),
                     "affected_columns": [{
                         "column": col_name,
@@ -134,8 +134,8 @@ class TimelinessMetric(BaseMetric):
                     "metric_id": metrics_map.get("timeliness"),
                     "severity": "low",
                     "description": (
-                        f"Column '{col_name}' has low date parse success rate "
-                        f"({parse_success_rate:.1%}): some values may not be valid dates"
+                        f"La columna '{col_name}' tiene baja tasa de parseo de fechas "
+                        f"({parse_success_rate:.1%}): algunos valores pueden no ser fechas válidas"
                     ),
                     "affected_columns": [{
                         "column": col_name,

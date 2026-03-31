@@ -63,7 +63,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   const severityConfig: SeverityConfig[] = [
     {
       key: 'high',
-      label: 'High',
+      label: 'Alta',
       count: highCount,
       color: '#E5484D',
       bgColor: 'rgba(229, 72, 77, 0.1)',
@@ -71,7 +71,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
     },
     {
       key: 'medium',
-      label: 'Medium',
+      label: 'Media',
       count: mediumCount,
       color: '#FFB800',
       bgColor: 'rgba(255, 184, 0, 0.1)',
@@ -79,7 +79,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
     },
     {
       key: 'low',
-      label: 'Low',
+      label: 'Baja',
       count: lowCount,
       color: '#00B37E',
       bgColor: 'rgba(0, 179, 126, 0.1)',
@@ -109,7 +109,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
 
         {selectedSeverity && (
           <Chip
-            label="Clear filter"
+            label="Limpiar filtro"
             variant="outlined"
             size="small"
             onClick={() => onFilterChange?.(null)}
