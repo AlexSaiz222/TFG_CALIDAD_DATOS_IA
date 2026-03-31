@@ -154,6 +154,10 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
     if (v && !value.includes(v)) onChange([...value, v]);
     setInput('');
   };
+  
+  // Ensure value is always an array of strings (filter out any objects that might come from JSON sync)
+  const safeValue = (value || []).filter((v: any) => typeof v === 'string') as string[];
+  
   return (
     <Box>
       <Typography variant="subtitle2" gutterBottom>{label}</Typography>
@@ -169,10 +173,10 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
           sx={{ borderColor: GREEN, color: GREEN, minWidth: 48 }}>+</Button>
       </Box>
       <Box display="flex" flexWrap="wrap" gap={0.5}>
-        {value.map(col => (
-          <Chip key={col} label={col} size="small" onDelete={() => onChange(value.filter(c => c !== col))} />
+        {safeValue.map(col => (
+          <Chip key={col} label={col} size="small" onDelete={() => onChange(safeValue.filter(c => c !== col))} />
         ))}
-        {value.length === 0 && (
+        {safeValue.length === 0 && (
           <Typography variant="caption" color="text.disabled">
             {helpText || 'Vacío = se comprueban todas las columnas automáticamente'}
           </Typography>

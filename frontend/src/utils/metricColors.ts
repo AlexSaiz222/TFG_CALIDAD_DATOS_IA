@@ -45,7 +45,28 @@ export function formatParamValue(value: unknown): string {
   if (value === null || value === undefined) return '—';
   if (value === true) return '✓ activado';
   if (value === false) return '✗ desactivado';
-  if (Array.isArray(value)) return value.length === 0 ? '— (auto)' : value.join(', ');
+  
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '— (auto)';
+    
+    // Handle array of objects (e.g., syntactic_accuracy columns or logical_consistency rules)
+    if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
+      // For syntactic_accuracy columns: [{column, expected_type}, ...]
+      if ('column' in value[0] && 'expected_type' in value[0]) {
+        return value.map((v: any) => `${v.column} (${v.expected_type})`).join(', ');
+      }
+      // For logical_consistency rules: [{name, type, ...}, ...]
+      if ('name' in value[0] && 'type' in value[0]) {
+        return value.map((v: any) => v.name).join(', ');
+      }
+      // Generic object array: show count
+      return `${value.length} elemento${value.length !== 1 ? 's' : ''}`;
+    }
+    
+    // Handle array of primitives (strings, numbers)
+    return value.join(', ');
+  }
+  
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }

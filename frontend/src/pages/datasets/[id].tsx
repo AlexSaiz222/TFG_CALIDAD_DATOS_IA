@@ -459,10 +459,10 @@ const DatasetDetail = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Dataset Not Found
+              Dataset no encontrado
             </Typography>
           </Box>
-          <Alert severity="error">{error || 'Dataset not found'}</Alert>
+          <Alert severity="error">{error || 'Dataset no encontrado'}</Alert>
           <Button
             variant="contained"
             onClick={() => router.push('/projects')}

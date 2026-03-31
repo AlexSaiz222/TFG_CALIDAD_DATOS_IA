@@ -305,7 +305,7 @@ class EvaluationService:
             # Get dataset
             dataset = Dataset.query.get(evaluation.dataset_id)
             if not dataset:
-                raise Exception("Dataset not found")
+                raise Exception("Dataset no encontrado")
             
             self._update_progress(evaluation_id, 10, "Descargando dataset...", analysis_run_id)
             

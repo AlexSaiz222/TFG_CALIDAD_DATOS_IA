@@ -42,15 +42,12 @@ Resultados esperados por versión:
 
 Mide el porcentaje de valores no nulos en las columnas críticas.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "completeness",
-  "name": "Completitud de campos obligatorios",
-  "parameters": {
-    "columns": ["nombre", "email", "telefono", "ciudad", "dni", "codigo_postal"],
-    "threshold": 0.95,
-    "weight": 1.5
-  }
+  "columns": ["nombre", "email", "telefono", "ciudad", "dni", "codigo_postal"],
+  "threshold": 0.95,
+  "weight": 1.5
 }
 ```
 
@@ -65,15 +62,12 @@ Mide el porcentaje de valores no nulos en las columnas críticas.
 
 Detecta filas duplicadas y columnas que deben ser únicas como identificadores.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "uniqueness",
-  "name": "Unicidad de registros e identificadores",
-  "parameters": {
-    "columns": ["id", "dni"],
-    "threshold": 1.0,
-    "weight": 1.5
-  }
+  "columns": ["id", "dni"],
+  "threshold": 1.0,
+  "weight": 1.5
 }
 ```
 
@@ -88,16 +82,13 @@ Detecta filas duplicadas y columnas que deben ser únicas como identificadores.
 
 Detecta salarios anómalos mediante el método IQR.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "outliers",
-  "name": "Detección de salarios atípicos",
-  "parameters": {
-    "method": "iqr",
-    "factor": 1.5,
-    "columns": ["salario"],
-    "weight": 1.0
-  }
+  "method": "iqr",
+  "factor": 1.5,
+  "columns": ["salario"],
+  "weight": 1.0
 }
 ```
 
@@ -114,21 +105,19 @@ Detecta salarios anómalos mediante el método IQR.
 
 Valida que los valores cumplan los formatos esperados mediante patrones regex.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "syntactic_accuracy",
-  "name": "Validación de formatos de datos",
-  "parameters": {
-    "threshold": 0.95,
-    "columns": [
-      { "column": "email",              "expected_type": "email" },
-      { "column": "telefono",           "expected_type": "phone_es" },
-      { "column": "dni",                "expected_type": "dni_es" },
-      { "column": "codigo_postal",      "expected_type": "postal_code_es" },
-      { "column": "fecha_contratacion", "expected_type": "date_iso" }
-    ],
-    "weight": 1.0
-  }
+  "auto_detect_types": true,
+  "threshold": 0.95,
+  "columns": [
+    { "column": "email",              "expected_type": "email" },
+    { "column": "telefono",           "expected_type": "phone_es" },
+    { "column": "dni",                "expected_type": "dni_es" },
+    { "column": "codigo_postal",      "expected_type": "postal_code_es" },
+    { "column": "fecha_contratacion", "expected_type": "date_iso" }
+  ],
+  "weight": 1.0
 }
 ```
 
@@ -153,31 +142,28 @@ Valida que los valores cumplan los formatos esperados mediante patrones regex.
 
 Valida reglas de negocio cross-columna mediante expresiones pandas.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "logical_consistency",
-  "name": "Reglas de negocio de RRHH",
-  "parameters": {
-    "rules": [
-      {
-        "name": "salario_positivo",
-        "type": "violation",
-        "expression": "salario <= 0"
-      },
-      {
-        "name": "lead_salario_minimo",
-        "type": "if_then",
-        "condition": "nivel_experiencia == 'Lead'",
-        "assertion": "salario >= 50000"
-      },
-      {
-        "name": "salario_maximo_razonable",
-        "type": "violation",
-        "expression": "salario > 300000"
-      }
-    ],
-    "weight": 1.0
-  }
+  "rules": [
+    {
+      "name": "salario_positivo",
+      "type": "violation",
+      "expression": "salario <= 0"
+    },
+    {
+      "name": "lead_salario_minimo",
+      "type": "if_then",
+      "condition": "nivel_experiencia == 'Lead'",
+      "assertion": "salario >= 50000"
+    },
+    {
+      "name": "salario_maximo_razonable",
+      "type": "violation",
+      "expression": "salario > 300000"
+    }
+  ],
+  "weight": 1.0
 }
 ```
 
@@ -200,16 +186,15 @@ Valida reglas de negocio cross-columna mediante expresiones pandas.
 
 Mide si la distribución de valores categóricos es equilibrada o presenta clases dominantes.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "class_balance",
-  "name": "Equilibrio de distribuciones categóricas",
-  "parameters": {
-    "columns": ["departamento", "nivel_experiencia"],
-    "imbalance_threshold_high": 0.70,
-    "imbalance_threshold_low": 0.05,
-    "weight": 0.8
-  }
+  "auto_detect": true,
+  "columns": ["departamento", "nivel_experiencia"],
+  "max_cardinality": 50,
+  "imbalance_threshold_high": 0.70,
+  "imbalance_threshold_low": 0.05,
+  "weight": 0.8
 }
 ```
 
@@ -230,15 +215,13 @@ Mide si la distribución de valores categóricos es equilibrada o presenta clase
 Mide la antigüedad de los registros de fecha. Usa `fecha_actualizacion`, que representa cuándo
 fue actualizado el registro por última vez.
 
+**📋 JSON para copiar en el editor:**
 ```json
 {
-  "type": "timeliness",
-  "name": "Frescura de la última actualización",
-  "parameters": {
-    "columns": ["fecha_actualizacion"],
-    "staleness_threshold_days": 365,
-    "weight": 1.0
-  }
+  "auto_detect": true,
+  "columns": ["fecha_actualizacion"],
+  "staleness_threshold_days": 365,
+  "weight": 1.0
 }
 ```
 

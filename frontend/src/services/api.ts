@@ -786,13 +786,34 @@ export const evaluationsAPI = {
   getEvaluationStatus: (id: number) => 
     api.get(`/api/evaluations/${id}/status`),
   
-  createEvaluation: (datasetId: number, metricsConfig: any) =>
-    api.post(`/api/evaluations/datasets/${datasetId}`, {
-      metrics: Array.isArray(metricsConfig?.metrics) ? metricsConfig.metrics
-             : Array.isArray(metricsConfig) ? metricsConfig
-             : [],
+  createEvaluation: (datasetId: number, metricsConfig: any) => {
+    const metrics = Array.isArray(metricsConfig?.metrics) ? metricsConfig.metrics
+                  : Array.isArray(metricsConfig) ? metricsConfig
+                  : [];
+    
+    // Clean null/undefined parameters from metrics to avoid backend validation errors
+    const cleanedMetrics = metrics.map((metric: any) => {
+      if (!metric.parameters) return metric;
+      
+      const cleanedParams: any = {};
+      Object.entries(metric.parameters).forEach(([key, value]) => {
+        // Only include non-null, non-undefined values
+        if (value !== null && value !== undefined) {
+          cleanedParams[key] = value;
+        }
+      });
+      
+      return {
+        ...metric,
+        parameters: cleanedParams
+      };
+    });
+    
+    return api.post(`/api/evaluations/datasets/${datasetId}`, {
+      metrics: cleanedMetrics,
       options: metricsConfig?.options || {}
-    }),
+    });
+  },
   
   getIssues: (evaluationId: number) => 
     api.get(`/api/evaluations/${evaluationId}/issues`),
