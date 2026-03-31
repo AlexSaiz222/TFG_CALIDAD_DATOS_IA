@@ -1,0 +1,336 @@
+\chapter{Metodología y herramientas}
+\label{chap:metodologia}
+
+\drop{E}{ste} capítulo describe el enfoque metodológico adoptado para el
+desarrollo de \dataqual, las herramientas y tecnologías seleccionadas para su
+implementación, y la planificación temporal seguida a lo largo del proyecto.
+La elección de la metodología, de la pila tecnológica y de las prácticas de
+ingeniería del software responde a los objetivos y restricciones definidos en
+el capítulo~\ref{chap:objetivos}.
+
+
+%% =========================================================================
+\section{Metodología de desarrollo}
+\label{sec:metodologia-desarrollo}
+%% =========================================================================
+
+El desarrollo de \dataqual ha seguido una \textbf{metodología iterativa e
+incremental}, inspirada en los principios del desarrollo ágil pero adaptada
+a las características de un proyecto académico individual.  A diferencia de
+los marcos ágiles orientados a equipos (Scrum, Kanban), la naturaleza
+unipersonal del \ac{TFG} no justifica la adopción de ceremonias formales como
+reuniones diarias o retrospectivas de equipo; sin embargo, los principios
+subyacentes~\textemdash entrega frecuente de incrementos funcionales,
+retroalimentación continua y adaptación del plan ante nuevos
+requisitos~\textemdash han guiado todo el proceso de desarrollo.
+
+\subsection{Desarrollo iterativo}
+
+El proyecto se ha organizado en \textbf{iteraciones} de duración variable
+(entre una y tres semanas), cada una de las cuales ha producido un incremento
+funcional desplegable.  Cada iteración ha comprendido las siguientes
+actividades:
+
+\begin{enumerate}
+  \item \textbf{Planificación:} selección de las funcionalidades a
+    implementar en la iteración, priorizando aquellas que aportan mayor valor
+    o que desbloquean funcionalidades posteriores.
+
+  \item \textbf{Diseño:} definición de la arquitectura y el modelo de datos
+    necesarios para las funcionalidades seleccionadas, tomando como referencia
+    los estándares \ac{ISO}/IEC~25012~\cite{iso25012} e
+    \ac{ISO}/IEC~5259~\cite{iso5259} para el diseño de las métricas de
+    calidad.
+
+  \item \textbf{Implementación:} desarrollo del código del \emph{backend} y
+    del \emph{frontend} de forma conjunta, garantizando que cada incremento
+    sea funcional de extremo a extremo.
+
+  \item \textbf{Verificación:} ejecución de pruebas manuales y automatizadas
+    para validar el correcto funcionamiento del incremento.
+
+  \item \textbf{Revisión con los tutores:} presentación del avance a los
+    tutores del \ac{TFG} para obtener retroalimentación y ajustar la
+    dirección del desarrollo en caso necesario.
+\end{enumerate}
+
+\subsection{Prototipado}
+
+La interfaz de usuario se ha desarrollado siguiendo un enfoque de
+\textbf{prototipado evolutivo}: cada pantalla se ha construido inicialmente
+con la funcionalidad mínima necesaria y se ha refinado en iteraciones
+sucesivas, incorporando mejoras de usabilidad, visualizaciones adicionales
+y tratamiento de casos extremos.  Este enfoque ha permitido obtener
+retroalimentación temprana sobre la experiencia de usuario sin invertir
+tiempo excesivo en el diseño visual previo a la validación funcional.
+
+\subsection{Control de versiones}
+
+El código fuente del proyecto se gestiona en un repositorio Git alojado en
+GitHub.  Se ha seguido una estrategia de ramificación basada en una rama
+principal (\texttt{main}) y ramas de funcionalidad (\emph{feature branches})
+para el desarrollo de cada módulo o característica significativa.  Los
+\emph{commits} siguen una convención de mensajes descriptivos que facilita la
+trazabilidad de los cambios.
+
+
+%% =========================================================================
+\section{Pila tecnológica}
+\label{sec:pila-tecnologica}
+%% =========================================================================
+
+La selección de las tecnologías que componen la plataforma responde a tres
+criterios principales: (1)~adecuación al tipo de problema~\textemdash
+evaluación de calidad de datos, procesamiento asíncrono, visualización
+interactiva~\textemdash; (2)~madurez y soporte comunitario de las
+herramientas; y (3)~coherencia con las competencias adquiridas a lo largo del
+grado en Ingeniería Informática.
+
+\subsection{\emph{Frontend}}
+\label{sec:tech-frontend}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tecnologías del \emph{frontend}}
+  \label{tab:tech-frontend}
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Tecnología} & \textbf{Versión} & \textbf{Justificación} \\
+    \midrule
+    Next.js   & 13.3 & \emph{Framework} React con enrutamiento basado en
+      ficheros, reescritura de rutas para \emph{proxy} al \emph{backend} y
+      modo \emph{standalone} para Docker. \\
+    React     & 18   & Biblioteca estándar para interfaces de usuario.  Los
+      \emph{hooks} y la Context \ac{API} eliminan la necesidad de gestores de
+      estado externos como Redux. \\
+    TypeScript & 5.0 & Tipado estático que detecta errores en tiempo de
+      compilación, esencial para mantener un \emph{frontend} con más de
+      cuarenta componentes. \\
+    Material \ac{UI} & 5.12 & Biblioteca de componentes con \emph{theming},
+      diseño adaptable y accesibilidad incorporada. \\
+    Chart.js  & 4.2  & Biblioteca de gráficos ligera con soporte para
+      histogramas, diagramas de dispersión y de líneas.  Se utiliza mediante
+      el \emph{wrapper} \texttt{react-chartjs-2}. \\
+    Axios     & 1.3  & Cliente HTTP con interceptores para inyección
+      automática de \ac{JWT} y gestión centralizada de errores. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{\emph{Backend}}
+\label{sec:tech-backend}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tecnologías del \emph{backend}}
+  \label{tab:tech-backend}
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Tecnología} & \textbf{Versión} & \textbf{Justificación} \\
+    \midrule
+    Python    & 3.10 & Lenguaje estándar en ciencia de datos e \ac{IA}, con
+      excelente integración con Pandas y NumPy para el cálculo de
+      métricas. \\
+    Flask     & 2.2  & \emph{Framework} web minimalista y flexible, ideal
+      para \ac{API}s \ac{REST}.  No impone una estructura fija, lo que
+      permite una arquitectura a medida. \\
+    SQLAlchemy & 2.0 & \ac{ORM} maduro con soporte completo para PostgreSQL,
+      incluyendo campos JSONB, tipos \texttt{ENUM} y \emph{pool} de
+      conexiones integrado. \\
+    Flask-JWT-Extended & 4.4 & Autenticación \ac{JWT} con \emph{tokens} de
+      acceso y refresco, \emph{blacklisting} y gestión de errores
+      personalizada. \\
+    Flask-Migrate & 4.0 & Migraciones de base de datos versionadas con
+      Alembic, que permiten evolucionar el esquema de forma controlada. \\
+    Pandas    & 1.5  & Manipulación de datos tabulares: lectura de conjuntos
+      de datos, cálculo de métricas y generación de estadísticas
+      descriptivas. \\
+    Gunicorn  & 20.1 & Servidor \ac{WSGI} de producción con soporte
+      multiproceso para gestionar la concurrencia. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Base de datos y almacenamiento}
+\label{sec:tech-bbdd}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tecnologías de base de datos y almacenamiento}
+  \label{tab:tech-bbdd}
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Tecnología} & \textbf{Versión} & \textbf{Justificación} \\
+    \midrule
+    PostgreSQL & 14  & Sistema de gestión de bases de datos relacional con
+      soporte nativo para JSONB, tipos \texttt{ENUM} e índices avanzados.
+      Permite combinar datos estructurados (relaciones entre entidades) con
+      datos semiestructurados (configuraciones, resultados). \\
+    MinIO     & \emph{latest} & Almacenamiento de objetos compatible con S3,
+      autoalojado.  Separa los archivos binarios de los datos relacionales y
+      garantiza la soberanía de datos sin dependencia de servicios en la
+      nube. \\
+    Redis     & 6    & Almacén en memoria con rol dual: \emph{broker} de
+      mensajes para Celery y \emph{storage} para el limitador de tasa de
+      peticiones.  Su baja latencia es idónea para la gestión de colas. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Procesamiento asíncrono y orquestación}
+\label{sec:tech-async}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tecnologías de procesamiento asíncrono y orquestación}
+  \label{tab:tech-async}
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Tecnología} & \textbf{Versión} & \textbf{Justificación} \\
+    \midrule
+    Celery    & 5.2  & Cola de tareas distribuida estándar en Python, con
+      soporte para reintentos, \emph{timeouts} y seguimiento de progreso.
+      Escalable horizontalmente mediante la adición de
+      \emph{workers}~\cite{celery}. \\
+    Flower    & 1.2  & Cuadro de mando web para la monitorización en tiempo
+      real de \emph{workers}, tareas y colas de Celery. \\
+    Docker    & ---  & Contenedorización de cada servicio, garantizando
+      aislamiento de dependencias, portabilidad y
+      reproducibilidad~\cite{docker}. \\
+    Docker Compose & --- & Orquestación de los ocho servicios con
+      \emph{healthchecks}, volúmenes persistentes, red interna y variables de
+      entorno.  Un único comando (\texttt{docker-compose~up}) despliega el
+      \emph{stack} completo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Entorno de desarrollo}
+\label{sec:entorno-desarrollo}
+%% =========================================================================
+
+El desarrollo del proyecto se ha llevado a cabo en el siguiente entorno:
+
+\begin{definitionlist}
+  \item[Editor de código]  Visual Studio Code, con extensiones para Python,
+    TypeScript, Docker y \LaTeX.
+
+  \item[Control de versiones]  Git 2.x con repositorio remoto en GitHub.
+
+  \item[Entorno de ejecución local]  Docker Desktop sobre Windows~11, con
+    Docker Compose para levantar los ocho servicios de forma simultánea.
+
+  \item[Gestor de paquetes \emph{frontend}]  pnpm, seleccionado por su
+    eficiencia en el uso de disco y su velocidad de instalación frente a npm.
+
+  \item[Gestor de paquetes \emph{backend}]  pip con fichero
+    \texttt{requirements.txt} para la gestión de dependencias Python.
+
+  \item[Base de datos de desarrollo]  Instancia local de PostgreSQL~14
+    ejecutada en contenedor Docker, con volumen persistente para preservar
+    los datos entre reinicios.
+
+  \item[Pruebas]  pytest como \emph{framework} de pruebas del
+    \emph{backend}, con soporte para pruebas unitarias y de integración.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Estrategia de pruebas}
+\label{sec:estrategia-pruebas}
+%% =========================================================================
+
+La verificación del correcto funcionamiento de \dataqual se ha apoyado en una
+combinación de pruebas automatizadas y manuales.
+
+\subsection{Pruebas automatizadas}
+
+Las pruebas automatizadas se implementan con \textbf{pytest} y se organizan
+en el directorio \texttt{backend/tests/}.  Los principales tipos de pruebas
+cubren:
+
+\begin{itemize}
+  \item \textbf{Pruebas unitarias} de las métricas de calidad, verificando
+    que cada métrica produce los resultados esperados ante conjuntos de datos
+    de prueba controlados.
+
+  \item \textbf{Pruebas de integración} del sistema de versionado de
+    conjuntos de datos, validando la correcta relación padre-hijo entre
+    versiones y la actualización del indicador \texttt{is\_latest}.
+
+  \item \textbf{Pruebas de \emph{Quality Gates}}, verificando que los
+    umbrales configurados producen los estados \texttt{PASSED},
+    \texttt{WARNING} y \texttt{FAILED} esperados.
+\end{itemize}
+
+La ejecución de las pruebas se realiza mediante el comando
+\texttt{pytest} desde el directorio \texttt{backend/}, pudiendo
+generar informes de cobertura con la opción \texttt{-{}-cov}.
+
+\subsection{Pruebas manuales}
+
+Adicionalmente, se han diseñado guías de pruebas manuales que cubren los
+flujos completos de la plataforma: registro de usuario, creación de proyecto,
+carga de conjunto de datos, configuración de métricas, ejecución de
+evaluaciones y consulta de resultados.  Estas pruebas verifican la
+integración de todos los componentes del sistema en un escenario realista.
+
+
+%% =========================================================================
+\section{Planificación temporal}
+\label{sec:planificacion}
+%% =========================================================================
+
+El desarrollo del proyecto se ha distribuido a lo largo del curso académico
+2025--2026, organizado en las fases que se describen a continuación.
+
+\subsection{Fase~1: Análisis y diseño inicial (octubre--noviembre~2025)}
+
+Estudio del estado del arte en evaluación de calidad de datos, análisis de
+los estándares \ac{ISO}/IEC~25012~\cite{iso25012} e
+\ac{ISO}/IEC~5259~\cite{iso5259}, definición de los requisitos funcionales y
+diseño de la arquitectura general del sistema (servicios, modelo de datos,
+\ac{API}).
+
+\subsection{Fase~2: Implementación del núcleo (diciembre~2025--enero~2026)}
+
+Desarrollo del \emph{backend} base: modelos de datos, sistema de
+autenticación \ac{JWT}, módulo de ingesta de conjuntos de datos con soporte
+multiformato y almacenamiento en MinIO, y esqueleto de la \ac{API}
+\ac{REST}ful.
+
+\subsection{Fase~3: Motor de métricas (febrero~2026)}
+
+Diseño e implementación del motor de métricas con arquitectura de
+\emph{plugins}: clase base abstracta, registro dinámico e implementación de
+las siete métricas de calidad (completitud, exactitud sintáctica, consistencia
+lógica, actualidad, unicidad, valores atípicos y equilibrio de clases).
+
+\subsection{Fase~4: Interfaz de usuario y visualización (marzo~2026)}
+
+Desarrollo del \emph{frontend} con Next.js y React: cuadro de mando
+principal, páginas de gestión de proyectos y conjuntos de datos, cuadros de
+mando de resultados de evaluación con gráficos interactivos, y sistema de
+exploración de datos (\ac{EDA}).
+
+\subsection{Fase~5: Funcionalidades avanzadas (abril~2026)}
+
+Implementación del sistema de \emph{fingerprinting} de \emph{issues},
+\emph{Quality Gates}, comparación con línea base, enmascaramiento de
+\ac{PII}, plantillas de métricas y refinamiento de la interfaz de usuario.
+
+\subsection{Fase~6: Documentación y defensa (mayo--junio~2026)}
+
+Redacción de la memoria del \ac{TFG}, preparación de los anexos técnicos
+(especificación de la \ac{API} y catálogo de métricas), validación final de
+la plataforma con conjuntos de datos reales y preparación de la defensa.
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

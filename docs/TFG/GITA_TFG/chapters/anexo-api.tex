@@ -1,0 +1,157 @@
+\chapter{Especificación de la \acs{API} \acs{REST}ful}
+\label{chap:anexo-api}
+
+Este anexo documenta los principales \emph{endpoints} de la \ac{API}
+\ac{REST}ful de \dataqual, organizados por módulo (\emph{blueprint}).
+Todos los \emph{endpoints} protegidos requieren un \emph{token} \ac{JWT}
+válido en la cabecera \texttt{Authorization:~Bearer~<token>}.  Las respuestas
+siguen el formato estandarizado
+\texttt{\{success,~data,~message\}}.
+
+
+%% =========================================================================
+\section{Módulo de autenticación (\texttt{/api/auth})}
+\label{sec:api-auth}
+%% =========================================================================
+
+\begin{definitionlist}
+  \item[\texttt{POST /api/auth/register}]  Registro de un nuevo usuario.
+    Requiere \texttt{username}, \texttt{email} y \texttt{password}.
+
+  \item[\texttt{POST /api/auth/login}]  Inicio de sesión.  Devuelve
+    \emph{access\_token} y \emph{refresh\_token}.
+
+  \item[\texttt{POST /api/auth/refresh}]  Refresco del \emph{access token}
+    utilizando el \emph{refresh token}.
+
+  \item[\texttt{POST /api/auth/logout}]  Cierre de sesión.  Revoca el
+    \emph{token} actual.
+
+  \item[\texttt{GET /api/auth/profile}]  Consulta del perfil del usuario
+    autenticado.
+
+  \item[\texttt{PUT /api/auth/profile}]  Actualización del perfil del
+    usuario.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de proyectos (\texttt{/api/projects})}
+\label{sec:api-projects}
+%% =========================================================================
+
+\begin{definitionlist}
+  \item[\texttt{GET /api/projects/}]  Lista de proyectos del usuario
+    autenticado, con conteo de conjuntos de datos y puntuación de la última
+    evaluación.  Soporta paginación.
+
+  \item[\texttt{POST /api/projects/}]  Creación de un nuevo proyecto.
+    Requiere \texttt{name} y, opcionalmente, \texttt{description}.
+
+  \item[\texttt{GET /api/projects/<id>}]  Detalle de un proyecto.
+
+  \item[\texttt{PUT /api/projects/<id>}]  Actualización de un proyecto
+    (nombre, descripción, configuración de métricas).
+
+  \item[\texttt{DELETE /api/projects/<id>}]  Eliminación de un proyecto y
+    todos sus recursos asociados (conjuntos de datos, evaluaciones,
+    \emph{issues}).
+
+  \item[\texttt{GET /api/projects/<id>/metrics/config}]  Consulta de la
+    configuración de métricas del proyecto.
+
+  \item[\texttt{POST /api/projects/<id>/metrics/config}]  Actualización de
+    la configuración de métricas del proyecto.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de conjuntos de datos (\texttt{/api/datasets})}
+\label{sec:api-datasets}
+%% =========================================================================
+
+\begin{definitionlist}
+  \item[\texttt{POST /api/projects/<id>/datasets}]  Carga de un nuevo
+    conjunto de datos (formulario \emph{multipart}).  Acepta \ac{CSV},
+    \ac{XLSX}, \ac{JSON} y Parquet.
+
+  \item[\texttt{GET /api/datasets/<id>}]  Consulta de metadatos, esquema y
+    estadísticas de un conjunto de datos.
+
+  \item[\texttt{GET /api/datasets/<id>/versions}]  Historial de versiones de
+    un conjunto de datos.
+
+  \item[\texttt{PUT /api/datasets/<id>/sensitive-columns}]  Actualización de
+    las columnas marcadas como \ac{PII}.
+
+  \item[\texttt{GET /api/datasets/<id>/download}]  Descarga del archivo
+    original.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de métricas (\texttt{/api/metrics})}
+\label{sec:api-metrics}
+%% =========================================================================
+
+\begin{definitionlist}
+  \item[\texttt{GET /api/metrics/}]  Catálogo de métricas disponibles con
+    sus parámetros de configuración.
+
+  \item[\texttt{GET /api/metrics/templates}]  Lista de plantillas de métricas
+    (del sistema y del usuario).
+
+  \item[\texttt{POST /api/metrics/templates}]  Creación de una nueva
+    plantilla de métricas.
+
+  \item[\texttt{DELETE /api/metrics/templates/<id>}]  Eliminación de una
+    plantilla del usuario.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de evaluaciones (\texttt{/api/evaluations})}
+\label{sec:api-evaluations}
+%% =========================================================================
+
+\begin{definitionlist}
+  \item[\texttt{POST /api/evaluations/}]  Lanzamiento de una nueva
+    evaluación.  Requiere \texttt{project\_id} y \texttt{dataset\_id}.
+
+  \item[\texttt{GET /api/evaluations/<id>}]  Consulta de los resultados
+    completos de una evaluación: métricas, puntuación, \emph{issues} y
+    estado del \emph{Quality Gate}.
+
+  \item[\texttt{GET /api/evaluations/<id>/status}]  Consulta del estado y
+    progreso de una evaluación en curso.
+
+  \item[\texttt{GET /api/evaluations/<id>/issues}]  Lista de \emph{issues}
+    detectados en la evaluación, con severidad, descripción, columnas
+    afectadas y muestras de filas.
+
+  \item[\texttt{GET /api/projects/<id>/evaluations}]  Historial de
+    evaluaciones de un proyecto, con puntuaciones y estados de \emph{Quality
+    Gate}.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de administración (\texttt{/api/admin})}
+\label{sec:api-admin}
+%% =========================================================================
+
+\begin{definitionlist}
+  \item[\texttt{GET /api/admin/health}]  Comprobación de salud del sistema.
+    Verifica la conectividad con PostgreSQL, MinIO y Redis.
+
+  \item[\texttt{GET /api/admin/performance}]  Estadísticas de rendimiento por
+    \emph{endpoint}: número de peticiones, tiempo medio, mínimo y máximo.
+\end{definitionlist}
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

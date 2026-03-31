@@ -1,0 +1,242 @@
+\chapter{Resultados y discusión}
+\label{chap:resultados}
+
+\drop{E}{ste} capítulo presenta los resultados obtenidos tras el desarrollo de
+\dataqual, analiza el grado de cumplimiento de los objetivos definidos en el
+capítulo~\ref{chap:objetivos}, identifica las fortalezas de la plataforma,
+reconoce sus limitaciones actuales y la compara con las herramientas
+existentes revisadas en el capítulo~\ref{chap:antecedentes}.
+
+
+%% =========================================================================
+\section{Resultados alcanzados}
+\label{sec:resultados-alcanzados}
+%% =========================================================================
+
+\dataqual es una plataforma funcional de extremo a extremo que cumple con los
+cinco objetivos específicos definidos en la
+sección~\ref{sec:objetivos-especificos}.
+
+\subsection{Resultados cuantitativos}
+
+El Cuadro~\ref{tab:resultados-cuantitativos} resume las principales
+magnitudes del sistema implementado.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Resultados cuantitativos de la implementación}
+  \label{tab:resultados-cuantitativos}
+  \begin{tabularx}{\textwidth}{X r}
+    \toprule
+    \textbf{Dimensión} & \textbf{Cantidad} \\
+    \midrule
+    Métricas de calidad implementadas              & 7     \\
+    Servicios Docker orquestados                    & 8     \\
+    Rutas / páginas del \emph{frontend}             & 20    \\
+    Componentes React reutilizables                 & 40+   \\
+    Módulos de \ac{API} (\emph{blueprints})         & 6     \\
+    Tablas en base de datos                         & $\sim$9 \\
+    Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
+    Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
+    Migraciones de base de datos                    & 8+    \\
+    Suites de pruebas automatizadas                 & 3     \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Resultados cualitativos}
+
+Desde el punto de vista cualitativo, cabe destacar los siguientes logros:
+
+\begin{itemize}
+  \item El \textbf{motor de métricas es extensible}: añadir una nueva métrica
+    requiere únicamente crear una clase, registrarla en el
+    \texttt{METRIC\_REGISTRY} y documentarla.
+
+  \item El \textbf{sistema de \emph{fingerprinting}} permite rastrear la
+    evolución de la calidad entre ejecuciones sucesivas, una capacidad que
+    pocas herramientas de código abierto ofrecen.
+
+  \item Las \textbf{\emph{Quality Gates}} proporcionan una señal clara y
+    automatizable que puede integrarse en \emph{pipelines} de \ac{MLOps}.
+
+  \item El \textbf{\emph{profiling} interactivo} (histogramas, diagramas de
+    caja, matrices de correlación) ofrece un análisis exploratorio completo
+    sin abandonar la plataforma.
+
+  \item La \textbf{protección de \ac{PII}} está integrada de forma nativa en
+    todas las métricas, no como una capa adicional.
+\end{itemize}
+
+\subsection{Verificación del cumplimiento de objetivos}
+
+El Cuadro~\ref{tab:cumplimiento} recoge, para cada objetivo específico, la
+evidencia de su cumplimiento.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Verificación del cumplimiento de los objetivos específicos}
+  \label{tab:cumplimiento}
+  \begin{tabularx}{\textwidth}{l X c}
+    \toprule
+    \textbf{Obj.} & \textbf{Evidencia} & \textbf{Estado} \\
+    \midrule
+    OE1 & Módulo de ingesta con soporte para \ac{CSV}, \ac{XLSX}, \ac{JSON}
+      y Parquet; parseo robusto con matriz de \emph{fallback};
+      almacenamiento en MinIO; extracción automática de esquema;
+      versionado padre-hijo. & Cumplido \\
+    OE2 & Siete métricas implementadas como \emph{plugins}; parametrización
+      completa; sistema de pesos; plantillas reutilizables; ejecución
+      asíncrona con Celery. & Cumplido \\
+    OE3 & Seis \emph{blueprints} de \ac{API}; autenticación \ac{JWT};
+      formato de respuesta estandarizado; paginación;
+      validación Marshmallow. & Cumplido \\
+    OE4 & Más de 20 páginas; cuadros de mando interactivos; \ac{EDA} con
+      histogramas, diagramas de caja y matrices de correlación; diseño
+      adaptable. & Cumplido \\
+    OE5 & Sistema de \emph{issues} con cuatro severidades;
+      \emph{fingerprinting} \ac{SHA}-256; comparación con línea base;
+      \emph{Quality Gates} con tres estados. & Cumplido \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Fortalezas de la plataforma}
+\label{sec:fortalezas}
+%% =========================================================================
+
+A partir de los resultados obtenidos, se identifican las siguientes
+fortalezas de \dataqual:
+
+\begin{enumerate}
+  \item \textbf{Arquitectura extensible por \emph{plugins}.}  El patrón
+    \texttt{BaseMetric} + \texttt{METRIC\_REGISTRY} permite incorporar nuevas
+    métricas sin modificar el código
+    existente~\cite{design_patterns}.
+
+  \item \textbf{\emph{Fingerprinting} para trazabilidad.}  La capacidad de
+    rastrear un mismo \emph{issue} entre ejecuciones (nuevo, recurrente,
+    corregido) es una funcionalidad distintiva respecto a las herramientas
+    de código abierto analizadas en la
+    sección~\ref{sec:estado-arte}.
+
+  \item \textbf{\emph{Quality Gates} inspirados en SonarQube.}  Trasladan un
+    concepto consolidado en la calidad del código~\cite{sonarqube} al
+    dominio de la calidad de datos.
+
+  \item \textbf{Solución \emph{full-stack} autoalojada.}  Todo el
+    \emph{stack} se despliega con un único comando
+    (\texttt{docker-compose~up}), sin dependencias de servicios en la nube
+    propietarios, garantizando la soberanía de los datos.
+
+  \item \textbf{Protección nativa de \ac{PII}.}  El enmascaramiento de datos
+    sensibles no es una funcionalidad opcional sino un comportamiento
+    integrado en cada métrica y cada \emph{endpoint}.
+
+  \item \textbf{Parseo robusto de \ac{CSV}.}  La matriz de \emph{fallback}
+    (codificaciones $\times$ separadores $\times$ motores) gestiona archivos
+    \ac{CSV} reales que fallan con analizadores estándar.
+
+  \item \textbf{Métricas específicas para \ac{ML}.}  El equilibrio de clases
+    (entropía de Shannon) y la actualidad no están presentes en la mayoría de
+    las herramientas generalistas de calidad de datos.
+
+  \item \textbf{Procesamiento asíncrono con resiliencia.}  Celery con
+    reintentos, \emph{watchdog} para tareas atascadas y \emph{fallback}
+    síncrono garantizan que las evaluaciones se completen en todos los
+    escenarios.
+\end{enumerate}
+
+
+%% =========================================================================
+\section{Limitaciones}
+\label{sec:limitaciones}
+%% =========================================================================
+
+A pesar de los resultados alcanzados, la plataforma presenta las siguientes
+limitaciones:
+
+\begin{enumerate}
+  \item \textbf{Autenticación básica.}  Solo se soporta autenticación
+    \ac{JWT} con usuario y contraseña.  No se ha implementado OAuth~2.0,
+    \ac{SSO} ni autenticación multifactor.
+
+  \item \textbf{Sin exportación de informes.}  Los resultados no pueden
+    exportarse a PDF, Excel u otros formatos de informe formal.
+
+  \item \textbf{Sin documentación interactiva de la \ac{API}.}  La \ac{API}
+    no dispone de documentación Swagger/OpenAPI generada automáticamente.
+
+  \item \textbf{\emph{Polling} en lugar de WebSockets.}  El \emph{frontend}
+    consulta periódicamente el estado de las evaluaciones en lugar de recibir
+    notificaciones \emph{push}, lo que introduce latencia y carga
+    innecesaria.
+
+  \item \textbf{Escalabilidad limitada a un nodo.}  Aunque Celery soporta
+    escalado horizontal, la plataforma no se ha validado con múltiples
+    \emph{workers} distribuidos.
+
+  \item \textbf{Conjuntos de datos en memoria.}  Pandas carga el conjunto de
+    datos completo en memoria, por lo que archivos mayores que la RAM
+    disponible no pueden procesarse.
+
+  \item \textbf{Sin detección de anomalías basada en \ac{ML}.}  Solo se
+    emplean métodos estadísticos clásicos (\ac{IQR}, Z-score).  No se han
+    implementado algoritmos como \emph{Isolation Forest} o DBSCAN.
+
+  \item \textbf{Cobertura de pruebas limitada.}  Las pruebas automatizadas
+    cubren \emph{Quality Gates} y versionado, pero no el flujo completo de
+    evaluación de extremo a extremo.
+\end{enumerate}
+
+
+%% =========================================================================
+\section{Comparación con herramientas existentes}
+\label{sec:comparacion-final}
+%% =========================================================================
+
+El Cuadro~\ref{tab:comparacion-final} presenta una comparación actualizada
+de \dataqual con las principales herramientas analizadas en el
+capítulo~\ref{chap:antecedentes}, incorporando los resultados de la
+implementación.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparación de \dataqual con las herramientas existentes}
+  \label{tab:comparacion-final}
+  \begin{tabularx}{\textwidth}{X c c c c}
+    \toprule
+    \textbf{Criterio} & \textbf{\dataqual} &
+      \textbf{Great Exp.} & \textbf{Deequ} & \textbf{DQOps} \\
+    \midrule
+    \ac{UI} integrada       & Sí & No  & No  & Sí \\
+    Requiere código         & No & Sí  & Sí  & Parcial \\
+    \emph{Quality Gates}    & Sí & No  & No  & Sí \\
+    \emph{Fingerprinting}   & Sí & No  & No  & Parcial \\
+    Diff entre ejecuciones   & Sí & No  & Parcial & Sí \\
+    Métricas para \ac{ML}   & Sí & No  & Parcial & No \\
+    Enmascaramiento \ac{PII} & Sí & No & No  & No \\
+    Versionado de datasets   & Sí & No  & No  & No \\
+    Autoalojado              & Sí & Sí  & Sí  & Sí \\
+    Madurez                  & Prototipo & Producción & Producción
+      & Producción \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\dataqual no pretende competir directamente con herramientas maduras de
+producción como Great Expectations~\cite{greatexpectations} en escala o
+ecosistema, pero ofrece una combinación única de interfaz web completa,
+métricas específicas para \ac{ML}, \emph{fingerprinting}, \emph{Quality
+Gates} y protección nativa de \ac{PII}, todo ello en un paquete autoalojado
+y sin necesidad de programar.
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

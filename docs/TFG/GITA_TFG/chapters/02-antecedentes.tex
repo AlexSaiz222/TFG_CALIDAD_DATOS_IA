@@ -1,139 +1,490 @@
-\chapter{Antecedentes}
+\chapter{Antecedentes y estado del arte}
 \label{chap:antecedentes}
 
-\drop{E}{ste} capítulo incluye unas nociones básicas de \LaTeX{} y algunos consejos sencillos de composición para sacar todo el jugo a la clase \gitatfg. Ten presente que este capítulo está pensado para que leas el código fuente y lo compares con el resultado en PDF.
+\drop{L}{a calidad} de datos se ha consolidado como un campo de estudio fundamental
+dentro de la informática y la gestión de la información. A lo largo de las
+últimas tres décadas, la comunidad científica ha producido marcos conceptuales,
+estándares internacionales y herramientas especializadas que buscan
+sistematizar la evaluación y la mejora de los datos utilizados en sistemas de
+información. En el contexto de la \ac{IA} y el \ac{ML}, la calidad de los datos
+de entrenamiento condiciona directamente la fiabilidad de los modelos
+resultantes, lo que ha impulsado una línea de investigación conocida como
+\emph{data-centric AI}. Este capítulo examina los fundamentos teóricos, el marco
+normativo, las herramientas existentes y la justificación académica que
+sustentan el desarrollo de \dataqual como plataforma de evaluación de calidad de
+datos para proyectos de \ac{IA}.
 
-\section{Estilos de texto}
 
-A continuación se muestran algunos estilos de texto básicos que puedes usar en \LaTeX{}. Fíjate en el código fuente para ver cómo se han obtenido.
+%% =========================================================================
+\section{La importancia de la calidad de datos en proyectos de IA}
+\label{sec:importancia-calidad}
+%% =========================================================================
+
+\subsection{Marcos conceptuales fundacionales}
+
+Los trabajos seminales de Wang y Strong~\cite{wang1996} establecieron un marco
+conceptual para la calidad de datos basado en cuatro categorías fundamentales:
 
 \begin{itemize}
-  \item Normal.
-  \item \textbf{Negrita}
-  \item \textit{Itálica}
-  \item \emph{Enfatizada}. Fíjate que el estilo que se obtiene al enfatizar depende del estilo del texto en el que se incluya: \textit{texto en itálica y \emph{enfatizado} en medio}.
-  \item \texttt{Monoespaciada}
+  \item \textbf{Calidad intrínseca:} precisión, objetividad, credibilidad y
+    reputación de los datos.
+  \item \textbf{Calidad contextual:} relevancia, valor añadido, completitud,
+    cantidad apropiada y oportunidad temporal de los datos respecto a la tarea
+    en la que se utilizan.
+  \item \textbf{Calidad representacional:} interpretabilidad, facilidad de
+    comprensión, representación concisa y representación consistente.
+  \item \textbf{Accesibilidad:} disponibilidad de los datos y seguridad de
+    acceso a los mismos.
 \end{itemize}
 
-Otros de menos uso:
+Este marco ha sido ampliamente adoptado tanto en la investigación como en la
+industria, y constituye la base sobre la que se han construido estándares
+internacionales como \ac{ISO}/IEC 25012.
+
+\subsection{Impacto económico de la mala calidad de datos}
+
+Redman~\cite{redman1998, redman2001} cuantificó por primera vez el impacto
+económico de la mala calidad de datos en las organizaciones, estableciendo que
+las empresas gastan entre el 10\% y el 25\% de sus ingresos en gestionar
+problemas derivados de datos de baja calidad. Estos hallazgos han sido
+corroborados y ampliados por estudios posteriores del MIT Information Quality
+Program y del \ac{DMBOK}. Según estimaciones de Gartner~\cite{gartner2017}, la
+mala calidad de datos cuesta a las organizaciones una media de 12,9 millones de
+dólares anuales.
+
+En el contexto específico de proyectos de \ac{IA}, este coste se amplifica de
+forma considerable: un modelo entrenado con datos defectuosos no solo produce
+resultados incorrectos, sino que las decisiones basadas en esas predicciones
+pueden tener consecuencias financieras, legales y reputacionales significativas.
+Sambasivan et al.~\cite{sambasivan2021} demostraron, en un estudio realizado en
+Google Research, que los problemas de calidad de datos constituyen la causa
+principal de fallos en sistemas de \ac{IA} en producción, superando incluso a
+los errores algorítmicos. Su trabajo, titulado «Everyone wants to do the model
+work, not the data work», evidenció la brecha entre la atención que reciben los
+modelos y la que reciben los datos que los alimentan.
+
+Múltiples encuestas en la industria~\cite{kaggle2022} coinciden en que los
+profesionales de datos dedican entre el 60\% y el 80\% de su tiempo a tareas
+de limpieza y preparación de datos, lo que refleja tanto la prevalencia de los
+problemas de calidad como la ausencia de herramientas automatizadas que
+agilicen el diagnóstico.
+
+\subsection{El paradigma data-centric AI}
+
+Andrew Ng~\cite{ng2021datacentric}, uno de los investigadores más influyentes
+en \ac{IA}, ha popularizado el concepto de \emph{data-centric AI} como
+contraposición al enfoque tradicional \emph{model-centric}. Mientras que el
+enfoque \emph{model-centric} se centra en mejorar los algoritmos manteniendo
+los datos fijos, el enfoque \emph{data-centric} propone mantener los modelos
+fijos y mejorar sistemáticamente los datos. Este cambio de paradigma reconoce
+que, para la mayoría de aplicaciones prácticas de \ac{IA}, la mejora de los
+datos produce un impacto mayor que la mejora de los algoritmos.
+
+Diversas iniciativas han consolidado este paradigma en la comunidad:
 
 \begin{itemize}
-  \item \textsc{Versalita}
-  \item \textsf{Serifa}, es decir, sin remates o paloseco
-  \item \textrm{Romana}
+  \item La \emph{Data-Centric AI Competition}, organizada por Andrew Ng y
+    Landing AI, en la que los participantes compiten mejorando un dataset fijo
+    en lugar de un modelo fijo.
+  \item \emph{DataPerf}, una iniciativa de MLCommons que proporciona
+    \emph{benchmarks} centrados en la calidad de datos para sistemas de
+    \ac{ML}.
+  \item El área de investigación \emph{Data Quality for AI} (DQAI), que
+    explora métricas de calidad específicas para conjuntos de datos destinados
+    al entrenamiento de modelos.
 \end{itemize}
 
+Además, la problemática del sesgo algorítmico refuerza la necesidad de
+herramientas de evaluación de calidad. Los datos desequilibrados o no
+representativos son la raíz de muchos casos documentados de sesgo en sistemas de
+\ac{IA}: desde algoritmos de contratación que discriminan por
+género~\cite{amazon2018} hasta sistemas de reconocimiento facial con tasas de
+error desproporcionadas para minorías étnicas~\cite{buolamwini2018}. La calidad
+de los datos \textemdash en particular, el equilibrio de clases y la
+representatividad\textemdash~es un factor determinante en la equidad de los
+sistemas inteligentes.
 
-\section{Viñetas y enumerados}
 
-En \LaTeX{} hay tres tipos básicos de viñetas:
+%% =========================================================================
+\section{Marco normativo: estándares ISO}
+\label{sec:marco-normativo}
+%% =========================================================================
+
+La evaluación de la calidad de datos se enmarca dentro de un conjunto de
+estándares internacionales publicados por la \ac{ISO}. \dataqual ha sido
+diseñado para alinearse con tres estándares clave: \ac{ISO}/IEC~25012,
+\ac{ISO}/IEC~25024 e \ac{ISO}/IEC~5259.
+
+\subsection{ISO/IEC 25012: Modelo de calidad de datos}
+\label{sec:iso25012}
+
+El estándar \ac{ISO}/IEC 25012~\cite{iso25012} forma parte de la familia
+\ac{SQuaRE} y define un modelo de calidad de datos que comprende 15
+características organizadas en dos categorías principales:
+
+\begin{itemize}
+  \item \textbf{Calidad inherente:} propiedades que pertenecen a los datos
+    en sí mismos, independientemente del sistema que los almacena. Incluye
+    exactitud, completitud, consistencia, credibilidad y actualidad
+    (\emph{currentness}).
+  \item \textbf{Calidad dependiente del sistema:} propiedades que dependen
+    del contexto tecnológico en el que se utilizan los datos. Incluye
+    disponibilidad, portabilidad y recuperabilidad.
+\end{itemize}
+
+\dataqual implementa métricas que cubren las principales características
+inherentes del estándar, añadiendo además métricas específicas para proyectos
+de \ac{IA} y \ac{ML} que no están contempladas en la norma. El
+Cuadro~\ref{tab:iso25012-dataqual} muestra la correspondencia entre las
+características de \ac{ISO}/IEC 25012 y las métricas implementadas en
+\dataqual.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Correspondencia entre características de ISO/IEC 25012 y métricas de \dataqual}
+  \label{tab:iso25012-dataqual}
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Característica ISO 25012} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
+    \midrule
+    Completitud     & \texttt{completeness}        & Ratio de valores no nulos por columna \\
+    Exactitud       & \texttt{syntactic\_accuracy}  & Conformidad con patrones de formato \\
+    Consistencia    & \texttt{logical\_consistency} & Reglas IF-THEN entre columnas \\
+    Actualidad      & \texttt{timeliness}           & Antigüedad del dato más reciente \\
+    Credibilidad    & \texttt{uniqueness}           & Detección de registros duplicados \\
+    \midrule
+    \multicolumn{3}{l}{\emph{Métricas adicionales específicas para IA/ML}} \\
+    \midrule
+    ---             & \texttt{outliers}             & Detección de valores atípicos (\ac{IQR}, Z-score) \\
+    ---             & \texttt{class\_balance}       & Equilibrio de clases (entropía de Shannon) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{ISO/IEC 5259: Calidad de datos para analítica e IA}
+\label{sec:iso5259}
+
+El estándar \ac{ISO}/IEC 5259~\cite{iso5259} es de reciente publicación y
+aborda específicamente la calidad de datos en contextos de analítica e \ac{IA}.
+Se estructura en cuatro partes:
 
 \begin{enumerate}
-  \item \texttt{itemize}, para viñetas sin orden (listado anterior).
-  \item \texttt{enumerate}, para listas numeradas (como esta).
-  \item \texttt{description}, con un formato especial: \texttt{\textbackslash item[<etiqueta>] <descripción>}.
+  \item \textbf{Parte 1 \textemdash~Visión general:} establece los conceptos
+    fundamentales y el vocabulario común.
+  \item \textbf{Parte 2 \textemdash~Métricas de calidad de datos:} define
+    métricas cuantitativas estandarizadas para evaluar la calidad de datos
+    destinados a sistemas de \ac{IA}.
+  \item \textbf{Parte 3 \textemdash~Gestión de datos:} cubre la gestión de
+    conjuntos de datos, incluyendo versionado y trazabilidad.
+  \item \textbf{Parte 4 \textemdash~Marco de procesos:} describe el flujo de
+    evaluación integrado en el ciclo de vida de un proyecto de \ac{IA}.
+\end{enumerate}
+
+\dataqual se alinea con este estándar en varios aspectos: proporciona métricas
+cuantitativas estandarizadas (Parte~2), implementa gestión de datasets con
+versionado (Parte~3) y ofrece un flujo de evaluación integrado en el ciclo de
+vida del proyecto (Parte~4).
+
+\subsection{ISO/IEC 25024: Medición de la calidad de datos}
+\label{sec:iso25024}
+
+El estándar \ac{ISO}/IEC 25024~\cite{iso25024} complementa al 25012
+proporcionando métricas concretas y fórmulas de medición para cada
+característica de calidad. De este modo, se pasa de un modelo conceptual
+abstracto a un conjunto de indicadores cuantificables.
+
+\dataqual implementa directamente varias de las métricas definidas en este
+estándar:
+
+\begin{itemize}
+  \item \textbf{Ratio de completitud:} proporción de valores no nulos sobre
+    el total de valores esperados en una columna o dataset.
+  \item \textbf{Ratio de unicidad:} proporción de valores únicos respecto al
+    total de registros, utilizada para detectar duplicados.
+  \item \textbf{Ratio de conformidad sintáctica:} proporción de valores que
+    se ajustan a un patrón o formato predefinido (expresiones regulares,
+    rangos numéricos, conjuntos de valores permitidos).
+\end{itemize}
+
+La adopción de estas fórmulas estandarizadas garantiza que los resultados de
+\dataqual sean comparables con los obtenidos por otras herramientas que
+implementen el mismo estándar, facilitando la interoperabilidad y la
+auditoría.
+
+Además, el Reglamento Europeo de Inteligencia
+Artificial~\cite{aiact2024} exige que las organizaciones puedan demostrar la
+calidad y trazabilidad de los datos utilizados en sus modelos, lo que convierte
+la evaluación estandarizada de calidad de datos en una necesidad no solo técnica,
+sino también de cumplimiento normativo.
+
+
+%% =========================================================================
+\section{Estado del arte: herramientas existentes}
+\label{sec:estado-arte}
+%% =========================================================================
+
+En el ecosistema actual existen diversas herramientas orientadas a la
+evaluación y validación de la calidad de datos. Esta sección analiza las más
+relevantes, examinando sus fortalezas y limitaciones para contextualizar la
+contribución de \dataqual.
+
+\subsection{Great Expectations}
+\label{sec:great-expectations}
+
+Great Expectations~\cite{greatexpectations} es una biblioteca de código abierto
+escrita en Python para la definición y validación de «expectativas»
+(\emph{expectations}) sobre conjuntos de datos. Las expectativas son
+aserciones declarativas que describen las propiedades que se esperan de los
+datos, como «esta columna no debe contener valores nulos» o «los valores de
+esta columna deben estar comprendidos entre 0 y 100».
+
+\paragraph{Fortalezas.}
+Great Expectations cuenta con un ecosistema maduro y una comunidad activa.
+Soporta múltiples \emph{backends} de ejecución (Pandas, Spark, \ac{SQL}),
+lo que permite evaluar datasets de distintos tamaños y procedencias. Además,
+genera automáticamente documentación visual de los resultados de validación
+(\emph{Data Docs}).
+
+\paragraph{Limitaciones.}
+Se trata de una herramienta \emph{code-first} que requiere conocimientos de
+Python para su configuración y uso. No dispone de una interfaz gráfica
+integrada, lo que excluye a usuarios no técnicos. No ofrece Quality Gates
+nativos, no implementa un sistema de rastreo de issues entre ejecuciones
+sucesivas y presenta una curva de aprendizaje pronunciada para equipos sin
+experiencia en programación.
+
+\subsection{Apache Deequ}
+\label{sec:apache-deequ}
+
+Apache Deequ~\cite{schelter2018} es una biblioteca de verificación de calidad
+de datos desarrollada por Amazon y construida sobre Apache Spark. Está diseñada
+para operar a gran escala sobre datasets masivos en entornos distribuidos.
+
+\paragraph{Fortalezas.}
+Su principal ventaja es la escalabilidad masiva que hereda de Spark, lo que
+permite procesar datasets de millones de registros de forma distribuida.
+Ofrece integración nativa con los servicios de Amazon Web Services, verificación
+declarativa de restricciones y detección de anomalías basada en series
+temporales.
+
+\paragraph{Limitaciones.}
+Requiere un entorno JVM y un clúster de Spark para su ejecución, lo que supone
+una barrera de entrada considerable. No dispone de interfaz web, resulta
+desproporcionado para datasets de tamaño medio y no implementa métricas
+específicas para \ac{ML} como el equilibrio de clases.
+
+\subsection{DQOps}
+\label{sec:dqops}
+
+DQOps~\cite{dqops} es una herramienta de calidad de datos de código abierto
+inspirada en la filosofía de SonarQube~\cite{sonarqube}. Proporciona un enfoque
+sistemático a la calidad de datos con monitorización continua y alertas
+automatizadas.
+
+\paragraph{Fortalezas.}
+DQOps comparte una filosofía similar a la de \dataqual en cuanto al
+tratamiento de la calidad de datos como un proceso continuo. Soporta múltiples
+fuentes de datos (BigQuery, Snowflake, PostgreSQL), ofrece una interfaz web
+para la configuración y visualización de resultados, y permite definir alertas
+automatizadas ante degradaciones de calidad.
+
+\paragraph{Limitaciones.}
+Está orientado fundamentalmente a bases de datos y no a ficheros de datos
+(datasets en formatos \ac{CSV}, \ac{XLSX} o Parquet). Su configuración es
+compleja, no ha sido diseñado específicamente para proyectos de \ac{IA}/\ac{ML}
+y carece de métricas como el equilibrio de clases o la detección de outliers.
+
+\subsection{Herramientas comerciales}
+\label{sec:herramientas-comerciales}
+
+Existen también soluciones comerciales orientadas a la preparación de datos,
+como Trifacta, Alteryx y Talend. Estas herramientas ofrecen interfaces gráficas
+pulidas, capacidades de transformación de datos y soporte empresarial.
+
+No obstante, presentan limitaciones significativas para el caso de uso de
+\dataqual: su coste de licenciamiento es elevado, generan dependencia del
+proveedor (\emph{vendor lock-in}), están orientadas a la preparación y
+transformación de datos (\emph{data wrangling}) más que a la evaluación de
+calidad para \ac{IA}, y muchas de ellas operan como servicios en la nube
+(\ac{SaaS}), lo que compromete la soberanía de los datos.
+
+\subsection{Análisis comparativo}
+\label{sec:analisis-comparativo}
+
+El Cuadro~\ref{tab:comparativa} presenta una comparación sistemática de
+\dataqual con las tres herramientas de código abierto analizadas. Se han
+seleccionado quince características que cubren la funcionalidad, la
+accesibilidad, las capacidades específicas para \ac{IA}/\ac{ML} y los aspectos
+operativos.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparativa de \dataqual con herramientas de calidad de datos existentes}
+  \label{tab:comparativa}
+  \small
+  \begin{tabularx}{\textwidth}{X c c c c}
+    \toprule
+    \textbf{Característica} & \textbf{\dataqual} & \textbf{Great Exp.} & \textbf{Deequ} & \textbf{DQOps} \\
+    \midrule
+    Interfaz web                    & Sí  & No  & No  & Sí  \\
+    Requiere programación           & No  & Sí  & Sí  & Parcial \\
+    Métricas predefinidas           & 7   & 300+ & 20+ & 150+ \\
+    Detección automática de tipos   & Sí  & No  & No  & Parcial \\
+    Quality Gates                   & Sí  & No  & No  & Sí  \\
+    Fingerprinting de issues        & Sí  & No  & No  & No  \\
+    Comparación entre ejecuciones   & Sí  & No  & Sí  & Sí  \\
+    Equilibrio de clases            & Sí  & No  & No  & No  \\
+    Detección de outliers           & Sí  & Parcial & Sí & Parcial \\
+    Enmascaramiento de \ac{PII}     & Sí  & No  & No  & No  \\
+    Versionado de datasets          & Sí  & No  & No  & No  \\
+    Procesamiento asíncrono         & Sí  & No  & Sí  & Sí  \\
+    Autoalojable                    & Sí  & Sí  & Sí  & Sí  \\
+    Específico para IA/ML           & Sí  & No  & No  & No  \\
+    Coste                           & Gratuito & Gratuito & Gratuito & Freemium \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Como se puede observar, \dataqual ocupa un nicho diferenciado al combinar una
+interfaz web completa con métricas específicas para \ac{IA}/\ac{ML},
+fingerprinting de issues y autoalojamiento. Si bien Great Expectations supera
+ampliamente a \dataqual en el número de métricas predefinidas, su naturaleza
+\emph{code-first} limita su accesibilidad. Apache Deequ ofrece una
+escalabilidad superior, pero a costa de una complejidad operativa que lo hace
+inviable para equipos pequeños o datasets de tamaño moderado. DQOps comparte
+la filosofía de calidad continua, pero su orientación a bases de datos y la
+ausencia de métricas específicas para \ac{ML} lo sitúan en un segmento
+diferente.
+
+
+%% =========================================================================
+\section{Diferenciación de \dataqual}
+\label{sec:diferenciacion}
+%% =========================================================================
+
+A partir del análisis comparativo anterior, se identifican siete factores
+clave que diferencian a \dataqual de las herramientas existentes:
+
+\begin{enumerate}
+  \item \textbf{Solución full-stack con interfaz integrada.} A diferencia de
+    herramientas \emph{code-only} como Great Expectations o Apache Deequ,
+    \dataqual proporciona una interfaz web completa construida con
+    React~\cite{react} y Next.js~\cite{nextjs} que permite a usuarios no
+    técnicos configurar métricas, lanzar evaluaciones y consultar resultados
+    sin escribir código.
+
+  \item \textbf{Diseño centrado en IA/ML.} \dataqual incorpora métricas
+    específicas para proyectos de aprendizaje automático que no se encuentran
+    en las herramientas generalistas: equilibrio de clases medido mediante
+    entropía de Shannon y evaluación de la actualidad temporal de los datos
+    (\emph{timeliness}).
+
+  \item \textbf{Sistema de fingerprinting SHA-256.} Inspirado en
+    SonarQube~\cite{sonarqube}, \dataqual genera un hash \ac{SHA}-256 para cada
+    issue detectado, lo que permite rastrear su ciclo de vida a lo largo de
+    múltiples ejecuciones: issues nuevos, recurrentes y corregidos.
+
+  \item \textbf{Quality Gates como puntos de decisión.} Cada evaluación produce
+    un veredicto global (\texttt{PASSED}, \texttt{WARNING} o \texttt{FAILED})
+    basado en umbrales configurables, proporcionando una señal inequívoca
+    sobre la aptitud del dataset para su uso.
+
+  \item \textbf{Protección de \ac{PII} integrada.} El enmascaramiento de
+    columnas sensibles es una funcionalidad nativa de la plataforma, no un
+    complemento externo. Esto facilita el cumplimiento del \ac{RGPD} y
+    otras normativas de protección de datos.
+
+  \item \textbf{Arquitectura de plugins extensible.} El motor de métricas se
+    basa en una clase abstracta \texttt{BaseMetric} y un registro global
+    (\texttt{METRIC\_REGISTRY}) que permiten añadir nuevas métricas sin
+    modificar el código existente, siguiendo el principio abierto-cerrado
+    de los patrones de diseño~\cite{design_patterns}.
+
+  \item \textbf{Autoalojamiento con soberanía de datos.} \dataqual se despliega
+    mediante Docker Compose~\cite{docker} sin dependencias de servicios
+    en la nube. Todos los datos permanecen en la infraestructura del usuario,
+    lo que garantiza la soberanía de los datos y facilita el cumplimiento
+    normativo.
 \end{enumerate}
 
 
-Es posible hacer viñetas (como la siguiente) cambiando márgenes u otras propiedades gracias al paquete \href{http://mirror.ctan.org/macros/latex/contrib/enumitem/enumitem.pdf}{\emph{enumitem}} (ya incluido en \gitatfg).
+%% =========================================================================
+\section{Justificación académica}
+\label{sec:justificacion-academica}
+%% =========================================================================
 
-\begin{itemize}[noitemsep, label=$\triangleright$]
-  \item esto es
-  \item una pequeña
-  \item muestra
-\end{itemize}
+El desarrollo de \dataqual integra de manera transversal múltiples áreas del
+plan de estudios del Grado en Ingeniería Informática, lo que le confiere un
+carácter integrador propio de un \ac{TFG}. A continuación se detalla la
+correspondencia entre las áreas curriculares y los componentes de la
+plataforma.
 
-El paquete \emph{enumitem} ofrece muchas otras posibilidades para personalizar las viñetas (individual o globalmente) o crear nuevas.
+\subsection{Ingeniería del Software}
 
+El proyecto aplica principios de arquitectura de software a gran escala:
+arquitectura de microservicios orquestados con Docker
+Compose~\cite{docker}, patrón \ac{MVC} en el backend
+Flask~\cite{flask}, y patrones de diseño clásicos~\cite{design_patterns}
+como Abstract Factory (registro de métricas) y Observer (sistema de eventos de
+evaluación). Se ha seguido control de versiones con Git y metodologías ágiles
+de desarrollo.
 
-\section{Figuras}
+\subsection{Sistemas distribuidos}
 
-Las figuras se referencian así (ver Figura~\ref{fig:fac}). Recuerda que no tienen porqué aparecer en el lugar donde se ponen (mira un libro de verdad). \LaTeX{} las colocará donde mejor queden, No te empeñes en contradecirle, él sabe mucho de tipografía.
+La plataforma implementa procesamiento asíncrono mediante colas de mensajes
+con Celery~\cite{celery} y Redis~\cite{redis} como \emph{broker} de mensajes.
+La orquestación de los ocho servicios Docker incluye \emph{healthchecks},
+reinicio automático y comunicación inter-servicio mediante redes internas.
+Flower proporciona monitorización en tiempo real de los \emph{workers}
+asíncronos.
 
-\begin{figure}[!h]
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{facsocytic_logo.pdf}
-  \caption{Logotipo de de la Facultad}
-  \label{fig:fac}
-\end{center}
-\end{figure}
+\subsection{Bases de datos}
 
-Por cierto, los títulos de tablas, figuras y otro elementos flotantes (los \texttt{caption}) no deben acabar en punto~\cite{sousa}.
+El esquema relacional en PostgreSQL~\cite{postgresql} incluye el uso de
+campos \texttt{JSONB} para configuraciones flexibles de métricas, migraciones
+gestionadas con Flask-Migrate/Alembic y almacenamiento de objetos compatible
+con S3 mediante MinIO~\cite{minio}. El \ac{ORM} SQLAlchemy~\cite{sqlalchemy}
+proporciona la capa de abstracción sobre la base de datos relacional.
 
+\subsection{Desarrollo web}
 
-\section{Cuadros}
-\label{sec:uncuadro}
+\dataqual es una aplicación full-stack que combina un frontend construido con
+React~\cite{react}, Next.js~\cite{nextjs}, TypeScript~\cite{typescript} y
+Material \ac{UI}~\cite{materialui}, con un backend \ac{REST}ful
+implementado en Flask~\cite{flask}. La autenticación se gestiona mediante
+tokens \ac{JWT}, y la comunicación entre frontend y backend se realiza a
+través de una \ac{API} \ac{REST}.
 
-Se denominan «tablas» cuando contienen datos con relaciones numéricas. El término genérico (que debe usarse en los demás casos) es «cuadro»~\cite{sousa}. Si las columnas están bien alineadas, las líneas verticales estorban más que ayudan (no las pongas). Un ejemplo es el Cuadro~\ref{tab:rpc-semantics}, que se está generando a partir de un archivo \texttt{.tex} externo (también se pueden definir en el propio documento).
+\subsection{Análisis de datos y estadística}
 
-\begin{table}[hp]
-  \centering
-  {\small
-  \input{tables/RPC-semantics.tex}
-  }
-  \caption[Semánticas de \acs{RPC} en presencia de distintos fallos]{Semánticas de \acs{RPC} en presencia de distintos fallos (\textsc{Puder}~\cite{puder05:_distr_system_archit})}
-  \label{tab:rpc-semantics}
-\end{table}
+El motor de métricas implementa técnicas estadísticas como el rango
+intercuartílico (\ac{IQR}) y el Z-score para la detección de outliers, la
+entropía de Shannon para la evaluación del equilibrio de clases, y el
+\ac{EDA} interactivo con histogramas, diagramas de caja, matrices de
+correlación y detección de anomalías.
 
+\subsection{Seguridad informática}
 
-\section{Listados de código}
-\label{sec:listado}
+La plataforma incorpora múltiples capas de seguridad: autenticación y
+autorización mediante \ac{JWT}, derivación de contraseñas con \ac{PBKDF2},
+limitación de tasa de peticiones (\emph{rate limiting}), validación de
+entradas en el servidor, y enmascaramiento de \ac{PII} para proteger datos
+sensibles conforme al \ac{RGPD}.
 
-\noindent
-Puedes referenciar un listado así (ver Listado~\ref{code:hello}).
+\subsection{DevOps y despliegue}
 
-\begin{listing}[
-  float=ht,
-  language = C,
-  caption  = {«Hola mundo» en C},
-  label    = code:hello]
-#include <stdio.h>
-int main(int argc, char *argv[]) {
-    puts("Hola mundo\n");
-}
-\end{listing}
+La containerización con Docker~\cite{docker} y la orquestación con Docker
+Compose permiten desplegar la plataforma completa con un único comando.
+La configuración basada en variables de entorno facilita la adaptación a
+distintos entornos (desarrollo, pruebas, producción), y Flower proporciona
+un panel de monitorización para los \emph{workers} de Celery.
 
-Y también existe un comando \texttt{console} para representar ejecución de comandos:
+\bigskip
 
-\begin{console}
-$ uname --operating-system
-GNU/Linux
-\end{console} %$
-
-Puedes modificar el estilo por defecto para tus listados añadiendo un comando \texcmd{lstset} en tu \texttt{custom.sty}. El código \LaTeX{} del listado \ref{code:custom-listings} añade un fondo gris claro y una línea en el margen izquierdo.
-
-\begin{listing}[
-  float=h!,
-  caption  = {Personalizando los listados de código},
-  label    = code:custom-listings]
-\lstset{%
-  backgroundcolor = \color{gray95},
-  rulesepcolor    = \color{black},
-}
-\end{listing}
-
-En cualquier caso, si lo necesitas siempre es mejor que redefinas los comandos y entornos existentes o crees entornos nuevos, en lugar de añadir los mismos cambios en muchas partes del documento.
-
-
-\section{Citas y referencias cruzadas}
-
-Puedes ver aquí una cita~\cite{design_patterns}. Aunque incluyas una entrada en la bibliografía, solo aparecerá si la citas en el texto. \textbf{NO} puedes listar la bibliografía al final de cada sección, tiene que quedar claro dónde has usado cada fuente (cita incluso a nivel de frase, como al principio de esta sección). Por supuesto, las fuentes deben ser fiables y relevantes (no cites a Wikipedia, blogs, etc.). Cita siempre que uses información que no sea tuya para escribir la memoria, añade enlaces a pie de página cuando quieras proporcionar enlaces que pueden ser de interés para la persona que lee el documento (por ejemplo, el de la universidad\footnote{\url{http://www.uclm.es}}). Para citar páginas web usa el comando \texttt{url}.
-
-Aquí tienes una referencia a la segunda sección (véase \S\,\ref{sec:uncuadro}). Para hacer referencias debes definir etiquetas en el punto que quieras referenciar (normalmente justo debajo). Es útil que los nombres de las etiquetas (comando \texttt{label}) tengan los siguientes prefijos (incluyendo los dos puntos ``:'' del final):
-
-\begin{description}
-  \item[\emph{chap:}] para los capítulos. Ej: ``\texttt{chap:objetivos}''.
-  \item[\emph{sec:}] para secciones, subsecciones, etc.
-  \item[\emph{fig:}] para las figuras.
-  \item[\emph{tab:}] para las tablas.
-  \item[\emph{code:}] para los listados de código.
-\end{description}
-
-Si estás viendo la versión PDF de este documento puedes pinchar la cita o el número de sección. Son hiper-enlaces que llevan al elemento correspondiente. Todos los elementos que hacen referencia a otra cosa (figuras, tablas, listados, secciones, capítulos, citas, páginas web, etc.) son «pinchables» gracias al paquete \href{http://latex.tugraz.at/_media/docs/hyperref.pdf}{\emph{hyperref}}.
-
-\section{Acrónimos}
-En el archivo \texttt{acro.tex} se definen los acrónimos que se usan en el documento, encontrarás comentado ejemplos de cómo usarlos. La forma más simple de uso es el comando \texttt{\textbackslash ac\{<acrónimo>\}}, que hará que el término aparezca en su forma larga la primera vez que se use y en la corta las siguientes. Por ejemplo, \ac{RPC} la primera vez; \ac{RPC} las siguientes. Observa en el código fuente cómo se ha hecho.
-
+En conjunto, el desarrollo de \dataqual demuestra la capacidad de integrar
+conocimientos de múltiples disciplinas informáticas en un producto de software
+funcional, cohesionado y alineado con estándares internacionales, lo que
+constituye el objetivo fundamental de un \ac{TFG} en Ingeniería Informática.
 
 
 % Local Variables:

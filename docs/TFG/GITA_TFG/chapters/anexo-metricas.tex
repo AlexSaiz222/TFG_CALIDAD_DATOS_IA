@@ -1,0 +1,215 @@
+\chapter{Catálogo de métricas de calidad}
+\label{chap:anexo-metricas}
+
+Este anexo recoge el catálogo completo de las siete métricas de calidad
+implementadas en \dataqual, detallando para cada una su fundamento, los
+parámetros de configuración disponibles y los \emph{issues} que genera.
+
+
+%% =========================================================================
+\section{Completitud (\texttt{completeness})}
+\label{sec:met-completitud}
+%% =========================================================================
+
+\textbf{Fundamento.}  Mide el grado en que los datos esperados están
+presentes en el conjunto de datos, alineada con la dimensión de completitud
+de \ac{ISO}/IEC~25012~\cite{iso25012}.
+
+\textbf{Algoritmo.}  Ratio de valores no nulos por columna.  Si se
+especifican columnas, la puntuación es la media de sus ratios; en caso
+contrario, se usa la media global.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{columns}]  Lista de columnas a evaluar (por defecto, todas).
+  \item[\texttt{threshold}]  Umbral mínimo de completitud (por defecto, 0,95).
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+\textbf{\emph{Issues}.}  Global (completitud por debajo del umbral) y por
+columna (más del 2\,\% de valores nulos).
+
+
+%% =========================================================================
+\section{Unicidad (\texttt{uniqueness})}
+\label{sec:met-unicidad}
+%% =========================================================================
+
+\textbf{Fundamento.}  Evalúa la ausencia de duplicados a nivel de fila y la
+variabilidad por columna.
+
+\textbf{Algoritmo.}  Unicidad de filas =
+$\text{filas\_únicas} / \text{total\_filas}$.  Variabilidad por columna con
+umbrales adaptativos: 0,95 para columnas de identificador, 0,05 para
+categóricas y 0,30 para el resto.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{threshold}]  Umbral mínimo de unicidad (por defecto, 1,0).
+  \item[\texttt{columns}]  Columnas que deben ser únicas.
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+\textbf{\emph{Issues}.}  Baja variabilidad, filas duplicadas (con muestras
+enmascaradas si contienen \ac{PII}) y columna de identificador no única.
+
+
+%% =========================================================================
+\section{Valores atípicos (\texttt{outliers})}
+\label{sec:met-outliers}
+%% =========================================================================
+
+\textbf{Fundamento.}  Detecta valores que se desvían significativamente del
+resto del conjunto de datos.
+
+\textbf{Algoritmos.}
+\begin{itemize}
+  \item \textbf{\ac{IQR}:} un valor es atípico si
+    $x < Q_1 - f \cdot \mathrm{IQR}$ o
+    $x > Q_3 + f \cdot \mathrm{IQR}$, donde $f$ es el factor configurable.
+  \item \textbf{Z-score:} un valor es atípico si
+    $|z| = |(x - \mu) / \sigma| > f$.
+\end{itemize}
+
+La puntuación penaliza con factor~3$\times$:
+$s_{\mathrm{col}} = \max(0,\; 1 - r_{\mathrm{outliers}} \times 3)$.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{method}]  Método de detección: \texttt{"iqr"} o
+    \texttt{"zscore"} (por defecto, \texttt{"iqr"}).
+  \item[\texttt{factor}]  Factor del método (por defecto, 1,5).
+  \item[\texttt{columns}]  Columnas numéricas a evaluar (por defecto, todas).
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Exactitud sintáctica (\texttt{syntactic\_accuracy})}
+\label{sec:met-exactitud}
+%% =========================================================================
+
+\textbf{Fundamento.}  Verifica la conformidad de los valores con patrones de
+formato predefinidos, alineada con la dimensión de exactitud de
+\ac{ISO}/IEC~25012~\cite{iso25012}.
+
+\textbf{Catálogo de tipos.}  13 tipos predefinidos: \emph{email},
+\emph{url}, teléfono (español e internacional), DNI, fechas (ISO y europea),
+entero, decimal, UUID, IPv4, código postal y tarjeta de crédito.
+
+\textbf{Auto-detección.}  Para columnas sin configuración explícita, se
+muestrea hasta 100 valores y se asigna el tipo con mayor tasa de coincidencia
+si supera el 60\,\%.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{columns}]  Lista de \texttt{\{column, expected\_type,
+    pattern\}}.
+  \item[\texttt{auto\_detect\_types}]  Activar auto-detección (por defecto,
+    \texttt{true}).
+  \item[\texttt{threshold}]  Umbral de conformidad (por defecto, 0,95).
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Consistencia lógica (\texttt{logical\_consistency})}
+\label{sec:met-consistencia}
+%% =========================================================================
+
+\textbf{Fundamento.}  Valida reglas de negocio entre columnas, expresadas
+como reglas \texttt{IF\,--\,THEN}.
+
+\textbf{Algoritmo.}  Cada regla se evalúa mediante
+\texttt{pandas.DataFrame.query()}.  La tasa de cumplimiento se calcula como
+$1 - (\text{violaciones} / \text{total\_filas})$.  Antes de ejecutar
+cualquier regla, se verifica que no contenga \emph{tokens} prohibidos
+(\texttt{import}, \texttt{exec}, \texttt{eval}, etc.) para prevenir la
+inyección de código.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{rules}]  Lista de reglas: \texttt{\{name, type, expression,
+    condition, assertion\}}.
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Equilibrio de clases (\texttt{class\_balance})}
+\label{sec:met-balance}
+%% =========================================================================
+
+\textbf{Fundamento.}  Métrica específica para \ac{ML} supervisado.  Utiliza
+la entropía de Shannon~\cite{ng2021datacentric} para cuantificar el
+equilibrio de la variable objetivo:
+
+\[
+  H = -\sum_{i} p_i \cdot \log_2(p_i), \qquad
+  H_{\max} = \log_2(n_{\text{clases}}), \qquad
+  \text{Balance} = \frac{H}{H_{\max}} \times 100
+\]
+
+\textbf{Auto-detección.}  Se analizan automáticamente las columnas de tipo
+\texttt{object} o \texttt{category} con hasta 50 valores únicos, y las
+columnas enteras con hasta 20 valores únicos.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{columns}]  Columnas objetivo.
+  \item[\texttt{auto\_detect}]  Activar auto-detección (por defecto,
+    \texttt{true}).
+  \item[\texttt{imbalance\_threshold\_high}]  Umbral de clase dominante (por
+    defecto, 0,90).
+  \item[\texttt{imbalance\_threshold\_low}]  Umbral de clase minoritaria (por
+    defecto, 0,05).
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+\textbf{\emph{Issues}.}  Clase dominante ($\geq$ 90\,\%) y clase minoritaria
+($\leq$ 5\,\%).
+
+
+%% =========================================================================
+\section{Actualidad (\texttt{timeliness})}
+\label{sec:met-actualidad}
+%% =========================================================================
+
+\textbf{Fundamento.}  Mide la frescura de los datos calculando la antigüedad
+del valor de fecha más reciente de cada columna temporal, alineada con la
+dimensión de actualidad (\emph{currentness}) de
+\ac{ISO}/IEC~25012~\cite{iso25012}.
+
+\textbf{Algoritmo de frescura.}  La degradación es lineal entre el umbral de
+obsolescencia y el doble de dicho umbral:
+
+\[
+  \text{frescura} =
+  \begin{cases}
+    1{,}0 & \text{si } \text{días} \leq \text{umbral} \\
+    \max\bigl(0,\; 1 - \frac{\text{días} - \text{umbral}}{\text{umbral}}\bigr)
+      & \text{en caso contrario}
+  \end{cases}
+\]
+
+\textbf{Auto-detección.}  Columnas con \texttt{dtype=datetime64} se
+incluyen directamente; para columnas de texto, se parsea una muestra de 50
+valores y se incluyen si al menos el 50\,\% se reconoce como fecha.
+
+\textbf{Parámetros:}
+\begin{definitionlist}
+  \item[\texttt{columns}]  Columnas temporales a evaluar.
+  \item[\texttt{auto\_detect}]  Activar auto-detección (por defecto,
+    \texttt{true}).
+  \item[\texttt{staleness\_threshold\_days}]  Umbral de obsolescencia en
+    días (por defecto, 30).
+  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
+\end{definitionlist}
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

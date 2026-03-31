@@ -1,0 +1,155 @@
+\chapter{Conclusiones y trabajo futuro}
+\label{chap:conclusiones}
+
+\drop{E}{ste} capítulo final recoge las conclusiones del trabajo realizado,
+las lecciones aprendidas durante el desarrollo de \dataqual y las líneas de
+trabajo futuro identificadas para la evolución de la plataforma.
+
+
+%% =========================================================================
+\section{Conclusiones}
+\label{sec:conclusiones}
+%% =========================================================================
+
+El presente \ac{TFG} ha abordado el diseño, la implementación y la validación
+de \dataqual, una plataforma web integral para la evaluación automatizada de
+la calidad de datos en proyectos de \ac{IA}, \ac{ML} y minería de datos.
+A lo largo de las fases de desarrollo descritas en el
+capítulo~\ref{chap:metodologia}, se ha logrado construir un sistema funcional
+de extremo a extremo que cumple los cinco objetivos específicos establecidos
+en el capítulo~\ref{chap:objetivos}, tal como se ha verificado en la
+sección~\ref{sec:resultados-alcanzados}.
+
+Las principales conclusiones que se extraen del trabajo son las siguientes:
+
+\begin{enumerate}
+  \item \textbf{La calidad de datos requiere herramientas accesibles.}  Los
+    enfoques ad~hoc basados en \emph{scripts} y cuadernos Jupyter, aunque
+    flexibles, presentan barreras de estandarización, historización y
+    accesibilidad que dificultan su adopción sistemática.  \dataqual
+    demuestra que es viable ofrecer una interfaz web accesible a perfiles no
+    técnicos sin renunciar a la potencia de una \ac{API} \ac{REST}ful para
+    integraciones programáticas.
+
+  \item \textbf{Los estándares internacionales proporcionan un marco
+    sólido.}  La alineación con \ac{ISO}/IEC~25012~\cite{iso25012} e
+    \ac{ISO}/IEC~5259~\cite{iso5259} ha proporcionado un marco de referencia
+    riguroso para la definición de las métricas de calidad, evitando
+    definiciones arbitrarias y facilitando la comparabilidad entre proyectos.
+
+  \item \textbf{La arquitectura de \emph{plugins} facilita la
+    extensibilidad.}  El diseño del motor de métricas basado en una clase
+    base abstracta y un registro dinámico ha demostrado ser una decisión
+    arquitectónica acertada: las siete métricas se han implementado de forma
+    independiente, y el proceso de incorporación de nuevas métricas está
+    formalizado en cuatro pasos claramente definidos.
+
+  \item \textbf{El \emph{fingerprinting} habilita la trazabilidad.}  La
+    generación de \emph{hashes} deterministas para cada \emph{issue}
+    detectado permite una comparación automática entre ejecuciones que supera
+    las capacidades de la mayoría de las herramientas de código abierto
+    analizadas en el estado del arte.
+
+  \item \textbf{Las \emph{Quality Gates} aportan claridad a la toma de
+    decisiones.}  La traslación del concepto de \emph{Quality Gate} del
+    ámbito de la calidad del código~\cite{sonarqube} al ámbito de la calidad
+    de datos proporciona una señal objetiva y automatizable sobre la aptitud
+    de un conjunto de datos para su uso.
+
+  \item \textbf{La contenerización garantiza la portabilidad.}  El despliegue
+    mediante Docker Compose~\cite{docker} asegura que la plataforma pueda
+    reproducirse en cualquier entorno sin dependencias externas, respetando
+    la soberanía de los datos.
+\end{enumerate}
+
+
+%% =========================================================================
+\section{Lecciones aprendidas}
+\label{sec:lecciones}
+%% =========================================================================
+
+El desarrollo del proyecto ha proporcionado las siguientes lecciones
+relevantes desde la perspectiva de la ingeniería del software:
+
+\begin{itemize}
+  \item \textbf{El desarrollo iterativo minimiza los riesgos.}  La
+    organización en iteraciones con entregas funcionales ha permitido
+    detectar y corregir problemas de diseño de forma temprana, evitando
+    retrabajos costosos en fases avanzadas del proyecto.
+
+  \item \textbf{El diseño de métricas exige conocimiento del dominio.}  La
+    implementación de métricas de calidad de datos no es un ejercicio
+    puramente algorítmico: requiere comprender los estándares
+    internacionales, las necesidades reales de los usuarios y los matices de
+    cada dimensión de calidad.
+
+  \item \textbf{La seguridad debe integrarse desde el inicio.}  Decisiones
+    como la protección contra inyección en las reglas de consistencia lógica
+    o el enmascaramiento nativo de \ac{PII} fueron más sencillas de
+    implementar al considerarlas desde las fases iniciales del diseño que si
+    se hubieran añadido como capas posteriores.
+
+  \item \textbf{La gestión de la complejidad del \emph{frontend} requiere
+    disciplina.}  Componentes como el módulo de \emph{profiling} de datos
+    crecieron significativamente durante el desarrollo.  Una mayor
+    modularización temprana habría facilitado el mantenimiento posterior.
+\end{itemize}
+
+
+%% =========================================================================
+\section{Líneas de trabajo futuro}
+\label{sec:trabajo-futuro}
+%% =========================================================================
+
+A partir de las limitaciones identificadas en la
+sección~\ref{sec:limitaciones} y de las oportunidades detectadas durante el
+desarrollo, se proponen las siguientes líneas de trabajo futuro para la
+evolución de \dataqual:
+
+\begin{enumerate}
+  \item \textbf{Documentación Swagger/OpenAPI} para la \ac{API} \ac{REST}ful,
+    proporcionando documentación interactiva generada automáticamente.
+
+  \item \textbf{Exportación de informes} a PDF y Excel para facilitar la
+    comunicación de resultados a \emph{stakeholders} no técnicos.
+
+  \item \textbf{WebSockets} para notificaciones \emph{push} del progreso de
+    las evaluaciones, sustituyendo el mecanismo actual de \emph{polling}.
+
+  \item \textbf{OAuth~2.0 y \ac{SSO}} para la integración con sistemas
+    empresariales de gestión de identidades.
+
+  \item \textbf{Evaluaciones programadas} mediante Celery Beat para la
+    monitorización continua de la calidad de datos.
+
+  \item \textbf{Detección de anomalías basada en \ac{ML}}, incorporando
+    algoritmos como \emph{Isolation Forest} o \emph{Autoencoders} como
+    métricas adicionales del motor.
+
+  \item \textbf{Procesamiento por fragmentos} (\emph{chunk-based}) para
+    conjuntos de datos que excedan la memoria RAM disponible.
+
+  \item \textbf{Integración directa con bases de datos} (PostgreSQL, MySQL,
+    BigQuery) como fuentes de datos, eliminando la necesidad de exportar a
+    archivo.
+
+  \item \textbf{Colaboración en equipo} con roles y permisos granulares,
+    permitiendo que múltiples usuarios trabajen sobre los mismos proyectos.
+
+  \item \textbf{Webhooks} para notificar a sistemas externos cuando una
+    evaluación se complete o un \emph{Quality Gate} falle.
+
+  \item \textbf{Internacionalización} completa de la interfaz de usuario.
+
+  \item \textbf{Sugerencias de corrección automatizadas} basadas en los
+    \emph{issues} detectados, cerrando el ciclo de diagnóstico con
+    propuestas de acción.
+\end{enumerate}
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

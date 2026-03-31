@@ -1,37 +1,276 @@
 \chapter{Introducción}
+\label{chap:intro}
 
-\drop{E}{sto} se llama «letra capital» y debería utilizarse únicamente al comienzo de capítulo como artificio decorativo. Para que resulte estéticamente adecuada, este primer párrafo debería tener más del doble de líneas de lo que ocupe verticalmente la letra capital (dos en este caso).
+\drop{L}{a} calidad de los datos constituye uno de los pilares fundamentales sobre
+los que se sustenta el éxito de cualquier proyecto de \ac{IA} o \ac{ML}.
+A medida que las organizaciones adoptan sistemas basados en datos para la toma
+de decisiones estratégicas, la necesidad de garantizar que dichos datos sean
+completos, precisos, consistentes y oportunos se ha convertido en un requisito
+ineludible.  Sin embargo, la realidad de la industria muestra que la calidad de
+los datos sigue siendo un problema generalizado y costoso, tanto en términos
+económicos como en sus consecuencias sobre la fiabilidad de los modelos
+resultantes.  El presente \ac{TFG} aborda esta problemática mediante el diseño
+e implementación de \dataqual, una plataforma web integral para la evaluación
+automatizada de la calidad de datos en proyectos de \ac{IA}.
 
-El capítulo de introducción debe dar una perspectiva básica \textemdash pero completa\textemdash~del problema que se pretende abordar, de la motivación, y también de la estrategia y enfoque que se propone para su resolución. Cualquiera que lea el documento debería poder determinar si le interesa leyendo únicamente este capítulo.
+Este capítulo introductorio ofrece una visión general del problema que motiva
+el desarrollo de la plataforma, presenta la solución propuesta y sus
+principales capacidades, justifica la necesidad de una herramienta dedicada
+frente a los enfoques tradicionales, identifica el público objetivo al que se
+dirige y describe la estructura del resto del documento.
 
+
+%% ---------------------------------------------------------------------------
 \section{Motivación}
+\label{sec:motivacion}
 
-De acuerdo con la normativa, en este apartado se debe:
+El principio conocido como \emph{garbage in, garbage out} resume de forma
+elocuente una verdad ampliamente reconocida en el ámbito de la ciencia de
+datos: la calidad de las salidas de un sistema está intrínsecamente limitada
+por la calidad de sus entradas~\cite{wang1996}.  En el contexto de la \ac{IA}
+y el \ac{ML}, este principio adquiere una relevancia especial, ya que los
+modelos aprenden patrones directamente de los datos de entrenamiento.  Si estos
+datos contienen errores, sesgos o valores ausentes, los modelos resultantes
+heredarán~\textemdash y, con frecuencia, amplificarán~\textemdash dichas
+deficiencias~\cite{redman1998}.
 
-\begin{quote}
-  «\dots señalar la necesidad de la que surge el trabajo, su actualidad y pertinencia. Puede incluir un estado de la cuestión en la que se aborden estudios o desarrollos previos y en qué medida sirven de base al trabajo que se presenta».
-\end{quote}
+\subsection{Impacto en la fiabilidad de los modelos}
 
-Por cierto, las comillas que deben usarse en castellano son las «latinas»\footnote{Las comillas latinas se pueden escribir pulsado AltGr-z y AltGr-x en la gran mayoría de editores.}, dejando las ``inglesas'' para los raros casos en los que aparezca una cita en el cuerpo de otra~\cite{sousa}. Además, en la portada \textemdash y otras páginas de presentación\textemdash~el nombre o título del proyecto debe aparecer sin comillas, cursiva u otros formatos. Si se cita el título de otra obra o el nombre de un capítulo, sí debe aparecer entre comillas.
+Diversos estudios han demostrado que los problemas de calidad de datos
+constituyen la causa principal de fallos de sistemas de \ac{IA} en
+producción, por encima incluso de los errores algorítmicos.
+Sambasivan et~al.~\cite{sambasivan2021} documentaron, a partir de entrevistas
+con 53 profesionales de \ac{IA} en múltiples organizaciones, que las
+deficiencias en los datos~\textemdash etiquetado incorrecto, datos
+desactualizados, muestras no representativas~\textemdash son la causa
+predominante de los fracasos en despliegues de \ac{ML}.  A modo ilustrativo,
+se ha estimado que un 10\,\% de etiquetas incorrectas en un conjunto de datos
+de entrenamiento puede reducir la precisión de un clasificador en más de 15
+puntos porcentuales, una degradación que ninguna mejora arquitectónica puede
+compensar de forma fiable~\cite{ng2021datacentric}.
 
-\section{Objetivos}
+\subsection{Coste económico}
 
-\noindent  % <-- Elimina la sangría de la primera línea
-En este capítulo la normativa indica que \emph{«para hacer un planteamiento apropiado de los objetivos se recomienda utilizar la guía para la elaboración de propuestas de \acf{TFG} en la que se explica cómo definir correctamente los objetivos de un \ac{TFG}»}. Puedes consultar la guía en la página web de la Facultad\footnote{\url{https://www.uclm.es/toledo/fcsociales/grado-informatica/trabajo-fin-de-grado}}.
+El impacto económico de la mala calidad de datos es igualmente significativo.
+Según estimaciones de Gartner, las organizaciones pierden una media de 12,9
+millones de dólares anuales como consecuencia directa de datos
+deficientes~\cite{gartner2017}.  En el ámbito de la \ac{IA}, este coste se
+amplifica de manera notable: modelos entrenados con datos erróneos producen
+decisiones incorrectas que se traducen en consecuencias financieras, legales y
+reputacionales.  Redman~\cite{redman2001} señaló que el coste de corregir
+errores en los datos crece exponencialmente a medida que estos avanzan por las
+etapas de un flujo de procesamiento, lo que subraya la importancia de
+detectarlos lo antes posible.
+
+\subsection{Tiempo dedicado a la preparación de datos}
+
+Encuestas realizadas por plataformas de referencia como
+Kaggle~\cite{kaggle2022} revelan que entre el 60\,\% y el 80\,\% del tiempo
+de los profesionales de datos se dedica a tareas de limpieza y preparación,
+en detrimento del tiempo disponible para el análisis, la experimentación y el
+desarrollo de modelos.  Este desequilibrio evidencia la necesidad de
+herramientas que automaticen y sistematicen los procesos de evaluación de
+calidad, permitiendo a los equipos concentrar sus esfuerzos en actividades de
+mayor valor añadido.
+
+\subsection{Sesgo algorítmico}
+
+Los datos desequilibrados o no representativos constituyen una fuente
+frecuente de sesgo en los modelos de \ac{IA}.  El caso del algoritmo de
+selección de personal de Amazon, que fue descartado en 2018 tras detectarse
+que discriminaba sistemáticamente a las candidatas
+femeninas~\cite{amazon2018}, puso de manifiesto los riesgos de entrenar
+modelos con datos históricos sesgados.  De forma análoga,
+Buolamwini y Gebru~\cite{buolamwini2018} demostraron que los sistemas
+comerciales de reconocimiento facial presentaban tasas de error
+significativamente superiores para personas de piel oscura, especialmente
+mujeres, como consecuencia de conjuntos de entrenamiento
+insuficientemente diversos.  Estos casos ilustran que la calidad de los datos
+no es únicamente una cuestión técnica, sino también ética y social.
+
+\subsection{Requisitos normativos}
+
+El marco regulatorio refuerza la necesidad de garantizar la calidad de los
+datos.  El Reglamento Europeo de \ac{IA} (\emph{AI
+Act})~\cite{aiact2024} establece requisitos explícitos de calidad,
+trazabilidad y documentación de los datos utilizados en sistemas de \ac{IA} de
+alto riesgo.  De manera complementaria, el \ac{RGPD} exige que los datos
+personales sean exactos y estén actualizados, imponiendo obligaciones de
+rectificación y eliminación que afectan directamente a los flujos de datos de
+proyectos de \ac{ML}.  En este contexto normativo, disponer de mecanismos
+formales y auditables de evaluación de la calidad de datos deja de ser una
+buena práctica para convertirse en una obligación legal.
 
 
+%% ---------------------------------------------------------------------------
+\section{Presentación de la solución}
+\label{sec:solucion}
+
+Para abordar la problemática descrita, se ha diseñado e implementado
+\dataqual, una plataforma web \emph{full-stack} para la evaluación
+automatizada de la calidad de datos en proyectos de \ac{IA}, \ac{ML} y
+minería de datos.  La plataforma combina una interfaz gráfica interactiva con
+una \ac{API} \ac{REST}ful, ofreciendo las siguientes capacidades principales:
+
+\begin{itemize}
+  \item \textbf{Carga de conjuntos de datos} en múltiples formatos (\ac{CSV},
+    \ac{XLSX}, \ac{JSON} y Parquet), con almacenamiento seguro y
+    versionado.
+
+  \item \textbf{Configuración de métricas de calidad} adaptadas al tipo de
+    proyecto, con parámetros y umbrales personalizables alineados con los
+    estándares \ac{ISO}/IEC~25012~\cite{iso25012} y
+    \ac{ISO}/IEC~5259~\cite{iso5259}.
+
+  \item \textbf{Ejecución asíncrona de evaluaciones}, que analiza los
+    conjuntos de datos frente a las métricas configuradas sin bloquear la
+    interfaz de usuario.
+
+  \item \textbf{Visualización interactiva de resultados} mediante cuadros de
+    mando que incluyen gráficos de evolución, tablas de métricas por columna,
+    histogramas, diagramas de caja y matrices de correlación.
+
+  \item \textbf{Seguimiento de la evolución de la calidad} a lo largo del
+    tiempo, gracias a un sistema de \emph{fingerprinting} que permite comparar
+    automáticamente los resultados con líneas base anteriores.
+
+  \item \textbf{Quality Gates} (puertas de calidad): umbrales mínimos
+    configurables que determinan si un conjunto de datos es apto para su uso,
+    con estados \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}.
+
+  \item \textbf{Protección de datos sensibles} mediante la detección y
+    enmascaramiento automático de información personal identificable
+    (\ac{PII}).
+
+  \item \textbf{Despliegue contenerizado} como ocho servicios Docker
+    orquestados con Docker~Compose, garantizando portabilidad,
+    reproducibilidad y soberanía sobre los datos.
+\end{itemize}
+
+
+%% ---------------------------------------------------------------------------
+\section{Por qué una plataforma dedicada}
+\label{sec:justificacion}
+
+Los enfoques tradicionales para la evaluación de la calidad de datos~\textemdash
+\emph{scripts} ad~hoc en Python, consultas \ac{SQL} manuales o cuadernos
+Jupyter~\textemdash presentan limitaciones fundamentales que dificultan su
+adopción sistemática en entornos profesionales:
+
+\begin{itemize}
+  \item \textbf{Falta de estandarización.}  Cada equipo define sus propias
+    métricas y umbrales de forma aislada, lo que impide la comparación entre
+    proyectos y dificulta la auditoría.  \dataqual implementa un catálogo de
+    métricas alineado con \ac{ISO}/IEC~25012~\cite{iso25012} y la serie
+    \ac{ISO}/IEC~5259~\cite{iso5259}, proporcionando un marco de referencia
+    común basado en el modelo \ac{SQuaRE}.
+
+  \item \textbf{Ausencia de historización.}  Los \emph{scripts} ad~hoc
+    evalúan instantáneas puntuales sin mantener un registro histórico.
+    \dataqual conserva el historial completo de ejecuciones y permite la
+    comparación automática con líneas base anteriores, facilitando la
+    detección de degradaciones en la calidad.
+
+  \item \textbf{Barrera técnica.}  Las herramientas basadas en código, como
+    Great Expectations~\cite{greatexpectations} o Deequ de Amazon, requieren
+    conocimientos de programación que no todos los perfiles involucrados en un
+    proyecto de datos poseen.  \dataqual proporciona una interfaz web
+    accesible que permite a usuarios no técnicos configurar y ejecutar
+    evaluaciones de calidad sin necesidad de escribir código.
+
+  \item \textbf{Falta de integración en flujos de trabajo.}  Los
+    \emph{scripts} independientes no se integran de forma natural en
+    \emph{pipelines} de datos existentes.  La \ac{API} \ac{REST} de \dataqual
+    permite la integración programática con flujos de \ac{MLOps},
+    integración y despliegue continuos, y procesos \ac{ETL}.
+
+  \item \textbf{Ausencia de Quality Gates.}  Pocas herramientas proporcionan
+    señales claras de aprobación o rechazo sobre la calidad de un conjunto de
+    datos.  Inspirándose en el concepto de \emph{Quality Gate} de
+    SonarQube~\cite{sonarqube} para la calidad del código, \dataqual
+    implementa puertas de calidad configurables con estados
+    \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}, ofreciendo
+    criterios objetivos y automatizados para la toma de decisiones.
+\end{itemize}
+
+
+%% ---------------------------------------------------------------------------
+\section{Público objetivo}
+\label{sec:publico}
+
+\dataqual ha sido diseñada para ser utilizada por los distintos perfiles
+profesionales que intervienen en el ciclo de vida de un proyecto de datos:
+
+\begin{itemize}
+  \item \textbf{Ingenieros de datos}, responsables de la ingestión,
+    transformación y almacenamiento de los conjuntos de datos, que pueden
+    integrar las evaluaciones de calidad en sus \emph{pipelines} \ac{ETL}
+    mediante la \ac{API} \ac{REST}.
+
+  \item \textbf{Científicos de datos e ingenieros de \ac{ML}}, que necesitan
+    verificar la calidad de los datos de entrenamiento y evaluación antes de
+    construir y desplegar modelos.
+
+  \item \textbf{Analistas de datos}, que requieren una herramienta visual e
+    intuitiva para explorar la calidad de los conjuntos de datos sin depender
+    de conocimientos de programación.
+
+  \item \textbf{Responsables de calidad y cumplimiento normativo}, que
+    necesitan evidencias auditables del estado de la calidad de los datos
+    para satisfacer los requisitos del \ac{RGPD} y el Reglamento Europeo de
+    \ac{IA}.
+
+  \item \textbf{Directores técnicos de proyecto}, que precisan una visión
+    consolidada del estado de la calidad de los datos a través de cuadros de
+    mando y métricas agregadas para la toma de decisiones informadas.
+\end{itemize}
+
+
+%% ---------------------------------------------------------------------------
 \section{Estructura del documento}
+\label{sec:estructura}
 
-Pueden incluirse aquí una sección con algunos consejos para la lectura del documento.  También puede ser útil incluir una lista con el nombre y finalidad de cada uno de los capítulos restantes. Una posible lista de capítulos sería la siguiente:
+El presente documento se organiza en siete capítulos y dos anexos.  A
+continuación se describe brevemente el contenido de cada uno de los capítulos
+restantes:
 
 \begin{definitionlist}
-\item[Capítulo \ref{chap:antecedentes}: \nameref{chap:antecedentes}] Revisión de la literatura y estado del arte.
-\item[Capítulo \ref{chap:metodologia}: \nameref{chap:metodologia}] Descripción de la metodología empleada.
-\item[Capítulo \ref{chap:resultados}: \nameref{chap:resultados}] Presentación de los resultados obtenidos.
-\item[Capítulo \ref{chap:conclusiones}: \nameref{chap:conclusiones}] Conclusiones y trabajo futuro.
+\item[Capítulo~\ref{chap:antecedentes}: \nameref{chap:antecedentes}]
+  Revisa los fundamentos teóricos de la calidad de datos, los principales
+  estándares internacionales (\ac{ISO}/IEC~25012, \ac{ISO}/IEC~5259), las
+  dimensiones de calidad relevantes y las herramientas existentes en el
+  mercado, identificando las carencias que justifican el desarrollo de
+  \dataqual.
+
+\item[Capítulo~\ref{chap:objetivos}: \nameref{chap:objetivos}]
+  Define el objetivo general y los objetivos específicos del proyecto,
+  estableciendo el alcance y las restricciones del trabajo.
+
+\item[Capítulo~\ref{chap:metodologia}: \nameref{chap:metodologia}]
+  Describe la metodología de desarrollo adoptada, las herramientas y
+  tecnologías seleccionadas, y la planificación temporal del proyecto.
+
+\item[Capítulo~\ref{chap:desarrollo}: \nameref{chap:desarrollo}]
+  Detalla el proceso de diseño e implementación de la plataforma, incluyendo
+  la arquitectura del sistema, el modelo de datos, la implementación de las
+  métricas de calidad, la \ac{API} \ac{REST} y la interfaz de usuario.
+
+\item[Capítulo~\ref{chap:resultados}: \nameref{chap:resultados}]
+  Presenta los resultados obtenidos mediante la evaluación de la plataforma
+  con conjuntos de datos reales, analiza el cumplimiento de los objetivos
+  planteados y discute las limitaciones identificadas.
+
+\item[Capítulo~\ref{chap:conclusiones}: \nameref{chap:conclusiones}]
+  Recoge las conclusiones del trabajo, las lecciones aprendidas durante su
+  desarrollo y las líneas de trabajo futuro identificadas para la evolución
+  de la plataforma.
 \end{definitionlist}
 
-La idea es que des un resumen de los contenidos\textemdash qué contenido, no qué tipo de contenido\textemdash~de cada capítulo. No es necesario que sea muy extenso, pero sí que sea suficiente para que la persona que lea el documento pueda hacerse una idea de qué va a encontrar en cada uno de ellos.
+Adicionalmente, el documento incluye dos anexos: el primero documenta la
+especificación completa de la \ac{API} \ac{REST}, y el segundo proporciona
+un catálogo detallado de las métricas de calidad implementadas con sus
+respectivos parámetros de configuración.
+
 
 % Local Variables:
 %  coding: utf-8
