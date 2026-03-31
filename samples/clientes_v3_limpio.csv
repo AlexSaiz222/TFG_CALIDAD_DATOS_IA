@@ -1,31 +1,201 @@
-id,nombre,email,telefono,departamento,ciudad,salario,fecha_contratacion
-1,María García,maria.garcia@empresa.com,620 354 221,Finanzas,Bilbao,61735,2025-05-05
-2,Carlos López,carlos.lopez@empresa.com,689 331 894,Finanzas,Bilbao,51524,2024-06-25
-3,Ana Martínez,ana.martinez@empresa.com,648 980 702,RRHH,Zaragoza,59265,2025-06-25
-4,Pedro Sánchez,pedro.sanchez@empresa.com,617 724 857,Ventas,Sevilla,62993,2023-03-09
-5,Laura Fernández,laura.fernandez@empresa.com,643 776 183,Marketing,Sevilla,33391,2025-02-04
-6,Miguel Torres,miguel.torres@empresa.com,619 260 102,RRHH,Alicante,67178,2025-05-01
-7,Carmen Ruiz,carmen.ruiz@empresa.com,670 398 133,Marketing,Zaragoza,68331,2023-08-03
-8,David Moreno,david.moreno@empresa.com,699 980 564,Ventas,Sevilla,82549,2023-06-26
-9,Lucía Jiménez,lucia.jimenez@empresa.com,690 703 777,Logística,Sevilla,49861,2022-08-24
-10,Javier Hernández,javier.hernandez@empresa.com,679 330 763,Marketing,Zaragoza,76174,2022-10-19
-11,Elena Díaz,elena.diaz@empresa.com,619 161 269,Logística,Zaragoza,60996,2025-03-11
-12,Roberto Muñoz,roberto.munoz@empresa.com,,RRHH,Zaragoza,67857,2024-04-04
-13,Isabel Álvarez,isabel.alvarez@empresa.com,644 612 652,RRHH,Alicante,27271,2025-05-09
-14,Francisco Romero,francisco.romero@empresa.com,615 542 852,Ingeniería,Granada,38408,2022-02-22
-15,Patricia Navarro,patricia.navarro@empresa.com,621 334 790,Logística,Granada,60477,2022-02-12
-16,Andrés Gil,andres.gil@empresa.com,696 941 375,Finanzas,Madrid,72011,2022-12-25
-17,Sofía Molina,sofia.molina@empresa.com,670 631 767,RRHH,Zaragoza,33894,2025-04-13
-18,Diego Ortega,diego.ortega@empresa.com,665 750 933,RRHH,Barcelona,52802,2023-12-14
-19,Raquel Serrano,raquel.serrano@empresa.com,662 441 428,Soporte,Barcelona,78212,2022-11-26
-20,Pablo Domínguez,pablo.dominguez@empresa.com,652 521 810,RRHH,Zaragoza,65423,2024-03-31
-21,Cristina Vázquez,cristina.vazquez@empresa.com,680 137 565,Ventas,Málaga,38541,2023-10-25
-22,Manuel Ramos,manuel.ramos@empresa.com,624 891 513,Logística,Córdoba,76062,2022-01-03
-23,Teresa Castro,teresa.castro@empresa.com,694 990 655,RRHH,Bilbao,25552,2023-01-20
-24,Sergio Blanco,sergio.blanco@empresa.com,676 470 737,Logística,Alicante,62986,2024-06-24
-25,Marta Morales,,616 308 373,Finanzas,Valencia,82795,2023-08-13
-26,Alejandro Guerrero,alejandro.guerrero@empresa.com,666 815 596,Ventas,Madrid,63289,2025-05-31
-27,Rosa Suárez,rosa.suarez@empresa.com,640 826 262,Ingeniería,Córdoba,22896,2025-02-05
-28,Daniel Méndez,daniel.mendez@empresa.com,662 195 330,Logística,Barcelona,52241,2022-08-29
-29,Natalia Cortés,natalia.cortes@empresa.com,692 952 257,RRHH,Zaragoza,55349,2025-12-15
-30,Héctor Iglesias,hector.iglesias@empresa.com,644 525 954,RRHH,Alicante,37973,2024-07-24
+id,nombre,email,telefono,departamento,ciudad,salario,fecha_contratacion,dni,codigo_postal,nivel_experiencia,fecha_actualizacion
+1,María García,maria.garcia@empresa.com,658892118,RRHH,Valencia,80084,2023-09-07,24942603T,16154,Lead,2026-03-04
+2,Carlos López,carlos.lopez@empresa.com,668436893,RRHH,Málaga,28757,2023-07-01,13356886G,05649,Junior,2026-03-05
+3,Ana Martínez,ana.martinez@empresa.com,648526473,Soporte,Valencia,48299,2023-05-04,46913810C,17703,Senior,2026-03-28
+4,Pedro Sánchez,pedro.sanchez@empresa.com,630127592,Marketing,Madrid,70209,2024-09-21,42868828W,16816,Lead,2026-03-14
+5,Laura Fernández,laura.fernandez@empresa.com,668536768,RRHH,Madrid,22477,2023-06-14,39958838H,13163,Junior,2026-03-06
+6,Miguel Torres,miguel.torres@empresa.com,647281925,Soporte,Córdoba,78674,2024-09-22,28728463Z,12659,Lead,2026-03-06
+7,Carmen Ruiz,carmen.ruiz@empresa.com,612672106,Ventas,Barcelona,23041,2024-04-13,23756669S,21616,Junior,2026-03-03
+8,David Moreno,david.moreno@empresa.com,658779318,Soporte,Barcelona,82615,2022-10-15,83197857A,26965,Lead,2026-03-24
+9,Lucía Jiménez,lucia.jimenez@empresa.com,625023307,Finanzas,Córdoba,54019,2024-12-11,21668732H,08534,Senior,2026-03-23
+10,Javier Hernández,javier.hernandez@empresa.com,676632538,Ventas,Sevilla,65269,2023-11-06,89254563G,39125,Lead,2026-03-05
+11,Elena Díaz,elena.diaz@empresa.com,688426937,Soporte,Bilbao,68856,2023-03-23,66629388K,52766,Lead,2026-03-27
+12,Roberto Muñoz,roberto.munoz@empresa.com,,Marketing,Sevilla,54316,2022-04-25,14265799A,18450,Senior,2026-03-16
+13,Isabel Álvarez,isabel.alvarez@empresa.com,681601127,Ingeniería,Barcelona,57371,2023-05-20,13999315C,21558,Senior,2026-03-01
+14,Francisco Romero,francisco.romero@empresa.com,647276794,Logística,Valencia,81914,2023-09-24,22575562G,24486,Lead,2026-03-31
+15,Patricia Navarro,patricia.navarro@empresa.com,696623797,Finanzas,Madrid,56791,2025-11-15,39345092G,48678,Lead,2026-03-02
+16,Andrés Gil,andres.gil@empresa.com,642168745,Ingeniería,Córdoba,57957,2024-01-14,41227216S,25316,Senior,2026-03-03
+17,Sofía Molina,sofia.molina@empresa.com,626381779,Finanzas,Sevilla,28438,2023-06-08,77827638P,29397,Junior,2026-03-22
+18,Diego Ortega,diego.ortega@empresa.com,622113193,Logística,Sevilla,60250,2024-06-17,13561597S,20215,Lead,2026-03-11
+19,Raquel Serrano,raquel.serrano@empresa.com,652571763,Logística,Bilbao,23312,2024-10-03,85329037A,51034,Junior,2026-03-16
+20,Pablo Domínguez,pablo.dominguez@empresa.com,665426729,Logística,Málaga,81877,2022-07-25,36687537F,46432,Lead,2026-03-05
+21,Cristina Vázquez,cristina.vazquez@empresa.com,631520919,Soporte,Zaragoza,54730,2025-01-26,83140807Q,33067,Senior,2026-03-08
+22,Manuel Ramos,manuel.ramos@empresa.com,653858104,RRHH,Madrid,41020,2025-07-14,66306997K,49053,Senior,2026-03-17
+23,Teresa Castro,teresa.castro@empresa.com,696046825,Marketing,Madrid,45280,2025-03-25,39587039Z,26204,Senior,2026-03-29
+24,Sergio Blanco,sergio.blanco@empresa.com,624875109,Marketing,Sevilla,82217,2025-08-22,70291817E,34730,Lead,2026-03-07
+25,Marta Morales,,627460780,Logística,Granada,65466,2024-07-13,89089901E,44420,Lead,2026-03-16
+26,Alejandro Guerrero,alejandro.guerrero@empresa.com,627919382,Ingeniería,Valencia,81198,2023-08-01,47338124F,44607,Lead,2026-03-25
+27,Rosa Suárez,rosa.suarez@empresa.com,621327835,RRHH,Málaga,82350,2025-03-14,10872248X,12402,Lead,2026-03-24
+28,Daniel Méndez,daniel.mendez@empresa.com,612782955,Ventas,Córdoba,37915,2024-08-05,31429110R,42626,Senior,2026-03-25
+29,Natalia Cortés,natalia.cortes@empresa.com,645135941,Soporte,Valencia,54673,2023-06-17,66722344B,04410,Senior,2026-03-27
+30,Héctor Iglesias,hector.iglesias@empresa.com,621953600,Ingeniería,Valencia,30615,2024-06-10,55667651S,37120,Junior,2026-03-07
+31,María García,maria.garcia@empresa.com,670895638,Logística,Alicante,61243,2023-06-30,47295260S,08229,Lead,2026-03-22
+32,Carlos López,carlos.lopez@empresa.com,676326127,RRHH,Valencia,25531,2023-08-03,30868105N,28876,Junior,2026-03-08
+33,Ana Martínez,ana.martinez@empresa.com,635415894,RRHH,Valencia,26754,2023-06-21,38898923N,27811,Junior,2026-03-24
+34,Pedro Sánchez,pedro.sanchez@empresa.com,692903638,RRHH,Sevilla,70013,2022-06-25,55176955R,24596,Lead,2026-03-31
+35,Laura Fernández,laura.fernandez@empresa.com,672932224,Marketing,Málaga,78374,2024-02-25,23718431A,45407,Lead,2026-03-09
+36,Miguel Torres,miguel.torres@empresa.com,666813149,Soporte,Granada,22962,2022-04-17,22448136K,17074,Junior,2026-03-21
+37,Carmen Ruiz,carmen.ruiz@empresa.com,641519884,RRHH,Málaga,54602,2025-12-24,60992979S,39961,Senior,2026-03-08
+38,David Moreno,david.moreno@empresa.com,616108500,Ventas,Zaragoza,47933,2025-10-06,22981052G,33634,Senior,2026-03-20
+39,Lucía Jiménez,lucia.jimenez@empresa.com,627748717,Finanzas,Madrid,30253,2024-10-06,58181396K,38183,Junior,2026-03-02
+40,Javier Hernández,javier.hernandez@empresa.com,655523530,RRHH,Valencia,69186,2022-10-18,56164955J,06324,Lead,2026-03-23
+41,Elena Díaz,elena.diaz@empresa.com,625682275,Ingeniería,Madrid,82354,2023-07-30,45503389M,09511,Lead,2026-03-08
+42,Roberto Muñoz,roberto.munoz@empresa.com,658397866,RRHH,Zaragoza,63642,2024-11-24,15831819E,17627,Lead,2026-03-21
+43,Isabel Álvarez,isabel.alvarez@empresa.com,668488779,Marketing,Málaga,59956,2025-02-12,71662963T,48503,Lead,2026-03-04
+44,Francisco Romero,francisco.romero@empresa.com,698237348,Soporte,Alicante,25766,2023-01-11,81971316Y,04193,Junior,2026-03-30
+45,Patricia Navarro,patricia.navarro@empresa.com,673115555,Ingeniería,Valencia,51217,2022-03-25,26753883F,46478,Senior,2026-03-17
+46,Andrés Gil,andres.gil@empresa.com,657851319,Soporte,Córdoba,58585,2022-10-31,60806024G,32468,Senior,2026-03-28
+47,Sofía Molina,sofia.molina@empresa.com,656923095,Ventas,Sevilla,79573,2024-11-07,20576383P,19184,Lead,2026-03-05
+48,Diego Ortega,diego.ortega@empresa.com,646613462,Finanzas,Granada,55135,2024-12-13,84093639G,14597,Lead,2026-03-07
+49,Raquel Serrano,raquel.serrano@empresa.com,686609843,Marketing,Bilbao,77180,2022-07-13,49349722W,05252,Lead,2026-03-03
+50,Pablo Domínguez,pablo.dominguez@empresa.com,654111700,Ventas,Zaragoza,28120,2025-04-24,58537831W,44696,Junior,2026-03-02
+51,Cristina Vázquez,cristina.vazquez@empresa.com,624236463,Logística,Málaga,33595,2025-09-12,87490893C,10029,Junior,2026-03-16
+52,Manuel Ramos,manuel.ramos@empresa.com,670942299,Soporte,Zaragoza,22718,2025-09-05,35808537K,39673,Junior,2026-03-12
+53,Teresa Castro,teresa.castro@empresa.com,670814320,Ingeniería,Granada,81265,2025-08-11,19335534D,09216,Lead,2026-03-22
+54,Sergio Blanco,sergio.blanco@empresa.com,653375256,Logística,Madrid,54735,2024-02-21,16150444M,48072,Senior,2026-03-29
+55,Marta Morales,marta.morales@empresa.com,663533881,Ingeniería,Valencia,68071,2022-07-02,40587988A,16988,Lead,2026-03-31
+56,Alejandro Guerrero,alejandro.guerrero@empresa.com,637947183,Marketing,Bilbao,34329,2025-09-01,48840994B,50412,Junior,2026-03-27
+57,Rosa Suárez,rosa.suarez@empresa.com,626186924,Ingeniería,Alicante,65161,2025-11-03,20709497K,52442,Lead,2026-03-12
+58,Daniel Méndez,daniel.mendez@empresa.com,627620998,Ingeniería,Barcelona,29298,2024-03-05,41244663M,24524,Junior,2026-03-16
+59,Natalia Cortés,natalia.cortes@empresa.com,646034695,Finanzas,Granada,81574,2024-01-25,23556182L,28092,Lead,2026-03-12
+60,Héctor Iglesias,hector.iglesias@empresa.com,635012256,RRHH,Bilbao,50188,2025-10-17,61019678B,06041,Senior,2026-03-24
+61,María García,maria.garcia@empresa.com,696920825,Soporte,Valencia,52192,2022-06-21,47308985D,32539,Senior,2026-03-22
+62,Carlos López,carlos.lopez@empresa.com,672843313,RRHH,Barcelona,24093,2025-11-02,70855700Z,52489,Junior,2026-03-03
+63,Ana Martínez,ana.martinez@empresa.com,650320166,Logística,Sevilla,22781,2025-02-02,58966946Y,34437,Junior,2026-03-29
+64,Pedro Sánchez,pedro.sanchez@empresa.com,616052535,Finanzas,Barcelona,50225,2025-09-15,31831063Y,33435,Senior,2026-03-08
+65,Laura Fernández,laura.fernandez@empresa.com,686299853,Logística,Zaragoza,51496,2022-02-03,59684848D,23260,Senior,2026-03-28
+66,Miguel Torres,miguel.torres@empresa.com,698795539,RRHH,Valencia,56483,2022-06-20,57683626V,51186,Lead,2026-03-18
+67,Carmen Ruiz,carmen.ruiz@empresa.com,649949573,Ingeniería,Granada,69743,2025-07-01,38119557R,47465,Lead,2026-03-06
+68,David Moreno,david.moreno@empresa.com,645577682,Ingeniería,Valencia,31896,2023-06-16,45833156K,14189,Junior,2026-03-04
+69,Lucía Jiménez,lucia.jimenez@empresa.com,624271459,RRHH,Córdoba,35435,2022-12-18,19583482V,02005,Senior,2026-03-11
+70,Javier Hernández,javier.hernandez@empresa.com,674037945,RRHH,Bilbao,78786,2024-09-23,32969840F,43988,Lead,2026-03-22
+71,Elena Díaz,elena.diaz@empresa.com,693013580,Logística,Granada,57619,2025-10-14,81691040P,24707,Senior,2026-03-19
+72,Roberto Muñoz,roberto.munoz@empresa.com,650621889,Ventas,Valencia,22260,2025-11-26,42857966L,09014,Junior,2026-03-25
+73,Isabel Álvarez,isabel.alvarez@empresa.com,613599088,Marketing,Alicante,49279,2025-07-06,31931511J,42148,Senior,2026-03-04
+74,Francisco Romero,francisco.romero@empresa.com,682287324,Marketing,Barcelona,50531,2024-05-14,72043515V,20788,Senior,2026-03-31
+75,Patricia Navarro,patricia.navarro@empresa.com,625630838,Marketing,Valencia,50894,2024-08-23,60929647W,48719,Senior,2026-03-31
+76,Andrés Gil,andres.gil@empresa.com,670333053,Finanzas,Sevilla,47836,2022-04-15,46231783N,13301,Senior,2026-03-21
+77,Sofía Molina,sofia.molina@empresa.com,611056868,Ventas,Bilbao,53961,2025-05-05,84752529J,27868,Senior,2026-03-08
+78,Diego Ortega,diego.ortega@empresa.com,684397493,Ingeniería,Madrid,54367,2025-06-06,39476249S,32409,Senior,2026-03-02
+79,Raquel Serrano,raquel.serrano@empresa.com,675485030,Marketing,Madrid,45349,2025-02-07,53524491H,34019,Senior,2026-03-29
+80,Pablo Domínguez,pablo.dominguez@empresa.com,645950066,Soporte,Bilbao,56174,2023-12-12,17507864B,31119,Senior,2026-03-17
+81,Cristina Vázquez,cristina.vazquez@empresa.com,668549800,Ventas,Valencia,27633,2024-06-16,40742311L,19743,Junior,2026-03-24
+82,Manuel Ramos,manuel.ramos@empresa.com,678133743,Marketing,Granada,82965,2025-09-07,14308421Y,44347,Lead,2026-03-17
+83,Teresa Castro,teresa.castro@empresa.com,627603804,Ingeniería,Bilbao,76381,2024-01-08,52339391Q,27853,Lead,2026-03-06
+84,Sergio Blanco,sergio.blanco@empresa.com,673394367,Logística,Valencia,34275,2022-06-26,63843426A,40212,Junior,2026-03-10
+85,Marta Morales,marta.morales@empresa.com,674812367,Marketing,Valencia,38306,2024-05-01,45935572H,13160,Senior,2026-03-01
+86,Alejandro Guerrero,alejandro.guerrero@empresa.com,676266658,Ingeniería,Sevilla,22297,2024-01-05,18883684V,14570,Junior,2026-03-03
+87,Rosa Suárez,rosa.suarez@empresa.com,645005058,Ingeniería,Valencia,71497,2022-03-07,38317637M,12847,Lead,2026-03-06
+88,Daniel Méndez,daniel.mendez@empresa.com,618545050,Ingeniería,Bilbao,31207,2023-04-04,86125617R,08632,Junior,2026-03-16
+89,Natalia Cortés,natalia.cortes@empresa.com,644604301,Ingeniería,Málaga,73252,2023-07-02,52235350G,50047,Lead,2026-03-03
+90,Héctor Iglesias,hector.iglesias@empresa.com,630290817,Logística,Córdoba,22826,2024-06-15,38538251A,39685,Junior,2026-03-06
+91,María García,maria.garcia@empresa.com,671355706,Logística,Barcelona,38338,2025-02-25,77005685Y,07800,Senior,2026-03-30
+92,Carlos López,carlos.lopez@empresa.com,678089422,Ventas,Valencia,84851,2024-01-11,63100814S,41120,Lead,2026-03-26
+93,Ana Martínez,ana.martinez@empresa.com,649208083,Soporte,Alicante,38253,2022-11-12,71586053W,49518,Senior,2026-03-11
+94,Pedro Sánchez,pedro.sanchez@empresa.com,658819941,Ingeniería,Valencia,28811,2022-01-14,29175900D,08868,Junior,2026-03-24
+95,Laura Fernández,laura.fernandez@empresa.com,673574016,Ingeniería,Zaragoza,28101,2024-04-29,45551614E,33175,Junior,2026-03-20
+96,Miguel Torres,miguel.torres@empresa.com,694482060,Soporte,Sevilla,68818,2023-04-13,28740864H,10771,Lead,2026-03-27
+97,Carmen Ruiz,carmen.ruiz@empresa.com,667555628,RRHH,Bilbao,81037,2025-10-29,43101783J,30974,Lead,2026-03-20
+98,David Moreno,david.moreno@empresa.com,613994712,RRHH,Valencia,71952,2022-05-23,85345555F,50010,Lead,2026-03-29
+99,Lucía Jiménez,lucia.jimenez@empresa.com,655406344,Ingeniería,Bilbao,47886,2022-03-17,82340307P,50168,Senior,2026-03-10
+100,Javier Hernández,javier.hernandez@empresa.com,696096076,Marketing,Granada,81183,2025-09-14,45264581Y,04646,Lead,2026-03-03
+101,Elena Díaz,elena.diaz@empresa.com,679763470,Ingeniería,Bilbao,73140,2023-09-16,88461803P,26907,Lead,2026-03-08
+102,Roberto Muñoz,roberto.munoz@empresa.com,652103461,Ingeniería,Madrid,39812,2025-12-05,67503414R,18921,Senior,2026-03-19
+103,Isabel Álvarez,isabel.alvarez@empresa.com,669886480,Soporte,Sevilla,76365,2024-06-24,88320463A,35639,Lead,2026-03-09
+104,Francisco Romero,francisco.romero@empresa.com,656338752,Logística,Bilbao,57761,2022-03-17,63606628J,50202,Lead,2026-03-14
+105,Patricia Navarro,patricia.navarro@empresa.com,654894880,RRHH,Valencia,23520,2024-11-13,58586340G,34553,Junior,2026-03-14
+106,Andrés Gil,andres.gil@empresa.com,651909809,Finanzas,Málaga,22456,2025-01-10,39436733J,49650,Junior,2026-03-13
+107,Sofía Molina,sofia.molina@empresa.com,644720808,Marketing,Zaragoza,58618,2022-05-03,28566572C,47432,Lead,2026-03-05
+108,Diego Ortega,diego.ortega@empresa.com,660060376,Ingeniería,Córdoba,32665,2022-09-13,78387461B,23126,Junior,2026-03-17
+109,Raquel Serrano,raquel.serrano@empresa.com,649991663,Finanzas,Madrid,81390,2025-04-06,76238574Z,30347,Lead,2026-03-13
+110,Pablo Domínguez,pablo.dominguez@empresa.com,694254420,Soporte,Córdoba,44323,2025-09-27,22201654F,39239,Senior,2026-03-06
+111,Cristina Vázquez,cristina.vazquez@empresa.com,686875315,Soporte,Valencia,43114,2022-08-04,16323852Q,46386,Senior,2026-03-21
+112,Manuel Ramos,manuel.ramos@empresa.com,679316990,Finanzas,Sevilla,39802,2025-12-28,24716857E,50369,Senior,2026-03-18
+113,Teresa Castro,teresa.castro@empresa.com,665304811,Ventas,Barcelona,70605,2023-03-16,30514014Y,04435,Lead,2026-03-17
+114,Sergio Blanco,sergio.blanco@empresa.com,620478739,Ingeniería,Córdoba,47936,2023-06-25,31472420W,26602,Senior,2026-03-13
+115,Marta Morales,marta.morales@empresa.com,676951467,Soporte,Bilbao,71041,2024-05-03,66661351Z,29705,Lead,2026-03-05
+116,Alejandro Guerrero,alejandro.guerrero@empresa.com,631856387,Marketing,Córdoba,59239,2025-12-13,18526544K,09496,Lead,2026-03-15
+117,Rosa Suárez,rosa.suarez@empresa.com,681020117,Ventas,Sevilla,24569,2025-02-18,61642594H,30484,Junior,2026-03-20
+118,Daniel Méndez,daniel.mendez@empresa.com,625940510,Finanzas,Bilbao,44489,2022-03-24,61220073F,08123,Senior,2026-03-15
+119,Natalia Cortés,natalia.cortes@empresa.com,630576183,Ventas,Málaga,29961,2022-02-27,89978790F,20383,Junior,2026-03-06
+120,Héctor Iglesias,hector.iglesias@empresa.com,629175605,Marketing,Granada,64999,2023-08-04,72820592Q,27049,Lead,2026-03-25
+121,María García,maria.garcia@empresa.com,634572196,Logística,Alicante,37213,2022-04-02,81016525Z,01125,Senior,2026-03-18
+122,Carlos López,carlos.lopez@empresa.com,674582407,Finanzas,Zaragoza,80603,2024-02-12,43744231W,37463,Lead,2026-03-16
+123,Ana Martínez,ana.martinez@empresa.com,691296981,Marketing,Valencia,49743,2025-09-28,84252722L,33651,Senior,2026-03-17
+124,Pedro Sánchez,pedro.sanchez@empresa.com,629996104,Logística,Málaga,55433,2024-04-18,11540956Q,06819,Senior,2026-03-19
+125,Laura Fernández,laura.fernandez@empresa.com,641248877,RRHH,Málaga,84164,2024-06-26,25374874D,35046,Lead,2026-03-08
+126,Miguel Torres,miguel.torres@empresa.com,647228655,Soporte,Barcelona,32323,2025-12-19,82070937Z,11724,Junior,2026-03-22
+127,Carmen Ruiz,carmen.ruiz@empresa.com,685302098,Soporte,Barcelona,32136,2025-01-14,45812670M,42572,Junior,2026-03-13
+128,David Moreno,david.moreno@empresa.com,617096679,Finanzas,Córdoba,35611,2022-09-04,55657579V,13768,Senior,2026-03-10
+129,Lucía Jiménez,lucia.jimenez@empresa.com,681384965,Marketing,Madrid,33560,2025-04-01,24972279Y,18805,Junior,2026-03-17
+130,Javier Hernández,javier.hernandez@empresa.com,621361254,Logística,Córdoba,36474,2024-10-03,49392920Y,39328,Senior,2026-03-04
+131,Elena Díaz,elena.diaz@empresa.com,613122340,Ingeniería,Bilbao,30649,2023-10-12,68353204X,12424,Junior,2026-03-19
+132,Roberto Muñoz,roberto.munoz@empresa.com,644517819,Ventas,Barcelona,24359,2023-01-10,31227574Z,07554,Junior,2026-03-23
+133,Isabel Álvarez,isabel.alvarez@empresa.com,622029742,Marketing,Zaragoza,32067,2023-10-29,70897765N,27694,Junior,2026-03-26
+134,Francisco Romero,francisco.romero@empresa.com,613646855,Soporte,Madrid,24334,2024-04-25,10435578H,20399,Junior,2026-03-03
+135,Patricia Navarro,patricia.navarro@empresa.com,653515775,Ingeniería,Bilbao,34322,2025-05-07,45351479X,08053,Junior,2026-03-13
+136,Andrés Gil,andres.gil@empresa.com,641741300,RRHH,Córdoba,38770,2023-07-06,77187530J,49516,Senior,2026-03-30
+137,Sofía Molina,sofia.molina@empresa.com,652726394,RRHH,Córdoba,48352,2025-07-21,33978249G,27067,Senior,2026-03-24
+138,Diego Ortega,diego.ortega@empresa.com,612499514,Ingeniería,Córdoba,34500,2025-02-10,78139880W,38691,Junior,2026-03-11
+139,Raquel Serrano,raquel.serrano@empresa.com,626853900,Ingeniería,Granada,32416,2024-10-21,24282218Z,27456,Junior,2026-03-25
+140,Pablo Domínguez,pablo.dominguez@empresa.com,629108179,Ingeniería,Córdoba,28942,2025-02-10,50056581W,11800,Junior,2026-03-17
+141,Cristina Vázquez,cristina.vazquez@empresa.com,615609238,Ventas,Alicante,40484,2022-01-02,78137358X,40296,Senior,2026-03-30
+142,Manuel Ramos,manuel.ramos@empresa.com,674717944,Ingeniería,Granada,46515,2025-07-18,36697396E,17859,Senior,2026-03-25
+143,Teresa Castro,teresa.castro@empresa.com,688538733,Logística,Córdoba,30750,2025-02-27,30513739F,19046,Junior,2026-03-29
+144,Sergio Blanco,sergio.blanco@empresa.com,650350996,Ventas,Bilbao,78759,2025-02-13,60185867L,45125,Lead,2026-03-23
+145,Marta Morales,marta.morales@empresa.com,667977016,Marketing,Granada,83964,2025-10-28,31682744Z,33980,Lead,2026-03-01
+146,Alejandro Guerrero,alejandro.guerrero@empresa.com,655987725,Soporte,Zaragoza,43058,2025-09-18,82394227Q,49724,Senior,2026-03-21
+147,Rosa Suárez,rosa.suarez@empresa.com,655852776,Marketing,Alicante,33335,2022-10-01,81182864V,39336,Junior,2026-03-11
+148,Daniel Méndez,daniel.mendez@empresa.com,610274812,Finanzas,Alicante,24843,2024-04-26,10076758K,01923,Junior,2026-03-14
+149,Natalia Cortés,natalia.cortes@empresa.com,675629343,Logística,Bilbao,76269,2025-08-26,53507489J,35083,Lead,2026-03-29
+150,Héctor Iglesias,hector.iglesias@empresa.com,682296289,Ventas,Alicante,47333,2025-05-16,75579548F,44126,Senior,2026-03-20
+151,María García,maria.garcia@empresa.com,661908845,Marketing,Madrid,41323,2024-06-29,12614124G,08473,Senior,2026-03-31
+152,Carlos López,carlos.lopez@empresa.com,639732013,Soporte,Madrid,78238,2024-01-03,25014631S,49287,Lead,2026-03-25
+153,Ana Martínez,ana.martinez@empresa.com,622075101,Logística,Granada,62246,2023-04-25,58718453M,41310,Lead,2026-03-16
+154,Pedro Sánchez,pedro.sanchez@empresa.com,658720925,Ventas,Zaragoza,74858,2023-03-05,51273847Q,32926,Lead,2026-03-31
+155,Laura Fernández,laura.fernandez@empresa.com,636318323,Logística,Bilbao,30197,2024-10-08,42138745P,08890,Junior,2026-03-26
+156,Miguel Torres,miguel.torres@empresa.com,684059354,Marketing,Granada,40751,2022-05-14,17774584T,44698,Senior,2026-03-13
+157,Carmen Ruiz,carmen.ruiz@empresa.com,627212939,Soporte,Barcelona,83032,2023-04-12,42329237Z,09265,Lead,2026-03-03
+158,David Moreno,david.moreno@empresa.com,680206603,Soporte,Zaragoza,57707,2025-10-20,86149359F,13868,Senior,2026-03-14
+159,Lucía Jiménez,lucia.jimenez@empresa.com,692470962,Ingeniería,Córdoba,76003,2025-10-10,20570592J,30002,Lead,2026-03-01
+160,Javier Hernández,javier.hernandez@empresa.com,697245556,Ventas,Málaga,63979,2022-09-07,21496211C,28864,Lead,2026-03-10
+161,Elena Díaz,elena.diaz@empresa.com,679564413,RRHH,Alicante,83960,2023-04-05,75228535C,24529,Lead,2026-03-30
+162,Roberto Muñoz,roberto.munoz@empresa.com,647303539,RRHH,Córdoba,25188,2023-11-17,19289546K,29323,Junior,2026-03-29
+163,Isabel Álvarez,isabel.alvarez@empresa.com,686748329,Logística,Madrid,68887,2022-06-02,81498611C,48231,Lead,2026-03-02
+164,Francisco Romero,francisco.romero@empresa.com,643552306,Marketing,Valencia,32244,2022-07-18,26879290H,22318,Junior,2026-03-31
+165,Patricia Navarro,patricia.navarro@empresa.com,674420002,RRHH,Madrid,45954,2023-05-28,27232410L,38816,Senior,2026-03-24
+166,Andrés Gil,andres.gil@empresa.com,624474127,RRHH,Sevilla,27465,2024-11-30,73791320Y,22852,Junior,2026-03-06
+167,Sofía Molina,sofia.molina@empresa.com,641775196,Ventas,Granada,75491,2024-07-03,83793389L,40449,Lead,2026-03-13
+168,Diego Ortega,diego.ortega@empresa.com,626753912,Ventas,Madrid,33360,2022-05-14,32162965H,03386,Junior,2026-03-06
+169,Raquel Serrano,raquel.serrano@empresa.com,627117564,Ventas,Alicante,49150,2022-05-15,45575298Q,04308,Senior,2026-03-28
+170,Pablo Domínguez,pablo.dominguez@empresa.com,617488001,Finanzas,Madrid,38140,2025-06-18,80823176A,19870,Senior,2026-03-07
+171,Cristina Vázquez,cristina.vazquez@empresa.com,665177982,Marketing,Granada,49857,2024-02-26,66792612Z,51675,Senior,2026-03-17
+172,Manuel Ramos,manuel.ramos@empresa.com,667459379,Finanzas,Granada,57143,2022-02-23,38427073F,07347,Senior,2026-03-17
+173,Teresa Castro,teresa.castro@empresa.com,679419139,Ingeniería,Granada,31751,2025-12-31,82383095Q,13110,Junior,2026-03-29
+174,Sergio Blanco,sergio.blanco@empresa.com,689575878,Logística,Sevilla,43397,2023-12-29,36998038P,37129,Senior,2026-03-18
+175,Marta Morales,marta.morales@empresa.com,674612320,Soporte,Granada,22722,2022-05-04,51837852S,29190,Junior,2026-03-27
+176,Alejandro Guerrero,alejandro.guerrero@empresa.com,651831217,Finanzas,Bilbao,46722,2023-09-30,63551839X,33982,Senior,2026-03-13
+177,Rosa Suárez,rosa.suarez@empresa.com,682631078,Logística,Valencia,27618,2023-08-20,60119651C,10480,Junior,2026-03-20
+178,Daniel Méndez,daniel.mendez@empresa.com,611084726,Finanzas,Granada,25889,2024-11-04,68800797T,43694,Junior,2026-03-05
+179,Natalia Cortés,natalia.cortes@empresa.com,685088096,Logística,Madrid,25282,2025-08-04,79467853R,28352,Junior,2026-03-02
+180,Héctor Iglesias,hector.iglesias@empresa.com,637012825,Logística,Barcelona,57766,2025-11-17,70597444W,22193,Senior,2026-03-17
+181,María García,maria.garcia@empresa.com,690498733,Soporte,Málaga,75188,2023-09-06,26240908R,38579,Lead,2026-03-18
+182,Carlos López,carlos.lopez@empresa.com,654106502,Marketing,Barcelona,56382,2024-10-12,43273328R,30897,Lead,2026-03-24
+183,Ana Martínez,ana.martinez@empresa.com,610496212,Soporte,Sevilla,41984,2023-05-05,40158366K,45235,Senior,2026-03-16
+184,Pedro Sánchez,pedro.sanchez@empresa.com,654495204,Logística,Bilbao,22110,2024-01-14,18593410A,14409,Junior,2026-03-31
+185,Laura Fernández,laura.fernandez@empresa.com,619896028,Ingeniería,Madrid,29215,2023-02-03,55377076E,36117,Junior,2026-03-11
+186,Miguel Torres,miguel.torres@empresa.com,688609496,Logística,Málaga,25241,2023-08-05,12823170A,03998,Junior,2026-03-26
+187,Carmen Ruiz,carmen.ruiz@empresa.com,639386305,Ingeniería,Valencia,40850,2023-02-06,88961459N,22867,Senior,2026-03-31
+188,David Moreno,david.moreno@empresa.com,633632711,Logística,Zaragoza,59497,2024-02-16,84346088M,07021,Lead,2026-03-11
+189,Lucía Jiménez,lucia.jimenez@empresa.com,624894008,Ingeniería,Sevilla,28100,2025-09-15,40885476D,20467,Junior,2026-03-26
+190,Javier Hernández,javier.hernandez@empresa.com,680722909,Logística,Granada,58882,2022-10-23,88979095F,28899,Lead,2026-03-03
+191,Elena Díaz,elena.diaz@empresa.com,627554964,Logística,Sevilla,47263,2023-10-14,39557077K,13545,Senior,2026-03-12
+192,Roberto Muñoz,roberto.munoz@empresa.com,667651904,Soporte,Sevilla,41196,2025-01-01,10965138A,03781,Senior,2026-03-22
+193,Isabel Álvarez,isabel.alvarez@empresa.com,629940314,Ingeniería,Sevilla,83601,2022-09-16,19528530N,04644,Lead,2026-03-04
+194,Francisco Romero,francisco.romero@empresa.com,678218774,Finanzas,Alicante,29711,2025-09-20,17901903Z,14744,Junior,2026-03-12
+195,Patricia Navarro,patricia.navarro@empresa.com,618707112,Marketing,Córdoba,79613,2024-11-08,40728046Z,25769,Lead,2026-03-20
+196,Andrés Gil,andres.gil@empresa.com,676919318,Finanzas,Alicante,72218,2025-11-23,19046318H,12329,Lead,2026-03-16
+197,Sofía Molina,sofia.molina@empresa.com,676409861,RRHH,Zaragoza,54135,2025-08-23,14216175J,38410,Senior,2026-03-30
+198,Diego Ortega,diego.ortega@empresa.com,637809859,Marketing,Sevilla,25581,2023-09-19,54349361Q,29883,Junior,2026-03-18
+199,Raquel Serrano,raquel.serrano@empresa.com,660611218,Finanzas,Valencia,39401,2022-06-22,19510312X,24260,Senior,2026-03-22
+200,Pablo Domínguez,pablo.dominguez@empresa.com,669660493,Finanzas,Málaga,30392,2025-06-26,79008866W,15597,Junior,2026-03-21

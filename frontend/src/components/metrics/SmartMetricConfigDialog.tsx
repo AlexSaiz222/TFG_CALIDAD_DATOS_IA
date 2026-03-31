@@ -3,14 +3,14 @@
  * Metric-specific configuration dialogs with user-friendly UX for all 7 metrics.
  * Replaces the generic parameter dialog with guided, plain-language controls.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Box, Typography, Slider, Chip, Divider,
   FormControlLabel, Switch, Radio, RadioGroup, FormControl,
   TextField, IconButton, Tooltip, Collapse, Alert,
   ToggleButton, ToggleButtonGroup, Paper, List, ListItem,
-  ListItemText, ListItemSecondaryAction,
+  ListItemText, ListItemSecondaryAction, useMediaQuery, useTheme, Tab, Tabs,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -20,9 +20,12 @@ import {
   AutoFixHigh as AutoIcon,
   AddCircleOutline as AddRuleIcon,
   Bolt as BoltIcon,
+  Code as CodeIcon,
+  Tune as TuneIcon,
 } from '@mui/icons-material';
 import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
 import { getIconMeta } from './MetricIcon';
+import JsonParameterEditor from './JsonParameterEditor';
 
 const GREEN = '#00B37E';
 const GREEN_LIGHT = '#F0F9F6';
@@ -361,6 +364,7 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
         metricName="syntactic_accuracy"
         title="Precisión sintáctica"
         description="Verifica que los valores de las columnas cumplan un formato esperado: emails válidos, números de teléfono, fechas, DNIs, códigos postales, etc."
+        autoDetect
       />
 
       <Paper variant="outlined" sx={{ p: 2, mb: 2.5, borderColor: autoDetect ? GREEN : 'divider', bgcolor: autoDetect ? GREEN_LIGHT : 'transparent' }}>
@@ -446,6 +450,7 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
         metricName="class_balance"
         title="Equilibrio de clases"
         description="Detecta cuando una categoría domina los datos de forma desproporcionada. Por ejemplo: un campo 'Estado' donde el 98% de los registros son 'Activo' puede indicar un problema de calidad."
+        autoDetect
       />
 
       <Paper variant="outlined" sx={{ p: 2, mb: 2.5, borderColor: autoDetect ? GREEN : 'divider', bgcolor: autoDetect ? GREEN_LIGHT : 'transparent' }}>
@@ -526,6 +531,7 @@ const TimelinessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
         metricName="timeliness"
         title="Actualidad de datos"
         description="Detecta si las columnas de fecha contienen datos desactualizados. Por ejemplo: si la última fecha registrada es más antigua de lo esperado, puede indicar que los datos no se están actualizando correctamente."
+        autoDetect
       />
 
       <Paper variant="outlined" sx={{ p: 2, mb: 2.5, borderColor: autoDetect ? GREEN : 'divider', bgcolor: autoDetect ? GREEN_LIGHT : 'transparent' }}>
@@ -710,10 +716,22 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
   open, onClose, metric, onSave,
 }) => {
   const [params, setParams] = useState<Record<string, any>>({});
+  const [jsonValid, setJsonValid] = useState(true);
+  const [mobileTab, setMobileTab] = useState(0); // 0 = visual, 1 = JSON
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
-    if (metric) setParams({ ...(metric.parameters ?? {}) });
+    if (metric) {
+      setParams({ ...(metric.parameters ?? {}) });
+      setJsonValid(true);
+      setMobileTab(0);
+    }
   }, [metric]);
+
+  const handleJsonValidation = useCallback((isValid: boolean) => {
+    setJsonValid(isValid);
+  }, []);
 
   if (!metric) return null;
 
@@ -746,24 +764,94 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
     }
   };
 
+  const jsonEditor = (
+    <JsonParameterEditor
+      value={params}
+      onChange={setParams}
+      onValidationChange={handleJsonValidation}
+      metricName={metric.name}
+      height="100%"
+    />
+  );
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth
-      PaperProps={{ sx: { borderRadius: 2 } }}>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth
+      PaperProps={{ sx: { borderRadius: 2, height: isSmall ? '85vh' : '80vh', maxHeight: '85vh' } }}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, flexShrink: 0 }}>
         <Typography variant="h6" fontWeight={600}>Configurar métrica</Typography>
-        <IconButton size="small" onClick={onClose}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {!jsonValid && (
+            <Chip
+              label="JSON inválido"
+              size="small"
+              color="error"
+              variant="outlined"
+              sx={{ height: 24, fontSize: '0.7rem' }}
+            />
+          )}
+          <IconButton size="small" onClick={onClose}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </DialogTitle>
       <Divider />
-      <DialogContent sx={{ pt: 3 }}>
-        {renderContent()}
+
+      {/* Mobile: tabs to switch between visual and JSON */}
+      {isSmall && (
+        <Tabs
+          value={mobileTab}
+          onChange={(_, v) => setMobileTab(v)}
+          sx={{
+            minHeight: 40, flexShrink: 0,
+            '& .MuiTab-root': { minHeight: 40, textTransform: 'none', fontSize: '0.85rem' },
+            '& .Mui-selected': { color: GREEN },
+            '& .MuiTabs-indicator': { bgcolor: GREEN },
+          }}
+        >
+          <Tab icon={<TuneIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Visual" />
+          <Tab icon={<CodeIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="JSON" />
+        </Tabs>
+      )}
+
+      {/* Content area */}
+      <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'row', overflow: 'hidden', flex: 1, minHeight: 0 }}>
+        {isSmall ? (
+          // Mobile: one panel at a time
+          mobileTab === 0 ? (
+            <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+              {renderContent()}
+            </Box>
+          ) : (
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              {jsonEditor}
+            </Box>
+          )
+        ) : (
+          // Desktop: split-view
+          <>
+            {/* Left panel — visual form */}
+            <Box sx={{
+              flex: '0 0 70%', maxWidth: '70%', overflow: 'auto', p: 3,
+              borderRight: '1px solid', borderColor: 'divider',
+            }}>
+              {renderContent()}
+            </Box>
+            {/* Right panel — JSON editor */}
+            <Box sx={{
+              flex: '0 0 30%', maxWidth: '30%', display: 'flex', flexDirection: 'column',
+              minHeight: 0, bgcolor: '#FAFAFA',
+            }}>
+              {jsonEditor}
+            </Box>
+          </>
+        )}
       </DialogContent>
+
       <Divider />
-      <DialogActions sx={{ px: 3, py: 2 }}>
+      <DialogActions sx={{ px: 3, py: 2, flexShrink: 0 }}>
         <Button onClick={onClose} color="inherit">Cancelar</Button>
-        <Button onClick={handleSave} variant="contained"
-          sx={{ bgcolor: GREEN, color: '#FFFFFF', '&:hover': { bgcolor: '#00A070' } }}>
+        <Button onClick={handleSave} variant="contained" disabled={!jsonValid}
+          sx={{ bgcolor: GREEN, color: '#FFFFFF', '&:hover': { bgcolor: '#00A070' }, '&.Mui-disabled': { bgcolor: '#E0E0E0' } }}>
           Guardar configuración
         </Button>
       </DialogActions>
