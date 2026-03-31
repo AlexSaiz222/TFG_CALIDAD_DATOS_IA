@@ -22,6 +22,7 @@ import {
   Bolt as BoltIcon,
 } from '@mui/icons-material';
 import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
+import { getIconMeta } from './MetricIcon';
 
 const GREEN = '#00B37E';
 const GREEN_LIGHT = '#F0F9F6';
@@ -31,29 +32,39 @@ const GREEN_LIGHT = '#F0F9F6';
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface SectionBannerProps {
-  icon: string;
+  metricName: string;
   title: string;
   description: string;
   autoDetect?: boolean;
 }
-const SectionBanner: React.FC<SectionBannerProps> = ({ icon, title, description, autoDetect }) => (
-  <Box sx={{ mb: 3 }}>
-    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-      <Typography fontSize="1.5rem">{icon}</Typography>
-      <Typography variant="h6" fontWeight={600}>{title}</Typography>
-    </Box>
-    <Typography variant="body2" color="text.secondary">{description}</Typography>
-    {autoDetect && (
-      <Box display="flex" alignItems="center" gap={0.5} mt={1}
-        sx={{ px: 1.5, py: 0.5, bgcolor: GREEN_LIGHT, borderRadius: 1, width: 'fit-content' }}>
-        <AutoIcon sx={{ fontSize: 16, color: GREEN }} />
-        <Typography variant="caption" fontWeight={500} color={GREEN}>
-          Funciona automáticamente sin configuración adicional
-        </Typography>
-      </Box>
-    )}
-  </Box>
-);
+const SectionBanner: React.FC<SectionBannerProps> = ({ metricName, title, description, autoDetect }) => {
+  const meta = getIconMeta(metricName);
+  const IconComp = meta.icon;
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 40, height: 40, borderRadius: 10,
+          backgroundColor: meta.bg, flexShrink: 0,
+        }}>
+          <IconComp size={20} color={meta.color} strokeWidth={1.8} />
+        </div>
+        <Typography variant="h6" fontWeight={600}>{title}</Typography>
+      </div>
+      <Typography variant="body2" color="text.secondary" sx={{ pl: 0.5 }}>{description}</Typography>
+      {autoDetect && (
+        <Box display="flex" alignItems="center" gap={0.5} mt={1}
+          sx={{ px: 1.5, py: 0.5, bgcolor: GREEN_LIGHT, borderRadius: 1, width: 'fit-content' }}>
+          <AutoIcon sx={{ fontSize: 16, color: GREEN }} />
+          <Typography variant="caption" fontWeight={500} color={GREEN}>
+            Funciona automáticamente sin configuración adicional
+          </Typography>
+        </Box>
+      )}
+    </div>
+  );
+};
 
 interface ThresholdSliderProps {
   label: string;
@@ -72,18 +83,18 @@ const ThresholdSlider: React.FC<ThresholdSliderProps> = ({
     : (value >= 0.95 ? GREEN : value >= 0.80 ? '#FFB800' : '#E5484D');
 
   return (
-    <Box mb={2.5}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
         <Typography variant="subtitle2">{label}</Typography>
         <Typography variant="h6" fontWeight={700} color={color}>{pct}%</Typography>
-      </Box>
+      </div>
       <Slider
         value={value}
         onChange={(_, v) => onChange(v as number)}
         min={0.5} max={1.0} step={0.01}
         sx={{ color: GREEN }}
       />
-      <Box display="flex" gap={1} flexWrap="wrap" mt={0.5}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
         {presets.map(p => (
           <Chip
             key={p}
@@ -96,9 +107,9 @@ const ThresholdSlider: React.FC<ThresholdSliderProps> = ({
               : { cursor: 'pointer' }}
           />
         ))}
-      </Box>
+      </div>
       {helpText && <Typography variant="caption" color="text.secondary" mt={0.5} display="block">{helpText}</Typography>}
-    </Box>
+    </div>
   );
 };
 
@@ -106,6 +117,7 @@ interface AdvancedSectionProps { children: React.ReactNode; }
 const AdvancedSection: React.FC<AdvancedSectionProps> = ({ children }) => {
   const [open, setOpen] = useState(false);
   return (
+    // @ts-ignore — TS2590: MUI Box type inference too complex when lucide-react types are in scope
     <Box mt={2}>
       <Divider />
       <Box mt={1.5}>
@@ -178,7 +190,7 @@ const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
   return (
     <Box>
       <SectionBanner
-        icon="📊"
+        metricName="completeness"
         title="Completitud"
         description="Detecta columnas con valores nulos o faltantes. Analiza todas las columnas del dataset y alerta cuando la proporción de datos faltantes supera el umbral configurado."
         autoDetect
@@ -208,7 +220,7 @@ const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
   return (
     <Box>
       <SectionBanner
-        icon="🔑"
+        metricName="uniqueness"
         title="Unicidad"
         description="Detecta filas completamente duplicadas en el dataset. También identifica columnas con poca variabilidad (ej: una columna que siempre tiene el mismo valor)."
         autoDetect
@@ -247,7 +259,7 @@ const OutliersConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({
   return (
     <Box>
       <SectionBanner
-        icon="📈"
+        metricName="outliers"
         title="Detección de valores atípicos"
         description="Detecta valores que se alejan anormalmente del resto en columnas numéricas. No requiere configuración previa: analiza todas las columnas numéricas automáticamente."
         autoDetect
@@ -346,7 +358,7 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
   return (
     <Box>
       <SectionBanner
-        icon="✅"
+        metricName="syntactic_accuracy"
         title="Precisión sintáctica"
         description="Verifica que los valores de las columnas cumplan un formato esperado: emails válidos, números de teléfono, fechas, DNIs, códigos postales, etc."
       />
@@ -431,7 +443,7 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
   return (
     <Box>
       <SectionBanner
-        icon="⚖️"
+        metricName="class_balance"
         title="Equilibrio de clases"
         description="Detecta cuando una categoría domina los datos de forma desproporcionada. Por ejemplo: un campo 'Estado' donde el 98% de los registros son 'Activo' puede indicar un problema de calidad."
       />
@@ -511,7 +523,7 @@ const TimelinessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
   return (
     <Box>
       <SectionBanner
-        icon="⏰"
+        metricName="timeliness"
         title="Actualidad de datos"
         description="Detecta si las columnas de fecha contienen datos desactualizados. Por ejemplo: si la última fecha registrada es más antigua de lo esperado, puede indicar que los datos no se están actualizando correctamente."
       />
@@ -621,7 +633,7 @@ const LogicalConsistencyConfig: React.FC<{ params: any; onChange: (p: any) => vo
   return (
     <Box>
       <SectionBanner
-        icon="🔗"
+        metricName="logical_consistency"
         title="Consistencia lógica"
         description="Verifica que los datos cumplan reglas de negocio definidas por ti. Puedes detectar contradicciones como &quot;fecha de fin antes que fecha de inicio&quot;, &quot;campo obligatorio vacío si está activo&quot;, o cualquier condición específica de tu dominio."
       />
@@ -751,7 +763,7 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose} color="inherit">Cancelar</Button>
         <Button onClick={handleSave} variant="contained"
-          sx={{ bgcolor: GREEN, '&:hover': { bgcolor: '#00A070' } }}>
+          sx={{ bgcolor: GREEN, color: '#FFFFFF', '&:hover': { bgcolor: '#00A070' } }}>
           Guardar configuración
         </Button>
       </DialogActions>

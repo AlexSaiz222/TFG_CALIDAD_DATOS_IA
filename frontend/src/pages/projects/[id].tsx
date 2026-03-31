@@ -27,6 +27,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Drawer,
+  Tooltip,
 } from '@mui/material';
 import {
   Settings as SettingsIcon,
@@ -38,6 +40,8 @@ import {
   Error as ErrorIcon,
   Warning as WarningIcon,
   ArrowBack as ArrowBackIcon,
+  Close as CloseIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import AnalysisHistory from '../../components/AnalysisHistory';
@@ -45,13 +49,8 @@ import QualityTrendChart from '../../components/QualityTrendChart';
 import DatasetStatusSnapshot from '../../components/DatasetStatusSnapshot';
 import QualityGateSettings from '../../components/QualityGateSettings';
 import { projectsAPI, datasetsAPI, metricsAPI, analysisAPI } from '../../services/api';
+import { GREEN, GREEN_HOVER, ORANGE, RED, getMetricMeta, formatParamValue, DEFAULT_METRIC_META } from '../../utils/metricColors';
 import type { AnalysisRun } from '../../types';
-
-// Colores consistentes con el resto de la aplicación
-const GREEN = '#00B37E';
-const GREEN_HOVER = '#00A070';
-const ORANGE = '#FFB800';
-const RED = '#E5484D';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -89,6 +88,7 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [drawerMetric, setDrawerMetric] = useState<any | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
@@ -505,20 +505,6 @@ const ProjectDetail = () => {
             >
               Eliminar
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<SettingsIcon sx={{ color: '#FFFFFF' }} />}
-              onClick={handleConfigureMetrics}
-              sx={{
-                backgroundColor: GREEN,
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: GREEN_HOVER,
-                },
-              }}
-            >
-              Configurar métricas
-            </Button>
           </Box>
         </Box>
 
@@ -594,7 +580,26 @@ const ProjectDetail = () => {
             }}
           >
             <Tab label="Datasets" id="project-tab-0" aria-controls="project-tabpanel-0" />
-            <Tab label="Métricas" id="project-tab-1" aria-controls="project-tabpanel-1" />
+            <Tab
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  Métricas
+                  {metrics.length > 0 && (
+                    <Box component="span" sx={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      minWidth: 18, height: 18, px: 0.5,
+                      borderRadius: '9px', fontSize: '0.65rem', fontWeight: 700,
+                      backgroundColor: tabValue === 1 ? GREEN : 'rgba(0,179,126,0.15)',
+                      color: tabValue === 1 ? '#fff' : GREEN,
+                      lineHeight: 1,
+                    }}>
+                      {metrics.length}
+                    </Box>
+                  )}
+                </Box>
+              }
+              id="project-tab-1" aria-controls="project-tabpanel-1"
+            />
             <Tab label="Historial de análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
             <Tab label="Quality Gate" id="project-tab-3" aria-controls="project-tabpanel-3" />
           </Tabs>
@@ -737,60 +742,187 @@ const ProjectDetail = () => {
           </Box>
 
           {metrics.length > 0 ? (
-            <Grid container spacing={3}>
-              {metrics.map((metric) => (
-                <Grid item xs={12} sm={6} md={4} key={metric.id || metric.metric_id}>
-                  <Card sx={{ height: '100%', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)' }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <AssessmentIcon sx={{ color: GREEN }} />
-                        <Typography variant="h6" sx={{ fontWeight: 500 }}>
-                          {metric.name || `Métrica ${metric.metric_id || metric.id}`}
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {metric.description || 'Sin descripción'}
-                      </Typography>
-                      <Divider sx={{ my: 2 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                        Parámetros:
-                      </Typography>
-                      {metric.parameters && Object.keys(metric.parameters).length > 0 ? (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {Object.entries(metric.parameters).map(([key, value]) => (
-                            <Chip
-                              key={key}
-                              label={`${key}: ${value}`}
-                              size="small"
-                              sx={{ backgroundColor: '#F0F0F0' }}
-                            />
-                          ))}
+            <>
+              {/* ── Grid de tarjetas fijas ── */}
+              <Grid container spacing={2}>
+                {metrics.map((metric) => {
+                  const meta = getMetricMeta(metric.name);
+                  const IconComponent = meta.icon;
+                  const cardId = metric.id || metric.metric_id;
+                  const isSelected = drawerMetric?.id === cardId || drawerMetric?.metric_id === cardId;
+
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={cardId}>
+                      <Card
+                        onClick={() => setDrawerMetric(metric)}
+                        sx={{
+                          cursor: 'pointer',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          borderRadius: 2,
+                          border: `1px solid ${isSelected ? meta.color + '66' : '#EEEEEE'}`,
+                          borderLeft: `4px solid ${meta.color}`,
+                          boxShadow: isSelected
+                            ? `0 0 0 2px ${meta.color}33, 0px 4px 16px rgba(0,0,0,0.10)`
+                            : '0px 1px 4px rgba(0,0,0,0.06)',
+                          transition: 'box-shadow 0.2s, border-color 0.2s',
+                          '&:hover': {
+                            boxShadow: `0px 4px 16px rgba(0,0,0,0.10)`,
+                            borderColor: meta.color + '66',
+                          },
+                        }}
+                      >
+                        <CardContent sx={{ p: 2.5, flexGrow: 1, '&:last-child': { pb: 2.5 } }}>
+                          {/* Cabecera: icono + nombre + badge */}
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5 }}>
+                            <Box sx={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              width: 38, height: 38, borderRadius: '9px',
+                              backgroundColor: meta.bg, flexShrink: 0,
+                            }}>
+                              <IconComponent size={19} color={meta.color} strokeWidth={1.8} />
+                            </Box>
+                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#1A1A1A', lineHeight: 1.2, mb: 0.4 }}>
+                                {metric.name || `Métrica ${cardId}`}
+                              </Typography>
+                              <Chip
+                                label={meta.category}
+                                size="small"
+                                sx={{
+                                  height: 17, fontSize: '0.65rem', fontWeight: 600,
+                                  color: meta.color, backgroundColor: meta.bg,
+                                  border: `1px solid ${meta.color}33`,
+                                }}
+                              />
+                            </Box>
+                            <ChevronRightIcon sx={{ color: '#CCC', fontSize: 18, flexShrink: 0, mt: 0.3 }} />
+                          </Box>
+
+                          {/* Descripción truncada */}
+                          <Typography variant="body2" color="text.secondary" sx={{
+                            fontSize: '0.8rem', lineHeight: 1.5,
+                            display: '-webkit-box', WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                          }}>
+                            {metric.description || 'Sin descripción'}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+
+              {/* ── Drawer lateral de parámetros ── */}
+              <Drawer
+                anchor="right"
+                open={Boolean(drawerMetric)}
+                onClose={() => setDrawerMetric(null)}
+                PaperProps={{
+                  sx: {
+                    width: { xs: '100%', sm: 400 },
+                    borderLeft: drawerMetric ? `4px solid ${getMetricMeta(drawerMetric.name).color}` : 'none',
+                  },
+                }}
+              >
+                {drawerMetric && (() => {
+                  const meta = getMetricMeta(drawerMetric.name);
+                  const IconComponent = meta.icon;
+                  const params = drawerMetric.parameters ? Object.entries(drawerMetric.parameters) : [];
+                  return (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      {/* Header */}
+                      <Box sx={{
+                        display: 'flex', alignItems: 'center', gap: 1.5,
+                        px: 3, py: 2.5,
+                        borderBottom: '1px solid #EEEEEE',
+                        flexShrink: 0,
+                      }}>
+                        <Box sx={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 40, height: 40, borderRadius: '10px',
+                          backgroundColor: meta.bg, flexShrink: 0,
+                        }}>
+                          <IconComponent size={20} color={meta.color} strokeWidth={1.8} />
                         </Box>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No hay parámetros configurados
+                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}>
+                            {drawerMetric.name}
+                          </Typography>
+                          <Chip
+                            label={meta.category}
+                            size="small"
+                            sx={{
+                              mt: 0.3, height: 17, fontSize: '0.65rem', fontWeight: 600,
+                              color: meta.color, backgroundColor: meta.bg,
+                              border: `1px solid ${meta.color}33`,
+                            }}
+                          />
+                        </Box>
+                        <IconButton size="small" onClick={() => setDrawerMetric(null)}>
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+
+                      {/* Contenido scrollable */}
+                      <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 3, py: 2.5 }}>
+                        {/* Descripción */}
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', lineHeight: 1.6, mb: 3 }}>
+                          {drawerMetric.description || 'Sin descripción'}
                         </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
+
+                        {/* Parámetros */}
+                        {params.length > 0 ? (
+                          <>
+                            <Typography variant="caption" sx={{
+                              fontWeight: 700, color: '#777',
+                              textTransform: 'uppercase', letterSpacing: '0.06em',
+                              display: 'block', mb: 1.5,
+                            }}>
+                              Parámetros configurados
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {params.map(([key, value]) => (
+                                <Box key={key} sx={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                                  px: 1.5, py: 1,
+                                  borderRadius: 1.5,
+                                  backgroundColor: '#F8F8F8',
+                                  border: '1px solid #EEEEEE',
+                                }}>
+                                  <Typography sx={{ fontSize: '0.78rem', color: '#555', fontFamily: 'monospace', mr: 2, flexShrink: 0 }}>
+                                    {key}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.78rem', color: '#1A1A1A', fontWeight: 600, textAlign: 'right', wordBreak: 'break-word' }}>
+                                    {formatParamValue(value)}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          </>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.82rem' }}>
+                            No hay parámetros configurados para esta métrica.
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  );
+                })()}
+              </Drawer>
+            </>
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Box
                 sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 70,
-                  height: 70,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                  mb: 2,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  width: 70, height: 70, borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 179, 126, 0.1)', mb: 2,
                 }}
               >
-                <AssessmentIcon sx={{ fontSize: 40, color: GREEN }} />
+                <DEFAULT_METRIC_META.icon size={40} color={GREEN} strokeWidth={1.5} />
               </Box>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#1A1A1A' }}>
                 No hay métricas configuradas

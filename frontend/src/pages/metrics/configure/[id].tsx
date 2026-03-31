@@ -41,13 +41,14 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Settings as SettingsIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../../components/layout/MainLayout';
 import TemplateCard from '../../../components/metrics/TemplateCard';
 import TemplateDetailsDialog from '../../../components/metrics/TemplateDetailsDialog';
 import SmartMetricConfigDialog from '../../../components/metrics/SmartMetricConfigDialog';
 import { metricsAPI, projectsAPI } from '../../../services/api';
-import { categoryColor, GREEN, GREEN_HOVER, ORANGE, RED } from '../../../utils/metricColors';
+import { categoryColor, GREEN, GREEN_HOVER, ORANGE, RED, getMetricMeta } from '../../../utils/metricColors';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -830,115 +831,114 @@ const MetricsConfigurationPage = () => {
                     </Paper>
                   </Grid>
                 ) : (
-                  filteredMetrics.map((metric) => (
+                  filteredMetrics.map((metric) => {
+                    const meta = getMetricMeta(metric.name);
+                    const IconComp = meta.icon;
+                    const isAdded = selectedMetrics.some(m => m.id === metric.id);
+                    return (
                     <Grid item xs={12} sm={6} md={4} key={metric.id}>
                       <Card
                         sx={{
                           height: '100%',
                           borderRadius: 2,
-                          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-                          transition: 'all 0.3s ease-in-out',
-                          position: 'relative',
-                          overflow: 'visible',
-                          border: '1px solid #eee',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          // Seleccionada: anillo verde. No seleccionada: gris neutro.
+                          border: isAdded ? `2px solid ${GREEN}` : '1px solid #E5E5E5',
+                          backgroundColor: isAdded ? 'rgba(0,179,126,0.03)' : '#FFFFFF',
+                          boxShadow: isAdded ? '0px 2px 12px rgba(0,179,126,0.12)' : '0px 1px 4px rgba(0,0,0,0.05)',
+                          transition: 'border 0.15s, box-shadow 0.15s, background-color 0.15s',
                           '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
-                          },
-                          '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '4px',
-                            height: '100%',
-                            backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? GREEN : '#E0E0E0',
-                            borderTopLeftRadius: 8,
-                            borderBottomLeftRadius: 8,
+                            boxShadow: isAdded
+                              ? '0px 4px 16px rgba(0,179,126,0.18)'
+                              : '0px 3px 10px rgba(0,0,0,0.10)',
                           },
                         }}
                       >
-                        <CardContent sx={{ p: 3 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Typography
-                              variant="h6"
-                              component="div"
-                              sx={{
-                                mb: 1,
-                                fontWeight: 600,
-                                color: '#1A1A1A',
-                              }}
-                            >
-                              {metric.name}
-                            </Typography>
+                        <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5 }}>
+                            {/* Icono: coloreado si seleccionada, gris si no */}
+                            <Box sx={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              width: 38, height: 38, borderRadius: '9px', flexShrink: 0,
+                              backgroundColor: isAdded ? meta.bg : '#F2F2F2',
+                            }}>
+                              <IconComp
+                                size={19}
+                                color={isAdded ? meta.color : '#AAAAAA'}
+                                strokeWidth={1.8}
+                              />
+                            </Box>
 
-                            <Chip
-                              label={metric.category}
-                              size="small"
-                              sx={{
-                                backgroundColor: categoryColor(metric.category).bg,
-                                color: categoryColor(metric.category).fg,
-                                fontWeight: 500,
-                                borderRadius: '16px',
-                                textTransform: 'capitalize',
-                              }}
-                            />
+                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                              <Typography variant="body1" sx={{
+                                fontWeight: 600, lineHeight: 1.2, mb: 0.4,
+                                color: isAdded ? '#1A1A1A' : '#555555',
+                              }}>
+                                {metric.name}
+                              </Typography>
+                              {/* Badge de categoría: verde si seleccionada, gris si no */}
+                              <Chip
+                                label={meta.category}
+                                size="small"
+                                sx={{
+                                  height: 17, fontSize: '0.65rem', fontWeight: 600,
+                                  color: isAdded ? GREEN : '#888',
+                                  backgroundColor: isAdded ? 'rgba(0,179,126,0.1)' : '#F0F0F0',
+                                  border: isAdded ? `1px solid rgba(0,179,126,0.3)` : 'none',
+                                }}
+                              />
+                            </Box>
+
+                            {/* Checkmark verde solo en seleccionadas */}
+                            {isAdded && (
+                              <CheckCircleIcon sx={{ color: GREEN, fontSize: 20, flexShrink: 0, mt: 0.1 }} />
+                            )}
                           </Box>
 
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              mb: 2,
-                              height: '40px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                            }}
-                          >
+                          <Typography variant="body2" sx={{
+                            fontSize: '0.8rem', lineHeight: 1.5,
+                            color: isAdded ? 'text.secondary' : '#AAAAAA',
+                            display: '-webkit-box', WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                          }}>
                             {metric.description}
                           </Typography>
-
-                          <Divider sx={{ my: 1.5 }} />
-
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip
-                              label={selectedMetrics.some(m => m.id === metric.id) ? 'Añadida' : 'Disponible'}
-                              size="small"
-                              sx={{
-                                backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? 'rgba(0, 179, 126, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-                                color: selectedMetrics.some(m => m.id === metric.id) ? GREEN : '#555555',
-                                fontWeight: 600,
-                                borderRadius: '12px',
-                              }}
-                            />
-                            <Tooltip title="Información de la métrica">
-                              <InfoIcon sx={{ fontSize: 18, opacity: 0.7 }} />
-                            </Tooltip>
-                          </Box>
                         </CardContent>
 
-                        <CardActions sx={{ px: 3, pb: 2 }}>
-                          <Button
-                            size="small"
-                            sx={{
-                              backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? '#EF5350' : GREEN,
-                              color: '#FFFFFF',
-                              textTransform: 'none',
-                              '&:hover': { backgroundColor: selectedMetrics.some(m => m.id === metric.id) ? '#E01815' : GREEN_HOVER },
-                            }}
-                            variant="contained"
-                            startIcon={selectedMetrics.some(m => m.id === metric.id) ? null : <AddIcon />}
-                            onClick={() => handleAddMetric(metric)}
-                          >
-                            {selectedMetrics.some(m => m.id === metric.id) ? 'Quitar' : 'Añadir'}
-                          </Button>
+                        <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+                          {isAdded ? (
+                            <Button
+                              size="small" variant="outlined" fullWidth
+                              startIcon={<CheckCircleIcon sx={{ fontSize: '14px !important' }} />}
+                              onClick={() => handleAddMetric(metric)}
+                              sx={{
+                                textTransform: 'none', fontSize: '0.8rem',
+                                borderColor: RED, color: RED,
+                                '&:hover': { borderColor: '#D03B40', backgroundColor: 'rgba(229,72,77,0.04)' },
+                              }}
+                            >
+                              Quitar
+                            </Button>
+                          ) : (
+                            <Button
+                              size="small" variant="outlined" fullWidth
+                              startIcon={<AddIcon />}
+                              onClick={() => handleAddMetric(metric)}
+                              sx={{
+                                textTransform: 'none', fontSize: '0.8rem',
+                                borderColor: GREEN, color: GREEN,
+                                '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
+                              }}
+                            >
+                              Añadir
+                            </Button>
+                          )}
                         </CardActions>
                       </Card>
                     </Grid>
-                  ))
+                    );
+                  })
                 )}
               </Grid>
             </TabPanel>
@@ -972,107 +972,85 @@ const MetricsConfigurationPage = () => {
                   No has seleccionado ninguna métrica. Añade métricas desde la pestaña "Métricas disponibles".
                 </Alert>
               ) : (
-                <Grid container spacing={3}>
-                  {selectedMetrics.map((metric) => (
+                <Grid container spacing={2}>
+                  {selectedMetrics.map((metric) => {
+                    const meta = getMetricMeta(metric.name);
+                    const IconComp = meta.icon;
+                    return (
                     <Grid item xs={12} sm={6} md={4} key={metric.id}>
-                      <Card
-                        sx={{
-                          position: 'relative',
-                          transition: 'all 0.2s ease-in-out',
-                          border: '1px solid #E0E0E0',
-                          borderRadius: 2,
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
-                          },
-                          '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '4px',
-                            height: '100%',
-                            backgroundColor: GREEN,
-                            borderTopLeftRadius: 8,
-                            borderBottomLeftRadius: 8,
-                          },
-                        }}
-                      >
-                        <CardContent sx={{ p: 3 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Typography
-                              variant="h6"
-                              component="div"
-                              sx={{
-                                fontWeight: 600,
-                                mb: 1,
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {metric.name}
-                            </Typography>
-                            <Chip
-                              label={metric.category}
-                              size="small"
-                              sx={{
-                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                                fontWeight: 500,
-                                fontSize: '0.75rem',
-                              }}
-                            />
+                      <Card sx={{
+                        height: '100%', display: 'flex', flexDirection: 'column',
+                        borderRadius: 2,
+                        boxShadow: '0px 2px 8px rgba(0,0,0,0.06)',
+                        border: `1px solid ${meta.color}33`,
+                        borderLeft: `4px solid ${meta.color}`,
+                        transition: 'box-shadow 0.2s',
+                        '&:hover': { boxShadow: '0px 4px 16px rgba(0,0,0,0.10)' },
+                      }}>
+                        <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5 }}>
+                            <Box sx={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              width: 38, height: 38, borderRadius: '9px',
+                              backgroundColor: meta.bg, flexShrink: 0,
+                            }}>
+                              <IconComp size={19} color={meta.color} strokeWidth={1.8} />
+                            </Box>
+                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#1A1A1A', lineHeight: 1.2, mb: 0.4 }}>
+                                {metric.name}
+                              </Typography>
+                              <Chip
+                                label={meta.category}
+                                size="small"
+                                sx={{
+                                  height: 17, fontSize: '0.65rem', fontWeight: 600,
+                                  color: meta.color, backgroundColor: meta.bg,
+                                  border: `1px solid ${meta.color}33`,
+                                }}
+                              />
+                            </Box>
                           </Box>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              mb: 2,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 3,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              WebkitBoxOrient: 'vertical',
-                            }}
-                          >
+
+                          <Typography variant="body2" color="text.secondary" sx={{
+                            fontSize: '0.8rem', lineHeight: 1.5,
+                            display: '-webkit-box', WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                          }}>
                             {metric.description}
                           </Typography>
                         </CardContent>
+
                         <CardActions sx={{ px: 2, pb: 2, pt: 0, display: 'flex', justifyContent: 'space-between' }}>
                           <Button
-                            size="small"
-                            sx={{
-                              borderColor: GREEN,
-                              color: GREEN,
-                              textTransform: 'none',
-                              '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
-                            }}
-                            variant="outlined"
-                            startIcon={<SettingsIcon />}
+                            size="small" variant="outlined"
+                            startIcon={<SettingsIcon sx={{ fontSize: 15 }} />}
                             onClick={() => handleConfigureMetric(metric)}
+                            sx={{
+                              textTransform: 'none', fontSize: '0.8rem',
+                              borderColor: meta.color, color: meta.color,
+                              '&:hover': { borderColor: meta.color, backgroundColor: meta.bg },
+                            }}
                           >
                             Configurar
                           </Button>
                           <Button
-                            size="small"
-                            sx={{
-                              borderColor: RED,
-                              color: RED,
-                              textTransform: 'none',
-                              '&:hover': { borderColor: '#D03B40', backgroundColor: 'rgba(229, 72, 77, 0.04)' },
-                            }}
-                            variant="outlined"
-                            startIcon={<DeleteIcon />}
+                            size="small" variant="outlined"
+                            startIcon={<DeleteIcon sx={{ fontSize: 15 }} />}
                             onClick={() => handleRemoveMetric(metric.id)}
+                            sx={{
+                              textTransform: 'none', fontSize: '0.8rem',
+                              borderColor: RED, color: RED,
+                              '&:hover': { borderColor: '#D03B40', backgroundColor: 'rgba(229,72,77,0.04)' },
+                            }}
                           >
                             Eliminar
                           </Button>
                         </CardActions>
                       </Card>
                     </Grid>
-                  ))}
+                    );
+                  })}
                 </Grid>
               )}
             </TabPanel>
