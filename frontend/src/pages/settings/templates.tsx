@@ -18,6 +18,8 @@ import {
   IconButton,
   Tooltip,
   Divider,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,6 +30,8 @@ import {
   FileDownload as FileDownloadIcon,
   Check as CheckIcon,
   Close as CloseIcon,
+  Tune as TuneIcon,
+  Code as CodeIcon,
 } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import MainLayout from '../../components/layout/MainLayout';
@@ -35,7 +39,7 @@ import TemplateCard from '../../components/metrics/TemplateCard';
 import SmartMetricConfigDialog from '../../components/metrics/SmartMetricConfigDialog';
 import { metricsAPI } from '../../services/api';
 import { MetricTemplate, Metric } from '../../types';
-import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
+import { getMetricMeta, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
 const TemplatesSettings = () => {
   const [templates, setTemplates] = useState<MetricTemplate[]>([]);
@@ -61,6 +65,13 @@ const TemplatesSettings = () => {
 
   // Import file ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit dialog view mode
+  const [dialogViewMode, setDialogViewMode] = useState<'visual' | 'json'>('visual');
+  const [dialogEditJson, setDialogEditJson] = useState('');
+  const [dialogEditJsonValid, setDialogEditJsonValid] = useState(true);
+  const [dialogEditJsonError, setDialogEditJsonError] = useState<string | null>(null);
+  const dialogEditEditorRef = useRef<any>(null);
 
   // JSON view/edit dialog
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -118,6 +129,8 @@ const TemplatesSettings = () => {
       setTemplateDescription('');
       setSelectedMetricsConfig({});
     }
+    setDialogViewMode('visual');
+    setDialogEditJsonError(null);
     setDialogOpen(true);
   };
 
@@ -127,6 +140,8 @@ const TemplatesSettings = () => {
     setTemplateName('');
     setTemplateDescription('');
     setSelectedMetricsConfig({});
+    setDialogViewMode('visual');
+    setDialogEditJsonError(null);
   };
 
   const handleToggleMetric = (metricId: number) => {
@@ -143,6 +158,63 @@ const TemplatesSettings = () => {
   };
 
   const handleSaveTemplate = async () => {
+    // If in JSON mode, parse and apply first
+    if (dialogViewMode === 'json') {
+      if (!dialogEditJsonValid) {
+        setError('El JSON tiene errores. Corrígelos antes de guardar.');
+        return;
+      }
+      const text = dialogEditEditorRef.current?.getValue() ?? dialogEditJson;
+      try {
+        const data = JSON.parse(text);
+        if (data.name !== undefined) setTemplateName(data.name);
+        if (data.description !== undefined) setTemplateDescription(data.description);
+        if (Array.isArray(data.metrics)) {
+          const configs: Record<number, any> = {};
+          data.metrics.forEach((m: any) => {
+            const match = allMetrics.find((am) => am.name === m.name);
+            if (match) configs[match.id] = m.parameters || {};
+          });
+          setSelectedMetricsConfig(configs);
+        }
+        // Validate name after applying
+        if (!data.name?.trim()) {
+          setError('El nombre de la plantilla es obligatorio');
+          return;
+        }
+        if (!Array.isArray(data.metrics) || data.metrics.length === 0) {
+          setError('Debes incluir al menos una métrica');
+          return;
+        }
+        // Build payload directly from JSON data
+        const metricsConfig = data.metrics
+          .map((m: any) => {
+            const metric = allMetrics.find((am) => am.name === m.name);
+            if (!metric) return null;
+            return { metric_id: metric.id, name: metric.name, category: metric.category, enabled: true, parameters: m.parameters || {} };
+          })
+          .filter(Boolean);
+        const payload = { name: data.name, description: data.description || '', metrics: metricsConfig };
+        try {
+          if (editingTemplate) {
+            await metricsAPI.updateMetricTemplate(editingTemplate.id, payload);
+            setSuccess('Plantilla actualizada correctamente');
+          } else {
+            await metricsAPI.createMetricTemplate(payload);
+            setSuccess('Plantilla creada correctamente');
+          }
+          handleCloseDialog();
+          fetchData();
+        } catch (err: any) {
+          setError(err.response?.data?.message || 'Error al guardar la plantilla');
+        }
+        return;
+      } catch {
+        setError('El JSON tiene errores. Corrígelos antes de guardar.');
+        return;
+      }
+    }
+
     if (!templateName.trim()) {
       setError('El nombre de la plantilla es obligatorio');
       return;
@@ -213,6 +285,61 @@ const TemplatesSettings = () => {
     setSelectedMetricsConfig(metricConfigs);
     setDialogOpen(true);
   };
+
+  // ── Edit dialog visual ↔ JSON toggle ────────────────────────────────────────
+
+  const buildTemplateJson = () => {
+    const metrics = Object.entries(selectedMetricsConfig).map(([idStr, parameters]) => {
+      const metric = allMetrics.find((m) => m.id === parseInt(idStr, 10));
+      return { name: metric?.name || '', parameters };
+    });
+    return JSON.stringify({ name: templateName, description: templateDescription, metrics }, null, 2);
+  };
+
+  const handleDialogModeChange = (_: React.MouseEvent<HTMLElement>, newMode: 'visual' | 'json' | null) => {
+    if (!newMode || newMode === dialogViewMode) return;
+
+    if (newMode === 'json') {
+      setDialogEditJson(buildTemplateJson());
+      setDialogEditJsonValid(true);
+      setDialogEditJsonError(null);
+      setDialogViewMode('json');
+    } else {
+      // Try to apply JSON before switching back to visual
+      const text = dialogEditEditorRef.current?.getValue() ?? dialogEditJson;
+      try {
+        const data = JSON.parse(text);
+        if (data.name !== undefined) setTemplateName(data.name);
+        if (data.description !== undefined) setTemplateDescription(data.description);
+        if (Array.isArray(data.metrics)) {
+          const configs: Record<number, any> = {};
+          data.metrics.forEach((m: any) => {
+            const match = allMetrics.find((am) => am.name === m.name);
+            if (match) configs[match.id] = m.parameters || {};
+          });
+          setSelectedMetricsConfig(configs);
+        }
+        setDialogEditJsonError(null);
+        setDialogViewMode('visual');
+      } catch {
+        setDialogEditJsonError('El JSON tiene errores y no se puede convertir a vista visual. Corrígelos o sigue editando en JSON.');
+      }
+    }
+  };
+
+  const handleDialogEditJsonChange = useCallback((value: string | undefined) => {
+    const text = value ?? '';
+    setDialogEditJson(text);
+    if (text.trim() === '') { setDialogEditJsonValid(false); setDialogEditJsonError(null); return; }
+    try {
+      JSON.parse(text);
+      setDialogEditJsonValid(true);
+      setDialogEditJsonError(null);
+    } catch (e: any) {
+      setDialogEditJsonValid(false);
+      setDialogEditJsonError(e.message || 'JSON inválido');
+    }
+  }, []);
 
   // ── JSON dialog helpers ──────────────────────────────────────────────────────
 
@@ -460,41 +587,104 @@ const TemplatesSettings = () => {
       </Box>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingTemplate ? 'Editar plantilla' : 'Nueva plantilla'}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: dialogViewMode === 'json' ? { height: '85vh', maxHeight: '85vh' } : {} }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight={600}>
+              {editingTemplate ? 'Editar plantilla' : 'Nueva plantilla'}
+            </Typography>
+            <ToggleButtonGroup
+              value={dialogViewMode}
+              exclusive
+              onChange={handleDialogModeChange}
+              size="small"
+              sx={{
+                '& .MuiToggleButton-root': { textTransform: 'none', px: 1.5, py: 0.5, fontSize: '0.8rem', gap: 0.5 },
+                '& .Mui-selected': { color: `${GREEN} !important`, borderColor: `${GREEN} !important`, bgcolor: 'rgba(0,179,126,0.06) !important' },
+              }}
+            >
+              <ToggleButton value="visual">
+                <TuneIcon sx={{ fontSize: 16 }} /> Visual
+              </ToggleButton>
+              <ToggleButton value="json">
+                <CodeIcon sx={{ fontSize: 16 }} /> JSON
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         </DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Nombre de la plantilla"
-            value={templateName}
-            onChange={(e) => setTemplateName(e.target.value)}
-            sx={{ mt: 2, mb: 2 }}
-            required
-          />
-          <TextField
-            fullWidth
-            label="Descripción (opcional)"
-            value={templateDescription}
-            onChange={(e) => setTemplateDescription(e.target.value)}
-            multiline
-            rows={2}
-            sx={{ mb: 3 }}
-          />
+        <Divider />
+        <DialogContent sx={dialogViewMode === 'json' ? { p: 0, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 } : {}}>
 
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-            Selecciona las métricas
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-            {Object.keys(selectedMetricsConfig).length} métrica{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''} seleccionada{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''}
-          </Typography>
+          {/* ── Visual mode ── */}
+          {dialogViewMode === 'visual' && (
+            <>
+              <TextField
+                fullWidth
+                label="Nombre de la plantilla"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                sx={{ mt: 2, mb: 2 }}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Descripción (opcional)"
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                multiline
+                rows={2}
+                sx={{ mb: 3 }}
+              />
 
-          <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                Selecciona las métricas
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
+                {Object.keys(selectedMetricsConfig).length} métrica{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''} seleccionada{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''}
+              </Typography>
+            </>
+          )}
+
+          {/* ── JSON mode toolbar ── */}
+          {dialogViewMode === 'json' && (
+            <Box sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              px: 1.5, py: 0.75, bgcolor: '#FAFAFA', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0,
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>JSON</Typography>
+                <Chip label="plantilla completa" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+              </Box>
+              <Box sx={{ display: 'flex', gap: 0.25 }}>
+                <Tooltip title="Formatear JSON" arrow>
+                  <IconButton size="small" onClick={() => {
+                    if (dialogEditEditorRef.current) {
+                      try {
+                        const f = JSON.stringify(JSON.parse(dialogEditEditorRef.current.getValue()), null, 2);
+                        dialogEditEditorRef.current.setValue(f);
+                      } catch { /* ignore */ }
+                    }
+                  }}>
+                    <FormatIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          )}
+
+          {/* Scrollable visual metric cards */}
+          {dialogViewMode === 'visual' && (
+            <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 1 }}>
             <Grid container spacing={1.5}>
               {allMetrics.map((metric) => {
                 const isSelected = metric.id in selectedMetricsConfig;
-                const colors = categoryColor(metric.category);
+                const meta = getMetricMeta(metric.name);
                 return (
                   <Grid item xs={12} sm={6} key={metric.id}>
                     <Card
@@ -511,24 +701,24 @@ const TemplatesSettings = () => {
                         },
                       }}
                     >
-                      <CardActionArea 
-                        onClick={() => handleToggleMetric(metric.id)} 
+                      <CardActionArea
+                        onClick={() => handleToggleMetric(metric.id)}
                         sx={{ p: 1.5, pb: isSelected && metric.parameters && Object.keys(metric.parameters).length > 0 ? 0 : 1.5 }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 0.5 }}>
-                              {metric.name}
+                              {meta.label}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
                               {metric.description || 'Sin descripción'}
                             </Typography>
                             <Chip
-                              label={metric.category}
+                              label={meta.category}
                               size="small"
                               sx={{
-                                backgroundColor: colors.bg,
-                                color: colors.fg,
+                                backgroundColor: meta.bg,
+                                color: meta.color,
                                 fontWeight: 500,
                                 fontSize: '0.65rem',
                                 height: 18,
@@ -571,19 +761,59 @@ const TemplatesSettings = () => {
                 );
               })}
             </Grid>
-          </Box>
+            </Box>
+          )}
+
+          {/* ── JSON mode editor ── */}
+          {dialogViewMode === 'json' && (
+            <>
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                <Editor
+                  height="100%"
+                  language="json"
+                  theme="vs"
+                  value={dialogEditJson}
+                  onChange={handleDialogEditJsonChange}
+                  onMount={(editor) => { dialogEditEditorRef.current = editor; }}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 13,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    wordWrap: 'on',
+                    folding: true,
+                    bracketPairColorization: { enabled: true },
+                    formatOnPaste: true,
+                    scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 },
+                    padding: { top: 8, bottom: 8 },
+                  }}
+                />
+              </Box>
+              {dialogEditJsonError && (
+                <Alert severity="error" sx={{ borderRadius: 0, py: 0.25, px: 1.5, fontSize: '0.75rem', flexShrink: 0 }}>
+                  {dialogEditJsonError}
+                </Alert>
+              )}
+            </>
+          )}
+
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Divider />
+        <DialogActions sx={{ px: 3, py: 1.5 }}>
           <Button onClick={handleCloseDialog} sx={{ color: '#666' }}>
             Cancelar
           </Button>
           <Button
             onClick={handleSaveTemplate}
             variant="contained"
+            disabled={dialogViewMode === 'json' && !dialogEditJsonValid}
             sx={{
               backgroundColor: GREEN,
               color: '#fff',
               '&:hover': { backgroundColor: GREEN_HOVER },
+              '&.Mui-disabled': { bgcolor: '#E0E0E0' },
             }}
           >
             {editingTemplate ? 'Guardar cambios' : 'Crear plantilla'}

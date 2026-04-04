@@ -25,7 +25,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import TemplateCard from '../../components/metrics/TemplateCard';
 import { projectsAPI, metricsAPI } from '../../services/api';
 import { MetricTemplate } from '../../types';
-import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
+import { getMetricMeta, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 import { safeNavigate } from '../../utils/routeTransition';
 
 const steps = ['Información básica', 'Plantilla y métricas', 'Resumen y confirmación'];
@@ -360,7 +360,7 @@ const NewProject = () => {
                   <Grid container spacing={1}>
                     {allMetrics.map((metric) => {
                       const isSelected = selectedMetricIds.has(metric.id);
-                      const cc = categoryColor(metric.category);
+                      const meta = getMetricMeta(metric.name);
                       return (
                         <Grid item xs={12} sm={6} key={metric.id}>
                           <Box
@@ -380,7 +380,7 @@ const NewProject = () => {
                             />
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-                                {metric.name}
+                                {meta.label}
                               </Typography>
                               <Typography
                                 variant="caption" color="text.secondary"
@@ -390,9 +390,9 @@ const NewProject = () => {
                               </Typography>
                             </Box>
                             <Chip
-                              label={metric.category?.replace('_', ' ')}
+                              label={meta.category}
                               size="small"
-                              sx={{ ml: 1, backgroundColor: cc.bg, color: cc.fg, fontSize: '0.65rem', height: 20 }}
+                              sx={{ ml: 1, backgroundColor: meta.bg, color: meta.color, fontSize: '0.65rem', height: 20 }}
                             />
                           </Box>
                         </Grid>
@@ -471,15 +471,15 @@ const NewProject = () => {
                       {Array.from(selectedMetricIds).map((metricId) => {
                         const metric = allMetrics.find(m => m.id === metricId);
                         if (!metric) return null;
-                        const colors = categoryColor(metric.category);
+                        const meta = getMetricMeta(metric.name);
                         return (
                           <Chip
                             key={metricId}
-                            label={metric.name}
+                            label={meta.label}
                             size="small"
                             sx={{
-                              backgroundColor: colors.bg,
-                              color: colors.fg,
+                              backgroundColor: meta.bg,
+                              color: meta.color,
                               fontWeight: 500,
                               fontSize: '0.75rem',
                             }}

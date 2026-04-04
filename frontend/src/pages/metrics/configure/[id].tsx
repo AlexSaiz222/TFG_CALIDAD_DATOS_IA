@@ -1119,6 +1119,45 @@ const MetricsConfigurationPage = () => {
                           />
                         </Grid>
                       ))}
+                      {/* "Nueva plantilla" card */}
+                      <Grid item xs={12} sm={6} md={4}>
+                        <Card
+                          elevation={0}
+                          onClick={() => router.push('/settings/templates')}
+                          sx={{
+                            height: '100%', minHeight: 140,
+                            border: '2px dashed #D0D0D0',
+                            borderRadius: 2,
+                            cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            backgroundColor: '#FAFAFA',
+                            '&:hover': {
+                              borderColor: GREEN,
+                              backgroundColor: 'rgba(0,179,126,0.03)',
+                              '& .new-template-icon': { color: GREEN },
+                              '& .new-template-text': { color: GREEN },
+                            },
+                          }}
+                        >
+                          <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <AddIcon
+                              className="new-template-icon"
+                              sx={{ fontSize: 32, color: '#BDBDBD', mb: 0.5, transition: 'color 0.2s' }}
+                            />
+                            <Typography
+                              className="new-template-text"
+                              variant="body2"
+                              sx={{ fontWeight: 600, color: '#BDBDBD', transition: 'color 0.2s' }}
+                            >
+                              Nueva plantilla
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
+                              Ir a configuración
+                            </Typography>
+                          </Box>
+                        </Card>
+                      </Grid>
                     </Grid>
                   )}
                 </>

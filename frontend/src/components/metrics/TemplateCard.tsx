@@ -17,11 +17,10 @@ import {
   ContentCopy as CopyIcon,
   CheckCircle as CheckCircleIcon,
   Assignment as TemplateIcon,
-  Visibility as VisibilityIcon,
   FileDownload as FileDownloadIcon,
 } from '@mui/icons-material';
 import { MetricTemplate } from '../../types';
-import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
+import { getMetricMeta, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
 export type TemplateCardMode = 'manage' | 'select' | 'apply';
 
@@ -73,6 +72,7 @@ export default function TemplateCard({
           onClick={() => onSelect?.(template)}
           sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start' } as any}
         >
+          {/* @ts-ignore — TS2590: MUI Box type inference too complex when lucide-react types are in scope */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, width: '100%' }}>
             <TemplateIcon sx={{ color: selected ? GREEN : '#999', fontSize: 20 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 600, flex: 1, lineHeight: 1.3 }}>
@@ -137,15 +137,15 @@ export default function TemplateCard({
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
             {template.metrics?.slice(0, 3).map((metric: any, idx: number) => {
-              const colors = categoryColor(metric.category);
+              const meta = getMetricMeta(metric.name);
               return (
                 <Chip
                   key={metric.id ?? metric.metric_id ?? idx}
-                  label={metric.name}
+                  label={meta.label}
                   size="small"
                   sx={{
-                    backgroundColor: colors.bg,
-                    color: colors.fg,
+                    backgroundColor: meta.bg,
+                    color: meta.color,
                     fontWeight: 500,
                     fontSize: '0.7rem',
                   }}
@@ -228,15 +228,15 @@ export default function TemplateCard({
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
           {template.metrics?.slice(0, 4).map((metric: any, idx: number) => {
-            const colors = categoryColor(metric.category);
+            const meta = getMetricMeta(metric.name);
             return (
               <Chip
                 key={metric.id ?? metric.metric_id ?? idx}
-                label={metric.name}
+                label={meta.label}
                 size="small"
                 sx={{
-                  backgroundColor: colors.bg,
-                  color: colors.fg,
+                  backgroundColor: meta.bg,
+                  color: meta.color,
                   fontWeight: 500,
                   fontSize: '0.7rem',
                 }}
@@ -279,15 +279,6 @@ export default function TemplateCard({
             sx={{ color: '#666', '&:hover': { color: GREEN } }}
           >
             <FileDownloadIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Ver detalles">
-          <IconButton
-            size="small"
-            onClick={() => onViewDetails?.(template)}
-            sx={{ color: '#666', '&:hover': { color: GREEN } }}
-          >
-            <VisibilityIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Eliminar">
