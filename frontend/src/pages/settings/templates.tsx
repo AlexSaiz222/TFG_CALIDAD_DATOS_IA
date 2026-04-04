@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -15,14 +15,24 @@ import {
   Card,
   CardActionArea,
   Grid,
+  IconButton,
+  Tooltip,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
   CheckCircle as CheckCircleIcon,
+  FileUpload as FileUploadIcon,
+  FormatAlignLeft as FormatIcon,
+  ContentCopy as CopyIcon,
+  FileDownload as FileDownloadIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
+import Editor from '@monaco-editor/react';
 import MainLayout from '../../components/layout/MainLayout';
 import TemplateCard from '../../components/metrics/TemplateCard';
-import MetricParameterDialog from '../../components/metrics/MetricParameterDialog';
+import SmartMetricConfigDialog from '../../components/metrics/SmartMetricConfigDialog';
 import { metricsAPI } from '../../services/api';
 import { MetricTemplate, Metric } from '../../types';
 import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
@@ -48,6 +58,17 @@ const TemplatesSettings = () => {
   // Metric Parameter Config Dialog
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [currentMetricToConfig, setCurrentMetricToConfig] = useState<Metric | null>(null);
+
+  // Import file ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // JSON view/edit dialog
+  const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
+  const [jsonDialogText, setJsonDialogText] = useState('');
+  const [jsonDialogValid, setJsonDialogValid] = useState(true);
+  const [jsonDialogError, setJsonDialogError] = useState<string | null>(null);
+  const [jsonCopied, setJsonCopied] = useState(false);
+  const jsonEditorRef = useRef<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -193,9 +214,142 @@ const TemplatesSettings = () => {
     setDialogOpen(true);
   };
 
+  // ── JSON dialog helpers ──────────────────────────────────────────────────────
+
+  const openJsonDialog = (initialJson: string) => {
+    setJsonDialogText(initialJson);
+    setJsonDialogValid(true);
+    setJsonDialogError(null);
+    setJsonCopied(false);
+    setJsonDialogOpen(true);
+  };
+
+  const handleExportTemplate = (template: MetricTemplate) => {
+    const exportData = {
+      name: template.name,
+      description: template.description || '',
+      metrics: template.metrics?.map((m: any) => ({
+        name: m.name,
+        category: m.category,
+        parameters: m.parameters || {},
+      })) || [],
+    };
+    openJsonDialog(JSON.stringify(exportData, null, 2));
+  };
+
+  const handleOpenImportDialog = () => {
+    openJsonDialog('');
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        JSON.parse(text); // validate
+        openJsonDialog(text);
+      } catch {
+        setError('Error al leer el fichero JSON. Asegúrate de que es un JSON válido.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleJsonEditorChange = useCallback((value: string | undefined) => {
+    const text = value ?? '';
+    setJsonDialogText(text);
+    if (text.trim() === '') {
+      setJsonDialogValid(false);
+      setJsonDialogError(null);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
+        setJsonDialogValid(false);
+        setJsonDialogError('El JSON debe ser un objeto { }');
+        return;
+      }
+      setJsonDialogValid(true);
+      setJsonDialogError(null);
+    } catch (e: any) {
+      setJsonDialogValid(false);
+      setJsonDialogError(e.message || 'JSON inválido');
+    }
+  }, []);
+
+  const handleJsonFormat = () => {
+    if (jsonEditorRef.current) {
+      try {
+        const current = jsonEditorRef.current.getValue();
+        const formatted = JSON.stringify(JSON.parse(current), null, 2);
+        jsonEditorRef.current.setValue(formatted);
+      } catch { /* ignore */ }
+    }
+  };
+
+  const handleJsonCopy = async () => {
+    const text = jsonEditorRef.current?.getValue() ?? jsonDialogText;
+    await navigator.clipboard.writeText(text);
+    setJsonCopied(true);
+    setTimeout(() => setJsonCopied(false), 1500);
+  };
+
+  const handleJsonDownload = () => {
+    const text = jsonEditorRef.current?.getValue() ?? jsonDialogText;
+    let name = 'plantilla';
+    try { name = JSON.parse(text).name || 'plantilla'; } catch { /* ignore */ }
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name.replace(/\s+/g, '_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleJsonImport = () => {
+    const text = jsonEditorRef.current?.getValue() ?? jsonDialogText;
+    try {
+      const data = JSON.parse(text);
+      if (!data.name || !Array.isArray(data.metrics)) {
+        setJsonDialogError('El JSON debe incluir "name" y "metrics" (array).');
+        return;
+      }
+
+      const metricConfigs: Record<number, any> = {};
+      const notFound: string[] = [];
+      data.metrics.forEach((importedMetric: any) => {
+        const match = allMetrics.find((m) => m.name === importedMetric.name);
+        if (match) {
+          metricConfigs[match.id] = importedMetric.parameters || match.parameters || {};
+        } else {
+          notFound.push(importedMetric.name);
+        }
+      });
+
+      setJsonDialogOpen(false);
+      setEditingTemplate(null);
+      setTemplateName(data.name);
+      setTemplateDescription(data.description || '');
+      setSelectedMetricsConfig(metricConfigs);
+      setDialogOpen(true);
+
+      if (notFound.length > 0) {
+        setError(`Métricas no reconocidas y omitidas: ${notFound.join(', ')}`);
+      }
+    } catch {
+      setJsonDialogError('JSON inválido.');
+    }
+  };
+
   if (loading) {
     return (
       <MainLayout>
+        {/* @ts-ignore — TS2590: MUI Box type inference too complex when monaco types are in scope */}
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CircularProgress sx={{ color: GREEN }} />
         </Box>
@@ -215,18 +369,32 @@ const TemplatesSettings = () => {
               Crea y gestiona plantillas personalizadas para aplicar en tus proyectos
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{
-              backgroundColor: GREEN,
-              color: '#fff',
-              '&:hover': { backgroundColor: GREEN_HOVER },
-            }}
-          >
-            Nueva plantilla
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<FileUploadIcon />}
+              onClick={handleOpenImportDialog}
+              sx={{
+                borderColor: GREEN,
+                color: GREEN,
+                '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
+              }}
+            >
+              Importar JSON
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={{
+                backgroundColor: GREEN,
+                color: '#fff',
+                '&:hover': { backgroundColor: GREEN_HOVER },
+              }}
+            >
+              Nueva plantilla
+            </Button>
+          </Box>
         </Box>
 
         {error && (
@@ -279,6 +447,7 @@ const TemplatesSettings = () => {
                 mode="manage"
                 onEdit={handleOpenDialog}
                 onDuplicate={handleDuplicateTemplate}
+                onExport={handleExportTemplate}
                 onDelete={(t) => {
                   setTemplateToDelete(t);
                   setDeleteDialogOpen(true);
@@ -449,22 +618,145 @@ const TemplatesSettings = () => {
         </DialogActions>
       </Dialog>
       
-      <MetricParameterDialog
+      {/* JSON View/Edit Dialog */}
+      <Dialog
+        open={jsonDialogOpen}
+        onClose={() => setJsonDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2, height: '80vh', maxHeight: '85vh' } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, flexShrink: 0 }}>
+          <Typography variant="h6" fontWeight={600}>Ver / Editar JSON de plantilla</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {!jsonDialogValid && jsonDialogText.trim() !== '' && (
+              <Chip label="JSON inválido" size="small" color="error" variant="outlined" sx={{ height: 24, fontSize: '0.7rem' }} />
+            )}
+            <IconButton size="small" onClick={() => setJsonDialogOpen(false)}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <Divider />
+
+        {/* Toolbar */}
+        <Box sx={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          px: 1.5, py: 0.75, bgcolor: '#FAFAFA', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0,
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>JSON</Typography>
+            <Chip label="plantilla completa" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.25 }}>
+            <Tooltip title="Formatear JSON" arrow>
+              <IconButton size="small" onClick={handleJsonFormat}>
+                <FormatIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={jsonCopied ? '¡Copiado!' : 'Copiar al portapapeles'} arrow>
+              <IconButton size="small" onClick={handleJsonCopy}>
+                {jsonCopied ? <CheckIcon fontSize="small" sx={{ color: GREEN }} /> : <CopyIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        {/* Schema hint */}
+        <Box sx={{ px: 1.5, py: 0.75, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
+            Estructura: <code>{`{ "name": "...", "description": "...", "metrics": [{ "name": "completeness", "parameters": {...} }, ...] }`}</code>
+          </Typography>
+        </Box>
+
+        {/* Monaco Editor */}
+        <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <Box sx={{ flex: 1, minHeight: 0 }}>
+            <Editor
+              height="100%"
+              language="json"
+              theme="vs"
+              value={jsonDialogText}
+              onChange={handleJsonEditorChange}
+              onMount={(editor) => { jsonEditorRef.current = editor; }}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 13,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                tabSize: 2,
+                wordWrap: 'on',
+                folding: true,
+                bracketPairColorization: { enabled: true },
+                formatOnPaste: true,
+                scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 },
+                padding: { top: 8, bottom: 8 },
+              }}
+            />
+          </Box>
+          {jsonDialogError && (
+            <Alert severity="error" sx={{ borderRadius: 0, py: 0.25, px: 1.5, fontSize: '0.75rem', flexShrink: 0 }}>
+              {jsonDialogError}
+            </Alert>
+          )}
+        </DialogContent>
+
+        <Divider />
+        <DialogActions sx={{ px: 3, py: 2, flexShrink: 0, gap: 1 }}>
+          {/* Load from file hidden input */}
+          <input
+            type="file"
+            accept=".json"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleImportFile}
+          />
+          <Button
+            variant="outlined"
+            startIcon={<FileUploadIcon />}
+            onClick={() => fileInputRef.current?.click()}
+            sx={{ borderColor: '#CCC', color: '#555', mr: 'auto', '&:hover': { borderColor: '#999' } }}
+          >
+            Cargar archivo
+          </Button>
+          <Button onClick={() => setJsonDialogOpen(false)} color="inherit">Cerrar</Button>
+          <Button
+            variant="outlined"
+            startIcon={<FileDownloadIcon />}
+            onClick={handleJsonDownload}
+            disabled={!jsonDialogValid || jsonDialogText.trim() === ''}
+            sx={{ borderColor: GREEN, color: GREEN, '&:hover': { borderColor: GREEN_HOVER } }}
+          >
+            Descargar JSON
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleJsonImport}
+            disabled={!jsonDialogValid || jsonDialogText.trim() === ''}
+            sx={{ bgcolor: GREEN, color: '#fff', '&:hover': { bgcolor: GREEN_HOVER }, '&.Mui-disabled': { bgcolor: '#E0E0E0' } }}
+          >
+            Importar como nueva plantilla
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <SmartMetricConfigDialog
         open={configDialogOpen}
         onClose={() => setConfigDialogOpen(false)}
-        metric={currentMetricToConfig}
-        metricConfig={
+        metric={
           currentMetricToConfig
             ? {
-                metric_id: currentMetricToConfig.id,
-                parameters: selectedMetricsConfig[currentMetricToConfig.id] || {},
+                ...currentMetricToConfig,
+                parameters: selectedMetricsConfig[currentMetricToConfig.id]
+                  ?? currentMetricToConfig.parameters,
               }
             : null
         }
-        onSave={(updatedConfig) => {
+        onSave={(updatedMetric) => {
           setSelectedMetricsConfig((prev) => ({
             ...prev,
-            [updatedConfig.metric_id]: updatedConfig.parameters,
+            [updatedMetric.id]: updatedMetric.parameters,
           }));
           setConfigDialogOpen(false);
         }}

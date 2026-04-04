@@ -18,6 +18,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Assignment as TemplateIcon,
   Visibility as VisibilityIcon,
+  FileDownload as FileDownloadIcon,
 } from '@mui/icons-material';
 import { MetricTemplate } from '../../types';
 import { categoryColor, GREEN, GREEN_HOVER } from '../../utils/metricColors';
@@ -34,6 +35,7 @@ interface TemplateCardProps {
   onDelete?: (template: MetricTemplate) => void;
   onApply?: (template: MetricTemplate) => void;
   onViewDetails?: (template: MetricTemplate) => void;
+  onExport?: (template: MetricTemplate) => void;
 }
 
 export default function TemplateCard({
@@ -46,6 +48,7 @@ export default function TemplateCard({
   onDelete,
   onApply,
   onViewDetails,
+  onExport,
 }: TemplateCardProps) {
   const metricCount = template.metrics?.length || 0;
 
@@ -267,6 +270,15 @@ export default function TemplateCard({
             sx={{ color: '#666', '&:hover': { color: GREEN } }}
           >
             <CopyIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Exportar JSON">
+          <IconButton
+            size="small"
+            onClick={() => onExport?.(template)}
+            sx={{ color: '#666', '&:hover': { color: GREEN } }}
+          >
+            <FileDownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Ver detalles">
