@@ -109,7 +109,13 @@ class SyntacticAccuracyMetric(BaseMetric):
             invalid_samples: list[str] = []
 
             for value in non_null:
-                sv = str(value)
+                # Columns with nulls are read as float64 by pandas, so integer
+                # phone/postal/DNI values arrive as e.g. 658892118.0.
+                # Strip the ".0" suffix so the regex sees "658892118" not "658892118.0".
+                if isinstance(value, float) and value == int(value):
+                    sv = str(int(value))
+                else:
+                    sv = str(value)
                 if regex.match(sv):
                     valid_count += 1
                 else:
