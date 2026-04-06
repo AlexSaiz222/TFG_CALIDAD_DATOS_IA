@@ -284,6 +284,10 @@ const ProjectDetail = () => {
             } else if (allMetricsResponse.data.metrics && Array.isArray(allMetricsResponse.data.metrics)) {
               availableMetrics = allMetricsResponse.data.metrics;
             }
+            // Outliers is profiling-only (ISO/IEC 5259): hide from metric catalog UI.
+            availableMetrics = availableMetrics.filter(
+              (m: any) => m?.name?.toLowerCase() !== 'outliers'
+            );
             console.log('Catálogo de métricas cargado:', availableMetrics);
           }
         } catch (error) {

@@ -22,8 +22,8 @@ Un dataset puede tener un score de completitud global alto pero ocultar columnas
 | Parámetro | Tipo | Valor por defecto | Descripción |
 |-----------|------|-------------------|-------------|
 | `columns` | `list[str]` | `[]` (todas) | Columnas a evaluar. Si está vacío, se evalúan todas. |
-| `threshold` | `float` | `0.95` | Umbral mínimo de completitud global (0.0–1.0). |
-| `weight` | `float` | `1.0` | Peso de esta métrica en el Quality Score global. |
+| `threshold` | `float` | `0.95` | Umbral mínimo de completitud global y por columna (0.0–1.0). |
+| `weight` | `float` | `1.0` | Peso de esta métrica en el Quality Score global (se aplica en el servicio, no dentro de la métrica). |
 
 Ejemplo de configuración:
 
@@ -73,13 +73,13 @@ Esta medición por columna se usa exclusivamente para generar issues individuale
 
 ## 4. Cálculo del score
 
-El score devuelto al sistema es:
+La métrica devuelve el valor crudo `completeness` en el rango `[0.0, 1.0]`:
 
 ```
-score = completeness × weight
+score = completeness
 ```
 
-- Rango: `[0.0, 1.0]` antes del peso; puede ser menor si `weight < 1.0`.
+- El peso (`weight`) se aplica una única vez en el cálculo global del Quality Score dentro del servicio; **no** se multiplica dentro de la métrica.
 - Un score de `1.0` significa completitud perfecta (0 % de nulos).
 - Un score de `0.0` significa que todas las celdas son nulas.
 
@@ -110,9 +110,9 @@ Se incluye en el issue la lista de columnas problemáticas (aquellas cuyo ratio 
 
 ### Issue por columna
 
-**Condición:** `col_completeness < 0.98` (umbral fijo independiente del parámetro `threshold`)
+**Condición:** `col_completeness < threshold` (se respeta el umbral configurado por el usuario)
 
-Se genera un issue separado por cada columna que baje del 98 %:
+Se genera un issue separado por cada columna que baje del umbral:
 
 ```json
 {
@@ -126,7 +126,7 @@ Se genera un issue separado por cada columna que baje del 98 %:
 }
 ```
 
-> El umbral fijo del 98 % para issues por columna es independiente del `threshold` configurado. Esto permite detectar columnas problemáticas incluso cuando el score global supera el umbral.
+> Ambos tipos de issues usan el mismo `threshold` configurado, de modo que el comportamiento de la métrica respeta la intención del usuario: si tolera un 90 % de completitud a nivel global, tampoco se marcarán columnas al 92 % como problemáticas.
 
 ---
 
@@ -193,6 +193,6 @@ completeness = 1 - (0.00 + 0.167 + 0.50 + 0.333) / 4
 **Resultado:**
 - Score: `0.75` → por debajo del umbral `0.95`.
 - Issue global: severidad `high` (distancia = 0.95 − 0.75 = 0.20 > 0.15 → `high`).
-- Issue por columna `email`: completitud 50 % < 98 % → severidad `high` (0.50 no es `< 0.50`, así que no llega a `critical`; distancia = 0.48 > 0.15 → `high`).
-- Issue por columna `edad`: completitud 67 % < 98 % → severidad `high` (0.67 < 0.70 → `high`).
-- Issue por columna `nombre`: completitud 83 % < 98 % → severidad `high` (distancia = 0.98 − 0.83 = 0.15 > 0.05 → `medium` o `high` según umbral exacto).
+- Issue por columna `email`: completitud 50 % < 95 % → severidad `high` (distancia = 0.45 > 0.15).
+- Issue por columna `edad`: completitud 67 % < 95 % → severidad `high` (0.67 < 0.70).
+- Issue por columna `nombre`: completitud 83 % < 95 % → severidad `medium` (distancia = 0.12, > 0.05, y valor ≥ 0.70).

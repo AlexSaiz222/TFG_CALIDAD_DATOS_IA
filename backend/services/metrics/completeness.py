@@ -16,7 +16,6 @@ class CompletenessMetric(BaseMetric):
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
         columns = parameters.get("columns", [])
         threshold = parameters.get("threshold", 0.95)
-        weight = parameters.get("weight", 1.0)
 
         if columns:
             values = [1 - df[c].isna().mean() for c in columns if c in df.columns]
@@ -51,12 +50,12 @@ class CompletenessMetric(BaseMetric):
                 ),
             })
 
-        # Per-column issues for columns below 98 %
+        # Per-column issues: columns below the user-configured threshold
         for col in df.columns:
             col_completeness = float(1 - df[col].isna().mean())
-            if col_completeness < 0.98:
+            if col_completeness < threshold:
                 col_severity = self.calculate_dynamic_severity(
-                    col_completeness, 0.98, higher_is_better=True
+                    col_completeness, threshold, higher_is_better=True
                 )
                 issues.append({
                     "evaluation_id": evaluation_id,
@@ -73,7 +72,7 @@ class CompletenessMetric(BaseMetric):
         logger.info(f"[{self.log_prefix}] score={completeness:.4f}")
         return MetricResult(
             metric_id="completeness",
-            score=completeness * weight,
+            score=float(completeness),
             results={"completeness": completeness},
             issues=issues,
         )

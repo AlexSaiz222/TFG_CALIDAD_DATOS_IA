@@ -92,11 +92,11 @@ if len(cond_rows) == 0:
 passing = cond_rows.query(assertion)
 violation_count = len(cond_rows) - len(passing)
 
-# 3. Calcular compliance
-compliance_rate = 1 - (violation_count / total_rows)
+# 3. Calcular compliance (normalizado al scope de la regla)
+compliance_rate = 1 - (violation_count / len(cond_rows))
 ```
 
-> La `compliance_rate` se calcula sobre el **total de filas del dataset**, no solo sobre las filas que cumplen la condición. Esto hace que reglas muy selectivas (condición raramente verdadera) tengan un impacto menor en el score global.
+> La `compliance_rate` de reglas IF-THEN se calcula sobre las **filas que cumplen la condición**, no sobre el total del dataset. Esto evita que una regla selectiva (p. ej. "si estado == 'pagado' entonces la fecha de pago no puede ser nula") con 10 violaciones en 10 filas `pagado` devuelva `0.999` en un dataset de 10 000 registros. Con la normalización por scope, ese caso devuelve `0.0`, lo que refleja correctamente el problema.
 
 ### Evaluación de regla tipo violación directa
 
@@ -106,14 +106,24 @@ violation_count = len(violation_df)
 compliance_rate = 1 - (violation_count / total_rows)
 ```
 
+### Evaluación de regla `violation` directa
+
+```python
+violation_df = df.query(expression)
+violation_count = len(violation_df)
+compliance_rate = 1 - (violation_count / total_rows)
+```
+
+A diferencia de las reglas IF-THEN, las reglas de violación directa sí se normalizan por el **total de filas del dataset**, porque aquí el "scope" de la regla es el dataset entero (no hay precondición).
+
 ### Score global
 
 ```
 overall = media(compliance_rates de todas las reglas evaluadas exitosamente)
-score   = overall × weight
+score   = overall
 ```
 
-Si todas las reglas tienen errores o la lista está vacía, `score = None`.
+Si todas las reglas tienen errores o la lista está vacía, `score = None` y la métrica **se excluye** del cálculo global del Quality Score (no contribuye al numerador ni al denominador). El peso (`weight`) se aplica una única vez en el servicio, no dentro de la métrica.
 
 ---
 
@@ -222,15 +232,15 @@ El fingerprint depende del nombre de la regla y su expresión. Cambiar el nombre
 }
 ```
 
-**Regla 1 (IF-THEN):**
+**Regla 1 (IF-THEN, normalizado por scope):**
 ```
-Filas con estado=='pagado': [1, 2, 4]  (3 filas)
+Filas con estado=='pagado': [1, 2, 4]  (3 filas = scope)
 Filas que pasan aserción fecha_pago==fecha_pago (no null): [1, 4]
 Violaciones: [2]  (1 violación)
-compliance_rate = 1 - (1/5) = 0.80
+compliance_rate = 1 - (1/3) = 0.667
 ```
 
-**Regla 2 (violación directa):**
+**Regla 2 (violación directa, normalizado por dataset):**
 ```
 Filas donde precio_venta < precio_coste: [4]  (1 violación)
 compliance_rate = 1 - (1/5) = 0.80
@@ -238,9 +248,9 @@ compliance_rate = 1 - (1/5) = 0.80
 
 **Score global:**
 ```
-overall = (0.80 + 0.80) / 2 = 0.80
+overall = (0.667 + 0.80) / 2 = 0.734
 ```
 
 **Issues generados:**
-- Regla 1: `compliance_rate=0.80`, `1.0 - 0.80 = 0.20 > 0.15` → severidad `high`.
-- Regla 2: `compliance_rate=0.80`, mismo cálculo → severidad `high`.
+- Regla 1: `compliance_rate=0.667`, `< 0.70` → severidad `high`.
+- Regla 2: `compliance_rate=0.80`, `1.0 - 0.80 = 0.20 > 0.15` → severidad `high`.

@@ -97,11 +97,20 @@ Si `col_uniqueness < threshold` y hay duplicados, se genera un issue de tipo `no
 
 ## 4. Cálculo del score
 
+El score combina la unicidad a nivel de fila con la salud de las columnas identificadoras detectadas (ID/UUID/key):
+
 ```
-score = row_uniqueness × weight
+id_health = media( min(1.0, col_variability / threshold_col) )   # solo sobre columnas ID detectadas
+
+if hay columnas ID:
+    score = 0.7 × row_uniqueness + 0.3 × id_health
+else:
+    score = row_uniqueness
 ```
 
-El score principal refleja la unicidad de filas. La variabilidad por columna influye en los issues pero no directamente en el score numérico.
+- `col_variability / threshold_col` se acota a `1.0`, de modo que una columna ID saludable aporta su máximo (`1.0`) y solo penaliza cuando está por debajo del umbral adaptativo.
+- El peso (`weight`) se aplica una única vez en el cálculo global del Quality Score dentro del servicio; no se multiplica dentro de la métrica.
+- La mezcla `0.7 / 0.3` refleja que las filas duplicadas siguen siendo el problema dominante, pero un identificador casi constante (p. ej. `user_id` con 5 valores distintos en 10 000 filas) degrada el score aunque no haya duplicados de fila.
 
 ---
 
@@ -235,6 +244,12 @@ variabilidad estado:
   num_unique = 2
   non_null = 10
   variabilidad = 2/10 = 0.20 > umbral categórico (0.05) → ok
+```
+
+**Score:**
+```
+id_health = min(1.0, 0.90 / 0.95) = 0.9474
+score = 0.7 × 0.80 + 0.3 × 0.9474 = 0.8442
 ```
 
 **Issues generados:**

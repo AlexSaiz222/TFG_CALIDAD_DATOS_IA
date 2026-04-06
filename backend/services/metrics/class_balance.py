@@ -14,13 +14,18 @@ class ClassBalanceMetric(BaseMetric):
     log_prefix = "CLASS_BALANCE"
 
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
-        weight = parameters.get("weight", 1.0)
         auto_detect = parameters.get("auto_detect", True)
         user_columns = parameters.get("columns", [])
         max_cardinality = parameters.get("max_cardinality", 50)
         threshold_high = parameters.get("imbalance_threshold_high", 0.90)
         threshold_low = parameters.get("imbalance_threshold_low", 0.05)
 
+        # Class balance is opt-in: it only contributes to the Quality Score when
+        # the user explicitly selects columns to track. Auto-detected columns
+        # still produce informational issues but do not pull the score down,
+        # because natural class imbalance (e.g. 97/3 fraud) is not a data-quality
+        # defect in itself per ISO/IEC 5259.
+        explicit_mode = bool([c for c in user_columns if c in df.columns])
         target_columns = [c for c in user_columns if c in df.columns]
 
         if auto_detect:
@@ -29,6 +34,12 @@ class ClassBalanceMetric(BaseMetric):
                     continue
                 n_unique = df[col].nunique(dropna=True)
                 if n_unique <= 1:
+                    continue
+                n_total = df[col].count()
+                unique_ratio = n_unique / n_total if n_total > 0 else 1.0
+                # Skip high-cardinality columns: if >25% of values are unique the column
+                # is likely an identifier, free-text or email — not a true category.
+                if unique_ratio > 0.25:
                     continue
                 if n_unique <= max_cardinality:
                     if df[col].dtype == "object" or str(df[col].dtype) == "category":
@@ -150,15 +161,30 @@ class ClassBalanceMetric(BaseMetric):
                     ),
                 })
 
-        overall = sum(balance_scores) / len(balance_scores) if balance_scores else 1.0
+        # Only the explicitly-selected columns contribute to the score.
+        # Auto-detected columns are kept in `results` for visibility and still
+        # generate issues, but do not affect the Quality Score.
+        if explicit_mode:
+            explicit_scores = [
+                balance_results[c]["balance_index"] / 100.0
+                for c in target_columns if c in balance_results
+            ]
+            overall = (
+                sum(explicit_scores) / len(explicit_scores)
+                if explicit_scores else 1.0
+            )
+            score_value: float | None = float(overall)
+        else:
+            overall = sum(balance_scores) / len(balance_scores) if balance_scores else 1.0
+            score_value = None  # Opt-in: auto-detected only → excluded from Quality Score
 
         logger.info(
             f"[{self.log_prefix}] analyzed={len(balance_results)} cols, "
-            f"overall index={overall * 100:.1f}/100"
+            f"overall index={overall * 100:.1f}/100, explicit_mode={explicit_mode}"
         )
         return MetricResult(
             metric_id="class_balance",
-            score=overall * weight,
+            score=score_value,
             results={"class_balance": {
                 "overall_balance_index": round(overall * 100, 2),
                 "columns_analyzed": len(balance_results),
