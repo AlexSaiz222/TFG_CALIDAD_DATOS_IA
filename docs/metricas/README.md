@@ -71,65 +71,66 @@ Cuando el usuario lanza una evaluación, el servicio `EvaluationService.run_eval
 
 ## Cálculo del Quality Score global
 
-El Quality Score combina una **media aritmética ponderada** de los scores de cada métrica con una **penalización por issues**:
+El Quality Score funciona como un **sistema de calificación** (0–100): parte de 100 y descuenta según los issues detectados, normalizado por la amplitud del dataset.
 
-### Paso 1 — Media ponderada de métricas
+### Por qué no se usan los scores de ratio como nota
 
-```
-             Σ (score_i × weight_i)
-base_score = ──────────────────────        score_i ∈ [0, 1]
-                 Σ (weight_i)
-```
+Los scores de métrica miden el porcentaje de valores válidos por dimensión. Son útiles como diagnóstico, pero diluyen problemas concentrados: 3 fechas imposibles en 200 filas representan un 1.5 % del ratio y apenas afectan a la nota aunque el dataset sea inutilizable para análisis temporal. Los issues capturan estos problemas cualitativos con mayor fidelidad.
 
-### Paso 2 — Penalización por issues
+### Fórmula (3 pasos)
 
-Los scores de métrica miden el porcentaje de valores válidos, pero problemas concentrados o cualitativos (ej. 3 fechas imposibles en 200 filas, un email claramente inválido) apenas afectan al ratio global aunque hacen el dataset inutilizable. La penalización captura esto usando el conteo de issues por severidad:
+**Paso 1 — Penalización bruta por issues**
 
 ```
 raw_penalty = critical × 0.12 + high × 0.05 + medium × 0.01 + low × 0.003
-issue_penalty = min(0.80, raw_penalty)
 ```
 
-| Severidad | Penalización por issue |
-|-----------|------------------------|
+| Severidad  | Penalización por issue |
+|------------|------------------------|
 | `critical` | −12 % |
 | `high`     | −5 % |
 | `medium`   | −1 % |
 | `low`      | −0.3 % |
 
-La penalización máxima es **−80 %** para evitar que datasets con muchos issues de baja severidad lleguen a cero.
+**Paso 2 — Normalización por dimensionalidad**
 
-### Paso 3 — Score final
+Datasets más anchos exponen más issues potenciales. El factor `√(max(10, cols) / 10)` ajusta la penalización para que la misma densidad de problemas produzca la misma nota independientemente del número de columnas:
 
 ```
-quality_score = max(0, base_score − issue_penalty)
+column_scale  = √(max(10, num_columns) / 10)
+issue_penalty = min(0.97, raw_penalty / column_scale)
 ```
 
-**Ejemplo** (dataset con 3 issues críticos, 5 altos, 10 medios, 8 bajos):
+La referencia es **10 columnas**. Con `sqrt` el efecto se amortigua en datasets muy anchos (50 cols → ×2.24, no ×5).
+
+**Paso 3 — Score final**
+
 ```
-base_score  = 0.871
-raw_penalty = 3×0.12 + 5×0.05 + 10×0.01 + 8×0.003 = 0.734
-quality_score = 0.871 − 0.734 = 0.137  →  13.7%
+quality_score = max(0.0, 1.0 − issue_penalty)
 ```
 
-### Reglas generales
+**Ejemplo** (12 columnas, 3 críticos, 5 altos, 10 medios, 8 bajos):
+```
+raw_penalty  = 3×0.12 + 5×0.05 + 10×0.01 + 8×0.003 = 0.734
+column_scale = √(12/10) = 1.095
+issue_penalty = min(0.97, 0.734/1.095) = 0.670
+quality_score = 1.0 − 0.670 = 0.330  →  33 / 100
+```
 
-1. Cada métrica devuelve su score **crudo** en `[0, 1]` sin aplicar el peso (el peso se aplica una única vez en el servicio).
-2. Las métricas que devuelven `score=None` se **excluyen tanto del numerador como del denominador**. Esto ocurre cuando `logical_consistency` no tiene reglas configuradas o cuando `class_balance` no tiene columnas explícitas.
-3. El resultado final se acota a `[0, 1]` y se muestra en escala `0–100` en la interfaz.
+### Scores de métrica como diagnóstico
+
+Cada métrica sigue devolviendo su score crudo en `[0, 1]` (porcentaje de valores válidos). La media ponderada de estos scores se muestra en la UI como **"diagnóstico por dimensión"** para ayudar a localizar el origen de los issues. Las métricas que devuelven `score=None` (`logical_consistency` sin reglas, `class_balance` sin columnas explícitas) se excluyen del diagnóstico.
 
 ### Sistema de pesos
 
-Cada métrica tiene un campo `weight` (por defecto `1.0`) que se aplica únicamente en la fórmula del paso 1. El peso permite dar más o menos importancia a ciertas dimensiones sin alterar el score que devuelve la métrica.
-
-Configuración de ejemplo:
+El campo `weight` (por defecto `1.0`) pondera la importancia relativa de cada métrica en la media de diagnóstico. No afecta al Quality Score final (que se basa en el conteo de issues).
 
 ```json
 {
   "metrics": [
-    { "id": "completeness",       "parameters": {},                       "weight": 1.0 },
-    { "id": "uniqueness",         "parameters": { "threshold": 1.0 },     "weight": 1.0 },
-    { "id": "syntactic_accuracy", "parameters": { "threshold": 0.95 },    "weight": 0.8 }
+    { "id": "completeness",       "parameters": {},                       "weight": 1.5 },
+    { "id": "uniqueness",         "parameters": { "threshold": 1.0 },     "weight": 1.5 },
+    { "id": "syntactic_accuracy", "parameters": { "threshold": 0.95 },    "weight": 1.0 }
   ]
 }
 ```
@@ -163,7 +164,7 @@ Un Quality Gate es una configuración por proyecto que establece umbrales mínim
 | `WARNING` | Algún umbral rozado (configurable) |
 | `FAILED` | Al menos un umbral incumplido |
 
-La penalización por issues ya rebaja el `quality_score` de forma proporcional a los problemas encontrados. El Quality Gate añade una verificación explícita de umbrales absolutos: si el score final no alcanza `min_score` o existen más issues críticos de los permitidos, la evaluación falla aunque los ratios por métrica parezcan aceptables.
+El Quality Score ya refleja la penalización por issues. El Quality Gate añade una verificación explícita de umbrales absolutos: si el score final no alcanza `min_score` o existen más issues críticos de los permitidos (`max_critical_issues`), la evaluación falla. Esto permite bloquear datasets incluso cuando la penalización no llega al umbral de corte pero los issues críticos son inadmisibles.
 
 ---
 

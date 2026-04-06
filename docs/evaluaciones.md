@@ -46,9 +46,9 @@ El usuario selecciona un dataset y las métricas a ejecutar. La configuración s
 ```json
 {
   "metrics": [
-    { "id": "completeness",  "parameters": { "threshold": 0.95 }, "weight": 1.0 },
-    { "id": "uniqueness",    "parameters": { "threshold": 1.0 },  "weight": 1.0 },
-    { "id": "outliers",      "parameters": { "method": "iqr", "factor": 1.5 }, "weight": 0.8 }
+    { "id": "completeness",       "parameters": { "threshold": 0.95 }, "weight": 1.0 },
+    { "id": "uniqueness",         "parameters": { "threshold": 1.0 },  "weight": 1.0 },
+    { "id": "syntactic_accuracy", "parameters": { "threshold": 0.95 }, "weight": 1.0 }
   ]
 }
 ```
@@ -64,9 +64,8 @@ El servicio descarga el archivo desde **MinIO** (almacenamiento S3) y lo lee com
 Para cada métrica configurada, el servicio:
 
 1. Obtiene la instancia de la métrica del **registro** (`MetricRegistry`).
-2. Inyecta el `weight` en los parámetros.
-3. Llama a `metric.evaluate(df, parameters, dataset, evaluation_id, metrics_map)`.
-4. Recoge el `MetricResult` con: score, resultados detallados e issues.
+2. Llama a `metric.evaluate(df, parameters, dataset, evaluation_id, metrics_map)`.
+3. Recoge el `MetricResult` con: score de diagnóstico, resultados detallados e issues.
 
 Cada métrica hereda de `BaseMetric` e implementa su lógica de evaluación independiente.
 
@@ -83,82 +82,100 @@ Estas estadísticas se muestran en el detalle de la evaluación y son independie
 
 ### 2.5 Cálculo del Quality Score (92%)
 
-El Quality Score es la puntuación global que resume la calidad del dataset. Se calcula en dos fases:
+El Quality Score es la puntuación global (0–100) que refleja la calidad del dataset. Funciona como un **sistema de calificación**: parte de 100 y se descuenta según los problemas encontrados.
 
-#### Fase 1: Media ponderada de métricas
+#### Por qué no se usan directamente los scores de métrica
 
-Cada métrica devuelve un score en escala `[0.0, 1.0]` multiplicado por su peso (`weight`). El score base se calcula como **media ponderada**:
+Las métricas calculan el **porcentaje de valores válidos** por dimensión (ratio de celdas). Este enfoque dilute problemas concentrados: 3 fechas imposibles en 200 filas apenas afectan al ratio (~1.5%) aunque hagan el dataset inutilizable para análisis temporal. Los **issues** capturan estos problemas cualitativos con mayor fidelidad.
 
-```
-                     Σ (score_i × weight_i)
-base_score = ─────────────────────────────────
-                       Σ weight_i
-```
+Los scores de métrica se mantienen como **diagnóstico** (ayudan a localizar el origen del problema) pero no son los que determinan la nota final.
 
-**Ejemplo con 3 métricas:**
+#### Fórmula del Quality Score
 
-| Métrica | Score bruto | Peso | Score × Peso |
-|---------|-------------|------|--------------|
-| completeness | 0.90 | 1.0 | 0.90 |
-| uniqueness | 0.95 | 1.0 | 0.95 |
-| outliers | 0.80 | 0.8 | 0.64 |
+**Paso 1 — Penalización bruta por issues**
 
-```
-base_score = (0.90 + 0.95 + 0.64) / (1.0 + 1.0 + 0.8)
-           = 2.49 / 2.8
-           = 0.8893
-```
+Cada issue detectado contribuye según su severidad:
 
-#### Fase 2: Penalización por issues
-
-Los issues detectados aplican una penalización sobre el score base, proporcional a su severidad:
-
-| Severidad del issue | Penalización por issue |
-|---------------------|------------------------|
-| `high` | −0.05 (5%) |
-| `medium` | −0.025 (2.5%) |
-| `low` | −0.01 (1%) |
+| Severidad | Penalización por issue |
+|-----------|------------------------|
+| `critical` | −12 % |
+| `high`     | −5 % |
+| `medium`   | −1 % |
+| `low`      | −0.3 % |
 
 ```
-penalización = (nº_high × 0.05) + (nº_medium × 0.025) + (nº_low × 0.01)
+raw_penalty = critical × 0.12 + high × 0.05 + medium × 0.01 + low × 0.003
 ```
 
-#### Resultado final
+**Paso 2 — Normalización por dimensionalidad**
+
+Datasets con más columnas generan más issues potenciales. Un factor de escala basado en la raíz cuadrada del número de columnas normaliza la penalización para que la misma densidad de problemas produzca la misma nota, independientemente de la amplitud del dataset:
 
 ```
-quality_score = max(0.0, min(1.0, base_score − penalización))
+column_scale = √(max(10, num_columns) / 10)
+issue_penalty = min(0.97, raw_penalty / column_scale)
 ```
 
-El score se almacena en escala 0.0–1.0 internamente, pero se muestra al usuario en escala **0–100** (multiplicado × 100).
+La referencia es 10 columnas (dataset estándar). La función `sqrt` amortigua el efecto en datasets muy anchos.
 
-**Ejemplo completo:**
+**Paso 3 — Score final**
 
 ```
-base_score = 0.8893
-
-Issues detectados: 2 high, 3 medium, 1 low
-penalización = (2 × 0.05) + (3 × 0.025) + (1 × 0.01) = 0.185
-
-quality_score = max(0.0, min(1.0, 0.8893 − 0.185))
-              = 0.7043
-
-Mostrado al usuario: 70.43 / 100
+quality_score = max(0.0, 1.0 − issue_penalty)
 ```
+
+El score se almacena en escala `[0.0, 1.0]` internamente y se muestra al usuario en escala **0–100**.
+
+#### Ejemplos
+
+**Dataset con pocos problemas** (5 columnas, 0 críticos, 1 alto, 2 medios):
+```
+raw_penalty  = 1×0.05 + 2×0.01 = 0.07
+column_scale = √(max(10,5)/10) = 1.0
+issue_penalty = min(0.97, 0.07/1.0) = 0.07
+quality_score = 1.0 − 0.07 = 0.93  →  93 / 100
+```
+
+**Dataset mediocre** (12 columnas, 1 crítico, 3 altos, 5 medios):
+```
+raw_penalty  = 1×0.12 + 3×0.05 + 5×0.01 = 0.32
+column_scale = √(12/10) = 1.095
+issue_penalty = min(0.97, 0.32/1.095) = 0.292
+quality_score = 1.0 − 0.292 = 0.708  →  70.8 / 100
+```
+
+**Dataset deficiente** (12 columnas, 3 críticos, 5 altos, 10 medios, 8 bajos):
+```
+raw_penalty  = 3×0.12 + 5×0.05 + 10×0.01 + 8×0.003 = 0.734
+column_scale = √(12/10) = 1.095
+issue_penalty = min(0.97, 0.734/1.095) = 0.670
+quality_score = 1.0 − 0.670 = 0.330  →  33.0 / 100
+```
+
+#### Escala orientativa de calificación
+
+| Quality Score | Interpretación |
+|---------------|----------------|
+| 90–100 | Excelente — sin issues o únicamente bajos |
+| 75–89  | Bueno — algunos issues medios o un issue alto |
+| 60–74  | Aceptable — issues altos o combinación media/alta |
+| 40–59  | Deficiente — issues críticos o muchos altos |
+| 0–39   | Muy deficiente — múltiples críticos, dataset problemático |
 
 ---
 
-## 3. Sistema de pesos
+## 3. Sistema de pesos por métrica
 
-Cada métrica tiene un campo `weight` (por defecto `1.0`) que controla su importancia relativa en el Quality Score:
+Cada métrica tiene un campo `weight` (por defecto `1.0`) que controla la importancia relativa de sus scores de **diagnóstico** (media ponderada mostrada en el panel de cálculo). El peso **no afecta al Quality Score final**, que se basa únicamente en el conteo de issues.
 
-| Weight | Efecto |
-|--------|--------|
+| Weight | Efecto en el diagnóstico |
+|--------|--------------------------|
 | `1.0` | Importancia estándar |
 | `0.5` | La mitad de importancia |
 | `1.5` | 50% más importante |
-| `0.0` | La métrica se ejecuta y genera issues, pero no afecta al score |
+| `0.0` | La métrica se ejecuta y genera issues, pero no aparece en el diagnóstico |
 
-El peso se aplica **dentro de cada métrica** (el score devuelto ya lo incluye) y la agregación en `EvaluationService` divide por la suma total de pesos para obtener una media ponderada correcta.
+> El peso puede utilizarse en el futuro para ponderar la importancia de cada dimensión en el diagnóstico o en informes, pero actualmente solo afecta a la visualización de la media ponderada de diagnóstico.
 
 ---
 
@@ -190,15 +207,6 @@ La severidad se calcula dinámicamente según la distancia entre el valor real y
 | `umbral − valor > 0.05` | `medium` |
 | en otro caso | `low` |
 
-**Para outliers** (basado en proporción de valores atípicos):
-
-| Proporción outliers | Severidad |
-|---------------------|-----------|
-| `≥ 20%` | `critical` |
-| `≥ 10%` | `high` |
-| `≥ 5%` | `medium` |
-| `< 5%` | `low` |
-
 **Para class_balance** (basado en proporción de clase dominante):
 
 | Proporción clase dominante | Severidad |
@@ -221,7 +229,7 @@ La severidad se calcula dinámicamente según la distancia entre el valor real y
 Los datasets pueden marcar columnas como sensibles (PII, credenciales, etc.). Todas las métricas respetan esta configuración:
 
 - Los **samples** de filas problemáticas muestran `"***"` en lugar del valor real.
-- Las **estadísticas descriptivas** se omiten para columnas sensibles en outliers.
+- Las **estadísticas descriptivas** se omiten para columnas sensibles.
 - Las **etiquetas de clase** se enmascaran en class_balance.
 
 ---
@@ -296,40 +304,41 @@ Umbral max_critical: 0
 
 ---
 
-## 7. Las 7 métricas disponibles
+## 7. Las 6 métricas de calidad disponibles
 
-Cada métrica evalúa un aspecto diferente de la calidad del dataset. Para documentación detallada de cada una, consulta `docs/metricas/`.
+Cada métrica evalúa un aspecto diferente de la calidad del dataset y genera issues que alimentan el Quality Score. Para documentación detallada de cada una, consulta `docs/metricas/`.
 
-| Métrica | Qué mide | Score | Issues típicos |
-|---------|----------|-------|----------------|
-| **Completeness** | % de valores no nulos | `1 − media(ratio_nulos)` | Dataset/columna con baja completitud |
-| **Uniqueness** | Filas duplicadas y variabilidad | `filas_únicas / total` | Duplicados, baja variabilidad, ID no único |
-| **Outliers** | Valores atípicos numéricos (IQR/Z-score) | `1 − ratio_outliers × 3` | Columna con outliers (con % y muestra) |
-| **Syntactic Accuracy** | Formato correcto según tipo (email, fecha, etc.) | `media(conformance_rates)` | Columna con valores que no cumplen el patrón |
-| **Logical Consistency** | Reglas de negocio IF-THEN / violación directa | `media(compliance_rates)` | Regla de negocio violada (con filas de ejemplo) |
-| **Class Balance** | Distribución de categorías (entropía Shannon) | `balance_index / 100` | Clase dominante (≥90%), clase minoritaria (≤5%) |
-| **Timeliness** | Frescura de columnas de fecha | `media(freshness_scores)` | Datos obsoletos, baja tasa de parseo de fechas |
+| Métrica | Qué mide | Issues típicos |
+|---------|----------|----------------|
+| **Completeness** | % de valores no nulos | Dataset/columna con baja completitud |
+| **Uniqueness** | Filas duplicadas y variabilidad de identificadores | Duplicados, baja variabilidad, ID no único |
+| **Syntactic Accuracy** | Formato correcto según tipo (email, fecha, UUID…) | Columna con valores que no cumplen el patrón |
+| **Logical Consistency** | Reglas de negocio IF-THEN entre columnas | Regla de negocio violada (con filas de ejemplo) |
+| **Class Balance** | Distribución equilibrada de categorías (opt-in) | Clase dominante, clase minoritaria |
+| **Timeliness** | Frescura y antigüedad de fechas | Datos obsoletos, baja tasa de parseo de fechas |
 
-### 7.1 Cómo contribuye cada métrica al score final
+> **Outliers** no es una métrica de calidad según ISO/IEC 5259. La clase `OutliersMetric` existe en el código pero solo se usa desde el flujo de **Data Profiling** y no contribuye al Quality Score.
+
+### 7.1 Cómo fluyen los datos hacia el score
 
 ```
-                    ┌───────────────┐
-                    │ Completeness  │──── score × weight ──┐
-                    ├───────────────┤                      │
-                    │ Uniqueness    │──── score × weight ──┤
-                    ├───────────────┤                      │
-                    │ Outliers      │──── score × weight ──┤    Media
-                    ├───────────────┤                      ├──► ponderada ──► base_score
-                    │ Syntactic Acc │──── score × weight ──┤    (÷ Σweights)
-                    ├───────────────┤                      │
-                    │ Logical Cons  │──── score × weight ──┤
-                    ├───────────────┤                      │
-                    │ Class Balance │──── score × weight ──┤
-                    ├───────────────┤                      │
-                    │ Timeliness    │──── score × weight ──┘
-                    └───────────────┘
-
-                    base_score ─── penalización por issues ──► quality_score (0-100)
+┌───────────────┐
+│ Completeness  │──► issues (critical/high/medium/low) ──┐
+├───────────────┤                                         │
+│ Uniqueness    │──► issues                               │
+├───────────────┤                                         │   conteo
+│ Syntactic Acc │──► issues                               ├──► por      ──► raw_penalty
+├───────────────┤                                         │   severidad
+│ Logical Cons  │──► issues                               │
+├───────────────┤                                         │
+│ Class Balance │──► issues (si opt-in)                   │
+├───────────────┤                                         │
+│ Timeliness    │──► issues                               │
+└───────────────┘                                         │
+                                                          ▼
+                        raw_penalty / √(cols/10) = issue_penalty
+                                                          │
+                        1.0 − issue_penalty = quality_score (0–100)
 ```
 
 ---
@@ -343,7 +352,7 @@ Los resultados se almacenan en dos sistemas paralelos por compatibilidad:
 - `quality_score` (float): score en escala 0–100.
 - `status`: `pending` → `processing` → `completed` / `failed`.
 
-### Tablas nuevas (Sonar-Lite): `analysis_runs` + `data_quality_issues`
+### Tablas nuevas: `analysis_runs` + `data_quality_issues`
 - `AnalysisRun`: metadatos de la ejecución, score, contadores de issues, estado del Quality Gate.
 - `DataQualityIssue`: cada issue como registro individual con fingerprint, severidad mapeada (`high` → `major`, `medium` → `minor`, `low` → `info`).
 
@@ -352,50 +361,50 @@ Los resultados se almacenan en dos sistemas paralelos por compatibilidad:
 ```json
 {
   "overall": {
-    "quality_score": 0.7043,
-    "metrics_processed": ["completeness", "uniqueness", "outliers"],
+    "quality_score": 0.330,
+    "metrics_processed": ["completeness", "uniqueness", "syntactic_accuracy"],
     "score_breakdown": {
       "metric_scores": {
-        "completeness": 0.9000,
-        "uniqueness": 0.9500,
-        "outliers": 0.6400
+        "completeness": 0.8970,
+        "uniqueness": 0.9830,
+        "syntactic_accuracy": 0.8670
       },
-      "base_score": 0.8893,
-      "issue_penalty": 0.1850,
-      "penalty_detail": {
-        "high_issues": 2,
-        "medium_issues": 3,
-        "low_issues": 1,
-        "high_weight": 0.05,
-        "medium_weight": 0.025,
-        "low_weight": 0.01
+      "metric_weights": {
+        "completeness": 1.5,
+        "uniqueness": 1.5,
+        "syntactic_accuracy": 1.0
       },
-      "final_score": 0.7043
-    },
-    "completeness": 0.90,
-    "uniqueness": { ... },
-    "outliers": { ... }
+      "diagnostic_base_score": 0.9214,
+      "raw_penalty": 0.7340,
+      "column_scale": 1.0954,
+      "num_columns": 12,
+      "issue_penalty": 0.6700,
+      "penalty_weights": { "critical": 0.12, "high": 0.05, "medium": 0.01, "low": 0.003 },
+      "final_score": 0.330,
+      "formula": "issue_penalty_with_dimensionality",
+      "issue_counts": {
+        "critical": 3,
+        "high": 5,
+        "medium": 10,
+        "low": 8
+      }
+    }
   },
   "column_metrics": {
-    "columna_1": {
-      "completeness": 0.98,
-      "uniqueness": 0.75,
+    "email": {
+      "completeness": 0.95,
+      "uniqueness": 0.98,
       "n_nulls": 2,
-      "n_non_nulls": 98,
-      "n_unique": 75,
-      "type": "float64",
-      "min": 0.5,
-      "max": 100.0,
-      "mean": 45.2,
-      "median": 42.0,
-      "std": 15.3
+      "n_non_nulls": 206,
+      "n_unique": 202,
+      "type": "object"
     }
   },
   "diff": {
     "baseline_analysis_id": 5,
-    "new_issues_count": 1,
-    "fixed_issues_count": 2,
-    "recurrent_issues_count": 4,
+    "new_issues_count": 2,
+    "fixed_issues_count": 1,
+    "recurrent_issues_count": 23,
     "has_baseline": true
   }
 }
@@ -430,72 +439,62 @@ El frontend consulta `/api/evaluations/<id>/status` periódicamente para actuali
 ```json
 {
   "metrics": [
-    { "id": "completeness",  "parameters": { "threshold": 0.95 }, "weight": 1.0 },
-    { "id": "uniqueness",    "parameters": {},                    "weight": 1.0 },
-    { "id": "outliers",      "parameters": { "method": "iqr" },   "weight": 0.8 }
+    { "id": "completeness",       "parameters": { "threshold": 0.95 }, "weight": 1.0 },
+    { "id": "uniqueness",         "parameters": {},                    "weight": 1.0 },
+    { "id": "syntactic_accuracy", "parameters": { "threshold": 0.95 }, "weight": 1.0 }
   ]
 }
 ```
 
-### Dataset de ejemplo (100 filas)
+### Dataset de ejemplo (100 filas, 4 columnas: `id`, `nombre`, `email`, `salario`)
 
-- 3 columnas: `id`, `nombre`, `salario`
 - 5 filas con `nombre` nulo
 - 2 filas duplicadas
-- 3 outliers en `salario`
+- 3 emails con formato inválido
 
 ### Ejecución de métricas
 
 **Completeness:**
 ```
-score_bruto = 1 − (0 + 5 + 0) / (3 × 100) = 0.9833
-score = 0.9833 × 1.0 = 0.9833
+ratio_nombre = 95/100 = 0.95  (justo en el umbral → low)
+score_diagnóstico = 0.95
 
-Issues: 1 (columna 'nombre' < 98% completitud)
-  → severidad: low (distancia = 0.98 − 0.95 = 0.03)
+Issues generados: 1 low
 ```
 
 **Uniqueness:**
 ```
-filas_únicas = 98 / 100 = 0.98
-score = 0.98 × 1.0 = 0.98
+filas_únicas = 98/100 = 0.98 < threshold 1.0 → medium
+score_diagnóstico = 0.98
 
-Issues: 1 (2 filas duplicadas)
-  → severidad: medium (distancia = 1.0 − 0.98 = 0.02... pero > 0.0 con threshold 1.0)
+Issues generados: 1 medium
 ```
 
-**Outliers:**
+**Syntactic Accuracy:**
 ```
-salario: 3 outliers de 100 = 3%
-col_score = max(0, 1 − 0.03 × 3) = 0.91
-score = 0.91 × 0.8 = 0.728
+email: 97/100 válidos = 0.97 ≥ 0.95 → sin issue
+score_diagnóstico = 0.97
 
-Issues: 1 (3% outliers en salario)
-  → severidad: low (< 5%)
+Issues generados: 0
 ```
 
 ### Cálculo del Quality Score
 
 ```
-Scores ponderados: [0.9833, 0.98, 0.728]
-Pesos: [1.0, 1.0, 0.8]
+Issues: 0 critical, 0 high, 1 medium, 1 low
+num_columns = 4
 
-base_score = (0.9833 + 0.98 + 0.728) / (1.0 + 1.0 + 0.8)
-           = 2.6913 / 2.8
-           = 0.9612
+raw_penalty  = 0×0.12 + 0×0.05 + 1×0.01 + 1×0.003 = 0.013
+column_scale = √(max(10, 4) / 10) = √1.0 = 1.0    ← referencia (< 10 cols)
+issue_penalty = min(0.97, 0.013 / 1.0) = 0.013
 
-Issues: 0 high, 1 medium, 2 low
-penalización = (0 × 0.05) + (1 × 0.025) + (2 × 0.01) = 0.045
-
-quality_score = max(0.0, min(1.0, 0.9612 − 0.045)) = 0.9162
-
-Mostrado al usuario: 91.62 / 100
+quality_score = 1.0 − 0.013 = 0.987  →  98.7 / 100
 ```
 
 ### Quality Gate
 
 ```
-quality_score = 0.9162 (91.62%) ≥ 0.70 (70%) → ✓
+quality_score = 98.7% ≥ 70% → ✓
 critical_issues = 0 ≤ 0 → ✓
 
 Resultado: PASSED ✅
