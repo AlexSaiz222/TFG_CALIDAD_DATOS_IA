@@ -60,8 +60,8 @@ class UniquenessMetric(BaseMetric):
 
         # 3. Issues: column variability
         for col_issue in column_variability_issues:
-            severity = self.calculate_dynamic_severity(
-                col_issue["variability"], col_issue["threshold_used"], higher_is_better=True
+            severity = self._variability_severity(
+                col_issue["variability"], col_issue["threshold_used"], col_issue["column_type"]
             )
             issues.append({
                 "evaluation_id": evaluation_id,
@@ -169,3 +169,29 @@ class UniquenessMetric(BaseMetric):
             return 0.95
         is_categorical = series.nunique() <= 20 and not pd.api.types.is_numeric_dtype(series)
         return 0.05 if is_categorical else 0.30
+
+    def _variability_severity(self, variability: float, threshold: float, col_type: str) -> str:
+        """Severity for low-variability issues.
+
+        ID columns use the standard absolute scale (a near-constant ID is
+        always critical). Categorical and text columns use a *relative* gap
+        to avoid flagging legitimate repetition as critical: having 3.5% unique
+        values in a 200-row department column is expected, not catastrophic.
+
+        Relative gap = (threshold - variability) / threshold:
+          >= 50% below threshold → high
+          >= 20% below threshold → medium
+          <  20% below threshold → low
+        """
+        if col_type == "ID":
+            return self.calculate_dynamic_severity(
+                variability, threshold, higher_is_better=True
+            )
+        if threshold <= 0:
+            return "low"
+        relative_gap = (threshold - variability) / threshold
+        if relative_gap >= 0.50:
+            return "high"
+        if relative_gap >= 0.20:
+            return "medium"
+        return "low"
