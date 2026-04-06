@@ -1,4 +1,5 @@
 from datetime import datetime
+import math
 import pandas as pd
 import numpy as np
 import io
@@ -403,9 +404,22 @@ class EvaluationService:
             self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...", analysis_run_id)
 
             # ── Quality Score ────────────────────────────────────────────────────
-            # Step 1: weighted arithmetic mean of raw metric scores.
-            # Each metric returns its raw score in [0, 1] (no weight applied
-            # internally). Metrics that opted out (score=None) are excluded.
+            # The Quality Score starts at 100 % and is reduced by a penalty based
+            # on the count and severity of detected issues.
+            #
+            # Metric scores (ratio of valid cells per dimension) are kept as
+            # diagnostic information but do NOT feed the final grade: ratio-based
+            # scores dilute concentrated errors (e.g. 3 impossible dates in 200
+            # rows barely affect the ratio, but the dataset is unusable for
+            # time-series). The issue-count approach captures this correctly.
+            #
+            # Dimensionality correction: wider datasets (more columns) naturally
+            # surface more issues. A sqrt(cols/10) scale factor normalises the
+            # penalty so that the same issue density produces the same grade
+            # regardless of dataset width.
+            #   formula: quality_score = max(0, 1 − min(0.97, raw_penalty / scale))
+
+            # Step 1: diagnostic base score (weighted mean, NOT used in grade).
             if metric_scores:
                 total_weight = sum(metric_weights)
                 if total_weight > 0:
@@ -415,34 +429,32 @@ class EvaluationService:
             else:
                 base_score = 0.0
 
-            # Issue counts for penalty and Quality Gate.
+            # Step 2: issue counts.
             critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
             high_count     = sum(1 for i in issues if i.get('severity') == 'high')
             medium_count   = sum(1 for i in issues if i.get('severity') == 'medium')
             low_count      = sum(1 for i in issues if i.get('severity') == 'low')
 
-            # Step 2: issue-count penalty.
-            # Metric scores measure the ratio of valid values per dimension, but
-            # concentrated or qualitative problems (e.g. 3 impossible dates out of
-            # 200 rows) barely affect the ratio while making the dataset unusable.
-            # The penalty captures this: each issue contributes proportionally to
-            # its severity, capped to avoid a zero score on borderline datasets.
+            # Step 3: dimensionality-normalised penalty.
             PENALTY_PER_ISSUE = {'critical': 0.12, 'high': 0.05, 'medium': 0.01, 'low': 0.003}
-            MAX_PENALTY = 0.80
+            REFERENCE_COLUMNS = 10
 
-            raw_penalty = (
+            num_columns   = len(df.columns)
+            column_scale  = math.sqrt(max(REFERENCE_COLUMNS, num_columns) / REFERENCE_COLUMNS)
+            raw_penalty   = (
                 critical_count * PENALTY_PER_ISSUE['critical'] +
                 high_count     * PENALTY_PER_ISSUE['high'] +
                 medium_count   * PENALTY_PER_ISSUE['medium'] +
                 low_count      * PENALTY_PER_ISSUE['low']
             )
-            issue_penalty = min(MAX_PENALTY, raw_penalty)
-            quality_score = max(0.0, min(1.0, base_score - issue_penalty))
+            issue_penalty = min(0.97, raw_penalty / column_scale)
+            quality_score = max(0.0, 1.0 - issue_penalty)
 
             logger.info(
-                f"[SCORE] base={base_score:.4f} penalty={issue_penalty:.4f} "
-                f"(raw={raw_penalty:.4f}, crit={critical_count}, high={high_count}, "
-                f"med={medium_count}, low={low_count}) final={quality_score:.4f}"
+                f"[SCORE] issue_penalty={issue_penalty:.4f} "
+                f"(raw={raw_penalty:.4f}, scale={column_scale:.3f}, cols={num_columns}, "
+                f"crit={critical_count}, high={high_count}, med={medium_count}, low={low_count})"
+                f" final={quality_score:.4f} | diagnostic_base={base_score:.4f}"
             )
 
             self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
@@ -460,18 +472,22 @@ class EvaluationService:
                     'quality_score': quality_score,
                     'metrics_processed': processed_metrics,
                     'score_breakdown': {
+                        # Diagnostic: per-metric ratio scores (not used in grade)
                         'metric_scores': score_breakdown,
                         'metric_weights': {
                             processed_metrics[i]: metric_weights[i]
                             for i in range(len(processed_metrics))
                             if i < len(metric_weights)
                         },
-                        'base_score': round(base_score, 4),
-                        'issue_penalty': round(issue_penalty, 4),
+                        'diagnostic_base_score': round(base_score, 4),
+                        # Grade formula: 1 − min(0.97, raw_penalty / column_scale)
                         'raw_penalty': round(raw_penalty, 4),
+                        'column_scale': round(column_scale, 4),
+                        'num_columns': num_columns,
+                        'issue_penalty': round(issue_penalty, 4),
                         'penalty_weights': PENALTY_PER_ISSUE,
                         'final_score': round(quality_score, 4),
-                        'formula': 'weighted_mean_with_issue_penalty',
+                        'formula': 'issue_penalty_with_dimensionality',
                         'issue_counts': {
                             'critical': critical_count,
                             'high': high_count,

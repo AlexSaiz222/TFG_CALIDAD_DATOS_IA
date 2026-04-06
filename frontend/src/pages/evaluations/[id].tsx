@@ -795,54 +795,21 @@ const EvaluationDetail = () => {
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 3, pb: 3 }}>
                 <Typography variant="body2" sx={{ color: '#555555', mb: 3 }}>
-                  El Quality Score combina la media ponderada de las métricas con una penalización por issues. Los scores de métrica miden el porcentaje de valores válidos, pero problemas concentrados o cualitativos (ej. fechas imposibles, emails inválidos) se capturan con la penalización según su severidad.
+                  El Quality Score parte de 100% y deduce una penalización según los issues detectados, normalizada por el número de columnas del dataset. Los scores por dimensión son un diagnóstico complementario.
                 </Typography>
 
-                {/* Step 1: Metric Scores */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#333' }}>
-                    1. Puntuaciones por métrica
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {Object.entries(overallMetrics.score_breakdown.metric_scores || {}).map(([metric, score]: [string, any]) => {
-                      const pct = (score * 100).toFixed(1);
-                      const color = score >= 0.8 ? '#00B37E' : score >= 0.6 ? '#FFB800' : '#E5484D';
-                      const weight = overallMetrics.score_breakdown.metric_weights?.[metric];
-                      return (
-                        <Paper key={metric} elevation={0} sx={{ px: 2, py: 1.5, border: '1px solid #EEEEEE', borderRadius: 2, minWidth: 140, backgroundColor: '#fff' }}>
-                          <Typography variant="caption" sx={{ color: '#888', textTransform: 'capitalize' }}>
-                            {metric}
-                            {weight !== undefined && weight !== 1 && (
-                              <Box component="span" sx={{ color: '#aaa', ml: 0.5 }}>×{weight}</Box>
-                            )}
-                          </Typography>
-                          <Typography variant="h6" sx={{ fontWeight: 700, color }}>
-                            {pct}%
-                          </Typography>
-                        </Paper>
-                      );
-                    })}
-                  </Box>
-                  <Typography variant="body2" sx={{ mt: 1, color: '#888' }}>
-                    Media ponderada = <strong>{(overallMetrics.score_breakdown.base_score * 100).toFixed(1)}%</strong>
-                  </Typography>
-                </Box>
-
-                <Divider sx={{ mb: 3 }} />
-
-                {/* Step 2: Issue Penalty */}
+                {/* Step 1: Issue Penalty */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
-                    2. Penalización por issues
+                    1. Penalización por issues
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
-                    Cada issue contribuye según su severidad. La penalización máxima es −80%.
+                    Cada issue resta según su severidad. La penalización máxima es −97%.
                   </Typography>
                   {(() => {
                     const ic = overallMetrics.score_breakdown.issue_counts || {};
                     const pw = overallMetrics.score_breakdown.penalty_weights || { critical: 0.12, high: 0.05, medium: 0.01, low: 0.003 };
                     const rawPenalty = overallMetrics.score_breakdown.raw_penalty ?? 0;
-                    const totalPenalty = overallMetrics.score_breakdown.issue_penalty ?? 0;
                     const COLORS: Record<string, { bg: string; color: string }> = {
                       critical: { bg: 'rgba(139,0,0,0.1)', color: '#8B0000' },
                       high:     { bg: 'rgba(229,72,77,0.1)', color: '#E5484D' },
@@ -853,38 +820,55 @@ const EvaluationDetail = () => {
                     const order = ['critical', 'high', 'medium', 'low'];
                     const total = order.reduce((acc, s) => acc + (ic[s] || 0), 0);
                     if (total === 0) {
-                      return (
-                        <Typography variant="body2" sx={{ color: '#00B37E' }}>
-                          Sin issues — penalización = 0%
-                        </Typography>
-                      );
+                      return <Typography variant="body2" sx={{ color: '#00B37E' }}>Sin issues — penalización bruta = 0%</Typography>;
                     }
                     return (
                       <Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1.5 }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1 }}>
                           {order.map(sev => {
                             const cnt = ic[sev] || 0;
                             if (cnt === 0) return null;
                             const c = COLORS[sev];
                             const contrib = cnt * (pw[sev] || 0);
                             return (
-                              <Chip
-                                key={sev}
-                                size="small"
+                              <Chip key={sev} size="small"
                                 label={`${cnt} ${LABEL[sev]}${cnt > 1 ? 's' : ''} × −${((pw[sev] || 0) * 100).toFixed(1)}% = −${(contrib * 100).toFixed(1)}%`}
                                 sx={{ backgroundColor: c.bg, color: c.color, fontWeight: 500 }}
                               />
                             );
                           })}
                         </Box>
-                        {rawPenalty > totalPenalty + 0.001 && (
-                          <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>
-                            Suma bruta −{(rawPenalty * 100).toFixed(1)}% → limitada al tope máximo de −80%
-                          </Typography>
-                        )}
-                        <Typography variant="body2" sx={{ color: '#E5484D' }}>
-                          Penalización total = <strong>−{(totalPenalty * 100).toFixed(1)}%</strong>
+                        <Typography variant="body2" sx={{ color: '#888' }}>
+                          Penalización bruta = <strong>−{(rawPenalty * 100).toFixed(1)}%</strong>
                         </Typography>
+                      </Box>
+                    );
+                  })()}
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Step 2: Dimensionality normalisation */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
+                    2. Normalización por dimensionalidad
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
+                    Datasets más anchos generan más issues. Se divide la penalización por √(columnas / 10).
+                  </Typography>
+                  {(() => {
+                    const numCols = overallMetrics.score_breakdown.num_columns ?? 0;
+                    const scale   = overallMetrics.score_breakdown.column_scale ?? 1;
+                    const raw     = overallMetrics.score_breakdown.raw_penalty ?? 0;
+                    const adj     = overallMetrics.score_breakdown.issue_penalty ?? 0;
+                    const capped  = adj >= 0.97 - 0.001;
+                    return (
+                      <Box sx={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#444' }}>
+                        <Box>√({numCols} cols / 10) = <strong>{scale.toFixed(3)}</strong></Box>
+                        <Box sx={{ mt: 0.5 }}>
+                          {(raw * 100).toFixed(1)}% / {scale.toFixed(3)} = <strong>{(adj * 100).toFixed(1)}%</strong>
+                          {capped && <Box component="span" sx={{ color: '#888', ml: 1 }}>(limitado al tope máximo −97%)</Box>}
+                        </Box>
                       </Box>
                     );
                   })()}
@@ -894,13 +878,11 @@ const EvaluationDetail = () => {
 
                 {/* Step 3: Final Score */}
                 {(() => {
-                  const finalScore = overallMetrics.score_breakdown.final_score ?? overallMetrics.score_breakdown.base_score ?? 0;
-                  const base = overallMetrics.score_breakdown.base_score ?? 0;
-                  const penalty = overallMetrics.score_breakdown.issue_penalty ?? 0;
+                  const finalScore = overallMetrics.score_breakdown.final_score ?? 0;
+                  const penalty    = overallMetrics.score_breakdown.issue_penalty ?? 0;
                   return (
                     <Box sx={{
-                      p: 2,
-                      borderRadius: 2,
+                      p: 2, borderRadius: 2, mb: 3,
                       backgroundColor: finalScore >= 0.8 ? 'rgba(0, 179, 126, 0.05)' :
                                        finalScore >= 0.5 ? 'rgba(255, 184, 0, 0.05)' : 'rgba(229, 72, 77, 0.05)',
                       border: '1px solid',
@@ -911,7 +893,7 @@ const EvaluationDetail = () => {
                         3. Puntuación final
                       </Typography>
                       <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                        {(base * 100).toFixed(1)}% (base) − {(penalty * 100).toFixed(1)}% (penalización) ={' '}
+                        100% − {(penalty * 100).toFixed(1)}% ={' '}
                         <Box component="span" sx={{
                           fontSize: '1.2rem',
                           color: finalScore >= 0.8 ? '#00B37E' : finalScore >= 0.5 ? '#FFB800' : '#E5484D',
@@ -922,6 +904,43 @@ const EvaluationDetail = () => {
                     </Box>
                   );
                 })()}
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Diagnostic: metric scores */}
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
+                    Diagnóstico por dimensión
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
+                    Porcentaje de valores válidos por métrica. Referencia para localizar el origen de los issues.
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {Object.entries(overallMetrics.score_breakdown.metric_scores || {}).map(([metric, score]: [string, any]) => {
+                      const pct = (score * 100).toFixed(1);
+                      const color = score >= 0.8 ? '#00B37E' : score >= 0.6 ? '#FFB800' : '#E5484D';
+                      const weight = overallMetrics.score_breakdown.metric_weights?.[metric];
+                      return (
+                        <Paper key={metric} elevation={0} sx={{ px: 2, py: 1.5, border: '1px solid #EEEEEE', borderRadius: 2, minWidth: 140, backgroundColor: '#fafafa' }}>
+                          <Typography variant="caption" sx={{ color: '#888', textTransform: 'capitalize' }}>
+                            {metric}
+                            {weight !== undefined && weight !== 1 && (
+                              <Box component="span" sx={{ color: '#bbb', ml: 0.5 }}>×{weight}</Box>
+                            )}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color }}>
+                            {pct}%
+                          </Typography>
+                        </Paper>
+                      );
+                    })}
+                  </Box>
+                  {overallMetrics.score_breakdown.diagnostic_base_score !== undefined && (
+                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#aaa' }}>
+                      Media ponderada de diagnóstico: {((overallMetrics.score_breakdown.diagnostic_base_score ?? 0) * 100).toFixed(1)}%
+                    </Typography>
+                  )}
+                </Box>
                 </AccordionDetails>
               </Accordion>
             )}
