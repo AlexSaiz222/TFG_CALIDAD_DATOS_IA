@@ -24,6 +24,8 @@ import {
 interface RuleResult {
   name: string;
   expression: string;
+  condition?: string;
+  assertion?: string;
   type: string;
   violation_count: number;
   total_rows: number;
@@ -92,13 +94,22 @@ const RuleRow: React.FC<{ rule: RuleResult }> = ({ rule }) => {
           </Box>
         </TableCell>
         <TableCell>
-          <Typography
-            variant="body2"
-            sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#555', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            title={rule.expression}
-          >
-            {rule.expression}
-          </Typography>
+          {rule.type === 'if_then' && rule.condition ? (
+            <Box sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#555', maxWidth: 300 }}>
+              <Typography component="span" sx={{ fontFamily: 'inherit', fontSize: 'inherit', color: '#888' }}>SI </Typography>
+              <Typography component="span" sx={{ fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 600 }}>{rule.condition}</Typography>
+              <Typography component="span" sx={{ fontFamily: 'inherit', fontSize: 'inherit', color: '#888' }}> → </Typography>
+              <Typography component="span" sx={{ fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 600 }}>{rule.assertion}</Typography>
+            </Box>
+          ) : (
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#555', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              title={rule.expression}
+            >
+              {rule.expression}
+            </Typography>
+          )}
         </TableCell>
         <TableCell>
           <Chip
