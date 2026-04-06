@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Chip, Paper } from '@mui/material';
 import {
+  Block as BlockIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
   Info as InfoIcon,
@@ -62,11 +63,20 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   selectedMetric,
   getMetricName,
 }) => {
+  const criticalCount = issues.filter((i) => i.severity === 'critical').length;
   const highCount = issues.filter((i) => i.severity === 'high').length;
   const mediumCount = issues.filter((i) => i.severity === 'medium').length;
   const lowCount = issues.filter((i) => i.severity === 'low').length;
 
   const severityConfig: SeverityConfig[] = [
+    {
+      key: 'critical',
+      label: 'Crítica',
+      count: criticalCount,
+      color: '#8B0000',
+      bgColor: 'rgba(139, 0, 0, 0.1)',
+      icon: <BlockIcon sx={{ fontSize: 16 }} />,
+    },
     {
       key: 'high',
       label: 'Alta',
@@ -91,7 +101,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
       bgColor: 'rgba(0, 179, 126, 0.1)',
       icon: <InfoIcon sx={{ fontSize: 16 }} />,
     },
-  ];
+  ].filter((c) => c.count > 0);
 
   // Metric counts
   const metricCounts: Record<string, number> = {};
