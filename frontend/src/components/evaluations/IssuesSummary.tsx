@@ -13,7 +13,7 @@ interface IssuesSummaryProps {
   selectedSeverity?: string | null;
   onMetricFilterChange?: (metric: string | null) => void;
   selectedMetric?: string | null;
-  getMetricName?: (description: string) => string;
+  getMetricName?: (issue: { issue_type?: string; description: string }) => string;
 }
 
 interface SeverityConfig {
@@ -97,7 +97,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   const metricCounts: Record<string, number> = {};
   if (getMetricName) {
     issues.forEach((issue) => {
-      const metric = getMetricName(issue.description);
+      const metric = getMetricName(issue);
       metricCounts[metric] = (metricCounts[metric] || 0) + 1;
     });
   }

@@ -792,20 +792,20 @@ export const evaluationsAPI = {
                   : [];
     
     // Clean null/undefined parameters from metrics to avoid backend validation errors
+    // Backend MetricSchema expects { id: string (metric name), name: string, parameters: dict }
     const cleanedMetrics = metrics.map((metric: any) => {
-      if (!metric.parameters) return metric;
-      
       const cleanedParams: any = {};
-      Object.entries(metric.parameters).forEach(([key, value]) => {
+      Object.entries(metric.parameters || {}).forEach(([key, value]) => {
         // Only include non-null, non-undefined values
         if (value !== null && value !== undefined) {
           cleanedParams[key] = value;
         }
       });
-      
+
       return {
-        ...metric,
-        parameters: cleanedParams
+        id: metric.name || metric.id,  // schema requires id = metric type name
+        name: metric.name,
+        parameters: cleanedParams,
       };
     });
     

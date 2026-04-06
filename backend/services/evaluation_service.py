@@ -338,13 +338,12 @@ class EvaluationService:
                 metric_progress = 25 + int(((metric_index + 1) / total_metrics) * 45)
                 metric_id = metric_config.get('id')
                 parameters = metric_config.get('parameters', {})
-                weight = metric_config.get('weight', 1.0)
+                # Weight lives inside parameters (from template config); fall back to
+                # top-level 'weight' field (MetricSchema default = 1.0) only if absent.
+                weight = parameters.get('weight', metric_config.get('weight', 1.0))
 
                 # Update progress for current metric
                 self._update_progress(evaluation_id, metric_progress, f"Analizando métrica: {metric_id}...", analysis_run_id)
-
-                # Inject weight so metric classes can read it from parameters
-                parameters["weight"] = weight
 
                 try:
                     metric_instance = get_metric(metric_id)
@@ -409,16 +408,41 @@ class EvaluationService:
             total_weight = sum(metric_weights) if metric_weights else 1.0
             base_score = sum(metric_scores) / total_weight if metric_scores else 0.0
             
-            # Apply penalty based on detected issues (severity-weighted)
-            high_count = sum(1 for i in issues if i.get('severity') == 'high')
-            medium_count = sum(1 for i in issues if i.get('severity') == 'medium')
-            low_count = sum(1 for i in issues if i.get('severity') == 'low')
-            issue_penalty = (high_count * 0.05) + (medium_count * 0.025) + (low_count * 0.01)
-            
+            # ── Issue penalty: per-metric worst-issue approach ────────────────────
+            # For each metric (grouped by metric_id) only the *worst* issue severity
+            # contributes to the penalty.  This has two key properties:
+            #   1. Column-count invariant: 12 "completeness low" issues in 12 columns
+            #      produce the same penalty as 1 "completeness low" issue in 1 column.
+            #   2. Dataset-size invariant: individual issue severity is already computed
+            #      from violation *rates* (e.g. 14.6% outliers → high), not raw counts,
+            #      so a 500-row and a 100 000-row dataset with the same rate get the
+            #      same severity and therefore the same penalty contribution.
+            # Maximum possible penalty = n_metrics × 0.15 (all critical), capped at 0.40.
+            _SEVERITY_RANK    = {'critical': 4, 'high': 3, 'medium': 2, 'low': 1}
+            _SEVERITY_PENALTY = {'critical': 0.15, 'high': 0.08, 'medium': 0.04, 'low': 0.01}
+
+            worst_per_metric: dict = {}   # metric_id (or issue_type fallback) → severity str
+            for issue in issues:
+                key = issue.get('metric_id') or issue.get('issue_type', 'unknown')
+                sev = issue.get('severity', 'low')
+                if _SEVERITY_RANK.get(sev, 0) > _SEVERITY_RANK.get(worst_per_metric.get(key), 0):
+                    worst_per_metric[key] = sev
+
+            issue_penalty = min(0.40, sum(_SEVERITY_PENALTY.get(s, 0.01) for s in worst_per_metric.values()))
+
+            # Issue counts (for logging / transparency only, not used in formula)
+            critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
+            high_count     = sum(1 for i in issues if i.get('severity') == 'high')
+            medium_count   = sum(1 for i in issues if i.get('severity') == 'medium')
+            low_count      = sum(1 for i in issues if i.get('severity') == 'low')
+
             quality_score = max(0.0, min(1.0, base_score - issue_penalty))
-            logger.info(f"[SCORE] base={base_score:.4f}, penalty={issue_penalty:.4f} "
-                        f"(high={high_count}, med={medium_count}, low={low_count}), "
-                        f"final={quality_score:.4f}")
+            logger.info(
+                f"[SCORE] base={base_score:.4f}, penalty={issue_penalty:.4f} "
+                f"(metrics_with_issues={len(worst_per_metric)}, "
+                f"crit={critical_count}, high={high_count}, med={medium_count}, low={low_count}), "
+                f"final={quality_score:.4f}"
+            )
             
             self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
             
@@ -437,12 +461,13 @@ class EvaluationService:
                         'base_score': round(base_score, 4),
                         'issue_penalty': round(issue_penalty, 4),
                         'penalty_detail': {
+                            'method': 'worst_issue_per_metric',
+                            'metrics_with_issues': len(worst_per_metric),
+                            'worst_per_metric': worst_per_metric,
+                            'critical_issues': critical_count,
                             'high_issues': high_count,
                             'medium_issues': medium_count,
                             'low_issues': low_count,
-                            'high_weight': 0.05,
-                            'medium_weight': 0.025,
-                            'low_weight': 0.01,
                         },
                         'final_score': round(quality_score, 4),
                     },

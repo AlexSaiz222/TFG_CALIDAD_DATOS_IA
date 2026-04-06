@@ -163,7 +163,7 @@ export interface Issue {
   id: number;
   evaluation_id: number;
   metric_id?: number;
-  severity: 'low' | 'medium' | 'high';
+  severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
   issue_type?: string;
   affected_columns?: any[];

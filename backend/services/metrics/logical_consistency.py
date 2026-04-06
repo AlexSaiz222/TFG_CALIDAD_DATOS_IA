@@ -38,12 +38,20 @@ class LogicalConsistencyMetric(BaseMetric):
             expression = rule.get("expression", "")
             rule_type = rule.get("type", "violation")
 
-            if not expression:
+            # if_then rules store logic in condition + assertion fields, not expression
+            if not expression and rule_type != "if_then":
                 continue
+            if not expression and rule_type == "if_then":
+                if not rule.get("condition") or not rule.get("assertion"):
+                    logger.warning(f"[{self.log_prefix}] Skipping if_then rule '{rule_name}': missing condition or assertion")
+                    continue
 
-            # Security check
-            expr_lower = expression.lower()
-            blocked_token = next((t for t in FORBIDDEN_TOKENS if t in expr_lower), None)
+            # Security check: scan expression, and for if_then rules also condition + assertion
+            strings_to_check = [expression, rule.get("condition", ""), rule.get("assertion", "")]
+            blocked_token = next(
+                (tok for s in strings_to_check for tok in FORBIDDEN_TOKENS if tok in s.lower()),
+                None,
+            )
             if blocked_token:
                 logger.warning(
                     f"[{self.log_prefix}] Blocked rule '{rule_name}': "

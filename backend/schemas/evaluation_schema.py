@@ -46,7 +46,7 @@ class CreateEvaluationSchema(Schema):
     @validates('metrics')
     def validate_metrics(self, metrics):
         """Valida que no haya métricas duplicadas"""
-        metric_ids = [m['id'] for m in metrics]
+        metric_ids = [m.get('id') for m in metrics if m.get('id')]
         if len(metric_ids) != len(set(metric_ids)):
             raise ValidationError("No se permiten métricas duplicadas")
 

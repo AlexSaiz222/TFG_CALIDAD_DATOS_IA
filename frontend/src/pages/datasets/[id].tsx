@@ -79,6 +79,7 @@ const DatasetDetail = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [evalError, setEvalError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [runningEvaluation, setRunningEvaluation] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -391,7 +392,7 @@ const DatasetDetail = () => {
     }
 
     setRunningEvaluation(true);
-    setError(null);
+    setEvalError(null);
 
     try {
       const response = await evaluationsAPI.createEvaluation(dataset.id, projectMetricsConfig);
@@ -409,7 +410,7 @@ const DatasetDetail = () => {
       // No necesitamos polling aquí - el useEffect de polling automático se encarga de todo
     } catch (error: any) {
       console.error('Error running evaluation:', error);
-      setError(error.response?.data?.message || 'Failed to run evaluation. Please try again.');
+      setEvalError(error.response?.data?.message || 'Error al lanzar la evaluación. Por favor, inténtalo de nuevo.');
       setRunningEvaluation(false);
     }
   };
@@ -475,7 +476,7 @@ const DatasetDetail = () => {
               },
             }}
           >
-            Back to Projects
+            Volver a proyectos
           </Button>
         </Box>
       </MainLayout>
@@ -572,6 +573,13 @@ const DatasetDetail = () => {
             </Button>
           </Box>
         </Box>
+
+        {/* Inline evaluation error - does NOT trigger full-page error view */}
+        {evalError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setEvalError(null)}>
+            {evalError}
+          </Alert>
+        )}
 
         {/* Dataset Info Card */}
         <Paper

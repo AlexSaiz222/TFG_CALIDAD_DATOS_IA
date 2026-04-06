@@ -188,22 +188,29 @@ const EvaluationDetail = () => {
     );
   };
 
-  const getMetricName = (desc: string): string => {
-    const lower = desc.toLowerCase();
-    if (lower.includes('completeness') || lower.includes('completitud') || lower.includes('null') || lower.includes('missing')) return 'Completitud';
-    if (lower.includes('unique') || lower.includes('duplicate') || lower.includes('unicidad') || lower.includes('duplicad')) return 'Unicidad';
-    if (lower.includes('outlier') || lower.includes('atípico')) return 'Outliers';
-    if (lower.includes('variability') || lower.includes('variabilidad')) return 'Unicidad';
-    if (lower.includes('syntactic') || lower.includes('format') || lower.includes('conforman')) return 'Exactitud sintáctica';
-    if (lower.includes('balance') || lower.includes('class') || lower.includes('categor') || lower.includes('desequilibr')) return 'Equilibrio de clases';
-    if (lower.includes('timeliness') || lower.includes('stale') || lower.includes('freshness') || lower.includes('desactualiz') || lower.includes('antiguo')) return 'Actualidad';
-    if (lower.includes('logical') || lower.includes('consistencia') || lower.includes('violation') || lower.includes('rule') || lower.includes('regla')) return 'Consistencia lógica';
+  const getMetricName = (issue: { issue_type?: string; description: string }): string => {
+    const type = issue.issue_type || '';
+    if (type === 'completeness') return 'Completitud';
+    if (type === 'low_variability' || type === 'non_unique_identifier' || type === 'duplicate_rows') return 'Unicidad';
+    if (type === 'outliers') return 'Outliers';
+    if (type === 'syntactic_accuracy') return 'Exactitud sintáctica';
+    if (type === 'class_balance') return 'Equilibrio de clases';
+    if (type === 'timeliness') return 'Actualidad';
+    if (type === 'logical_consistency') return 'Consistencia lógica';
+    const lower = (issue.description || '').toLowerCase();
+    if (lower.includes('completitud') || lower.includes('completeness') || lower.includes('null') || lower.includes('nulo')) return 'Completitud';
+    if (lower.includes('unicidad') || lower.includes('unique') || lower.includes('duplicad') || lower.includes('variabilidad')) return 'Unicidad';
+    if (lower.includes('atípico') || lower.includes('outlier')) return 'Outliers';
+    if (lower.includes('tipo esperado') || lower.includes('conformidad') || lower.includes('sintáct') || lower.includes('syntactic')) return 'Exactitud sintáctica';
+    if (lower.includes('clase') || lower.includes('desequilibr') || lower.includes('balance') || lower.includes('minoritaria')) return 'Equilibrio de clases';
+    if (lower.includes('desactualiz') || lower.includes('timeliness') || lower.includes('obsolet') || lower.includes('frescura')) return 'Actualidad';
+    if (lower.includes('regla') || lower.includes('consistencia') || lower.includes('violó') || lower.includes('logical')) return 'Consistencia lógica';
     return 'General';
   };
 
-  const filteredIssues = issues.filter((issue) => {
+  const filteredIssues = issues.filter((issue: Issue) => {
     const matchesSeverity = selectedSeverity ? issue.severity === selectedSeverity : true;
-    const matchesMetric = selectedMetric ? getMetricName(issue.description) === selectedMetric : true;
+    const matchesMetric = selectedMetric ? getMetricName(issue) === selectedMetric : true;
     return matchesSeverity && matchesMetric;
   });
 
@@ -682,7 +689,7 @@ const EvaluationDetail = () => {
                               </TableCell>
                               <TableCell>
                                 <Typography variant="caption" sx={{ fontWeight: 500, color: '#555' }}>
-                                  {getMetricName(issue.description)}
+                                  {getMetricName(issue)}
                                 </Typography>
                               </TableCell>
                               <TableCell>{issue.description}</TableCell>
