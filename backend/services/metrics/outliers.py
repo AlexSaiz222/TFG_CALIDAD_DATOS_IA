@@ -1,4 +1,10 @@
-"""Métrica de outliers: detección de valores atípicos en columnas numéricas."""
+"""Detección de valores atípicos en columnas numéricas.
+
+Según ISO/IEC 5259, la detección de outliers no es una dimensión de calidad
+de datos, sino una técnica de *data profiling*. Esta clase se mantiene para
+ser reutilizada desde el flujo de profiling, pero ya no está registrada en
+``METRIC_REGISTRY`` y no contribuye al Quality Score global.
+"""
 import logging
 
 import numpy as np
@@ -14,7 +20,6 @@ class OutliersMetric(BaseMetric):
     log_prefix = "OUTLIERS"
 
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
-        weight = parameters.get("weight", 1.0)
         columns = parameters.get("columns", [])
         method = parameters.get("method", "iqr")
         factor = parameters.get("factor", 1.5)
@@ -65,25 +70,14 @@ class OutliersMetric(BaseMetric):
                     ),
                 })
 
-        # Score: penalización 3× por ratio de outliers
-        cols_with_outliers = {c: d for c, d in outlier_results.items() if d["count"] > 0}
-        if cols_with_outliers:
-            col_scores = []
-            for col, data in cols_with_outliers.items():
-                non_null = len(df[col].dropna())
-                ratio = data["count"] / non_null if non_null > 0 else 0
-                col_scores.append(max(0.0, 1 - ratio * 3))
-            score = sum(col_scores) / len(col_scores)
-        else:
-            score = 1.0
-
         logger.info(
-            f"[{self.log_prefix}] checked={len(outlier_results)} cols, "
-            f"score={score:.4f}"
+            f"[{self.log_prefix}] checked={len(outlier_results)} cols "
+            f"(profiling mode, does not contribute to Quality Score)"
         )
+        # score=None: outliers is a profiling tool, not a scoring metric.
         return MetricResult(
             metric_id="outliers",
-            score=score * weight,
+            score=None,
             results={"outliers": outlier_results},
             issues=issues,
         )

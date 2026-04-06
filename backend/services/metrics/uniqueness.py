@@ -17,11 +17,11 @@ class UniquenessMetric(BaseMetric):
     log_prefix = "UNIQUENESS"
 
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
-        weight = parameters.get("weight", 1.0)
         uniqueness_threshold = parameters.get("threshold", 1.0)
 
         issues = []
         column_variability_issues = []
+        id_variability_ratios: list[float] = []
 
         # 1. Row-level uniqueness
         row_uniqueness = float(len(df.drop_duplicates()) / len(df)) if len(df) > 0 else 1.0
@@ -34,6 +34,14 @@ class UniquenessMetric(BaseMetric):
             num_unique = int(df[col].nunique(dropna=True))
             col_variability = num_unique / non_null_count
             threshold = self._adaptive_variability_threshold(df[col], col)
+            col_type = self.infer_column_type(df[col], col)
+
+            # Track ID columns variability for score contribution
+            if col_type == "ID":
+                id_variability_ratios.append(
+                    min(1.0, col_variability / threshold) if threshold > 0 else 1.0
+                )
+
             if col_variability < threshold and len(df) > 10:
                 column_variability_issues.append({
                     "column": col,
@@ -41,7 +49,7 @@ class UniquenessMetric(BaseMetric):
                     "unique_values": num_unique,
                     "non_null_count": non_null_count,
                     "threshold_used": float(threshold),
-                    "column_type": self.infer_column_type(df[col], col),
+                    "column_type": col_type,
                 })
 
         results = {"uniqueness": row_uniqueness, "row_uniqueness": row_uniqueness}
@@ -135,10 +143,20 @@ class UniquenessMetric(BaseMetric):
                     ),
                 })
 
-        logger.info(f"[{self.log_prefix}] row_uniqueness={row_uniqueness:.4f}")
+        # Combined score: row uniqueness + ID columns health (if any)
+        if id_variability_ratios:
+            id_health = sum(id_variability_ratios) / len(id_variability_ratios)
+            uniqueness_score = 0.7 * row_uniqueness + 0.3 * id_health
+        else:
+            uniqueness_score = row_uniqueness
+
+        logger.info(
+            f"[{self.log_prefix}] row_uniqueness={row_uniqueness:.4f}, "
+            f"id_cols={len(id_variability_ratios)}, score={uniqueness_score:.4f}"
+        )
         return MetricResult(
             metric_id="uniqueness",
-            score=row_uniqueness * weight,
+            score=float(uniqueness_score),
             results=results,
             issues=issues,
         )

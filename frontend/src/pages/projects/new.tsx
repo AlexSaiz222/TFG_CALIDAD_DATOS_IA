@@ -71,14 +71,18 @@ const NewProject = () => {
       setTemplates(tData);
 
       const mRaw = metricsRes?.data;
-      const mData = Array.isArray(mRaw) ? mRaw : (mRaw?.metrics || []);
+      const mDataAll = Array.isArray(mRaw) ? mRaw : (mRaw?.metrics || []);
+      // Outliers is no longer a scoring metric (ISO/IEC 5259): it stays in
+      // Data Profiling and is hidden from project metric configuration.
+      const mData = (Array.isArray(mDataAll) ? mDataAll : [])
+        .filter((m: any) => m?.name?.toLowerCase() !== 'outliers');
       setAllMetrics(mData);
 
-      // Default: select completeness, uniqueness, outliers
+      // Default: select completeness, uniqueness, syntactic_accuracy
       if (selectedMetricIds.size === 0) {
-        const defaultNames = ['completeness', 'uniqueness', 'outliers'];
+        const defaultNames = ['completeness', 'uniqueness', 'syntactic_accuracy'];
         const ids = new Set<number>();
-        (Array.isArray(mData) ? mData : []).forEach((m: any) => {
+        mData.forEach((m: any) => {
           if (defaultNames.includes(m.name?.toLowerCase())) ids.add(m.id);
         });
         setSelectedMetricIds(ids);

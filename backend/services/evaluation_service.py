@@ -401,56 +401,50 @@ class EvaluationService:
                     })
             
             self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...", analysis_run_id)
-            
-            # Calculate overall quality score using weighted average
-            # Each metric already returns score * weight, so we divide by the
-            # sum of weights to get a proper weighted mean.
-            total_weight = sum(metric_weights) if metric_weights else 1.0
-            base_score = sum(metric_scores) / total_weight if metric_scores else 0.0
-            
-            # ── Issue penalty: per-metric worst-issue approach ────────────────────
-            # For each metric (grouped by metric_id) only the *worst* issue severity
-            # contributes to the penalty.  This has two key properties:
-            #   1. Column-count invariant: 12 "completeness low" issues in 12 columns
-            #      produce the same penalty as 1 "completeness low" issue in 1 column.
-            #   2. Dataset-size invariant: individual issue severity is already computed
-            #      from violation *rates* (e.g. 14.6% outliers → high), not raw counts,
-            #      so a 500-row and a 100 000-row dataset with the same rate get the
-            #      same severity and therefore the same penalty contribution.
-            # Maximum possible penalty = n_metrics × 0.15 (all critical), capped at 0.40.
-            _SEVERITY_RANK    = {'critical': 4, 'high': 3, 'medium': 2, 'low': 1}
-            _SEVERITY_PENALTY = {'critical': 0.15, 'high': 0.08, 'medium': 0.04, 'low': 0.01}
 
-            worst_per_metric: dict = {}   # metric_id (or issue_type fallback) → severity str
-            for issue in issues:
-                key = issue.get('metric_id') or issue.get('issue_type', 'unknown')
-                sev = issue.get('severity', 'low')
-                if _SEVERITY_RANK.get(sev, 0) > _SEVERITY_RANK.get(worst_per_metric.get(key), 0):
-                    worst_per_metric[key] = sev
+            # ── Quality Score: weighted arithmetic mean of raw metric scores ───
+            # Each metric returns its raw score in [0, 1] (no weight applied
+            # internally). Metrics that opted out (score=None, e.g. logical
+            # consistency without rules, class_balance without explicit columns)
+            # are excluded from both numerator and denominator.
+            #
+            # Issues do NOT penalize the quality_score directly: critical
+            # problems are enforced by the Quality Gate (max_critical_issues),
+            # avoiding double counting against the metric score that already
+            # reflects the problem.
+            if metric_scores:
+                total_weight = sum(metric_weights)
+                if total_weight > 0:
+                    base_score = sum(s * w for s, w in zip(metric_scores, metric_weights)) / total_weight
+                else:
+                    base_score = sum(metric_scores) / len(metric_scores)
+            else:
+                base_score = 0.0
 
-            issue_penalty = min(0.40, sum(_SEVERITY_PENALTY.get(s, 0.01) for s in worst_per_metric.values()))
+            quality_score = max(0.0, min(1.0, base_score))
 
-            # Issue counts (for logging / transparency only, not used in formula)
+            # Issue counts kept for transparency and for the Quality Gate.
             critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
             high_count     = sum(1 for i in issues if i.get('severity') == 'high')
             medium_count   = sum(1 for i in issues if i.get('severity') == 'medium')
             low_count      = sum(1 for i in issues if i.get('severity') == 'low')
 
-            quality_score = max(0.0, min(1.0, base_score - issue_penalty))
             logger.info(
-                f"[SCORE] base={base_score:.4f}, penalty={issue_penalty:.4f} "
-                f"(metrics_with_issues={len(worst_per_metric)}, "
+                f"[SCORE] weighted_mean={base_score:.4f} "
+                f"(metrics_in_score={len(metric_scores)}, "
                 f"crit={critical_count}, high={high_count}, med={medium_count}, low={low_count}), "
                 f"final={quality_score:.4f}"
             )
-            
+
             self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
-            
-            # Build per-metric score breakdown for transparency
-            score_breakdown = {}
-            for i, metric_name in enumerate(processed_metrics):
-                score_breakdown[metric_name] = round(metric_scores[i], 4) if i < len(metric_scores) else None
-            
+
+            # Per-metric raw score breakdown for transparency in the UI.
+            score_breakdown = {
+                metric_name: round(metric_scores[i], 4)
+                for i, metric_name in enumerate(processed_metrics)
+                if i < len(metric_scores)
+            }
+
             # Prepare results dict
             results_dict = {
                 'overall': {
@@ -458,18 +452,20 @@ class EvaluationService:
                     'metrics_processed': processed_metrics,
                     'score_breakdown': {
                         'metric_scores': score_breakdown,
-                        'base_score': round(base_score, 4),
-                        'issue_penalty': round(issue_penalty, 4),
-                        'penalty_detail': {
-                            'method': 'worst_issue_per_metric',
-                            'metrics_with_issues': len(worst_per_metric),
-                            'worst_per_metric': worst_per_metric,
-                            'critical_issues': critical_count,
-                            'high_issues': high_count,
-                            'medium_issues': medium_count,
-                            'low_issues': low_count,
+                        'metric_weights': {
+                            processed_metrics[i]: metric_weights[i]
+                            for i in range(len(processed_metrics))
+                            if i < len(metric_weights)
                         },
+                        'base_score': round(base_score, 4),
                         'final_score': round(quality_score, 4),
+                        'formula': 'weighted_mean',
+                        'issue_counts': {
+                            'critical': critical_count,
+                            'high': high_count,
+                            'medium': medium_count,
+                            'low': low_count,
+                        },
                     },
                     **results  # Include all metric results
                 },

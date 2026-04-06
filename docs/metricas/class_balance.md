@@ -7,6 +7,8 @@
 
 ## 1. Descripción teórica
 
+> **Métrica opt-in.** Un dataset puede estar legítimamente desbalanceado por la naturaleza del fenómeno que modela (detección de fraude, diagnóstico de enfermedades raras, etc.) sin que eso sea un problema de calidad. Por ese motivo esta métrica **solo contribuye al Quality Score cuando el usuario declara explícitamente qué columnas debe tratar como categóricas objetivo** a través del parámetro `columns`. Si el usuario no declara ninguna columna, la métrica sigue ejecutándose en modo auto-detect y genera issues informativos, pero devuelve `score=None` y queda **excluida del cálculo global**.
+
 El balance de clases mide **cómo de equilibrada está la distribución de valores en columnas categóricas**. Un dataset con clases muy desequilibradas puede producir modelos sesgados: el modelo aprende a predecir siempre la clase mayoritaria y obtiene una precisión artificialmente alta sin aprender nada útil sobre las clases minoritarias.
 
 La métrica usa la **entropía de Shannon** como medida de equilibrio. La entropía es máxima cuando todas las clases tienen la misma frecuencia y es mínima (0) cuando hay una única clase dominante.
@@ -70,11 +72,18 @@ col_score = balance_index / 100.0   # Normalizado a [0.0, 1.0]
 
 ### Score global
 
+Dos modos de cálculo según si el usuario declara `columns` explícitas:
+
 ```
-overall = media(col_scores de todas las columnas analizadas) × weight
+# Modo explícito (user_columns no vacío)
+overall = media(col_scores sobre user_columns)
+score   = overall
+
+# Modo auto-detect (user_columns vacío)
+score   = None   # la métrica se excluye del Quality Score global
 ```
 
-Si no se analizó ninguna columna, `score = 1.0`.
+En modo auto-detect las columnas detectadas siguen siendo analizadas, aparecen en `results` y pueden generar issues (clase dominante / clase minoritaria), pero no empujan el score ni hacia arriba ni hacia abajo. El peso (`weight`) se aplica una única vez en el servicio, no dentro de la métrica.
 
 ---
 
@@ -221,4 +230,6 @@ col_score = 19.44 / 100 = 0.1944
 2. **Clase minoritaria:** `0.03 ≤ 0.05` → severidad `medium` (ya que `0.03 > 0.02`).
    - Descripción: `minority class 'positivo' at 3.00% of values`
 
-**Score global:** `0.1944 × weight`.
+**Score global:**
+- Si el usuario declaró `columns: ["resultado"]` explícitamente → `score = 0.1944` (arrastra el Quality Score global hacia abajo, como debería hacerlo una columna objetivo con 97 % de una sola clase).
+- Si el usuario no declaró `columns` y la columna fue auto-detectada → `score = None` (se excluye del Quality Score; los issues de dominancia/minoría siguen apareciendo como información).

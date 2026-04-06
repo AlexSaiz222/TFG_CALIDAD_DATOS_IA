@@ -1,7 +1,13 @@
-# Outliers — Métrica de Valores Atípicos
+# Outliers — Herramienta de Profiling
+
+> **No es una métrica de calidad.** Según **ISO/IEC 5259**, la detección de outliers no constituye una dimensión de calidad de datos: es una técnica de *data profiling* / *EDA* que puede ayudar a identificar posibles problemas de otras dimensiones (accuracy, credibility), pero no es evaluable como tal.
+>
+> En versiones anteriores de esta plataforma `outliers` estaba registrada como métrica puntuable. Se ha retirado del `METRIC_REGISTRY` y ya **no contribuye al Quality Score**. La clase `OutliersMetric` sigue existiendo en `backend/services/metrics/outliers.py` y se reutiliza desde el flujo de **Data Profiling** de la UI (pestaña "Data Profiling" → sección de outliers). Si se invoca desde el evaluador (por ejemplo, por compatibilidad con configuraciones antiguas), devuelve `score=None` y queda excluida del cálculo global.
+>
+> Este documento se mantiene como referencia técnica de la detección que hace el profiling.
 
 **Archivo fuente:** `backend/services/metrics/outliers.py`
-**ID en el sistema:** `outliers`
+**ID en el sistema:** `outliers` (solo profiling, NO registrado como métrica)
 
 ---
 
@@ -85,24 +91,9 @@ El factor por defecto del sistema para IQR es `1.5`, pero si se usa Z-score se r
 
 ## 4. Cálculo del score
 
-El score penaliza los outliers con un factor de **3×** (penalización agresiva):
+**No aplica.** La clase devuelve `score=None` porque no es una métrica puntuable. Los hallazgos se exponen como datos informativos en `results` y, si se invoca desde el evaluador, también como issues (sin impacto en el Quality Score).
 
-```python
-# Para cada columna con outliers:
-non_null = número de valores no nulos en la columna
-ratio    = outliers_count / non_null
-col_score = max(0.0, 1 - ratio × 3)
-
-# Score global:
-score = media(col_scores de columnas con outliers) × weight
-```
-
-Si ninguna columna tiene outliers, `score = 1.0`.
-
-**Intuición de la penalización 3×:**
-- 5 % de outliers → score = `1 - 0.05×3 = 0.85`
-- 10 % de outliers → score = `1 - 0.10×3 = 0.70`
-- 33 % de outliers → score = `1 - 0.33×3 = 0.0` (mínimo)
+> Histórico: en versiones anteriores el score se calculaba como `max(0, 1 - ratio * 3)` por columna con outliers, lo cual penalizaba distribuciones naturalmente de cola pesada (precios, salarios, tráfico) y producía doble conteo con la severidad dinámica. Se ha retirado por el motivo conceptual (ISO/IEC 5259) y por estos efectos colaterales.
 
 ---
 

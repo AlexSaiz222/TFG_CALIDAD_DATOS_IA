@@ -22,7 +22,6 @@ class LogicalConsistencyMetric(BaseMetric):
     log_prefix = "CONSISTENCY"
 
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
-        weight = parameters.get("weight", 1.0)
         rules = parameters.get("rules", [])
 
         if not rules:
@@ -89,6 +88,8 @@ class LogicalConsistencyMetric(BaseMetric):
                 consistency_results.append({
                     "name": rule_name,
                     "expression": expression,
+                    "condition": rule.get("condition", ""),
+                    "assertion": rule.get("assertion", ""),
                     "type": rule_type,
                     "violation_count": violation_count,
                     "total_rows": total_rows,
@@ -147,7 +148,7 @@ class LogicalConsistencyMetric(BaseMetric):
         )
         return MetricResult(
             metric_id="logical_consistency",
-            score=overall * weight,
+            score=float(overall),
             results={"logical_consistency": {
                 "overall_compliance": float(overall),
                 "rules_evaluated": len(consistency_results),
@@ -202,7 +203,11 @@ class LogicalConsistencyMetric(BaseMetric):
                     violating = pd.DataFrame()
                     violation_count = 0
 
-            compliance_rate = 1 - (violation_count / total_rows) if total_rows > 0 else 1.0
+            # IF-THEN compliance is normalized by the rows that entered the condition,
+            # not the whole dataset: a selective rule with 100% violations inside its
+            # scope should surface as a severe problem, not a rounding error.
+            scope_rows = len(cond_rows)
+            compliance_rate = 1 - (violation_count / scope_rows) if scope_rows > 0 else 1.0
             sample = mask_sample(violating) if violation_count > 0 else []
             return violation_count, sample, compliance_rate
 

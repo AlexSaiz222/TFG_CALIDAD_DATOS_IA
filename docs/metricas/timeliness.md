@@ -49,21 +49,23 @@ Para las columnas especificadas en `columns`, el umbral de parseo mínimo es **5
 ### Cálculo de frescura por columna
 
 ```python
+DECAY_SCALE = 3   # controla cuán lenta es la degradación tras superar el umbral
+
 now = pd.Timestamp.now()
 max_date = máximo de los valores de fecha no nulos de la columna
 age_days = (now - max_date).days
 
-# Frescura:
 if age_days <= staleness_threshold_days:
     col_freshness = 1.0   # datos frescos
 else:
-    col_freshness = max(0.0, 1.0 - (age_days - staleness_threshold_days) / staleness_threshold_days)
+    decay_window = staleness_threshold_days * DECAY_SCALE
+    col_freshness = max(0.0, 1.0 - (age_days - staleness_threshold_days) / decay_window)
 ```
 
 **Intuición de la fórmula:**
-- Si los datos tienen exactamente `staleness_threshold_days` de antigüedad → `col_freshness = 1.0`.
-- Si tienen el doble de antigüedad (2× threshold) → `col_freshness = 0.0`.
-- La degradación es **lineal** entre `threshold` y `2× threshold`.
+- Hasta `threshold` → `col_freshness = 1.0`.
+- La degradación es **lineal** y alcanza `0.0` en `threshold × (1 + DECAY_SCALE)` = `4 × threshold`.
+- Esta curva está alineada con la tabla de severidad: `medium` a partir de `1×`, `high` a partir de `3×`, `critical` a partir de `10×`. Antes la frescura llegaba a 0 en `2×`, mucho antes de que la severidad pasara a `high`.
 
 Ejemplos con `staleness_threshold_days=30`:
 
@@ -72,17 +74,20 @@ Ejemplos con `staleness_threshold_days=30`:
 | 0 días | 1.00 |
 | 15 días | 1.00 |
 | 30 días | 1.00 |
-| 45 días | 0.50 |
-| 60 días | 0.00 |
-| 90 días | 0.00 (mínimo) |
+| 45 días | 0.83 |
+| 60 días | 0.67 |
+| 90 días | 0.33 |
+| 120 días | 0.00 |
+| 300 días | 0.00 (mínimo) |
 
 ### Score global
 
 ```
-overall_freshness = media(col_freshness de todas las columnas analizadas) × weight
+overall_freshness = media(col_freshness de todas las columnas analizadas)
+score = overall_freshness
 ```
 
-Si no se detectó ninguna columna de fecha, `score = 1.0`.
+Si no se detectó ninguna columna de fecha, `score = 1.0`. El peso (`weight`) se aplica una única vez en el servicio, no dentro de la métrica.
 
 ---
 
@@ -217,15 +222,15 @@ age_days = (2026-03-29 - 2025-12-20).days = 99 días
 Umbral = 30 días
 ¿is_stale? 99 > 30 → sí
 
-col_freshness = max(0.0, 1.0 - (99 - 30) / 30)
-              = max(0.0, 1.0 - 69/30)
-              = max(0.0, 1.0 - 2.3)
-              = max(0.0, -1.3)
-              = 0.0
+decay_window = 30 × 3 = 90
+col_freshness = max(0.0, 1.0 - (99 - 30) / 90)
+              = max(0.0, 1.0 - 69/90)
+              = max(0.0, 0.233)
+              = 0.233
 ```
 
 **Resultado:**
-- Score: `0.0 × weight = 0.0`.
+- Score: `0.233`.
 - Issue generado: `age_days=99`, `ratio = 99/30 = 3.3 ≥ 3` → severidad `high`.
 - `age_human`: `"3 meses y 9 dias"`.
 - Descripción: `"most recent record is 3 meses y 9 dias old (threshold: 30 days)"`.

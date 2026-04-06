@@ -27,8 +27,10 @@ SYNTACTIC_PATTERNS = {
 class SyntacticAccuracyMetric(BaseMetric):
     log_prefix = "SYNTACTIC"
 
+    # Auto-detect only assigns a type when at least this fraction of the sample matches.
+    AUTO_DETECT_MIN_MATCH = 0.85
+
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
-        weight = parameters.get("weight", 1.0)
         auto_detect = parameters.get("auto_detect_types", True)
         custom_patterns = parameters.get("custom_patterns", {})
         user_columns = parameters.get("columns", [])
@@ -36,6 +38,7 @@ class SyntacticAccuracyMetric(BaseMetric):
 
         # Build column → (expected_type, pattern) mapping
         column_checks: dict[str, tuple[str, str]] = {}
+        mixed_format_columns: list[dict] = []
 
         for col_cfg in user_columns:
             if not isinstance(col_cfg, dict):
@@ -60,17 +63,31 @@ class SyntacticAccuracyMetric(BaseMetric):
                 sample = df[col].dropna().head(100).astype(str)
                 if len(sample) == 0:
                     continue
-                best_type, best_rate = None, 0.0
+                # Collect every type whose match rate passes the threshold.
+                matches: list[tuple[str, float]] = []
                 for type_name, pat in SYNTACTIC_PATTERNS.items():
                     try:
                         rgx = re.compile(pat)
                         rate = sum(1 for v in sample if rgx.match(v)) / len(sample)
-                        if rate > best_rate and rate >= 0.60:
-                            best_rate, best_type = rate, type_name
                     except re.error:
                         continue
-                if best_type:
-                    column_checks[col] = (best_type, SYNTACTIC_PATTERNS[best_type])
+                    if rate >= self.AUTO_DETECT_MIN_MATCH:
+                        matches.append((type_name, rate))
+                if not matches:
+                    continue
+                # If two or more distinct formats qualify, flag the column as
+                # "mixed_format" instead of guessing one and generating false positives.
+                if len(matches) >= 2:
+                    matches.sort(key=lambda x: x[1], reverse=True)
+                    mixed_format_columns.append({
+                        "column": col,
+                        "detected_types": [
+                            {"type": t, "match_rate": round(r, 4)} for t, r in matches
+                        ],
+                    })
+                    continue
+                best_type, _ = matches[0]
+                column_checks[col] = (best_type, SYNTACTIC_PATTERNS[best_type])
 
         accuracy_results: dict = {}
         conformance_scores: list[float] = []
@@ -143,18 +160,39 @@ class SyntacticAccuracyMetric(BaseMetric):
                     ),
                 })
 
+        # Emit an informational issue per column with mixed formats detected.
+        for mf in mixed_format_columns:
+            type_labels = ", ".join(f"{t['type']} ({t['match_rate']:.0%})" for t in mf["detected_types"])
+            issues.append({
+                "evaluation_id": evaluation_id,
+                "metric_id": metrics_map.get("syntactic_accuracy"),
+                "severity": "medium",
+                "description": (
+                    f"La columna '{mf['column']}' contiene múltiples formatos detectados: "
+                    f"{type_labels}. Especifica el tipo esperado en la configuración."
+                ),
+                "affected_columns": [mf],
+                "issue_type": "mixed_format",
+                "fingerprint": generate_syntactic_accuracy_fingerprint(
+                    column_name=mf["column"],
+                    expected_type="mixed_format",
+                    pattern="",
+                ),
+            })
+
         overall = sum(conformance_scores) / len(conformance_scores) if conformance_scores else 1.0
 
         logger.info(
             f"[{self.log_prefix}] checked={len(column_checks)} cols, "
-            f"overall={overall:.2%}"
+            f"mixed={len(mixed_format_columns)}, overall={overall:.2%}"
         )
         return MetricResult(
             metric_id="syntactic_accuracy",
-            score=overall * weight,
+            score=float(overall),
             results={"syntactic_accuracy": {
                 "overall_conformance": float(overall),
                 "columns_checked": len(column_checks),
+                "mixed_format_columns": mixed_format_columns,
                 "columns": accuracy_results,
             }},
             issues=issues,

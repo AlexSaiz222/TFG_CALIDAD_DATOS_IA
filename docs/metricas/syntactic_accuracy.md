@@ -78,16 +78,19 @@ La métrica construye el mapa `column_checks` en tres etapas por orden de preced
 
 1. **Configuración explícita** (`columns`): las columnas especificadas por el usuario con su tipo o patrón.
 2. **Patrones custom** (`custom_patterns`): columnas con patrón libre no cubiertas por el paso anterior.
-3. **Auto-detección** (si `auto_detect_types=True`): para cada columna de tipo `object` no cubierta aún, se toma una muestra de hasta 100 valores y se prueba contra todos los 13 tipos:
+3. **Auto-detección** (si `auto_detect_types=True`): para cada columna de tipo `object` no cubierta aún, se toma una muestra de hasta 100 valores y se prueba contra los 13 tipos del catálogo. Se recogen **todos** los tipos con una tasa de coincidencia ≥ `AUTO_DETECT_MIN_MATCH` (por defecto **0.85**, endurecido respecto al 0.60 anterior para reducir falsos positivos).
 
 ```python
+matches = []
 for type_name, pat in SYNTACTIC_PATTERNS.items():
     rate = fracción_de_valores_que_coinciden(sample, pat)
-    if rate > best_rate and rate >= 0.60:
-        best_type = type_name
+    if rate >= 0.85:
+        matches.append((type_name, rate))
 ```
 
-Solo se asigna un tipo si al menos el **60 %** de la muestra coincide.
+- Si **ningún** tipo supera el umbral, la columna no se valida (no se generan falsos positivos).
+- Si **exactamente un** tipo lo supera, se asigna ese tipo a la columna.
+- Si **dos o más tipos** lo superan (p. ej. una columna con fechas mezcladas en formato ISO y EU), la columna se marca como `mixed_format` y se emite un issue informativo en lugar de forzar un tipo y generar inválidos espurios. El usuario puede declarar explícitamente el tipo esperado en `columns` para desactivar el aviso.
 
 ### Paso 2: Validar cada columna
 
@@ -107,10 +110,10 @@ conformance_rate = valid_count / (valid_count + invalid_count)
 
 ```
 overall = media(conformance_rates de todas las columnas validadas)
-score   = overall × weight
+score   = overall
 ```
 
-Si ninguna columna fue validada, `score = 1.0`.
+Si ninguna columna fue validada, `score = 1.0`. El peso (`weight`) se aplica una única vez en el cálculo global del Quality Score dentro del servicio, no dentro de la métrica.
 
 ---
 
@@ -191,19 +194,21 @@ El fingerprint incluye el patrón exacto, por lo que un cambio de tipo o patrón
 
 La métrica toma una muestra de los 8 valores y prueba cada tipo del catálogo:
 
-- `date_iso` (`^\d{4}-\d{2}-\d{2}$`): coinciden 5/8 = 62.5 % ≥ 60 % → **candidato seleccionado**.
-- `date_eu` (`^\d{2}/\d{2}/\d{4}$`): coinciden 2/8 = 25 % < 60 % → descartado.
+- `date_iso` (`^\d{4}-\d{2}-\d{2}$`): coinciden 5/8 = 62.5 % < 85 % → descartado.
+- `date_eu` (`^\d{2}/\d{2}/\d{4}$`): coinciden 2/8 = 25 % < 85 % → descartado.
 
-**Validación:**
+Ningún tipo supera el umbral mínimo (0.85), por lo que la columna **no se valida** automáticamente. Si realmente es una columna de fechas con formatos mezclados, el usuario verá los valores no parseables desde Data Profiling y podrá declarar el tipo esperado manualmente con `columns`.
+
+**Ejemplo alternativo — mixed_format**
+
+Dataset con 10 valores, 5 en ISO y 5 en EU:
 
 ```
-Válidos (date_iso): 5  ["2024-01-15", "2024-02-20", "2024-04-01", "2024-05-10", "2024-06-30"]
-Inválidos:          3  ["15/03/2024", "not-a-date", "07/07/2024"]
-conformance_rate = 5/8 = 0.625
+["2024-01-15", "2024-02-20", "2024-03-10", "2024-05-01", "2024-06-30",
+ "15/03/2024", "20/04/2024", "01/05/2024", "12/06/2024", "25/07/2024"]
 ```
 
-**Resultado:**
-- Score: `0.625 × 1.0 = 0.625`.
-- `0.625 < 0.95` → issue generado.
-- Severidad: `0.625 < 0.70` → `high`.
-- Ejemplos inválidos: `["15/03/2024", "not-a-date", "07/07/2024"]`.
+- `date_iso`: 5/10 = 50 % → descartado.
+- `date_eu`: 5/10 = 50 % → descartado.
+
+De nuevo ninguno supera el 85 %. Si en cambio la muestra fuera 9 valores ISO y 9 valores EU de una muestra de 10 cada uno (caso contrived), ambos superarían el umbral y la métrica emitiría un issue `mixed_format` informando al usuario de los dos formatos detectados y sus tasas.

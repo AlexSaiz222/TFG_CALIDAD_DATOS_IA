@@ -12,8 +12,13 @@ logger = logging.getLogger(__name__)
 class TimelinessMetric(BaseMetric):
     log_prefix = "TIMELINESS"
 
+    # Scale controls how slowly the score decays once the dataset is past the
+    # staleness threshold. score reaches 0 at (1 + DECAY_SCALE) × threshold.
+    # value 3 means: threshold=30d → score=0 at 120d, aligned with the severity
+    # ladder (medium ≥ 1x, high ≥ 3x, critical ≥ 10x).
+    DECAY_SCALE = 3
+
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
-        weight = parameters.get("weight", 1.0)
         auto_detect = parameters.get("auto_detect", True)
         user_columns = parameters.get("columns", [])
         staleness_days = parameters.get("staleness_threshold_days", 30)
@@ -78,7 +83,8 @@ class TimelinessMetric(BaseMetric):
             elif age_days <= staleness_days:
                 col_freshness = 1.0
             else:
-                col_freshness = max(0.0, 1.0 - (age_days - staleness_days) / staleness_days)
+                decay_window = max(1, staleness_days * self.DECAY_SCALE)
+                col_freshness = max(0.0, 1.0 - (age_days - staleness_days) / decay_window)
 
             freshness_scores.append(col_freshness)
             age_human = self._format_age(age_days)
@@ -160,7 +166,7 @@ class TimelinessMetric(BaseMetric):
         )
         return MetricResult(
             metric_id="timeliness",
-            score=overall_freshness * weight,
+            score=float(overall_freshness),
             results={"timeliness": {
                 "overall_freshness_score": round(overall_freshness, 4),
                 "columns_analyzed": len(timeliness_results),
@@ -193,7 +199,7 @@ class TimelinessMetric(BaseMetric):
             return result
         years = age_days // 365
         remaining_months = (age_days % 365) // 30
-        result = f'{years} ano{"s" if years > 1 else ""}'
+        result = f'{years} año{"s" if years > 1 else ""}'
         if remaining_months > 0:
             result += f' y {remaining_months} mes{"es" if remaining_months > 1 else ""}'
         return result
