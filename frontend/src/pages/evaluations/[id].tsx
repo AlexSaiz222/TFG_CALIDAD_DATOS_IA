@@ -795,7 +795,7 @@ const EvaluationDetail = () => {
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 3, pb: 3 }}>
                 <Typography variant="body2" sx={{ color: '#555555', mb: 3 }}>
-                  El Quality Score es la media ponderada de los scores de cada métrica. Los issues no penalizan directamente el score — ya están reflejados en él — pero los issues críticos pueden bloquear el Quality Gate del proyecto.
+                  El Quality Score combina la media ponderada de las métricas con una penalización por issues. Los scores de métrica miden el porcentaje de valores válidos, pero problemas concentrados o cualitativos (ej. fechas imposibles, emails inválidos) se capturan con la penalización según su severidad.
                 </Typography>
 
                 {/* Step 1: Metric Scores */}
@@ -830,47 +830,61 @@ const EvaluationDetail = () => {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {/* Step 2: Issue Counts */}
+                {/* Step 2: Issue Penalty */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
-                    2. Issues detectados
+                    2. Penalización por issues
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
-                    Los issues ya están incorporados en el score de cada métrica. Los issues críticos activan el Quality Gate si se supera el umbral configurado.
+                    Cada issue contribuye según su severidad. La penalización máxima es −80%.
                   </Typography>
                   {(() => {
                     const ic = overallMetrics.score_breakdown.issue_counts || {};
+                    const pw = overallMetrics.score_breakdown.penalty_weights || { critical: 0.12, high: 0.05, medium: 0.01, low: 0.003 };
+                    const rawPenalty = overallMetrics.score_breakdown.raw_penalty ?? 0;
+                    const totalPenalty = overallMetrics.score_breakdown.issue_penalty ?? 0;
                     const COLORS: Record<string, { bg: string; color: string }> = {
                       critical: { bg: 'rgba(139,0,0,0.1)', color: '#8B0000' },
                       high:     { bg: 'rgba(229,72,77,0.1)', color: '#E5484D' },
                       medium:   { bg: 'rgba(255,184,0,0.1)', color: '#B8860B' },
                       low:      { bg: 'rgba(0,179,126,0.1)', color: '#00B37E' },
                     };
-                    const LABEL: Record<string, string> = { critical: 'Críticos', high: 'Altos', medium: 'Medios', low: 'Bajos' };
+                    const LABEL: Record<string, string> = { critical: 'Crítico', high: 'Alto', medium: 'Medio', low: 'Bajo' };
                     const order = ['critical', 'high', 'medium', 'low'];
                     const total = order.reduce((acc, s) => acc + (ic[s] || 0), 0);
+                    if (total === 0) {
+                      return (
+                        <Typography variant="body2" sx={{ color: '#00B37E' }}>
+                          Sin issues — penalización = 0%
+                        </Typography>
+                      );
+                    }
                     return (
                       <Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1 }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1.5 }}>
                           {order.map(sev => {
                             const cnt = ic[sev] || 0;
                             if (cnt === 0) return null;
                             const c = COLORS[sev];
+                            const contrib = cnt * (pw[sev] || 0);
                             return (
                               <Chip
                                 key={sev}
                                 size="small"
-                                label={`${cnt} ${LABEL[sev]}`}
-                                sx={{ backgroundColor: c.bg, color: c.color, fontWeight: 600 }}
+                                label={`${cnt} ${LABEL[sev]}${cnt > 1 ? 's' : ''} × −${((pw[sev] || 0) * 100).toFixed(1)}% = −${(contrib * 100).toFixed(1)}%`}
+                                sx={{ backgroundColor: c.bg, color: c.color, fontWeight: 500 }}
                               />
                             );
                           })}
-                          {total === 0 && (
-                            <Typography variant="body2" sx={{ color: '#00B37E' }}>
-                              Sin issues detectados
-                            </Typography>
-                          )}
                         </Box>
+                        {rawPenalty > totalPenalty + 0.001 && (
+                          <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>
+                            Suma bruta −{(rawPenalty * 100).toFixed(1)}% → limitada al tope máximo de −80%
+                          </Typography>
+                        )}
+                        <Typography variant="body2" sx={{ color: '#E5484D' }}>
+                          Penalización total = <strong>−{(totalPenalty * 100).toFixed(1)}%</strong>
+                        </Typography>
                       </Box>
                     );
                   })()}
@@ -881,6 +895,8 @@ const EvaluationDetail = () => {
                 {/* Step 3: Final Score */}
                 {(() => {
                   const finalScore = overallMetrics.score_breakdown.final_score ?? overallMetrics.score_breakdown.base_score ?? 0;
+                  const base = overallMetrics.score_breakdown.base_score ?? 0;
+                  const penalty = overallMetrics.score_breakdown.issue_penalty ?? 0;
                   return (
                     <Box sx={{
                       p: 2,
@@ -895,7 +911,7 @@ const EvaluationDetail = () => {
                         3. Puntuación final
                       </Typography>
                       <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                        Σ(score × peso) / Σ(pesos) ={' '}
+                        {(base * 100).toFixed(1)}% (base) − {(penalty * 100).toFixed(1)}% (penalización) ={' '}
                         <Box component="span" sx={{
                           fontSize: '1.2rem',
                           color: finalScore >= 0.8 ? '#00B37E' : finalScore >= 0.5 ? '#FFB800' : '#E5484D',

@@ -71,24 +71,56 @@ Cuando el usuario lanza una evaluación, el servicio `EvaluationService.run_eval
 
 ## Cálculo del Quality Score global
 
-El Quality Score es una **media aritmética ponderada** de los scores crudos de cada métrica:
+El Quality Score combina una **media aritmética ponderada** de los scores de cada métrica con una **penalización por issues**:
+
+### Paso 1 — Media ponderada de métricas
 
 ```
-                Σ (score_i × weight_i)
-quality_score = ──────────────────────        score_i ∈ [0, 1]
-                    Σ (weight_i)
+             Σ (score_i × weight_i)
+base_score = ──────────────────────        score_i ∈ [0, 1]
+                 Σ (weight_i)
 ```
 
-Reglas de cálculo:
+### Paso 2 — Penalización por issues
 
-1. Cada métrica devuelve su score **crudo** en `[0, 1]` sin aplicar el peso (el peso se aplica una única vez en el servicio, eliminando el doble conteo que existía en versiones anteriores).
-2. Las métricas que devuelven `score=None` se **excluyen tanto del numerador como del denominador**. Esto ocurre, por ejemplo, cuando `logical_consistency` no tiene reglas configuradas o cuando `class_balance` no tiene columnas explícitas.
+Los scores de métrica miden el porcentaje de valores válidos, pero problemas concentrados o cualitativos (ej. 3 fechas imposibles en 200 filas, un email claramente inválido) apenas afectan al ratio global aunque hacen el dataset inutilizable. La penalización captura esto usando el conteo de issues por severidad:
+
+```
+raw_penalty = critical × 0.12 + high × 0.05 + medium × 0.01 + low × 0.003
+issue_penalty = min(0.80, raw_penalty)
+```
+
+| Severidad | Penalización por issue |
+|-----------|------------------------|
+| `critical` | −12 % |
+| `high`     | −5 % |
+| `medium`   | −1 % |
+| `low`      | −0.3 % |
+
+La penalización máxima es **−80 %** para evitar que datasets con muchos issues de baja severidad lleguen a cero.
+
+### Paso 3 — Score final
+
+```
+quality_score = max(0, base_score − issue_penalty)
+```
+
+**Ejemplo** (dataset con 3 issues críticos, 5 altos, 10 medios, 8 bajos):
+```
+base_score  = 0.871
+raw_penalty = 3×0.12 + 5×0.05 + 10×0.01 + 8×0.003 = 0.734
+quality_score = 0.871 − 0.734 = 0.137  →  13.7%
+```
+
+### Reglas generales
+
+1. Cada métrica devuelve su score **crudo** en `[0, 1]` sin aplicar el peso (el peso se aplica una única vez en el servicio).
+2. Las métricas que devuelven `score=None` se **excluyen tanto del numerador como del denominador**. Esto ocurre cuando `logical_consistency` no tiene reglas configuradas o cuando `class_balance` no tiene columnas explícitas.
 3. El resultado final se acota a `[0, 1]` y se muestra en escala `0–100` en la interfaz.
-4. **No existe penalización por issues sobre el score**: los issues alimentan el Quality Gate (ver más abajo), evitando el doble conteo contra métricas cuyo propio score ya refleja el problema.
 
 ### Sistema de pesos
 
-Cada métrica tiene un campo `weight` (por defecto `1.0`) que se aplica únicamente en la fórmula anterior. El peso permite dar más o menos importancia a ciertas dimensiones sin alterar el score que devuelve la métrica.
+Cada métrica tiene un campo `weight` (por defecto `1.0`) que se aplica únicamente en la fórmula del paso 1. El peso permite dar más o menos importancia a ciertas dimensiones sin alterar el score que devuelve la métrica.
 
 Configuración de ejemplo:
 
@@ -131,7 +163,7 @@ Un Quality Gate es una configuración por proyecto que establece umbrales mínim
 | `WARNING` | Algún umbral rozado (configurable) |
 | `FAILED` | Al menos un umbral incumplido |
 
-Puesto que los issues ya no penalizan el `quality_score`, el Quality Gate es el único mecanismo que bloquea evaluaciones con problemas críticos. Si necesitas tolerar algún issue crítico, sube `max_critical_issues` en la configuración del gate.
+La penalización por issues ya rebaja el `quality_score` de forma proporcional a los problemas encontrados. El Quality Gate añade una verificación explícita de umbrales absolutos: si el score final no alcanza `min_score` o existen más issues críticos de los permitidos, la evaluación falla aunque los ratios por métrica parezcan aceptables.
 
 ---
 

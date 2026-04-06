@@ -402,16 +402,10 @@ class EvaluationService:
             
             self._update_progress(evaluation_id, 92, "Calculando puntuación de calidad...", analysis_run_id)
 
-            # ── Quality Score: weighted arithmetic mean of raw metric scores ───
+            # ── Quality Score ────────────────────────────────────────────────────
+            # Step 1: weighted arithmetic mean of raw metric scores.
             # Each metric returns its raw score in [0, 1] (no weight applied
-            # internally). Metrics that opted out (score=None, e.g. logical
-            # consistency without rules, class_balance without explicit columns)
-            # are excluded from both numerator and denominator.
-            #
-            # Issues do NOT penalize the quality_score directly: critical
-            # problems are enforced by the Quality Gate (max_critical_issues),
-            # avoiding double counting against the metric score that already
-            # reflects the problem.
+            # internally). Metrics that opted out (score=None) are excluded.
             if metric_scores:
                 total_weight = sum(metric_weights)
                 if total_weight > 0:
@@ -421,19 +415,34 @@ class EvaluationService:
             else:
                 base_score = 0.0
 
-            quality_score = max(0.0, min(1.0, base_score))
-
-            # Issue counts kept for transparency and for the Quality Gate.
+            # Issue counts for penalty and Quality Gate.
             critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
             high_count     = sum(1 for i in issues if i.get('severity') == 'high')
             medium_count   = sum(1 for i in issues if i.get('severity') == 'medium')
             low_count      = sum(1 for i in issues if i.get('severity') == 'low')
 
+            # Step 2: issue-count penalty.
+            # Metric scores measure the ratio of valid values per dimension, but
+            # concentrated or qualitative problems (e.g. 3 impossible dates out of
+            # 200 rows) barely affect the ratio while making the dataset unusable.
+            # The penalty captures this: each issue contributes proportionally to
+            # its severity, capped to avoid a zero score on borderline datasets.
+            PENALTY_PER_ISSUE = {'critical': 0.12, 'high': 0.05, 'medium': 0.01, 'low': 0.003}
+            MAX_PENALTY = 0.80
+
+            raw_penalty = (
+                critical_count * PENALTY_PER_ISSUE['critical'] +
+                high_count     * PENALTY_PER_ISSUE['high'] +
+                medium_count   * PENALTY_PER_ISSUE['medium'] +
+                low_count      * PENALTY_PER_ISSUE['low']
+            )
+            issue_penalty = min(MAX_PENALTY, raw_penalty)
+            quality_score = max(0.0, min(1.0, base_score - issue_penalty))
+
             logger.info(
-                f"[SCORE] weighted_mean={base_score:.4f} "
-                f"(metrics_in_score={len(metric_scores)}, "
-                f"crit={critical_count}, high={high_count}, med={medium_count}, low={low_count}), "
-                f"final={quality_score:.4f}"
+                f"[SCORE] base={base_score:.4f} penalty={issue_penalty:.4f} "
+                f"(raw={raw_penalty:.4f}, crit={critical_count}, high={high_count}, "
+                f"med={medium_count}, low={low_count}) final={quality_score:.4f}"
             )
 
             self._update_progress(evaluation_id, 95, "Guardando resultados...", analysis_run_id)
@@ -458,8 +467,11 @@ class EvaluationService:
                             if i < len(metric_weights)
                         },
                         'base_score': round(base_score, 4),
+                        'issue_penalty': round(issue_penalty, 4),
+                        'raw_penalty': round(raw_penalty, 4),
+                        'penalty_weights': PENALTY_PER_ISSUE,
                         'final_score': round(quality_score, 4),
-                        'formula': 'weighted_mean',
+                        'formula': 'weighted_mean_with_issue_penalty',
                         'issue_counts': {
                             'critical': critical_count,
                             'high': high_count,
