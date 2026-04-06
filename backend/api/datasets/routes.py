@@ -1111,30 +1111,23 @@ def get_duplicate_rows(dataset_id):
         else:
             return jsonify({"success": False, "error": "unsupported_format"}), 400
         
-        # Find duplicate rows
+        # Find duplicate rows — group by all columns to detect identical rows.
+        # Use .copy() to avoid pandas SettingWithCopyWarning / copy-on-write issues.
         duplicated_mask = df.duplicated(keep=False)
-        duplicate_rows = df[duplicated_mask]
-        
+        duplicate_rows = df[duplicated_mask].copy()
+
         # Get unique duplicate groups
         duplicate_groups = []
-        if len(duplicate_rows) > 0:
-            # Convert DataFrame to string representation for grouping (handles all data types)
-            duplicate_rows_str = duplicate_rows.astype(str)
-            
-            # Create a hash column for grouping identical rows
-            duplicate_rows['_hash'] = duplicate_rows_str.apply(lambda row: hash(tuple(row)), axis=1)
-            
-            # Group by hash to find identical rows
-            grouped = duplicate_rows.groupby('_hash')
-            for hash_val, group in grouped:
-                if len(group) > 1:  # Only groups with actual duplicates
-                    # Remove the hash column before returning
-                    group_clean = group.drop('_hash', axis=1)
-                    duplicate_groups.append({
-                        'count': len(group),
-                        'indices': group.index.tolist(),
-                        'sample': group_clean.head(5).to_dict('records')  # Show up to 5 samples
-                    })
+        if not duplicate_rows.empty:
+            group_cols = list(df.columns)
+            for _, group in duplicate_rows.groupby(group_cols, dropna=False):
+                # Each group is a set of identical rows
+                sample = group.head(5).where(pd.notnull(group.head(5)), None)
+                duplicate_groups.append({
+                    'count': len(group),
+                    'indices': group.index.tolist(),
+                    'sample': sample.to_dict('records'),
+                })
         
         # Mask sensitive column values in duplicate samples
         sensitive_cols = dataset.sensitive_columns or []
@@ -2091,3 +2084,4 @@ def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
             "error": "server_error",
             "message": f"Error al comparar versiones: {str(e)}"
         }), 500
+

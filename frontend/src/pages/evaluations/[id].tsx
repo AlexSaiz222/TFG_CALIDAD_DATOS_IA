@@ -828,37 +828,53 @@ const EvaluationDetail = () => {
 
                 {/* Step 2: Issue Penalty */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#333' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
                     2. Penalización por issues
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
+                    Por cada métrica se toma su peor issue. La penalización es la suma de las contribuciones por métrica (tope −40%).
                   </Typography>
                   {(() => {
                     const pd = overallMetrics.score_breakdown.penalty_detail || {};
                     const totalPenalty = overallMetrics.score_breakdown.issue_penalty || 0;
+                    const worstMap: Record<string, string> = pd.worst_per_metric || {};
+                    const PENALTY: Record<string, number> = { critical: 0.15, high: 0.08, medium: 0.04, low: 0.01 };
+                    const COLORS: Record<string, { bg: string; color: string }> = {
+                      critical: { bg: 'rgba(139,0,0,0.1)', color: '#8B0000' },
+                      high:     { bg: 'rgba(229,72,77,0.1)', color: '#E5484D' },
+                      medium:   { bg: 'rgba(255,184,0,0.1)', color: '#B8860B' },
+                      low:      { bg: 'rgba(0,179,126,0.1)', color: '#00B37E' },
+                    };
+                    const SEV_LABEL: Record<string, string> = { critical: 'Crítico', high: 'Alto', medium: 'Medio', low: 'Bajo' };
+                    // Count metrics per worst severity
+                    const metricsPerSev: Record<string, number> = {};
+                    Object.values(worstMap).forEach((sev: string) => {
+                      metricsPerSev[sev] = (metricsPerSev[sev] || 0) + 1;
+                    });
+                    const rawPenalty = Object.entries(metricsPerSev).reduce(
+                      (acc, [sev, cnt]) => acc + (PENALTY[sev] || 0) * cnt, 0
+                    );
                     return (
                       <Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 1.5 }}>
-                          {pd.high_issues > 0 && (
-                            <Chip
-                              size="small"
-                              label={`${pd.high_issues} high × ${(pd.high_weight * 100).toFixed(0)}% = −${(pd.high_issues * pd.high_weight * 100).toFixed(1)}%`}
-                              sx={{ backgroundColor: 'rgba(229, 72, 77, 0.1)', color: '#E5484D', fontWeight: 500 }}
-                            />
-                          )}
-                          {pd.medium_issues > 0 && (
-                            <Chip
-                              size="small"
-                              label={`${pd.medium_issues} medium × ${(pd.medium_weight * 100).toFixed(1)}% = −${(pd.medium_issues * pd.medium_weight * 100).toFixed(1)}%`}
-                              sx={{ backgroundColor: 'rgba(255, 184, 0, 0.1)', color: '#B8860B', fontWeight: 500 }}
-                            />
-                          )}
-                          {pd.low_issues > 0 && (
-                            <Chip
-                              size="small"
-                              label={`${pd.low_issues} low × ${(pd.low_weight * 100).toFixed(0)}% = −${(pd.low_issues * pd.low_weight * 100).toFixed(1)}%`}
-                              sx={{ backgroundColor: 'rgba(0, 179, 126, 0.1)', color: '#00B37E', fontWeight: 500 }}
-                            />
-                          )}
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1.5 }}>
+                          {Object.entries(metricsPerSev).map(([sev, cnt]) => {
+                            const c = COLORS[sev] || COLORS.low;
+                            const contrib = (PENALTY[sev] || 0) * cnt;
+                            return (
+                              <Chip
+                                key={sev}
+                                size="small"
+                                label={`${cnt} métrica${cnt > 1 ? 's' : ''} ${SEV_LABEL[sev] || sev} × −${((PENALTY[sev] || 0) * 100).toFixed(0)}% = −${(contrib * 100).toFixed(1)}%`}
+                                sx={{ backgroundColor: c.bg, color: c.color, fontWeight: 500 }}
+                              />
+                            );
+                          })}
                         </Box>
+                        {rawPenalty > 0.40 && (
+                          <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>
+                            Suma bruta −{(rawPenalty * 100).toFixed(1)}% → limitada al tope máximo de −40%
+                          </Typography>
+                        )}
                         <Typography variant="body2" sx={{ color: '#E5484D' }}>
                           Penalización total = <strong>−{(totalPenalty * 100).toFixed(1)}%</strong>
                         </Typography>
