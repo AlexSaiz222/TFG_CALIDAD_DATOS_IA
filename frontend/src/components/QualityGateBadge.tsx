@@ -143,7 +143,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
       {showIssuesCounts && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {/* New Issues */}
-          {newIssuesCount > 0 ? (
+          {newIssuesCount > 0 && (
             <Tooltip title={`${newIssuesCount} nuevos issues detectados`}>
               <Chip
                 icon={<TrendingUpIcon sx={{ fontSize: 14 }} />}
@@ -158,20 +158,6 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
                   '& .MuiChip-icon': {
                     color: '#E5484D',
                   },
-                }}
-              />
-            </Tooltip>
-          ) : (
-            <Tooltip title="No hay nuevos issues">
-              <Chip
-                label="0 nuevos"
-                size="small"
-                sx={{
-                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                  color: '#00B37E',
-                  fontWeight: 500,
-                  fontSize: '0.7rem',
-                  height: size === 'small' ? 20 : 24,
                 }}
               />
             </Tooltip>
