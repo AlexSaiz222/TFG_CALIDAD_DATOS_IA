@@ -45,10 +45,9 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import AnalysisHistory from '../../components/AnalysisHistory';
-import QualityTrendChart from '../../components/QualityTrendChart';
-import DatasetStatusSnapshot from '../../components/DatasetStatusSnapshot';
+import DatasetSelector from '../../components/DatasetSelector';
+import AnalysisDashboardPanel from '../../components/AnalysisDashboardPanel';
 import QualityGateSettings from '../../components/QualityGateSettings';
-import VersionEvolutionChart from '../../components/VersionEvolutionChart';
 import { projectsAPI, datasetsAPI, metricsAPI, analysisAPI } from '../../services/api';
 import { GREEN, GREEN_HOVER, ORANGE, RED, getMetricMeta, formatParamValue, DEFAULT_METRIC_META } from '../../utils/metricColors';
 import type { AnalysisRun } from '../../types';
@@ -138,8 +137,6 @@ const ProjectDetail = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
   const [qualityGateThreshold, setQualityGateThreshold] = useState<number>(70);
-  const [selectedChainVersions, setSelectedChainVersions] = useState<any[] | null>(null);
-  const [selectedChainLoading, setSelectedChainLoading] = useState(false);
   const fetchedRef = useRef(false);
 
   // Cargar datos del proyecto
@@ -435,42 +432,6 @@ const ProjectDetail = () => {
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-
-  // Load version chain when a dataset is selected in "Historial de análisis"
-  useEffect(() => {
-    if (!selectedDatasetId || !projectId) {
-      setSelectedChainVersions(null);
-      return;
-    }
-    const loadVersionChain = async () => {
-      setSelectedChainLoading(true);
-      try {
-        // Find root of the selected dataset's chain
-        const findRoot = (dsId: number): number => {
-          const ds = datasets.find((d: any) => d.id === dsId);
-          if (!ds || !ds.parent_dataset_id) return dsId;
-          return findRoot(ds.parent_dataset_id);
-        };
-        const rootId = findRoot(selectedDatasetId);
-        const res = await datasetsAPI.getDatasetVersions(projectId, rootId);
-        const data = res?.data?.data || res?.data || {};
-        const versions = (data.versions || []) as any[];
-        const mapped = versions.map((v: any) => ({
-          version: v.version,
-          version_tag: v.version_tag,
-          quality_score: v.latestAnalysis?.quality_score ?? null,
-          total_issues: v.latestAnalysis?.total_issues_count ?? 0,
-          created_at: v.created_at,
-        }));
-        setSelectedChainVersions(mapped.length > 1 ? mapped : null);
-      } catch {
-        setSelectedChainVersions(null);
-      } finally {
-        setSelectedChainLoading(false);
-      }
-    };
-    loadVersionChain();
-  }, [selectedDatasetId, projectId]);
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
@@ -1070,80 +1031,45 @@ const ProjectDetail = () => {
         <TabPanel value={tabValue} index={2}>
           {projectId && (
             <Box>
-              {/* 1. Estado actual de los datasets (Snapshot) */}
-              <Box sx={{ mb: 4 }}>
-                <DatasetStatusSnapshot
-                  runs={analysisRuns}
-                  datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
-                  selectedDatasetId={selectedDatasetId}
-                  onSelectDataset={(datasetId: number) => setSelectedDatasetId(datasetId)}
-                  qualityGateThreshold={qualityGateThreshold}
-                />
-              </Box>
-              
-              {/* 2. Evolución del dataset seleccionado (por ejecuciones en el tiempo) */}
-              <Box sx={{ mb: selectedChainVersions ? 2 : 4 }}>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                  Evolución del dataset seleccionado
-                </Typography>
-                <QualityTrendChart
-                  runs={analysisRuns}
-                  qualityGateThreshold={qualityGateThreshold}
-                  selectedDatasetId={selectedDatasetId}
-                  datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
-                />
-              </Box>
+              {/* Zona A — Selector de dataset */}
+              <DatasetSelector
+                runs={analysisRuns}
+                datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
+                selectedDatasetId={selectedDatasetId}
+                onSelect={(id) => setSelectedDatasetId(id)}
+                qualityGateThreshold={qualityGateThreshold}
+              />
 
-              {/* 2b. Evolución por versiones (solo si el dataset tiene varias versiones) */}
-              {selectedDatasetId && (
-                <Box sx={{ mb: 4 }}>
-                  {selectedChainLoading ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
-                      <CircularProgress size={16} />
-                      <Typography variant="body2" color="text.secondary">Cargando evolución por versiones…</Typography>
-                    </Box>
-                  ) : selectedChainVersions && selectedChainVersions.length > 1 ? (
-                    <>
-                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                        Evolución por versiones
-                      </Typography>
-                      <VersionEvolutionChart
-                        versions={selectedChainVersions}
-                        title="Calidad a lo largo de las versiones"
-                      />
-                    </>
-                  ) : null}
-                </Box>
-              )}
+              {/* Zona B — KPIs + gráfica unificada */}
+              <AnalysisDashboardPanel
+                projectId={projectId}
+                runs={analysisRuns}
+                datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
+                selectedDatasetId={selectedDatasetId}
+                qualityGateThreshold={qualityGateThreshold}
+              />
 
-              {/* 3. Historial de análisis (filtrado por dataset si hay uno seleccionado) */}
+              {/* Zona C — Tabla de análisis */}
               <AnalysisHistory
-                runs={selectedDatasetId 
-                  ? analysisRuns.filter((r: AnalysisRun) => {
-                      // Incluir análisis del dataset seleccionado y todas sus versiones
-                      const selectedDs = datasets.find((d: any) => d.id === selectedDatasetId);
-                      if (!selectedDs) return r.dataset_id === selectedDatasetId;
-                      
-                      // Encontrar el root de la cadena de versiones
-                      const findRoot = (ds: any): number => {
-                        if (!ds.parent_dataset_id) return ds.id;
-                        const parent = datasets.find((d: any) => d.id === ds.parent_dataset_id);
-                        return parent ? findRoot(parent) : ds.id;
+                runs={selectedDatasetId
+                  ? (() => {
+                      const findRoot = (dsId: number): number => {
+                        const ds = datasets.find((d: any) => d.id === dsId);
+                        if (!ds || !ds.parent_dataset_id) return dsId;
+                        return findRoot(ds.parent_dataset_id);
                       };
-                      const rootId = findRoot(selectedDs);
-                      
-                      // Incluir todos los datasets que pertenecen a esta cadena
+                      const rootId = findRoot(selectedDatasetId);
                       const chainIds = datasets
-                        .filter((d: any) => findRoot(d) === rootId)
+                        .filter((d: any) => findRoot(d.id) === rootId)
                         .map((d: any) => d.id);
-                      
-                      return chainIds.includes(r.dataset_id);
-                    })
+                      return analysisRuns.filter((r: AnalysisRun) => chainIds.includes(r.dataset_id));
+                    })()
                   : analysisRuns
                 }
                 projectId={projectId}
                 loading={analysisLoading}
                 datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version }))}
+                selectedDatasetId={selectedDatasetId}
               />
             </Box>
           )}
