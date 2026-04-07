@@ -138,8 +138,8 @@ const ProjectDetail = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
   const [qualityGateThreshold, setQualityGateThreshold] = useState<number>(70);
-  const [versionChains, setVersionChains] = useState<{ name: string; versions: any[] }[]>([]);
-  const [versionChainsLoading, setVersionChainsLoading] = useState(false);
+  const [selectedChainVersions, setSelectedChainVersions] = useState<any[] | null>(null);
+  const [selectedChainLoading, setSelectedChainLoading] = useState(false);
   const fetchedRef = useRef(false);
 
   // Cargar datos del proyecto
@@ -432,38 +432,45 @@ const ProjectDetail = () => {
   }, [projectId, router.isReady]);
 
   // Manejadores de eventos
-  const handleTabChange = async (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-    if (newValue === 4 && versionChains.length === 0 && !versionChainsLoading && projectId) {
-      setVersionChainsLoading(true);
-      try {
-        const rootDatasets = datasets.filter((d: any) => !d.parent_dataset_id);
-        const chains: { name: string; versions: any[] }[] = [];
-        for (const root of rootDatasets) {
-          try {
-            const res = await datasetsAPI.getDatasetVersions(projectId, root.id);
-            const data = res?.data?.data || res?.data || {};
-            const versions = (data.versions || []) as any[];
-            if (versions.length > 1) {
-              chains.push({
-                name: root.name,
-                versions: versions.map((v: any) => ({
-                  version: v.version,
-                  version_tag: v.version_tag,
-                  quality_score: v.latestAnalysis?.quality_score ?? null,
-                  total_issues: v.latestAnalysis?.total_issues_count ?? 0,
-                  created_at: v.created_at,
-                })),
-              });
-            }
-          } catch { /* skip */ }
-        }
-        setVersionChains(chains);
-      } finally {
-        setVersionChainsLoading(false);
-      }
-    }
   };
+
+  // Load version chain when a dataset is selected in "Historial de análisis"
+  useEffect(() => {
+    if (!selectedDatasetId || !projectId) {
+      setSelectedChainVersions(null);
+      return;
+    }
+    const loadVersionChain = async () => {
+      setSelectedChainLoading(true);
+      try {
+        // Find root of the selected dataset's chain
+        const findRoot = (dsId: number): number => {
+          const ds = datasets.find((d: any) => d.id === dsId);
+          if (!ds || !ds.parent_dataset_id) return dsId;
+          return findRoot(ds.parent_dataset_id);
+        };
+        const rootId = findRoot(selectedDatasetId);
+        const res = await datasetsAPI.getDatasetVersions(projectId, rootId);
+        const data = res?.data?.data || res?.data || {};
+        const versions = (data.versions || []) as any[];
+        const mapped = versions.map((v: any) => ({
+          version: v.version,
+          version_tag: v.version_tag,
+          quality_score: v.latestAnalysis?.quality_score ?? null,
+          total_issues: v.latestAnalysis?.total_issues_count ?? 0,
+          created_at: v.created_at,
+        }));
+        setSelectedChainVersions(mapped.length > 1 ? mapped : null);
+      } catch {
+        setSelectedChainVersions(null);
+      } finally {
+        setSelectedChainLoading(false);
+      }
+    };
+    loadVersionChain();
+  }, [selectedDatasetId, projectId]);
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
@@ -682,7 +689,6 @@ const ProjectDetail = () => {
             />
             <Tab label="Historial de análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
             <Tab label="Quality Gate" id="project-tab-3" aria-controls="project-tabpanel-3" />
-            <Tab label="Evolución de versiones" id="project-tab-4" aria-controls="project-tabpanel-4" />
           </Tabs>
         </Box>
 
@@ -1075,19 +1081,41 @@ const ProjectDetail = () => {
                 />
               </Box>
               
-              {/* 2. Evolución del dataset seleccionado */}
-              <Box sx={{ mb: 4 }}>
+              {/* 2. Evolución del dataset seleccionado (por ejecuciones en el tiempo) */}
+              <Box sx={{ mb: selectedChainVersions ? 2 : 4 }}>
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
                   Evolución del dataset seleccionado
                 </Typography>
-                <QualityTrendChart 
-                  runs={analysisRuns} 
+                <QualityTrendChart
+                  runs={analysisRuns}
                   qualityGateThreshold={qualityGateThreshold}
                   selectedDatasetId={selectedDatasetId}
                   datasets={datasets.map((d: any) => ({ id: d.id, name: d.name, version: d.version, parent_dataset_id: d.parent_dataset_id }))}
                 />
               </Box>
-              
+
+              {/* 2b. Evolución por versiones (solo si el dataset tiene varias versiones) */}
+              {selectedDatasetId && (
+                <Box sx={{ mb: 4 }}>
+                  {selectedChainLoading ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
+                      <CircularProgress size={16} />
+                      <Typography variant="body2" color="text.secondary">Cargando evolución por versiones…</Typography>
+                    </Box>
+                  ) : selectedChainVersions && selectedChainVersions.length > 1 ? (
+                    <>
+                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                        Evolución por versiones
+                      </Typography>
+                      <VersionEvolutionChart
+                        versions={selectedChainVersions}
+                        title="Calidad a lo largo de las versiones"
+                      />
+                    </>
+                  ) : null}
+                </Box>
+              )}
+
               {/* 3. Historial de análisis (filtrado por dataset si hay uno seleccionado) */}
               <AnalysisHistory
                 runs={selectedDatasetId 
@@ -1131,38 +1159,6 @@ const ProjectDetail = () => {
           )}
         </TabPanel>
 
-        {/* Pestaña de Evolución de versiones */}
-        <TabPanel value={tabValue} index={4}>
-          {versionChainsLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-              <CircularProgress size={32} />
-            </Box>
-          ) : versionChains.length === 0 ? (
-            <Box sx={{ p: 4, textAlign: 'center', border: '2px dashed #E0E0E0', borderRadius: 2 }}>
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-                Sin datos de evolución
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Este tab muestra la evolución de calidad de los datasets con múltiples versiones.
-                Sube versiones adicionales de un dataset y ejecuta evaluaciones para ver tendencias aquí.
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {versionChains.map((chain) => (
-                <Box key={chain.name}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
-                    {chain.name}
-                  </Typography>
-                  <VersionEvolutionChart
-                    versions={chain.versions}
-                    title={`Evolución de calidad — ${chain.name}`}
-                  />
-                </Box>
-              ))}
-            </Box>
-          )}
-        </TabPanel>
       </Box>
 
       {/* Diálogo de confirmación de eliminación */}
