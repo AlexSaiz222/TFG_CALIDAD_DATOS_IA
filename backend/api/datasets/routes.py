@@ -1879,9 +1879,10 @@ def upload_new_version(project_id, dataset_id):
         root_dataset = parent_dataset.get_root_dataset()
         versions = root_dataset.get_version_history()
         max_version = max(v.version or 1 for v in versions)
-        
-        # Mark parent as not latest
-        parent_dataset.is_latest = False
+
+        # Mark ALL versions in chain as not latest (atomic, avoids race condition)
+        for v in versions:
+            v.is_latest = False
         
         # Parse sensitive_columns for the new version (inherit parent if not provided)
         new_sensitive_columns = parent_dataset.sensitive_columns or []
@@ -2058,6 +2059,14 @@ def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
         if score_a is not None and score_b is not None:
             quality_score_diff = round(score_b - score_a, 2)
         
+        # Column-level diff using schema JSON
+        schema_a = dataset_a.schema or []
+        schema_b = dataset_b.schema or []
+        cols_a = {col["name"] for col in schema_a if isinstance(col, dict) and "name" in col}
+        cols_b = {col["name"] for col in schema_b if isinstance(col, dict) and "name" in col}
+        added_columns = sorted(list(cols_b - cols_a))
+        removed_columns = sorted(list(cols_a - cols_b))
+
         comparison = {
             "dataset_a": dataset_a_dict,
             "dataset_b": dataset_b_dict,
@@ -2068,15 +2077,17 @@ def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
                 "issues_diff": issues_b_count - issues_a_count,
                 "new_issues": new_issues,
                 "resolved_issues": resolved_issues,
-                "common_issues": common_issues
+                "common_issues": common_issues,
+                "added_columns": added_columns,
+                "removed_columns": removed_columns,
             }
         }
-        
+
         return jsonify({
             "success": True,
             "data": comparison
         }), 200
-        
+
     except Exception as e:
         logger.error(f"Error al comparar datasets {dataset_id} y {other_dataset_id}: {str(e)}")
         return jsonify({
@@ -2084,4 +2095,29 @@ def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
             "error": "server_error",
             "message": f"Error al comparar versiones: {str(e)}"
         }), 500
+
+
+@project_datasets_bp.route("/<int:dataset_id>/version-tag", methods=["PATCH"])
+@jwt_required()
+def patch_version_tag(project_id, dataset_id):
+    """Update version_tag and/or description of a dataset version"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        project = Project.query.get(project_id)
+        if not project or project.owner_id != current_user_id:
+            return jsonify({"success": False, "error": "unauthorized", "message": "No tienes acceso a este proyecto"}), 403
+        dataset = Dataset.query.get(dataset_id)
+        if not dataset or dataset.project_id != project_id:
+            return jsonify({"success": False, "error": "not_found", "message": "Dataset no encontrado"}), 404
+        data = request.get_json() or {}
+        if "version_tag" in data:
+            dataset.version_tag = data["version_tag"] or None
+        if "description" in data:
+            dataset.description = data["description"]
+        db.session.commit()
+        return jsonify({"success": True, "data": dataset.to_dict(), "message": "Version actualizada"}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al actualizar version_tag del dataset {dataset_id}: {str(e)}")
+        return jsonify({"success": False, "error": "server_error", "message": str(e)}), 500
 

@@ -1400,9 +1400,13 @@ def get_project_analysis_runs(project_id):
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 20, type=int), 100)
     status_filter = request.args.get('status')
+    dataset_id_filter = request.args.get('dataset_id', type=int)
     
     # Construir query
     query = AnalysisRun.query.filter_by(project_id=project_id)
+    
+    if dataset_id_filter:
+        query = query.filter(AnalysisRun.dataset_id == dataset_id_filter)
     
     if status_filter:
         try:

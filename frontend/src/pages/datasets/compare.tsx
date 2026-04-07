@@ -46,6 +46,8 @@ interface ComparisonData {
     new_issues: any[];
     resolved_issues: any[];
     common_issues: any[];
+    added_columns?: string[];
+    removed_columns?: string[];
   };
 }
 
@@ -375,6 +377,50 @@ const DatasetCompare = () => {
             </Grid>
           </Grid>
         </Paper>
+
+        {/* Column Diff */}
+        {((comparison.added_columns && comparison.added_columns.length > 0) ||
+          (comparison.removed_columns && comparison.removed_columns.length > 0)) && (
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, mb: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              Cambios en columnas
+            </Typography>
+            <Grid container spacing={3}>
+              {comparison.added_columns && comparison.added_columns.length > 0 && (
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                    <AddIcon sx={{ color: '#00B37E', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#00B37E' }}>
+                      Columnas añadidas ({comparison.added_columns.length})
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {comparison.added_columns.map((col) => (
+                      <Chip key={col} label={col} size="small"
+                        sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500 }} />
+                    ))}
+                  </Box>
+                </Grid>
+              )}
+              {comparison.removed_columns && comparison.removed_columns.length > 0 && (
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                    <RemoveIcon sx={{ color: '#E5484D', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#E5484D' }}>
+                      Columnas eliminadas ({comparison.removed_columns.length})
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {comparison.removed_columns.map((col) => (
+                      <Chip key={col} label={col} size="small"
+                        sx={{ backgroundColor: 'rgba(229,72,77,0.1)', color: '#E5484D', fontWeight: 500 }} />
+                    ))}
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </Paper>
+        )}
 
         {/* Issues Diff */}
         <Grid container spacing={3}>

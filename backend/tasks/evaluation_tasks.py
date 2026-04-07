@@ -95,6 +95,23 @@ def _run_evaluation_impl(task_self, evaluation_id):
         # ============================================================
         # SONAR-LITE: Crear AnalysisRun con estado PENDING
         # ============================================================
+        # Auto-baseline: buscar el último AnalysisRun completado del dataset padre
+        baseline_id = None
+        if dataset.parent_dataset_id:
+            ancestor_id = dataset.parent_dataset_id
+            while ancestor_id:
+                candidate = AnalysisRun.query.filter_by(
+                    dataset_id=ancestor_id
+                ).filter(
+                    AnalysisRun.status == AnalysisStatus.COMPLETED
+                ).order_by(AnalysisRun.completed_at.desc()).first()
+                if candidate:
+                    baseline_id = candidate.id
+                    logger.info(f"[SONAR-LITE] Auto-baseline: AnalysisRun {baseline_id} del dataset {ancestor_id} asignado como baseline")
+                    break
+                ancestor_ds = Dataset.query.get(ancestor_id)
+                ancestor_id = ancestor_ds.parent_dataset_id if ancestor_ds else None
+
         analysis_run = AnalysisRun(
             project_id=dataset.project_id,
             dataset_id=dataset.id,
@@ -102,7 +119,8 @@ def _run_evaluation_impl(task_self, evaluation_id):
             metrics_config=evaluation.metrics_config,
             task_id=task_self.request.id,
             progress=0,
-            current_step="Iniciando análisis"
+            current_step="Iniciando análisis",
+            baseline_analysis_id=baseline_id
         )
         db.session.add(analysis_run)
         db.session.commit()
