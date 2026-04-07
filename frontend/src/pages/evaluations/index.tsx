@@ -26,11 +26,6 @@ import {
 import {
   Visibility as VisibilityIcon,
   Search as SearchIcon,
-  FilterList as FilterListIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  TrendingFlat as TrendingFlatIcon,
-  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import QualityGateBadge from '../../components/QualityGateBadge';
@@ -52,6 +47,7 @@ interface Dataset {
   id: number;
   name: string;
   project_id: number;
+  version?: number;
 }
 
 const EvaluationsIndex = () => {
@@ -103,8 +99,8 @@ const EvaluationsIndex = () => {
             // Obtener datasets del proyecto
             const datasetsRes: any = await datasetsAPI.getDatasets(project.id);
             const projectDatasets = datasetsRes?.data?.data?.datasets || 
+                                   datasetsRes?.data?.data ||
                                    datasetsRes?.data?.datasets || 
-                                   datasetsRes?.data || 
                                    [];
             allDatasets.push(...(Array.isArray(projectDatasets) ? projectDatasets : []));
           } catch (err) {
@@ -169,6 +165,12 @@ const EvaluationsIndex = () => {
     return dataset ? dataset.name : `Dataset #${datasetId}`;
   };
 
+  const getDatasetVersion = (datasetId?: number): number => {
+    if (!datasetId) return 1;
+    const dataset = datasets.find(d => d.id === datasetId);
+    return dataset?.version || 1;
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
@@ -196,9 +198,7 @@ const EvaluationsIndex = () => {
   };
 
   const handleViewRun = (run: AnalysisRun) => {
-    if (run.project_id) {
-      router.push(`/projects/${run.project_id}/runs/${run.id}`);
-    }
+    router.push(`/evaluations/${run.id}`);
   };
 
   // Estadísticas
@@ -221,9 +221,8 @@ const EvaluationsIndex = () => {
     <MainLayout>
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <AssessmentIcon sx={{ fontSize: 32, color: GREEN }} />
           <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Historial de Análisis
+            Historial de análisis
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#666666' }}>
@@ -362,9 +361,24 @@ const EvaluationsIndex = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">
-                        {getDatasetName(run.dataset_id)}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={getDatasetName(run.dataset_id)}>
+                          {getDatasetName(run.dataset_id)}
+                        </Typography>
+                        {run.dataset_id && (
+                          <Chip
+                            label={`v${getDatasetVersion(run.dataset_id)}`}
+                            size="small"
+                            sx={{
+                              height: '18px',
+                              fontSize: '0.65rem',
+                              backgroundColor: 'rgba(0, 179, 126, 0.1)',
+                              color: GREEN,
+                              fontWeight: 500,
+                            }}
+                          />
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell>
                       {getStatusChip(run.status)}

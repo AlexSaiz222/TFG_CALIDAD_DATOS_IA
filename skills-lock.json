@@ -1,20 +1,50 @@
 {
   "version": 1,
   "skills": {
+    "accelint-ts-testing": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "computedHash": "232d89e0b08a2a90c7006b3f3dad2da394507df1263d7849c51b9f9e94d7e058"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "computedHash": "645b891da1edbae76ab79c7b088d4e73397464f8396edaf773c0e01971ce75d6"
+    },
+    "flask": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "computedHash": "f30edac7445e7ac01bc9d7d1e9b385156c2b85410d49ecd48f96a60be1333e7a"
     },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
     },
+    "nextjs-react-typescript": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "computedHash": "52067402daf8388ba7970478e0ba1f350f1868a65a62ae2bf6f4dc1ac3cf3e88"
+    },
+    "postgresql-database-engineering": {
+      "source": "manutej/luxor-claude-marketplace",
+      "sourceType": "github",
+      "computedHash": "6039063ea5257f77ff0797f08074d3ec40da34ca8f412d8af5b194b9b6db0e89"
+    },
+    "pytest-code-review": {
+      "source": "existential-birds/beagle",
+      "sourceType": "github",
+      "computedHash": "aa490ed8e572b8679ed281f32c6b79e9f9f6e44792418b856e85187675375781"
+    },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "computedHash": "57f470f512f45bdac598e302bc72fd62bf2b649fc7fad032efe97720149cde4d"
+    },
+    "tailwindcss": {
+      "source": "martinholovsky/claude-skills-generator",
+      "sourceType": "github",
+      "computedHash": "a965368152d24169683d5b8dd468510676539522ccee98f2827c9c0cd16f5177"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",

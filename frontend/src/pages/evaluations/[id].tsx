@@ -25,12 +25,9 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  Delete as DeleteIcon,
-  Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
+  Cancel as CancelIcon,
   Warning as WarningIcon,
-  HourglassEmpty as HourglassEmptyIcon,
   Assessment as AssessmentIcon,
   ExpandMore as ExpandMoreIcon,
   Info as InfoIcon,
@@ -38,32 +35,33 @@ import {
   GridView as GridViewIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
-import { QualityScoreGauge, MetricCard, ColumnMetricsTable, IssuesSummary, MetricDetailsTabs, ExecutiveMetricCard } from '../../components/evaluations';
-import { evaluationsAPI, datasetsAPI } from '../../services/api';
-import { Evaluation, Issue, Dataset } from '../../types';
+import { ColumnMetricsTable, IssuesSummary, MetricDetailsTabs, ExecutiveMetricCard } from '../../components/evaluations';
+import QualityGateBadge from '../../components/QualityGateBadge';
+import { analysisAPI, datasetsAPI } from '../../services/api';
+import type { AnalysisRun, DataQualityIssue, Issue, Dataset, ColumnMetrics } from '../../types';
 
 const EvaluationDetail = () => {
   const router = useRouter();
   const { id } = router.query;
-  const evaluationId = typeof id === 'string' ? parseInt(id, 10) : undefined;
+  const runId = typeof id === 'string' ? parseInt(id, 10) : undefined;
 
-  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const [run, setRun] = useState<AnalysisRun | null>(null);
   const [dataset, setDataset] = useState<Dataset | null>(null);
-  const [issues, setIssues] = useState<Issue[]>([]);
+  const [rawIssues, setRawIssues] = useState<DataQualityIssue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [issuesLoading, setIssuesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeDetailTab, setActiveDetailTab] = useState(0);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [scoreExpanded, setScoreExpanded] = useState(true);
 
   useEffect(() => {
-    const fetchEvaluationData = async () => {
-      if (evaluationId === undefined || isNaN(evaluationId)) {
+    const fetchData = async () => {
+      if (runId === undefined || isNaN(runId)) {
         setLoading(false);
-        setError('ID de evaluación inválido.');
+        setError('ID de análisis inválido.');
         return;
       }
 
@@ -71,122 +69,66 @@ const EvaluationDetail = () => {
       setError(null);
 
       try {
-        // Fetch evaluation details
-        const evalResponse = await evaluationsAPI.getEvaluation(evaluationId);
-        const evalData = evalResponse.data?.data?.evaluation || evalResponse.data;
-        setEvaluation(evalData);
+        const runResponse = await analysisAPI.getAnalysisRun(runId);
+        const runData = runResponse.data?.data?.analysis_run ||
+                       runResponse.data?.analysis_run ||
+                       runResponse.data?.data ||
+                       runResponse.data;
+        setRun(runData);
 
-        // Fetch dataset details
-        if (evalData?.dataset_id) {
+        if (runData?.dataset_id) {
           try {
-            const datasetResponse = await datasetsAPI.getDataset(evalData.dataset_id);
-            const datasetData = datasetResponse.data?.data || datasetResponse.data;
-            setDataset(datasetData);
-          } catch (datasetError) {
-            console.warn('Error fetching dataset:', datasetError);
-          }
-        }
-
-        // Fetch issues
-        if (evalData?.status === 'completed') {
-          try {
-            const issuesResponse = await evaluationsAPI.getIssues(evaluationId);
-            const issuesData = issuesResponse.data?.data?.issues || issuesResponse.data?.issues || issuesResponse.data || [];
-            setIssues(Array.isArray(issuesData) ? issuesData : []);
-          } catch (issuesError) {
-            console.warn('Error fetching issues:', issuesError);
+            const datasetResponse = await datasetsAPI.getDataset(runData.dataset_id);
+            setDataset(datasetResponse.data?.data || datasetResponse.data);
+          } catch {
+            console.warn('Error fetching dataset');
           }
         }
 
         setLoading(false);
+
+        setIssuesLoading(true);
+        try {
+          const issuesResponse = await analysisAPI.getAnalysisRunIssues(runId);
+          const issuesData = issuesResponse.data?.data?.issues ||
+                            issuesResponse.data?.issues || [];
+          setRawIssues(Array.isArray(issuesData) ? issuesData : []);
+        } catch {
+          console.warn('Error fetching issues');
+          setRawIssues([]);
+        }
+        setIssuesLoading(false);
       } catch (err: any) {
-        console.error('Error fetching evaluation:', err);
-        setError(err.response?.data?.message || 'Error al cargar la evaluación.');
+        console.error('Error fetching analysis run:', err);
+        setError(err.response?.data?.message || 'Error al cargar el análisis.');
         setLoading(false);
       }
     };
 
-    if (router.isReady && evaluationId !== undefined) {
-      fetchEvaluationData();
+    if (router.isReady && runId !== undefined) {
+      fetchData();
     }
-  }, [evaluationId, router.isReady]);
+  }, [runId, router.isReady]);
 
-  const handleRefresh = async () => {
-    if (!evaluationId) return;
-    
-    setLoading(true);
-    try {
-      const evalResponse = await evaluationsAPI.getEvaluation(evaluationId);
-      const evalData = evalResponse.data?.data?.evaluation || evalResponse.data;
-      setEvaluation(evalData);
-
-      if (evalData?.status === 'completed') {
-        const issuesResponse = await evaluationsAPI.getIssues(evaluationId);
-        const issuesData = issuesResponse.data?.data?.issues || issuesResponse.data?.issues || issuesResponse.data || [];
-        setIssues(Array.isArray(issuesData) ? issuesData : []);
-      }
-    } catch (err: any) {
-      setError('Error al actualizar la evaluación.');
-    }
-    setLoading(false);
+  // Severity mapping: DataQualityIssue ('critical'|'major'|'minor'|'info') → Issue ('critical'|'high'|'medium'|'low')
+  const SEVERITY_MAP: Record<string, Issue['severity']> = {
+    critical: 'critical', major: 'high', minor: 'medium', info: 'low',
   };
+  const mapSeverity = (s: string): Issue['severity'] => SEVERITY_MAP[s] ?? 'low';
 
-  const handleDelete = async () => {
-    if (!evaluation) return;
-    
-    if (!confirm('¿Estás seguro de que deseas eliminar esta evaluación?')) return;
-    
-    setDeleteLoading(true);
-    try {
-      await evaluationsAPI.deleteEvaluation(evaluation.id);
-      router.push(`/datasets/${evaluation.dataset_id}`);
-    } catch (err: any) {
-      setError('Error al eliminar la evaluación.');
-      setDeleteLoading(false);
-    }
-  };
+  const toIssue = (dqi: DataQualityIssue): Issue => ({
+    id: dqi.id,
+    evaluation_id: dqi.analysis_run_id,
+    metric_id: dqi.metric_id,
+    severity: mapSeverity(dqi.severity),
+    description: dqi.description,
+    issue_type: dqi.issue_type,
+    affected_columns: dqi.affected_columns,
+    affected_rows: dqi.affected_rows,
+    created_at: dqi.created_at,
+  } as unknown as Issue);
 
-  const getStatusChip = (status: string) => {
-    const config: Record<string, { color: string; bgColor: string; icon: React.ReactNode }> = {
-      completed: {
-        color: '#00B37E',
-        bgColor: 'rgba(0, 179, 126, 0.1)',
-        icon: <CheckCircleIcon sx={{ fontSize: 16 }} />,
-      },
-      failed: {
-        color: '#E5484D',
-        bgColor: 'rgba(229, 72, 77, 0.1)',
-        icon: <ErrorIcon sx={{ fontSize: 16 }} />,
-      },
-      processing: {
-        color: '#FFB800',
-        bgColor: 'rgba(255, 184, 0, 0.1)',
-        icon: <HourglassEmptyIcon sx={{ fontSize: 16 }} />,
-      },
-      pending: {
-        color: '#888888',
-        bgColor: 'rgba(136, 136, 136, 0.1)',
-        icon: <HourglassEmptyIcon sx={{ fontSize: 16 }} />,
-      },
-    };
-
-    const statusConfig = config[status] || config.pending;
-
-    return (
-      <Chip
-        icon={statusConfig.icon as React.ReactElement}
-        label={status.charAt(0).toUpperCase() + status.slice(1)}
-        sx={{
-          backgroundColor: statusConfig.bgColor,
-          color: statusConfig.color,
-          fontWeight: 500,
-          '& .MuiChip-icon': {
-            color: statusConfig.color,
-          },
-        }}
-      />
-    );
-  };
+  const issues: Issue[] = rawIssues.map(toIssue);
 
   const getMetricName = (issue: { issue_type?: string; description: string }): string => {
     const type = issue.issue_type || '';
@@ -208,7 +150,7 @@ const EvaluationDetail = () => {
     return 'General';
   };
 
-  const filteredIssues = issues.filter((issue: Issue) => {
+  const filteredIssues = issues.filter((issue) => {
     const matchesSeverity = selectedSeverity ? issue.severity === selectedSeverity : true;
     const matchesMetric = selectedMetric ? getMetricName(issue) === selectedMetric : true;
     return matchesSeverity && matchesMetric;
@@ -224,7 +166,7 @@ const EvaluationDetail = () => {
     );
   }
 
-  if (error || !evaluation) {
+  if (error || !run) {
     return (
       <MainLayout>
         <Box sx={{ mb: 4 }}>
@@ -233,122 +175,44 @@ const EvaluationDetail = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-              Evaluation Not Found
+              Análisis no encontrado
             </Typography>
           </Box>
-          <Alert severity="error">{error || 'Evaluación no encontrada'}</Alert>
-          <Button variant="contained" onClick={() => router.push('/datasets')} sx={{ mt: 3 }}>
-            Back to Datasets
+          <Alert severity="error">{error || 'Análisis no encontrado'}</Alert>
+          <Button variant="contained" onClick={() => router.push('/evaluations')} sx={{ mt: 3 }}>
+            Volver al historial
           </Button>
         </Box>
       </MainLayout>
     );
   }
 
-  const results = evaluation.results;
+  const results = run.results;
   const overallMetrics: Record<string, any> = results?.overall || {};
-  const columnMetrics: Record<string, any> = results?.column_metrics || {};
+  const columnMetrics: Record<string, ColumnMetrics> = results?.column_metrics || {};
 
   return (
     <MainLayout>
       <Box sx={{ mb: 4 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={() => router.push(`/datasets/${evaluation.dataset_id}`)} sx={{ mr: 2 }}>
+          <IconButton onClick={() => router.back()} sx={{ mr: 2 }}>
             <ArrowBackIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-                {dataset?.name || 'Evaluación'}
-              </Typography>
-              {getStatusChip(evaluation.status)}
-            </Box>
-            <Typography variant="body2" sx={{ color: '#555555', mt: 0.5 }}>
-              Dataset: {dataset?.name || `ID ${evaluation.dataset_id}`} | 
-              Created: {new Date(evaluation.created_at).toLocaleString()}
-              {evaluation.completed_at && ` | Completed: ${new Date(evaluation.completed_at).toLocaleString()}`}
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+              {dataset?.name || `Análisis #${run.id}`}
             </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton onClick={handleRefresh} disabled={loading}>
-              <RefreshIcon />
-            </IconButton>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={handleDelete}
-              disabled={deleteLoading}
-              sx={{
-                borderColor: '#E5484D',
-                color: '#E5484D',
-                '&:hover': {
-                  borderColor: '#D03E43',
-                  backgroundColor: 'rgba(229, 72, 77, 0.04)',
-                },
-              }}
-            >
-              {deleteLoading ? <CircularProgress size={20} /> : 'Delete'}
-            </Button>
+            <Typography variant="body2" sx={{ color: '#555555', mt: 0.5 }}>
+              {new Date(run.completed_at || run.created_at).toLocaleString('es-ES', {
+                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+              })}
+            </Typography>
           </Box>
         </Box>
 
-        {/* Processing state */}
-        {(evaluation.status === 'processing' || evaluation.status === 'pending') && (
-          <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <CircularProgress size={24} />
-              <Typography variant="h6">Evaluation in Progress</Typography>
-            </Box>
-            <Typography variant="body2" sx={{ color: '#555555', mb: 2 }}>
-              {evaluation.current_step || 'Processing...'}
-            </Typography>
-            {evaluation.progress !== undefined && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Box
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: '#EEEEEE',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        height: '100%',
-                        width: `${evaluation.progress}%`,
-                        backgroundColor: '#00B37E',
-                        borderRadius: 4,
-                        transition: 'width 0.3s ease-in-out',
-                      }}
-                    />
-                  </Box>
-                </Box>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {evaluation.progress}%
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        )}
-
-        {/* Failed state */}
-        {evaluation.status === 'failed' && (
-          <Alert severity="error" sx={{ mb: 4 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              Evaluation Failed
-            </Typography>
-            <Typography variant="body2">
-              {evaluation.error || 'An unknown error occurred during the evaluation.'}
-            </Typography>
-          </Alert>
-        )}
-
-        {/* Completed state - Results */}
-        {evaluation.status === 'completed' && (
-          <>
+        {/* Results */}
+        <>
             {/* Quality Score and Metrics Summary — Unified Grid */}
             {(() => {
               // Build metric cards data and compute tab indices for click-to-tab navigation
@@ -496,7 +360,7 @@ const EvaluationDetail = () => {
                 }
               };
 
-              const score = evaluation.quality_score || overallMetrics.quality_score || 0;
+              const score = run.quality_score || overallMetrics.quality_score || 0;
               const scoreColor = score >= 80 ? '#00B37E' : score >= 60 ? '#FFB800' : '#E5484D';
               const scoreColorBg = score >= 80 ? 'rgba(0, 179, 126, 0.1)' : score >= 60 ? 'rgba(255, 184, 0, 0.1)' : 'rgba(229, 72, 77, 0.1)';
               const scoreVerdict = score >= 90 ? 'Excelente' : score >= 80 ? 'Bueno' : score >= 60 ? 'Aceptable' : score >= 40 ? 'Deficiente' : 'Crítico';
@@ -515,7 +379,6 @@ const EvaluationDetail = () => {
                 <Box id="executive-summary" sx={{ scrollMarginTop: '120px' }}>
                   {/* ── Puntuación de calidad ── */}
                   <Paper elevation={0} sx={{ mb: 3, border: '1px solid #E0E0E0', borderRadius: 2, overflow: 'hidden' }}>
-                    {/* Cabecera siempre visible */}
                     <Box sx={{ px: 3, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <SpeedIcon sx={{ color: '#888', fontSize: 20 }} />
@@ -537,9 +400,37 @@ const EvaluationDetail = () => {
                       </Box>
                     </Box>
 
-                    {/* Cuerpo colapsable */}
                     <Collapse in={scoreExpanded}>
                       <Box sx={{ px: 3, pb: 3 }}>
+                        {/* Quality Gate status banner */}
+                        {run.quality_gate_status && (() => {
+                          const passed = run.quality_gate_status === 'PASSED';
+                          const warned = run.quality_gate_status === 'WARNING';
+                          const gateColor = passed ? '#00B37E' : warned ? '#FFB800' : '#E5484D';
+                          const gateBg = passed ? 'rgba(0,179,126,0.08)' : warned ? 'rgba(255,184,0,0.08)' : 'rgba(229,72,77,0.08)';
+                          const gateBorder = passed ? 'rgba(0,179,126,0.25)' : warned ? 'rgba(255,184,0,0.25)' : 'rgba(229,72,77,0.25)';
+                          const GateIcon = passed ? CheckCircleIcon : warned ? WarningIcon : CancelIcon;
+                          const gateTitle = passed ? 'Supera el Quality Gate' : warned ? 'Quality Gate con advertencias' : 'No supera el Quality Gate';
+                          const gateDesc = passed
+                            ? 'El análisis cumple los estándares de calidad definidos para este proyecto.'
+                            : warned
+                            ? 'El análisis presenta advertencias que requieren atención.'
+                            : 'El score obtenido no alcanza el umbral mínimo requerido para este proyecto.';
+                          return (
+                            <Box sx={{ mb: 3, p: 2, borderRadius: 2, backgroundColor: gateBg, border: `1px solid ${gateBorder}`, display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                              <GateIcon sx={{ color: gateColor, fontSize: 28, mt: 0.25, flexShrink: 0 }} />
+                              <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: gateColor, lineHeight: 1.3 }}>
+                                  {gateTitle}
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#666', mt: 0.4 }}>
+                                  {gateDesc}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          );
+                        })()}
+
                         {/* Score numérico */}
                         <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: scoreColor, lineHeight: 1, mb: 2 }}>
                           {Math.round(score)}
@@ -623,12 +514,16 @@ const EvaluationDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <WarningIcon sx={{ color: '#888', fontSize: 20 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Issues detectados ({issues.length})
+                    Issues detectados ({issuesLoading ? '…' : issues.length})
                   </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ px: 3, pb: 3 }}>
-              {issues.length > 0 ? (
+              {issuesLoading ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <CircularProgress size={28} />
+                </Box>
+              ) : issues.length > 0 ? (
                 <>
                   <Box sx={{ mb: 2 }}>
                     <IssuesSummary
@@ -720,6 +615,7 @@ const EvaluationDetail = () => {
               )}
               </AccordionDetails>
             </Accordion>
+            {/* end issues accordion */}
 
             {/* Detalles de métricas - Collapsible Tabs */}
             <Accordion
@@ -752,7 +648,7 @@ const EvaluationDetail = () => {
                   overallMetrics={overallMetrics}
                   columnMetrics={columnMetrics}
                   initialTab={activeDetailTab}
-                  datasetId={evaluation.dataset_id}
+                  datasetId={run.dataset_id}
                 />
               </AccordionDetails>
             </Accordion>
@@ -945,8 +841,7 @@ const EvaluationDetail = () => {
               </Accordion>
             )}
 
-          </>
-        )}
+        </>
       </Box>
     </MainLayout>
   );

@@ -94,7 +94,7 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
   };
 
   const handleViewRun = (runId: number) => {
-    router.push(`/projects/${projectId}/runs/${runId}`);
+    router.push(`/evaluations/${runId}`);
   };
 
   // Calcular duración
@@ -188,7 +188,7 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
       {/* Header */}
       <Box sx={{ p: 2, borderBottom: '1px solid #EEEEEE', backgroundColor: '#FAFAFA' }}>
         <Typography variant="h6" sx={{ fontWeight: 500 }}>
-          Historial de Análisis ({runs.length})
+          Historial de análisis ({runs.length})
         </Typography>
       </Box>
 
