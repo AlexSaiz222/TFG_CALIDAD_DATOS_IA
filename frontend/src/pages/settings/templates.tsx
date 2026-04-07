@@ -101,8 +101,10 @@ const TemplatesSettings = () => {
       const allTemplates = Array.isArray(templatesData) ? templatesData : [];
       setTemplates(allTemplates);
 
-      const metricsData = (metricsResponse as any)?.data || [];
-      setAllMetrics(Array.isArray(metricsData) ? metricsData : []);
+      const metricsRaw = (metricsResponse as any)?.data || [];
+      const metricsData = (Array.isArray(metricsRaw) ? metricsRaw : [])
+        .filter((m: any) => m?.name?.toLowerCase() !== 'outliers');
+      setAllMetrics(metricsData);
     } catch (err: any) {
       setError('Error al cargar las plantillas. Por favor, inténtalo de nuevo.');
     } finally {

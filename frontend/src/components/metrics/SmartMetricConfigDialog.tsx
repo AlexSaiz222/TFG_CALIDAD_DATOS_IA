@@ -1,6 +1,6 @@
 /**
  * SmartMetricConfigDialog
- * Metric-specific configuration dialogs with user-friendly UX for all 7 metrics.
+ * Metric-specific configuration dialogs with user-friendly UX for all 6 metrics.
  * Replaces the generic parameter dialog with guided, plain-language controls.
  */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -261,93 +261,6 @@ const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
           value={columns}
           onChange={v => onChange({ ...params, columns: v })}
           helpText="Vacío = se aplica la detección global al dataset completo"
-        />
-      </AdvancedSection>
-    </Box>
-  );
-};
-
-// ---------- OUTLIERS ----------
-const SENSITIVITY_PRESETS = [
-  { label: 'Permisivo', factor: 3.0, hint: 'Solo detecta outliers extremos' },
-  { label: 'Normal', factor: 1.5, hint: 'Balance recomendado para la mayoría de datasets' },
-  { label: 'Estricto', factor: 1.0, hint: 'Detecta valores moderadamente alejados' },
-  { label: 'Muy estricto', factor: 0.5, hint: 'Detecta cualquier desviación notable' },
-];
-const OutliersConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
-  const method = params.method ?? 'iqr';
-  const factor = params.factor ?? 1.5;
-  const columns: string[] = params.columns ?? [];
-  const activeSensitivity = SENSITIVITY_PRESETS.find(p => p.factor === factor);
-  
-  React.useEffect(() => {
-    const needsUpdate = params.method === undefined || params.factor === undefined || params.columns === undefined;
-    if (needsUpdate) {
-      onChange({ method: params.method ?? 'iqr', factor: params.factor ?? 1.5, columns: params.columns ?? [], ...params });
-    }
-  }, []);
-  
-  return (
-    <Box>
-      <SectionBanner
-        metricName="outliers"
-        title="Detección de valores atípicos"
-        description="Detecta valores que se alejan anormalmente del resto en columnas numéricas. No requiere configuración previa: analiza todas las columnas numéricas automáticamente."
-        autoDetect
-      />
-
-      <Typography variant="subtitle2" gutterBottom>Método de detección</Typography>
-      <RadioGroup value={method} onChange={e => onChange({ ...params, method: e.target.value })}>
-        <Paper variant="outlined" sx={{ p: 1.5, mb: 1, cursor: 'pointer', borderColor: method === 'iqr' ? GREEN : 'divider' }}>
-          <FormControlLabel value="iqr" control={<Radio size="small" sx={{ color: GREEN, '&.Mui-checked': { color: GREEN } }} />}
-            label={
-              <Box>
-                <Typography variant="body2" fontWeight={600}>IQR — Rango intercuartílico <Chip label="Recomendado" size="small" sx={{ ml: 1, bgcolor: GREEN_LIGHT, color: GREEN, height: 18, fontSize: '0.65rem' }} /></Typography>
-                <Typography variant="caption" color="text.secondary">Funciona bien con datos asimétricos o con distribuciones no normales. Ideal para la mayoría de casos.</Typography>
-              </Box>
-            }
-          />
-        </Paper>
-        <Paper variant="outlined" sx={{ p: 1.5, cursor: 'pointer', borderColor: method === 'zscore' ? GREEN : 'divider' }}>
-          <FormControlLabel value="zscore" control={<Radio size="small" sx={{ color: GREEN, '&.Mui-checked': { color: GREEN } }} />}
-            label={
-              <Box>
-                <Typography variant="body2" fontWeight={600}>Z-Score — Desviación estándar</Typography>
-                <Typography variant="caption" color="text.secondary">Adecuado cuando los datos siguen una distribución normal (en forma de campana).</Typography>
-              </Box>
-            }
-          />
-        </Paper>
-      </RadioGroup>
-
-      <Box mt={2.5} mb={1}>
-        <Typography variant="subtitle2" gutterBottom>Sensibilidad de detección</Typography>
-        <Box display="flex" gap={1} flexWrap="wrap">
-          {SENSITIVITY_PRESETS.map(p => (
-            <Tooltip key={p.factor} title={p.hint} arrow>
-              <Chip
-                label={p.label}
-                onClick={() => onChange({ ...params, factor: p.factor })}
-                variant={factor === p.factor ? 'filled' : 'outlined'}
-                sx={factor === p.factor
-                  ? { bgcolor: GREEN, color: '#fff', fontWeight: 600, cursor: 'pointer' }
-                  : { cursor: 'pointer' }}
-              />
-            </Tooltip>
-          ))}
-        </Box>
-        {activeSensitivity && (
-          <Typography variant="caption" color="text.secondary" mt={0.5} display="block">
-            {activeSensitivity.hint}
-          </Typography>
-        )}
-      </Box>
-
-      <AdvancedSection>
-        <ColumnTagInput
-          label="Analizar solo estas columnas numéricas (opcional)"
-          value={columns}
-          onChange={v => onChange({ ...params, columns: v })}
         />
       </AdvancedSection>
     </Box>
@@ -818,8 +731,6 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
         return <CompletenessConfig params={params} onChange={setParams} />;
       case 'uniqueness':
         return <UniquenessConfig params={params} onChange={setParams} />;
-      case 'outliers':
-        return <OutliersConfig params={params} onChange={setParams} />;
       case 'syntactic_accuracy':
         return <SyntacticAccuracyConfig params={params} onChange={setParams} />;
       case 'class_balance':

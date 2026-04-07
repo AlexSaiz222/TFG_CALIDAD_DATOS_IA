@@ -290,6 +290,9 @@ const MetricsConfigurationPage = () => {
           }
         }
 
+        // Outliers is profiling-only (ISO/IEC 5259): hide from metric catalog UI.
+        metricsData = metricsData.filter((m: any) => m?.name?.toLowerCase() !== 'outliers');
+
         // Asegurarse de que metricsData sea un array antes de mapearlo
         const normalizedMetrics = (metricsData || []).map((metric: any) => ({
           id: metric.id,

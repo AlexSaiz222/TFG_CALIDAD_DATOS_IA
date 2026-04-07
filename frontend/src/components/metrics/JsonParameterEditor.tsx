@@ -38,15 +38,6 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
     },
     description: 'threshold: unicidad mínima de filas (1.0 = sin duplicados). columns: columnas que deben ser únicas.',
   },
-  outliers: {
-    example: {
-      method: 'iqr',
-      factor: 1.5,
-      columns: ['precio', 'edad', 'ingresos'],
-      weight: 1.0,
-    },
-    description: 'method: "iqr" o "zscore". factor: sensibilidad (1.5 normal, 3.0 permisivo). columns: vacío = todas numéricas.',
-  },
   syntactic_accuracy: {
     example: {
       auto_detect_types: true,
