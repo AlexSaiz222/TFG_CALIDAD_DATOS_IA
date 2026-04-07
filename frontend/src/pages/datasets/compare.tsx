@@ -3,19 +3,10 @@ import { useRouter } from 'next/router';
 import {
   Box,
   Typography,
-  Paper,
-  Grid,
   Chip,
   CircularProgress,
   Alert,
   Button,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
   Tooltip,
 } from '@mui/material';
@@ -24,17 +15,21 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
+  ArrowForward as ArrowForwardIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
-  TrendingFlat as TrendingFlatIcon,
-  Add as AddIcon,
-  Remove as RemoveIcon,
-  SwapHoriz as SwapHorizIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI } from '../../services/api';
 import { Dataset } from '../../types';
 
+// ─── paleta ───────────────────────────────────────────────────────────────
+const GREEN  = '#00B37E';
+const RED    = '#E5484D';
+const ORANGE = '#FFB800';
+const GRAY   = '#888888';
+
+// ─── tipos ────────────────────────────────────────────────────────────────
 interface ComparisonData {
   dataset_a: Dataset & { latestAnalysis?: any };
   dataset_b: Dataset & { latestAnalysis?: any };
@@ -51,99 +46,292 @@ interface ComparisonData {
   };
 }
 
+// ─── helpers ──────────────────────────────────────────────────────────────
+function gateColor(status: string | null | undefined): string {
+  switch (status) {
+    case 'PASSED':  return GREEN;
+    case 'FAILED':  return RED;
+    case 'WARNING': return ORANGE;
+    default:        return GRAY;
+  }
+}
+
+function GateIcon({ status, size = 18 }: { status?: string | null; size?: number }) {
+  const sx = { fontSize: size };
+  switch (status) {
+    case 'PASSED':  return <CheckCircleIcon sx={{ ...sx, color: GREEN }} />;
+    case 'FAILED':  return <ErrorIcon       sx={{ ...sx, color: RED   }} />;
+    case 'WARNING': return <WarningIcon     sx={{ ...sx, color: ORANGE}} />;
+    default:        return null;
+  }
+}
+
+function severityColor(s: string): string {
+  switch (s?.toLowerCase()) {
+    case 'critical': case 'high': return RED;
+    case 'medium':               return ORANGE;
+    case 'low':                  return GREEN;
+    default:                     return GRAY;
+  }
+}
+
+function fmtDiff(n: number | null, suffix = '', invertSign = false): string {
+  if (n === null) return '—';
+  const v = invertSign ? -n : n;
+  return `${v > 0 ? '+' : ''}${v}${suffix}`;
+}
+
+function diffColor(n: number | null, lowerIsBetter = false): string {
+  if (n === null || n === 0) return GRAY;
+  const improved = lowerIsBetter ? n < 0 : n > 0;
+  return improved ? GREEN : RED;
+}
+
+// ─── sub-componentes ──────────────────────────────────────────────────────
+
+/** Columna de versión (izq o der) */
+const VersionColumn: React.FC<{
+  ds: Dataset & { latestAnalysis?: any };
+  label: string;
+  side: 'left' | 'right';
+  datasetId: string | string[] | undefined;
+}> = ({ ds, label, side, datasetId }) => {
+  const router = useRouter();
+  const score    = ds.latestAnalysis?.quality_score ?? null;
+  const status   = ds.latestAnalysis?.quality_gate_status ?? null;
+  const issues   = ds.latestAnalysis?.total_issues_count ?? null;
+  const color    = gateColor(status);
+  const vLabel   = ds.version_tag || `v${ds.version}`;
+
+  return (
+    <Box sx={{
+      flex: 1,
+      p: 3,
+      borderRight: side === 'left' ? '1px solid #F0F0F0' : 'none',
+      borderLeft:  side === 'right' ? '1px solid #F0F0F0' : 'none',
+    }}>
+      {/* Role label */}
+      <Typography sx={{
+        fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase',
+        letterSpacing: '0.08em', color: '#BBBBBB', mb: 1,
+      }}>
+        {label}
+      </Typography>
+
+      {/* Version chip + Latest badge */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 2, flexWrap: 'wrap' }}>
+        <Box sx={{
+          px: 1.25, py: 0.3,
+          borderRadius: '6px',
+          backgroundColor: `${color}12`,
+          border: `1px solid ${color}35`,
+        }}>
+          <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color }}>
+            {vLabel}
+          </Typography>
+        </Box>
+        {ds.is_latest && (
+          <Box sx={{
+            px: 1, py: 0.2,
+            borderRadius: '4px',
+            backgroundColor: 'rgba(25,118,210,0.08)',
+            border: '1px solid rgba(25,118,210,0.2)',
+          }}>
+            <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#1976d2' }}>
+              LATEST
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {/* Dataset name */}
+      <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: '#1A1A1A', mb: 2.5, lineHeight: 1.3 }}>
+        {ds.name}
+      </Typography>
+
+      {/* Score */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+        <GateIcon status={status} size={20} />
+        <Typography sx={{
+          fontSize: '2rem', fontWeight: 700, lineHeight: 1,
+          color: score !== null ? color : '#CCC',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          {score !== null ? `${Number(score).toFixed(1)}%` : '—'}
+        </Typography>
+      </Box>
+      <Typography sx={{ fontSize: '0.72rem', color: GRAY, mb: 2.5 }}>
+        Quality Score
+        {status && (
+          <Box component="span" sx={{
+            ml: 1, px: 0.75, py: 0.1,
+            borderRadius: '4px',
+            backgroundColor: `${color}12`,
+            color, fontWeight: 700, fontSize: '0.65rem',
+          }}>
+            {status}
+          </Box>
+        )}
+      </Typography>
+
+      {/* Metadata row */}
+      <Box sx={{
+        display: 'flex', gap: 2.5,
+        pt: 2, borderTop: '1px solid #F5F5F5',
+      }}>
+        <Stat label="Filas"     value={(ds.row_count ?? 0).toLocaleString()} />
+        <Stat label="Columnas"  value={String(ds.column_count ?? '—')} />
+        {issues !== null && (
+          <Stat label="Issues" value={String(issues)} valueColor={issues > 0 ? RED : GREEN} />
+        )}
+      </Box>
+
+      {/* Navigate button */}
+      <Box sx={{ mt: 2.5 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => router.push(`/datasets/${datasetId}`)}
+          sx={{
+            fontSize: '0.75rem', textTransform: 'none', fontWeight: 500,
+            borderColor: '#E0E0E0', color: '#555',
+            '&:hover': { borderColor: '#BBBBBB', backgroundColor: '#FAFAFA' },
+          }}
+        >
+          Ver {vLabel}
+        </Button>
+      </Box>
+    </Box>
+  );
+};
+
+const Stat: React.FC<{ label: string; value: string; valueColor?: string }> = ({
+  label, value, valueColor,
+}) => (
+  <Box>
+    <Typography sx={{ fontSize: '0.65rem', color: '#BBBBBB', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      {label}
+    </Typography>
+    <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: valueColor || '#333' }}>
+      {value}
+    </Typography>
+  </Box>
+);
+
+/** Columna central de deltas */
+const DeltaColumn: React.FC<{
+  scoreDiff: number | null;
+  issuesDiff: number;
+  rowsDiff: number;
+  colsDiff: number;
+}> = ({ scoreDiff, issuesDiff, rowsDiff, colsDiff }) => (
+  <Box sx={{
+    width: 120, flexShrink: 0,
+    display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center',
+    px: 1.5, gap: 2,
+  }}>
+    {/* Arrow */}
+    <Box sx={{
+      width: 36, height: 36,
+      borderRadius: '50%',
+      backgroundColor: '#F5F5F5',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <ArrowForwardIcon sx={{ fontSize: 18, color: '#BBBBBB' }} />
+    </Box>
+
+    {/* Delta pills */}
+    {[
+      { label: 'Score',   value: fmtDiff(scoreDiff, '%'),          color: diffColor(scoreDiff) },
+      { label: 'Issues',  value: fmtDiff(issuesDiff, '', true),    color: diffColor(issuesDiff, true) },
+      { label: 'Filas',   value: fmtDiff(rowsDiff),                color: '#AAAAAA' },
+      { label: 'Cols',    value: fmtDiff(colsDiff),                color: '#AAAAAA' },
+    ].map(({ label, value, color }) => (
+      <Box key={label} sx={{ textAlign: 'center' }}>
+        <Typography sx={{ fontSize: '0.6rem', color: '#BBBBBB', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.2 }}>
+          {label}
+        </Typography>
+        <Typography sx={{
+          fontSize: '0.9rem', fontWeight: 700, color,
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          {value}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
+);
+
+/** Fila de issue en la lista */
+const IssueRow: React.FC<{ issue: any; resolved?: boolean }> = ({ issue, resolved = false }) => {
+  const color = severityColor(issue.severity);
+  return (
+    <Box sx={{
+      display: 'flex', alignItems: 'flex-start', gap: 1.25,
+      py: 1, borderBottom: '1px solid #F8F8F8',
+      '&:last-child': { borderBottom: 'none' },
+    }}>
+      <Tooltip title={issue.severity} placement="top">
+        <Box sx={{
+          width: 7, height: 7, borderRadius: '50%',
+          backgroundColor: color,
+          mt: '5px', flexShrink: 0,
+        }} />
+      </Tooltip>
+      <Typography sx={{
+        fontSize: '0.8rem',
+        color: resolved ? '#AAAAAA' : '#333',
+        textDecoration: resolved ? 'line-through' : 'none',
+        lineHeight: 1.45,
+      }}>
+        {issue.description}
+      </Typography>
+    </Box>
+  );
+};
+
+// ─── página principal ─────────────────────────────────────────────────────
 const DatasetCompare = () => {
   const router = useRouter();
   const { a, b, projectId } = router.query;
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState<string | null>(null);
+  const [data, setData]                     = useState<ComparisonData | null>(null);
 
   useEffect(() => {
-    const fetchComparison = async () => {
-      if (!a || !b || !projectId) return;
-
-      try {
-        setLoading(true);
-        const response = await datasetsAPI.compareDatasetVersions(
-          Number(projectId),
-          Number(a),
-          Number(b)
-        );
-        const data = response?.data?.data || response?.data || {};
-        setComparisonData(data);
+    if (!a || !b || !projectId) return;
+    setLoading(true);
+    datasetsAPI
+      .compareDatasetVersions(Number(projectId), Number(a), Number(b))
+      .then(res => {
+        setData(res?.data?.data || res?.data || null);
         setError(null);
-      } catch (err: any) {
-        console.error('Error fetching comparison:', err);
-        setError('No se pudo cargar la comparación de versiones');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchComparison();
+      })
+      .catch(() => setError('No se pudo cargar la comparación de versiones'))
+      .finally(() => setLoading(false));
   }, [a, b, projectId]);
-
-  const getQualityGateIcon = (status: string | null | undefined) => {
-    switch (status) {
-      case 'PASSED':
-        return <CheckCircleIcon sx={{ color: '#00B37E', fontSize: 24 }} />;
-      case 'FAILED':
-        return <ErrorIcon sx={{ color: '#E5484D', fontSize: 24 }} />;
-      case 'WARNING':
-        return <WarningIcon sx={{ color: '#FFB800', fontSize: 24 }} />;
-      default:
-        return null;
-    }
-  };
-
-  const getTrendIcon = (diff: number | null) => {
-    if (diff === null) return <TrendingFlatIcon sx={{ color: '#999' }} />;
-    if (diff > 0) return <TrendingUpIcon sx={{ color: '#00B37E' }} />;
-    if (diff < 0) return <TrendingDownIcon sx={{ color: '#E5484D' }} />;
-    return <TrendingFlatIcon sx={{ color: '#FFB800' }} />;
-  };
-
-  const formatDiff = (diff: number | null, suffix: string = '') => {
-    if (diff === null) return '—';
-    const sign = diff > 0 ? '+' : '';
-    return `${sign}${diff}${suffix}`;
-  };
-
-  const getIssueSeverityColor = (severity: string) => {
-    switch (severity?.toLowerCase()) {
-      case 'high':
-      case 'critical':
-        return '#E5484D';
-      case 'medium':
-        return '#FFB800';
-      case 'low':
-        return '#00B37E';
-      default:
-        return '#757575';
-    }
-  };
 
   if (loading) {
     return (
       <MainLayout>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <CircularProgress />
+          <CircularProgress size={28} sx={{ color: GREEN }} />
         </Box>
       </MainLayout>
     );
   }
 
-  if (error || !comparisonData) {
+  if (error || !data) {
     return (
       <MainLayout>
-        <Box sx={{ p: 3 }}>
-          <Alert severity="error">{error || 'No se encontraron datos de comparación'}</Alert>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => router.back()}
-            sx={{ mt: 2 }}
-          >
+        <Box sx={{ p: 3, maxWidth: 480 }}>
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+            {error || 'No se encontraron datos de comparación'}
+          </Alert>
+          <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()}
+            sx={{ textTransform: 'none', color: GRAY }}>
             Volver
           </Button>
         </Box>
@@ -151,403 +339,252 @@ const DatasetCompare = () => {
     );
   }
 
-  const { dataset_a, dataset_b, comparison } = comparisonData;
+  const { dataset_a, dataset_b, comparison } = data;
+  const hasColumnChanges =
+    (comparison.added_columns?.length ?? 0) > 0 ||
+    (comparison.removed_columns?.length ?? 0) > 0;
+  const resolvedCount = comparison.resolved_issues?.length ?? 0;
+  const newCount      = comparison.new_issues?.length ?? 0;
+  const commonCount   = comparison.common_issues?.length ?? 0;
 
   return (
     <MainLayout>
-      <Box sx={{ p: 3 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={() => router.back()} sx={{ mr: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" sx={{ fontWeight: 600 }}>
-            Comparación de Versiones
-          </Typography>
-        </Box>
+      <Box sx={{ p: 3, maxWidth: 1100, mx: 'auto' }}>
 
-        {/* Version Cards Side by Side */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          {/* Version A */}
-          <Grid item xs={12} md={5}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                border: '2px solid #E0E0E0',
-                borderRadius: 2,
-                height: '100%',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Chip
-                  label={dataset_a.version_tag || `v${dataset_a.version}`}
-                  sx={{
-                    backgroundColor: 'rgba(23, 69, 79, 0.1)',
-                    color: '#17454F',
-                    fontWeight: 600,
-                  }}
-                />
-                <Typography variant="body2" color="text.secondary">
-                  Versión anterior
-                </Typography>
-              </Box>
-              
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+        {/* ── Header ── */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <IconButton
+            size="small"
+            onClick={() => router.back()}
+            sx={{ color: GRAY, border: '1px solid #EEEEEE', borderRadius: 1.5,
+              '&:hover': { backgroundColor: '#F5F5F5' } }}
+          >
+            <ArrowBackIcon fontSize="small" />
+          </IconButton>
+          <Box>
+            <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}>
+              Comparación de versiones
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.3 }}>
+              <Typography sx={{ fontSize: '0.78rem', color: GRAY }}>
                 {dataset_a.name}
               </Typography>
-              
-              <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Filas</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {dataset_a.row_count?.toLocaleString() || '—'}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Columnas</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {dataset_a.column_count || '—'}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {getQualityGateIcon(dataset_a.latestAnalysis?.quality_gate_status)}
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                    {dataset_a.latestAnalysis?.quality_score != null
-                      ? `${dataset_a.latestAnalysis.quality_score}%`
-                      : '—'}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Quality Score
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                {dataset_a.latestAnalysis?.total_issues_count ?? 0} issues detectados
+              <Typography sx={{ fontSize: '0.72rem', color: '#CCCCCC' }}>·</Typography>
+              <Typography sx={{ fontSize: '0.78rem', color: GRAY }}>
+                {dataset_a.version_tag || `v${dataset_a.version}`}
               </Typography>
-            </Paper>
-          </Grid>
-
-          {/* Arrow */}
-          <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <SwapHorizIcon sx={{ fontSize: 48, color: '#9c27b0' }} />
-              <Typography variant="body2" color="text.secondary">
-                vs
+              <ArrowForwardIcon sx={{ fontSize: 13, color: '#BBBBBB' }} />
+              <Typography sx={{ fontSize: '0.78rem', color: GRAY, fontWeight: 600 }}>
+                {dataset_b.version_tag || `v${dataset_b.version}`}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
+        </Box>
 
-          {/* Version B */}
-          <Grid item xs={12} md={5}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                border: '2px solid #00B37E',
-                borderRadius: 2,
-                height: '100%',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Chip
-                  label={dataset_b.version_tag || `v${dataset_b.version}`}
-                  sx={{
-                    backgroundColor: 'rgba(23, 69, 79, 0.1)',
-                    color: '#17454F',
-                    fontWeight: 600,
-                  }}
-                />
-                {dataset_b.is_latest && (
-                  <Chip
-                    label="Latest"
-                    size="small"
-                    sx={{
-                      backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                      color: '#00B37E',
-                      fontWeight: 600,
-                    }}
-                  />
-                )}
-                <Typography variant="body2" color="text.secondary">
-                  Versión actual
+        {/* ── Version comparison card ── */}
+        <Box sx={{
+          display: 'flex',
+          border: '1px solid #EEEEEE',
+          borderRadius: 2,
+          overflow: 'hidden',
+          backgroundColor: '#fff',
+          mb: 3,
+        }}>
+          <VersionColumn ds={dataset_a} label="Versión anterior" side="left"  datasetId={a} />
+          <DeltaColumn
+            scoreDiff={comparison.quality_score_diff}
+            issuesDiff={comparison.issues_diff}
+            rowsDiff={comparison.rows_diff}
+            colsDiff={comparison.columns_diff}
+          />
+          <VersionColumn ds={dataset_b} label="Versión actual"   side="right" datasetId={b} />
+        </Box>
+
+        {/* ── Column diff (if any) ── */}
+        {hasColumnChanges && (
+          <Box sx={{
+            display: 'flex', gap: 3,
+            border: '1px solid #EEEEEE',
+            borderRadius: 2, p: 2.5, mb: 3,
+            backgroundColor: '#fff',
+          }}>
+            {comparison.added_columns && comparison.added_columns.length > 0 && (
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{
+                  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.07em', color: GREEN, mb: 1.25,
+                }}>
+                  + {comparison.added_columns.length} columna{comparison.added_columns.length !== 1 ? 's' : ''} añadida{comparison.added_columns.length !== 1 ? 's' : ''}
                 </Typography>
-              </Box>
-              
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                {dataset_b.name}
-              </Typography>
-              
-              <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Filas</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {dataset_b.row_count?.toLocaleString() || '—'}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Columnas</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {dataset_b.column_count || '—'}
-                  </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {comparison.added_columns.map(col => (
+                    <Box key={col} sx={{
+                      px: 1.1, py: 0.3,
+                      borderRadius: '5px',
+                      border: `1px solid ${GREEN}35`,
+                      backgroundColor: `${GREEN}08`,
+                    }}>
+                      <Typography sx={{ fontSize: '0.76rem', fontWeight: 500, color: GREEN }}>
+                        {col}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Box>
               </Box>
+            )}
+            {hasColumnChanges && comparison.added_columns?.length && comparison.removed_columns?.length ? (
+              <Box sx={{ width: '1px', backgroundColor: '#F0F0F0', flexShrink: 0 }} />
+            ) : null}
+            {comparison.removed_columns && comparison.removed_columns.length > 0 && (
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{
+                  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.07em', color: RED, mb: 1.25,
+                }}>
+                  − {comparison.removed_columns.length} columna{comparison.removed_columns.length !== 1 ? 's' : ''} eliminada{comparison.removed_columns.length !== 1 ? 's' : ''}
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {comparison.removed_columns.map(col => (
+                    <Box key={col} sx={{
+                      px: 1.1, py: 0.3,
+                      borderRadius: '5px',
+                      border: `1px solid ${RED}35`,
+                      backgroundColor: `${RED}08`,
+                    }}>
+                      <Typography sx={{ fontSize: '0.76rem', fontWeight: 500, color: RED }}>
+                        {col}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Box>
+        )}
 
-              <Divider sx={{ my: 2 }} />
-
+        {/* ── Issues diff ── */}
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gap: 2,
+        }}>
+          {/* Resueltos */}
+          <Box sx={{
+            border: '1px solid #EEEEEE',
+            borderRadius: 2,
+            overflow: 'hidden',
+            backgroundColor: '#fff',
+          }}>
+            <Box sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              px: 2.5, py: 1.75,
+              borderBottom: resolvedCount > 0 ? '1px solid #F5F5F5' : 'none',
+              backgroundColor: resolvedCount > 0 ? `${GREEN}06` : '#FAFAFA',
+            }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {getQualityGateIcon(dataset_b.latestAnalysis?.quality_gate_status)}
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                    {dataset_b.latestAnalysis?.quality_score != null
-                      ? `${dataset_b.latestAnalysis.quality_score}%`
-                      : '—'}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Quality Score
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                {dataset_b.latestAnalysis?.total_issues_count ?? 0} issues detectados
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Summary Stats */}
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, mb: 4 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-            Resumen de cambios
-          </Typography>
-          
-          <Grid container spacing={3}>
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                  {getTrendIcon(comparison.quality_score_diff)}
-                  <Typography variant="h4" sx={{ fontWeight: 600, color: comparison.quality_score_diff && comparison.quality_score_diff > 0 ? '#00B37E' : comparison.quality_score_diff && comparison.quality_score_diff < 0 ? '#E5484D' : '#757575' }}>
-                    {formatDiff(comparison.quality_score_diff, '%')}
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Quality Score
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 600, color: comparison.issues_diff < 0 ? '#00B37E' : comparison.issues_diff > 0 ? '#E5484D' : '#757575' }}>
-                  {formatDiff(-comparison.issues_diff)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Issues (menos = mejor)
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 600, color: '#00B37E' }}>
-                  {comparison.resolved_issues?.length || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <CheckCircleIcon sx={{ fontSize: 16, color: resolvedCount > 0 ? GREEN : '#CCC' }} />
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
                   Issues resueltos
                 </Typography>
               </Box>
-            </Grid>
-            
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 600, color: '#E5484D' }}>
-                  {comparison.new_issues?.length || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Nuevos issues
+              <Box sx={{
+                px: 1, py: 0.15,
+                borderRadius: '10px',
+                backgroundColor: resolvedCount > 0 ? `${GREEN}15` : '#F0F0F0',
+              }}>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: resolvedCount > 0 ? GREEN : '#AAAAAA' }}>
+                  {resolvedCount}
                 </Typography>
               </Box>
-            </Grid>
-          </Grid>
-        </Paper>
+            </Box>
 
-        {/* Column Diff */}
-        {((comparison.added_columns && comparison.added_columns.length > 0) ||
-          (comparison.removed_columns && comparison.removed_columns.length > 0)) && (
-          <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Cambios en columnas
-            </Typography>
-            <Grid container spacing={3}>
-              {comparison.added_columns && comparison.added_columns.length > 0 && (
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <AddIcon sx={{ color: '#00B37E', fontSize: 20 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#00B37E' }}>
-                      Columnas añadidas ({comparison.added_columns.length})
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                    {comparison.added_columns.map((col) => (
-                      <Chip key={col} label={col} size="small"
-                        sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500 }} />
-                    ))}
-                  </Box>
-                </Grid>
+            <Box sx={{ px: 2.5, py: resolvedCount > 0 ? 1.5 : 3, maxHeight: 320, overflowY: 'auto' }}>
+              {resolvedCount > 0 ? (
+                comparison.resolved_issues.map((issue: any, i: number) => (
+                  <IssueRow key={i} issue={issue} resolved />
+                ))
+              ) : (
+                <Typography sx={{ textAlign: 'center', color: '#CCCCCC', fontSize: '0.82rem' }}>
+                  Sin issues resueltos
+                </Typography>
               )}
-              {comparison.removed_columns && comparison.removed_columns.length > 0 && (
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <RemoveIcon sx={{ color: '#E5484D', fontSize: 20 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#E5484D' }}>
-                      Columnas eliminadas ({comparison.removed_columns.length})
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                    {comparison.removed_columns.map((col) => (
-                      <Chip key={col} label={col} size="small"
-                        sx={{ backgroundColor: 'rgba(229,72,77,0.1)', color: '#E5484D', fontWeight: 500 }} />
-                    ))}
-                  </Box>
-                </Grid>
+            </Box>
+          </Box>
+
+          {/* Nuevos */}
+          <Box sx={{
+            border: '1px solid #EEEEEE',
+            borderRadius: 2,
+            overflow: 'hidden',
+            backgroundColor: '#fff',
+          }}>
+            <Box sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              px: 2.5, py: 1.75,
+              borderBottom: newCount > 0 ? '1px solid #F5F5F5' : 'none',
+              backgroundColor: newCount > 0 ? `${RED}05` : '#FAFAFA',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ErrorIcon sx={{ fontSize: 16, color: newCount > 0 ? RED : '#CCC' }} />
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
+                  Issues nuevos
+                </Typography>
+              </Box>
+              <Box sx={{
+                px: 1, py: 0.15,
+                borderRadius: '10px',
+                backgroundColor: newCount > 0 ? `${RED}15` : '#F0F0F0',
+              }}>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: newCount > 0 ? RED : '#AAAAAA' }}>
+                  {newCount}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ px: 2.5, py: newCount > 0 ? 1.5 : 3, maxHeight: 320, overflowY: 'auto' }}>
+              {newCount > 0 ? (
+                comparison.new_issues.map((issue: any, i: number) => (
+                  <IssueRow key={i} issue={issue} />
+                ))
+              ) : (
+                <Typography sx={{ textAlign: 'center', color: '#CCCCCC', fontSize: '0.82rem' }}>
+                  Sin issues nuevos
+                </Typography>
               )}
-            </Grid>
-          </Paper>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* ── Issues comunes (si los hay, colapsado) ── */}
+        {commonCount > 0 && (
+          <Box sx={{
+            mt: 2,
+            border: '1px solid #EEEEEE',
+            borderRadius: 2,
+            overflow: 'hidden',
+            backgroundColor: '#fff',
+          }}>
+            <Box sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              px: 2.5, py: 1.75,
+            }}>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
+                Issues persistentes
+              </Typography>
+              <Box sx={{ px: 1, py: 0.15, borderRadius: '10px', backgroundColor: '#F0F0F0' }}>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: GRAY }}>
+                  {commonCount}
+                </Typography>
+              </Box>
+            </Box>
+            <Box sx={{ px: 2.5, pb: 1.5, maxHeight: 200, overflowY: 'auto', borderTop: '1px solid #F5F5F5' }}>
+              {comparison.common_issues.map((issue: any, i: number) => (
+                <IssueRow key={i} issue={issue} />
+              ))}
+            </Box>
+          </Box>
         )}
 
-        {/* Issues Diff */}
-        <Grid container spacing={3}>
-          {/* Resolved Issues */}
-          <Grid item xs={12} md={6}>
-            <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <CheckCircleIcon sx={{ color: '#00B37E' }} />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Issues Resueltos ({comparison.resolved_issues?.length || 0})
-                </Typography>
-              </Box>
-              
-              {comparison.resolved_issues && comparison.resolved_issues.length > 0 ? (
-                <TableContainer sx={{ maxHeight: 300 }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600 }}>Severidad</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {comparison.resolved_issues.map((issue: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Chip
-                              label={issue.severity}
-                              size="small"
-                              sx={{
-                                backgroundColor: `${getIssueSeverityColor(issue.severity)}20`,
-                                color: getIssueSeverityColor(issue.severity),
-                                fontWeight: 500,
-                                textTransform: 'capitalize',
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" sx={{ textDecoration: 'line-through', color: '#999' }}>
-                              {issue.description}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                  No hay issues resueltos entre estas versiones
-                </Typography>
-              )}
-            </Paper>
-          </Grid>
-
-          {/* New Issues */}
-          <Grid item xs={12} md={6}>
-            <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <ErrorIcon sx={{ color: '#E5484D' }} />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Nuevos Issues ({comparison.new_issues?.length || 0})
-                </Typography>
-              </Box>
-              
-              {comparison.new_issues && comparison.new_issues.length > 0 ? (
-                <TableContainer sx={{ maxHeight: 300 }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600 }}>Severidad</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {comparison.new_issues.map((issue: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Chip
-                              label={issue.severity}
-                              size="small"
-                              sx={{
-                                backgroundColor: `${getIssueSeverityColor(issue.severity)}20`,
-                                color: getIssueSeverityColor(issue.severity),
-                                fontWeight: 500,
-                                textTransform: 'capitalize',
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {issue.description}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                  No hay nuevos issues en esta versión
-                </Typography>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Actions */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
-          <Button
-            variant="outlined"
-            onClick={() => router.push(`/datasets/${a}`)}
-          >
-            Ver {dataset_a.version_tag || `v${dataset_a.version}`}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => router.push(`/datasets/${b}`)}
-            sx={{
-              backgroundColor: '#00B37E',
-              '&:hover': { backgroundColor: '#00A070' },
-            }}
-          >
-            Ver {dataset_b.version_tag || `v${dataset_b.version}`}
-          </Button>
-        </Box>
       </Box>
     </MainLayout>
   );
