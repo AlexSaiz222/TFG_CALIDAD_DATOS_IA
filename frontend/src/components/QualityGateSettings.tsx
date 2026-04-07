@@ -5,29 +5,23 @@ import {
   Slider,
   TextField,
   Button,
-  Paper,
-  Grid,
-  Divider,
   Alert,
   CircularProgress,
-  Switch,
-  FormControlLabel,
   Tooltip,
-  Chip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   RestartAlt as RestartAltIcon,
-  Security as SecurityIcon,
   CheckCircle as CheckCircleIcon,
-  Info as InfoIcon,
+  RadioButtonUnchecked as CircleIcon,
 } from '@mui/icons-material';
 import { projectsAPI } from '../services/api';
 
-const GREEN = '#00B37E';
-const GREEN_HOVER = '#00A070';
+// ─── paleta ───────────────────────────────────────────────────────────────
+const GREEN  = '#00B37E';
 const ORANGE = '#FFB800';
-const RED = '#E5484D';
+const RED    = '#E5484D';
+const GRAY   = '#888888';
 
 interface QualityGateThresholds {
   min_score: number;
@@ -37,88 +31,194 @@ interface QualityGateThresholds {
 
 interface QualityGateSettingsProps {
   projectId: number;
-  onThresholdsLoaded?: (thresholds: QualityGateThresholds) => void;
+  onThresholdsLoaded?: (t: QualityGateThresholds) => void;
 }
 
-const DEFAULT_THRESHOLDS: QualityGateThresholds = {
+const DEFAULT: QualityGateThresholds = {
   min_score: 70,
   max_critical_issues: 0,
   max_new_issues: 10,
 };
 
-const THRESHOLD_LABELS: Record<string, { label: string; description: string; unit: string }> = {
-  min_score: {
-    label: 'Score mínimo',
-    description: 'Puntuación mínima que debe alcanzar el dataset para aprobar',
-    unit: '%',
-  },
-  max_critical_issues: {
-    label: 'Máx. issues críticos',
-    description: 'Número máximo de issues críticos permitidos antes de fallar',
-    unit: '',
-  },
-  max_new_issues: {
-    label: 'Máx. nuevos issues',
-    description: 'Número máximo de nuevos issues permitidos por análisis',
-    unit: '',
-  },
+// ─── strictness helpers ────────────────────────────────────────────────────
+function scoreStrictness(v: number): { label: string; color: string } {
+  if (v >= 85) return { label: 'Estricto',   color: RED    };
+  if (v >= 60) return { label: 'Moderado',   color: ORANGE };
+  return              { label: 'Permisivo',  color: GREEN  };
+}
+function criticalStrictness(v: number): { label: string; color: string } {
+  if (v === 0) return { label: 'Estricto',   color: RED    };
+  if (v <= 3)  return { label: 'Moderado',   color: ORANGE };
+  return              { label: 'Permisivo',  color: GREEN  };
+}
+function newIssuesStrictness(v: number): { label: string; color: string } {
+  if (v <= 3)  return { label: 'Estricto',   color: RED    };
+  if (v <= 15) return { label: 'Moderado',   color: ORANGE };
+  return              { label: 'Permisivo',  color: GREEN  };
+}
+
+// ─── rule card ────────────────────────────────────────────────────────────
+interface RuleCardProps {
+  label: string;
+  description: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  unit: string;
+  operator: string;           // e.g. "≥" or "≤"
+  strictness: { label: string; color: string };
+  disabled: boolean;
+  onChange: (v: number) => void;
+  sliderColor?: string;
+}
+
+const RuleCard: React.FC<RuleCardProps> = ({
+  label, description, value, min, max, step = 1,
+  unit, operator, strictness, disabled, onChange, sliderColor,
+}) => {
+  const color = sliderColor || strictness.color;
+
+  return (
+    <Box sx={{
+      border: '1px solid #EEEEEE',
+      borderRadius: 2,
+      p: 2.5,
+      backgroundColor: '#fff',
+      transition: 'border-color 0.15s',
+      '&:hover': { borderColor: '#D0D0D0' },
+    }}>
+      {/* Top row: label + value + strictness badge */}
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 0.75 }}>
+        <Box>
+          <Tooltip title={description} placement="top-start" enterDelay={400}>
+            <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A', cursor: 'default' }}>
+              {label}
+            </Typography>
+          </Tooltip>
+          <Typography sx={{ fontSize: '0.72rem', color: '#AAAAAA', mt: 0.25 }}>
+            {description}
+          </Typography>
+        </Box>
+
+        {/* Value pill */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, ml: 2 }}>
+          <Box sx={{
+            px: 1.25, py: 0.3,
+            borderRadius: '6px',
+            backgroundColor: `${strictness.color}12`,
+            border: `1px solid ${strictness.color}30`,
+          }}>
+            <Typography sx={{
+              fontSize: '0.7rem', fontWeight: 700,
+              color: strictness.color, letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}>
+              {strictness.label}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Condition display: operator + big value */}
+      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, mb: 2, mt: 1.5 }}>
+        <Typography sx={{ fontSize: '0.95rem', color: '#AAAAAA', fontWeight: 400 }}>
+          {operator}
+        </Typography>
+        <Typography sx={{
+          fontSize: '2rem', fontWeight: 700, lineHeight: 1,
+          color, fontVariantNumeric: 'tabular-nums',
+        }}>
+          {value}
+        </Typography>
+        {unit && (
+          <Typography sx={{ fontSize: '1rem', color: '#AAAAAA', fontWeight: 400 }}>
+            {unit}
+          </Typography>
+        )}
+      </Box>
+
+      {/* Slider + input */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Slider
+          value={value}
+          onChange={(_, v) => onChange(v as number)}
+          min={min}
+          max={max}
+          step={step}
+          disabled={disabled}
+          sx={{
+            color,
+            height: 4,
+            '& .MuiSlider-thumb': {
+              width: 16, height: 16,
+              boxShadow: 'none',
+              '&:hover, &.Mui-focusVisible': {
+                boxShadow: `0 0 0 6px ${color}25`,
+              },
+            },
+            '& .MuiSlider-rail': { opacity: 0.2 },
+          }}
+        />
+        <TextField
+          value={value}
+          onChange={e => { const n = Number(e.target.value); if (!isNaN(n)) onChange(n); }}
+          disabled={disabled}
+          type="number"
+          size="small"
+          inputProps={{ min, max, step }}
+          sx={{
+            width: 68, flexShrink: 0,
+            '& input': { textAlign: 'center', fontSize: '0.82rem', py: '5px' },
+            '& fieldset': { borderColor: '#E8E8E8' },
+          }}
+        />
+      </Box>
+    </Box>
+  );
 };
 
-const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({ projectId, onThresholdsLoaded }) => {
-  const [thresholds, setThresholds] = useState<QualityGateThresholds>(DEFAULT_THRESHOLDS);
-  const [originalThresholds, setOriginalThresholds] = useState<QualityGateThresholds>(DEFAULT_THRESHOLDS);
-  const [isActive, setIsActive] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// ─── main component ────────────────────────────────────────────────────────
+const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
+  projectId,
+  onThresholdsLoaded,
+}) => {
+  const [thresholds, setThresholds]         = useState<QualityGateThresholds>(DEFAULT);
+  const [original, setOriginal]             = useState<QualityGateThresholds>(DEFAULT);
+  const [isActive, setIsActive]             = useState(true);
+  const [loading, setLoading]               = useState(true);
+  const [saving, setSaving]                 = useState(false);
+  const [error, setError]                   = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
+  const hasChanges = JSON.stringify(thresholds) !== JSON.stringify(original) ||
+                     isActive !== isActive; // re-eval on active toggle too
 
-  // Load current Quality Gate config
+  // Load
   useEffect(() => {
-    const loadQualityGate = async () => {
+    const load = async () => {
       setLoading(true);
-      setError(null);
       try {
-        const response = await projectsAPI.getQualityGate(projectId);
-        const data = response.data?.data || response.data;
-        if (data && data.thresholds) {
-          const loaded = { ...DEFAULT_THRESHOLDS, ...data.thresholds };
+        const res = await projectsAPI.getQualityGate(projectId);
+        const data = res.data?.data || res.data;
+        if (data?.thresholds) {
+          const loaded = { ...DEFAULT, ...data.thresholds };
           setThresholds(loaded);
-          setOriginalThresholds(loaded);
+          setOriginal(loaded);
           setIsActive(data.is_active !== false);
           onThresholdsLoaded?.(loaded);
         }
-      } catch (err: any) {
-        console.error('Error loading Quality Gate:', err);
+      } catch {
         setError('No se pudo cargar la configuración del Quality Gate');
       } finally {
         setLoading(false);
       }
     };
-
-    if (projectId) {
-      loadQualityGate();
-    }
+    if (projectId) load();
   }, [projectId]);
 
-  // Track changes
-  useEffect(() => {
-    const changed = JSON.stringify(thresholds) !== JSON.stringify(originalThresholds);
-    setHasChanges(changed);
-  }, [thresholds, originalThresholds]);
-
-  const handleSliderChange = (key: string) => (_event: Event, value: number | number[]) => {
+  const set = (key: keyof QualityGateThresholds) => (v: number) => {
     setSuccessMessage(null);
-    setThresholds(prev => ({ ...prev, [key]: value as number }));
-  };
-
-  const handleInputChange = (key: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSuccessMessage(null);
-    const value = Number(event.target.value);
-    if (!isNaN(value)) {
-      setThresholds(prev => ({ ...prev, [key]: value }));
-    }
+    setThresholds(prev => ({ ...prev, [key]: v }));
   };
 
   const handleSave = async () => {
@@ -127,147 +227,110 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({ projectId, on
     setSuccessMessage(null);
     try {
       await projectsAPI.updateQualityGate(projectId, thresholds, { is_active: isActive });
-      setOriginalThresholds({ ...thresholds });
-      setSuccessMessage('Quality Gate guardado correctamente');
+      setOriginal({ ...thresholds });
+      setSuccessMessage('Quality Gate guardado');
       onThresholdsLoaded?.(thresholds);
     } catch (err: any) {
-      console.error('Error saving Quality Gate:', err);
-      setError(err.response?.data?.message || 'Error al guardar la configuración');
+      setError(err.response?.data?.message || 'Error al guardar');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleResetDefaults = () => {
-    setThresholds({ ...DEFAULT_THRESHOLDS });
-    setSuccessMessage(null);
-  };
+  const isDirty = JSON.stringify(thresholds) !== JSON.stringify(original);
 
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress sx={{ color: GREEN }} />
+        <CircularProgress sx={{ color: GREEN }} size={28} />
       </Box>
     );
   }
 
-  const renderSliderField = (key: string, min: number, max: number, step: number = 1) => {
-    const config = THRESHOLD_LABELS[key];
-    const value = (thresholds as any)[key];
-    const isPercentage = config.unit === '%';
-
-    // Determine color based on how strict the threshold is
-    const getColor = () => {
-      if (!isPercentage) return GREEN;
-      if (value >= 90) return RED;
-      if (value >= 70) return ORANGE;
-      return GREEN;
-    };
-
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          border: '1px solid #EEEEEE',
-          transition: 'border-color 0.2s ease',
-          '&:hover': { borderColor: GREEN },
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Tooltip title={config.description} placement="top">
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, cursor: 'help' }}>
-              {config.label}
-            </Typography>
-          </Tooltip>
-          <Chip
-            label={`${value}${config.unit}`}
-            size="small"
-            sx={{
-              backgroundColor: `${getColor()}15`,
-              color: getColor(),
-              fontWeight: 700,
-              fontSize: '0.85rem',
-            }}
-          />
-        </Box>
-        <Typography variant="body2" sx={{ color: '#777777', mb: 2, fontSize: '0.8rem' }}>
-          {config.description}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Slider
-            value={value}
-            onChange={handleSliderChange(key)}
-            min={min}
-            max={max}
-            step={step}
-            disabled={!isActive}
-            sx={{
-              color: getColor(),
-              '& .MuiSlider-thumb': {
-                width: 20,
-                height: 20,
-                '&:hover': { boxShadow: `0 0 0 8px ${getColor()}20` },
-              },
-            }}
-          />
-          <TextField
-            value={value}
-            onChange={handleInputChange(key)}
-            disabled={!isActive}
-            type="number"
-            size="small"
-            inputProps={{ min, max, step }}
-            sx={{ width: 80 }}
-          />
-        </Box>
-      </Paper>
-    );
-  };
+  const s0 = scoreStrictness(thresholds.min_score);
+  const s1 = criticalStrictness(thresholds.max_critical_issues);
+  const s2 = newIssuesStrictness(thresholds.max_new_issues);
 
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <SecurityIcon sx={{ color: GREEN, fontSize: 28 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Configuración del Quality Gate
+      {/* ── Header ── */}
+      <Box sx={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        mb: 3,
+      }}>
+        <Box>
+          <Typography sx={{ fontSize: '0.78rem', color: GRAY, mt: 0.25 }}>
+            Condiciones mínimas que debe cumplir un análisis para marcarse como PASSED
           </Typography>
         </Box>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isActive}
-              onChange={(e) => { setIsActive(e.target.checked); setHasChanges(true); }}
-              sx={{
-                '& .MuiSwitch-switchBase.Mui-checked': { color: GREEN },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: GREEN },
-              }}
-            />
-          }
-          label={isActive ? 'Activo' : 'Desactivado'}
-        />
+
+        {/* Active toggle — minimal pill */}
+        <Box
+          onClick={() => setIsActive(v => !v)}
+          sx={{
+            display: 'flex', alignItems: 'center', gap: 0.75,
+            px: 1.5, py: 0.6,
+            borderRadius: '20px',
+            border: `1.5px solid ${isActive ? GREEN : '#DDD'}`,
+            backgroundColor: isActive ? `${GREEN}10` : '#FAFAFA',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': { borderColor: isActive ? '#00A070' : '#BBBBBB' },
+          }}
+        >
+          <Box sx={{
+            width: 7, height: 7, borderRadius: '50%',
+            backgroundColor: isActive ? GREEN : '#BBBBBB',
+            transition: 'background-color 0.15s',
+          }} />
+          <Typography sx={{
+            fontSize: '0.75rem', fontWeight: 600,
+            color: isActive ? GREEN : '#AAAAAA',
+          }}>
+            {isActive ? 'Activo' : 'Inactivo'}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Description */}
-      <Alert
-        severity="info"
-        icon={<InfoIcon />}
-        sx={{
-          mb: 3,
-          borderRadius: 2,
-          backgroundColor: 'rgba(0, 179, 126, 0.05)',
-          border: '1px solid rgba(0, 179, 126, 0.2)',
-          '& .MuiAlert-icon': { color: GREEN },
-        }}
-      >
-        Define los umbrales mínimos que debe cumplir un dataset para superar el Quality Gate.
-        Los análisis que no cumplan estos criterios serán marcados como <strong>FAILED</strong> o <strong>WARNING</strong>.
-      </Alert>
+      {/* ── Logic summary: "Pasa si Score ≥ 70% AND …" ── */}
+      <Box sx={{
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1,
+        mb: 3, px: 2, py: 1.5,
+        borderRadius: 2,
+        border: '1px solid #EEEEEE',
+        backgroundColor: '#FAFAFA',
+        opacity: isActive ? 1 : 0.45,
+      }}>
+        <Typography sx={{ fontSize: '0.72rem', color: '#AAAAAA', mr: 0.5 }}>
+          PASA SI
+        </Typography>
 
-      {/* Feedback messages */}
+        {[
+          { text: `Score ≥ ${thresholds.min_score}%`,         color: s0.color },
+          { text: `Críticos ≤ ${thresholds.max_critical_issues}`, color: s1.color },
+          { text: `Nuevos ≤ ${thresholds.max_new_issues}`,    color: s2.color },
+        ].map(({ text, color }, i) => (
+          <React.Fragment key={text}>
+            <Box sx={{
+              px: 1.25, py: 0.3,
+              borderRadius: '6px',
+              backgroundColor: `${color}12`,
+              border: `1px solid ${color}35`,
+            }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color }}>
+                {text}
+              </Typography>
+            </Box>
+            {i < 2 && (
+              <Typography sx={{ fontSize: '0.68rem', color: '#CCCCCC', fontWeight: 600 }}>
+                AND
+              </Typography>
+            )}
+          </React.Fragment>
+        ))}
+      </Box>
+
+      {/* ── Feedback ── */}
       {error && (
         <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError(null)}>
           {error}
@@ -276,7 +339,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({ projectId, on
       {successMessage && (
         <Alert
           severity="success"
-          icon={<CheckCircleIcon />}
+          icon={<CheckCircleIcon fontSize="small" />}
           sx={{ mb: 2, borderRadius: 2 }}
           onClose={() => setSuccessMessage(null)}
         >
@@ -284,48 +347,87 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({ projectId, on
         </Alert>
       )}
 
-      {/* Threshold sliders */}
-      <Grid container spacing={2.5} sx={{ opacity: isActive ? 1 : 0.5 }}>
-        <Grid item xs={12} md={6}>
-          {renderSliderField('min_score', 0, 100)}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          {renderSliderField('max_critical_issues', 0, 50)}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          {renderSliderField('max_new_issues', 0, 100)}
-        </Grid>
-      </Grid>
+      {/* ── Rule cards ── */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+        gap: 2,
+        opacity: isActive ? 1 : 0.45,
+        mb: 3,
+      }}>
+        <RuleCard
+          label="Score mínimo"
+          description="Puntuación mínima requerida para aprobar"
+          value={thresholds.min_score}
+          min={0} max={100}
+          unit="%" operator="≥"
+          strictness={s0}
+          disabled={!isActive}
+          onChange={set('min_score')}
+        />
+        <RuleCard
+          label="Máx. issues críticos"
+          description="Issues críticos permitidos (0 = cero tolerancia)"
+          value={thresholds.max_critical_issues}
+          min={0} max={50}
+          unit="" operator="≤"
+          strictness={s1}
+          disabled={!isActive}
+          onChange={set('max_critical_issues')}
+        />
+        <RuleCard
+          label="Máx. nuevos issues"
+          description="Nuevos issues permitidos por análisis"
+          value={thresholds.max_new_issues}
+          min={0} max={100}
+          unit="" operator="≤"
+          strictness={s2}
+          disabled={!isActive}
+          onChange={set('max_new_issues')}
+        />
+      </Box>
 
-      {/* Action buttons */}
-      <Divider sx={{ my: 3 }} />
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+      {/* ── Actions ── */}
+      <Box sx={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        pt: 2, borderTop: '1px solid #F0F0F0',
+      }}>
         <Button
-          variant="outlined"
-          startIcon={<RestartAltIcon />}
-          onClick={handleResetDefaults}
+          size="small"
+          startIcon={<RestartAltIcon sx={{ fontSize: 16 }} />}
+          onClick={() => { setThresholds({ ...DEFAULT }); setSuccessMessage(null); }}
           disabled={saving}
           sx={{
-            borderColor: '#CCCCCC',
-            color: '#555555',
-            '&:hover': { borderColor: '#999999', backgroundColor: '#FAFAFA' },
+            color: '#AAAAAA', fontSize: '0.78rem', textTransform: 'none',
+            '&:hover': { color: '#555', backgroundColor: '#F5F5F5' },
           }}
         >
           Restaurar valores por defecto
         </Button>
+
         <Button
           variant="contained"
-          startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+          size="small"
+          startIcon={
+            saving
+              ? <CircularProgress size={14} color="inherit" />
+              : <SaveIcon sx={{ fontSize: 16 }} />
+          }
           onClick={handleSave}
-          disabled={saving || !hasChanges}
+          disabled={saving || !isDirty}
           sx={{
             backgroundColor: GREEN,
-            color: '#FFFFFF',
-            '&:hover': { backgroundColor: GREEN_HOVER },
-            '&.Mui-disabled': { backgroundColor: '#E0E0E0' },
+            color: '#fff',
+            fontSize: '0.82rem',
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 2.5,
+            boxShadow: 'none',
+            '&:hover': { backgroundColor: '#00A070', boxShadow: 'none' },
+            '&.Mui-disabled': { backgroundColor: '#E8E8E8', color: '#AAAAAA' },
           }}
         >
-          {saving ? 'Guardando...' : 'Guardar cambios'}
+          {saving ? 'Guardando…' : 'Guardar cambios'}
         </Button>
       </Box>
     </Box>
