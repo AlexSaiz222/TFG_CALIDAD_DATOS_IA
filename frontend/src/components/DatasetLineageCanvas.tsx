@@ -22,6 +22,7 @@ import {
   Edit as EditIcon,
   Check as CheckIcon,
   Close as CloseIcon,
+  Refresh as ResetIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import { datasetsAPI } from '../services/api';
@@ -48,16 +49,15 @@ interface DatasetLineageCanvasProps {
   currentDatasetId?: number;
 }
 
-const NODE_W = 196;
-const NODE_H = 116;
-const GAP_X = 80;
-const GAP_Y = 40;
-const CANVAS_PAD = 48;
+const NODE_W = 240;
+const NODE_H = 148;
+const GAP_X = 96;
+const GAP_Y = 48;
+const CANVAS_PAD = 60;
 
 function buildLayout(versions: VersionWithAnalysis[]): NodeLayout[] {
   if (versions.length === 0) return [];
 
-  // Build adjacency: parentId -> children[]
   const childrenOf: Record<number, VersionWithAnalysis[]> = {};
   const rootVersions: VersionWithAnalysis[] = [];
 
@@ -72,31 +72,21 @@ function buildLayout(versions: VersionWithAnalysis[]): NodeLayout[] {
 
   const layout: NodeLayout[] = [];
 
-  // DFS to assign positions. depth = column (x-axis), siblings = rows (y-axis)
   function assignPositions(node: VersionWithAnalysis, depth: number, slot: number): number {
     const children = childrenOf[node.id] || [];
     if (children.length === 0) {
-      layout.push({
-        version: node,
-        x: CANVAS_PAD + depth * (NODE_W + GAP_X),
-        y: CANVAS_PAD + slot * (NODE_H + GAP_Y),
-      });
+      layout.push({ version: node, x: CANVAS_PAD + depth * (NODE_W + GAP_X), y: CANVAS_PAD + slot * (NODE_H + GAP_Y) });
       return slot + 1;
     }
     let currentSlot = slot;
-    const childSlots: number[] = [];
+    const childFirstSlots: number[] = [];
     for (const child of children) {
-      childSlots.push(currentSlot);
+      childFirstSlots.push(currentSlot);
       currentSlot = assignPositions(child, depth + 1, currentSlot);
     }
-    // Center parent vertically among its children
-    const firstChildY = CANVAS_PAD + childSlots[0] * (NODE_H + GAP_Y);
+    const firstChildY = CANVAS_PAD + childFirstSlots[0] * (NODE_H + GAP_Y);
     const lastChildY = CANVAS_PAD + (currentSlot - 1) * (NODE_H + GAP_Y);
-    layout.push({
-      version: node,
-      x: CANVAS_PAD + depth * (NODE_W + GAP_X),
-      y: (firstChildY + lastChildY) / 2,
-    });
+    layout.push({ version: node, x: CANVAS_PAD + depth * (NODE_W + GAP_X), y: (firstChildY + lastChildY) / 2 });
     return currentSlot;
   }
 
@@ -104,7 +94,6 @@ function buildLayout(versions: VersionWithAnalysis[]): NodeLayout[] {
   for (const root of rootVersions) {
     slot = assignPositions(root, 0, slot);
   }
-
   return layout;
 }
 
@@ -140,7 +129,17 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
 
-  // Inline edit state
+  // Pan state
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const panRef = useRef<{ active: boolean; startX: number; startY: number; startPanX: number; startPanY: number }>({
+    active: false, startX: 0, startY: 0, startPanX: 0, startPanY: 0,
+  });
+
+  // Node drag state
+  const [nodeOffsets, setNodeOffsets] = useState<Record<number, { dx: number; dy: number }>>({});
+  const dragRef = useRef<{ nodeId: number; startMouseX: number; startMouseY: number; startDx: number; startDy: number } | null>(null);
+
+  // Inline edit
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTag, setEditTag] = useState('');
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -159,295 +158,366 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
     }
   }, [datasetId, projectId]);
 
+  useEffect(() => { if (datasetId && projectId) fetchVersions(); }, [fetchVersions]);
+
+  // Mouse wheel zoom
   useEffect(() => {
-    if (datasetId && projectId) fetchVersions();
-  }, [fetchVersions]);
+    const el = containerRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      setScale(s => {
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        return Math.min(2.5, Math.max(0.3, s * factor));
+      });
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  }, []);
 
-  const layout = buildLayout(versions);
+  const baseLayout = buildLayout(versions);
 
-  const canvasW = layout.length > 0
-    ? Math.max(...layout.map(n => n.x + NODE_W)) + CANVAS_PAD
-    : 400;
-  const canvasH = layout.length > 0
-    ? Math.max(...layout.map(n => n.y + NODE_H)) + CANVAS_PAD
-    : 300;
+  // Compute effective positions (layout + offsets)
+  const effectiveLayout = baseLayout.map(n => ({
+    ...n,
+    ex: n.x + (nodeOffsets[n.version.id]?.dx ?? 0),
+    ey: n.y + (nodeOffsets[n.version.id]?.dy ?? 0),
+  }));
 
-  // Build parent->child lookup for SVG arrows
-  const idToLayout: Record<number, NodeLayout> = {};
-  for (const n of layout) idToLayout[n.version.id] = n;
+  const idToEffective: Record<number, { ex: number; ey: number; version: VersionWithAnalysis }> = {};
+  for (const n of effectiveLayout) idToEffective[n.version.id] = n;
 
-  const handleZoomIn = () => setScale(s => Math.min(s + 0.15, 2));
-  const handleZoomOut = () => setScale(s => Math.max(s - 0.15, 0.4));
-  const handleFit = () => setScale(1);
+  const canvasW = effectiveLayout.length > 0 ? Math.max(...effectiveLayout.map(n => n.ex + NODE_W)) + CANVAS_PAD : 500;
+  const canvasH = effectiveLayout.length > 0 ? Math.max(...effectiveLayout.map(n => n.ey + NODE_H)) + CANVAS_PAD : 400;
 
-  const startEdit = (v: VersionWithAnalysis) => {
-    setEditingId(v.id);
-    setEditTag(v.version_tag || '');
+  // Canvas pointer handlers (pan)
+  const handleCanvasPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('[data-node]')) return;
+    panRef.current = { active: true, startX: e.clientX, startY: e.clientY, startPanX: panOffset.x, startPanY: panOffset.y };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const handleCanvasPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current) {
+      const { nodeId, startMouseX, startMouseY, startDx, startDy } = dragRef.current;
+      const dx = (e.clientX - startMouseX) / scale + startDx;
+      const dy = (e.clientY - startMouseY) / scale + startDy;
+      setNodeOffsets(prev => ({ ...prev, [nodeId]: { dx, dy } }));
+      return;
+    }
+    if (panRef.current.active) {
+      const dx = e.clientX - panRef.current.startX;
+      const dy = e.clientY - panRef.current.startY;
+      setPanOffset({ x: panRef.current.startPanX + dx, y: panRef.current.startPanY + dy });
+    }
+  };
+  const handleCanvasPointerUp = () => {
+    panRef.current.active = false;
+    dragRef.current = null;
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditTag('');
+  // Node drag handlers
+  const handleNodePointerDown = (e: React.PointerEvent<HTMLDivElement>, nodeId: number) => {
+    if (editingId === nodeId) return;
+    e.stopPropagation();
+    const current = nodeOffsets[nodeId] ?? { dx: 0, dy: 0 };
+    dragRef.current = { nodeId, startMouseX: e.clientX, startMouseY: e.clientY, startDx: current.dx, startDy: current.dy };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
+  const handleReset = () => {
+    setNodeOffsets({});
+    setPanOffset({ x: 0, y: 0 });
+    setScale(1);
+  };
+
+  const startEdit = (v: VersionWithAnalysis) => { setEditingId(v.id); setEditTag(v.version_tag || ''); };
+  const cancelEdit = () => { setEditingId(null); setEditTag(''); };
   const saveEdit = async (v: VersionWithAnalysis) => {
     setSavingId(v.id);
     try {
       await (datasetsAPI as any).patchVersionTag(projectId, v.id, { version_tag: editTag.trim() || null });
-      setVersions(prev => prev.map(ver =>
-        ver.id === v.id ? { ...ver, version_tag: editTag.trim() || undefined } : ver
-      ));
-    } catch {
-      // ignore, tag stays
-    } finally {
-      setSavingId(null);
-      setEditingId(null);
-    }
+      setVersions(prev => prev.map(ver => ver.id === v.id ? { ...ver, version_tag: editTag.trim() || undefined } : ver));
+    } catch { /* keep original */ } finally { setSavingId(null); setEditingId(null); }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress size={32} />
-      </Box>
-    );
-  }
+  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}><CircularProgress size={32} /></Box>;
+  if (error) return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
+  if (versions.length === 0) return <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="text.secondary">No hay versiones para mostrar</Typography></Box>;
 
-  if (error) {
-    return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
-  }
-
-  if (versions.length === 0) {
-    return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography color="text.secondary">No hay versiones para mostrar</Typography>
-      </Box>
-    );
-  }
+  const isDragging = dragRef.current !== null;
+  const isPanning = panRef.current.active;
 
   return (
     <Box>
       {/* Toolbar */}
-      <Box sx={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        mb: 1.5, px: 0.5,
-      }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Linaje de versiones
-        </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+            {versions.length} versión{versions.length !== 1 ? 'es' : ''} · Arrastra nodos para reorganizar · Rueda para zoom · Arrastra el fondo para desplazar
+          </Typography>
+        </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
             {Math.round(scale * 100)}%
           </Typography>
-          <Tooltip title="Zoom in">
-            <IconButton size="small" onClick={handleZoomIn}><ZoomInIcon fontSize="small" /></IconButton>
-          </Tooltip>
-          <Tooltip title="Zoom out">
-            <IconButton size="small" onClick={handleZoomOut}><ZoomOutIcon fontSize="small" /></IconButton>
-          </Tooltip>
-          <Tooltip title="Restablecer zoom">
-            <IconButton size="small" onClick={handleFit}><FitIcon fontSize="small" /></IconButton>
+          <Tooltip title="Zoom in"><IconButton size="small" onClick={() => setScale(s => Math.min(2.5, s * 1.15))}><ZoomInIcon fontSize="small" /></IconButton></Tooltip>
+          <Tooltip title="Zoom out"><IconButton size="small" onClick={() => setScale(s => Math.max(0.3, s / 1.15))}><ZoomOutIcon fontSize="small" /></IconButton></Tooltip>
+          <Tooltip title="Ajustar vista"><IconButton size="small" onClick={() => setScale(1)}><FitIcon fontSize="small" /></IconButton></Tooltip>
+          <Tooltip title="Resetear posiciones">
+            <IconButton size="small" onClick={handleReset}><ResetIcon fontSize="small" /></IconButton>
           </Tooltip>
         </Box>
       </Box>
 
-      {/* Canvas */}
+      {/* Canvas container */}
       <Box
         ref={containerRef}
+        onPointerDown={handleCanvasPointerDown}
+        onPointerMove={handleCanvasPointerMove}
+        onPointerUp={handleCanvasPointerUp}
         sx={{
-          overflow: 'auto',
+          overflow: 'hidden',
           border: '1px solid #E0E0E0',
           borderRadius: 2,
-          backgroundColor: '#FAFAFA',
-          backgroundImage:
-            'radial-gradient(circle, #D0D0D0 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-          minHeight: 280,
-          cursor: 'grab',
-          '&:active': { cursor: 'grabbing' },
+          backgroundColor: '#F8F9FA',
+          backgroundImage: 'radial-gradient(circle, #D4D6D8 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          minHeight: 520,
+          position: 'relative',
+          cursor: isPanning ? 'grabbing' : isDragging ? 'grabbing' : 'grab',
+          userSelect: 'none',
         }}
       >
-        <Box
-          sx={{
+        {/* Scrollable inner */}
+        <Box sx={{
+          position: 'absolute',
+          top: 0, left: 0,
+          width: '100%', height: '100%',
+          overflow: 'auto',
+        }}>
+          {/* Transform group for pan */}
+          <Box sx={{
             position: 'relative',
-            width: canvasW * scale,
-            height: canvasH * scale,
-            transformOrigin: 'top left',
-          }}
-        >
-          {/* SVG arrows */}
-          <svg
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: canvasW * scale,
-              height: canvasH * scale,
-              pointerEvents: 'none',
-              overflow: 'visible',
-            }}
-          >
-            <defs>
-              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" fill="#BDBDBD" />
-              </marker>
-            </defs>
-            {versions.map(v => {
-              if (!v.parent_dataset_id) return null;
-              const from = idToLayout[v.parent_dataset_id];
-              const to = idToLayout[v.id];
-              if (!from || !to) return null;
+            width: canvasW * scale + Math.abs(panOffset.x) + 80,
+            height: Math.max(520, canvasH * scale + Math.abs(panOffset.y) + 80),
+          }}>
+            {/* SVG for arrows */}
+            <svg
+              style={{
+                position: 'absolute',
+                top: panOffset.y,
+                left: panOffset.x,
+                width: canvasW * scale,
+                height: canvasH * scale,
+                pointerEvents: 'none',
+                overflow: 'visible',
+              }}
+            >
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#C0C0C0" />
+                </marker>
+              </defs>
+              {versions.map(v => {
+                if (!v.parent_dataset_id) return null;
+                const from = idToEffective[v.parent_dataset_id];
+                const to = idToEffective[v.id];
+                if (!from || !to) return null;
 
-              const x1 = (from.x + NODE_W) * scale;
-              const y1 = (from.y + NODE_H / 2) * scale;
-              const x2 = to.x * scale;
-              const y2 = (to.y + NODE_H / 2) * scale;
-              const cx1 = x1 + (x2 - x1) * 0.5;
-              const cy1 = y1;
-              const cx2 = x1 + (x2 - x1) * 0.5;
-              const cy2 = y2;
+                const x1 = (from.ex + NODE_W) * scale;
+                const y1 = (from.ey + NODE_H / 2) * scale;
+                const x2 = to.ex * scale;
+                const y2 = (to.ey + NODE_H / 2) * scale;
+                const mx = (x1 + x2) / 2;
+                const my = (y1 + y2) / 2;
+                const cp1x = x1 + (x2 - x1) * 0.45;
+                const cp2x = x1 + (x2 - x1) * 0.55;
 
-              return (
-                <path
-                  key={`arrow-${v.id}`}
-                  d={`M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`}
-                  stroke="#BDBDBD"
-                  strokeWidth={2}
-                  fill="none"
-                  markerEnd="url(#arrow)"
-                />
-              );
-            })}
-          </svg>
+                // Delta quality score label
+                const scoreFrom = from.version.latestAnalysis?.quality_score;
+                const scoreTo = to.version.latestAnalysis?.quality_score;
+                let deltaLabel = '';
+                let deltaColor = '#999';
+                if (scoreFrom != null && scoreTo != null) {
+                  const delta = scoreTo - scoreFrom;
+                  deltaLabel = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`;
+                  deltaColor = delta > 0 ? '#00B37E' : delta < 0 ? '#E5484D' : '#999';
+                }
 
-          {/* Nodes */}
-          {layout.map(({ version: v, x, y }) => {
-            const isCurrentDataset = v.id === (currentDatasetId ?? datasetId);
-            const gateStatus = v.latestAnalysis?.quality_gate_status;
-            const gateColor = getGateColor(gateStatus);
-            const isEditing = editingId === v.id;
-
-            return (
-              <Paper
-                key={v.id}
-                elevation={isCurrentDataset ? 4 : 1}
-                sx={{
-                  position: 'absolute',
-                  left: x * scale,
-                  top: y * scale,
-                  width: NODE_W * scale,
-                  minHeight: NODE_H * scale,
-                  p: `${10 * scale}px`,
-                  border: `2px solid ${isCurrentDataset ? gateColor : '#E0E0E0'}`,
-                  borderLeft: `4px solid ${gateColor}`,
-                  borderRadius: 2,
-                  backgroundColor: isCurrentDataset ? 'rgba(0,179,126,0.04)' : '#fff',
-                  cursor: isEditing ? 'default' : 'pointer',
-                  transition: 'box-shadow 0.2s, border-color 0.2s',
-                  '&:hover': isEditing ? {} : {
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                    borderColor: gateColor,
-                  },
-                  overflow: 'hidden',
-                  boxSizing: 'border-box',
-                }}
-                onClick={() => {
-                  if (!isEditing) router.push(`/datasets/${v.id}`);
-                }}
-              >
-                {/* Header row */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                    {isEditing ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} onClick={e => e.stopPropagation()}>
-                        <TextField
-                          size="small"
-                          value={editTag}
-                          onChange={e => setEditTag(e.target.value)}
-                          placeholder={`v${v.version}`}
-                          sx={{ width: 90, '& input': { fontSize: '0.72rem', py: '2px', px: '6px' } }}
-                          autoFocus
-                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(v); if (e.key === 'Escape') cancelEdit(); }}
-                        />
-                        <IconButton size="small" onClick={() => saveEdit(v)} disabled={savingId === v.id}>
-                          {savingId === v.id ? <CircularProgress size={12} /> : <CheckIcon sx={{ fontSize: 14, color: '#00B37E' }} />}
-                        </IconButton>
-                        <IconButton size="small" onClick={cancelEdit}>
-                          <CloseIcon sx={{ fontSize: 14, color: '#999' }} />
-                        </IconButton>
-                      </Box>
-                    ) : (
+                return (
+                  <g key={`arrow-${v.id}`}>
+                    <path
+                      d={`M ${x1} ${y1} C ${cp1x} ${y1}, ${cp2x} ${y2}, ${x2} ${y2}`}
+                      stroke="#C0C0C0"
+                      strokeWidth={2}
+                      fill="none"
+                      markerEnd="url(#arrowhead)"
+                    />
+                    {deltaLabel && (
                       <>
-                        <Chip
-                          label={v.version_tag || `v${v.version}`}
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: `${0.68 * scale}rem`,
-                            backgroundColor: v.version > 1 ? 'rgba(156,39,176,0.1)' : 'rgba(158,158,158,0.1)',
-                            color: v.version > 1 ? '#9c27b0' : '#757575',
-                            fontWeight: 600,
-                          }}
+                        <rect
+                          x={mx - 22}
+                          y={my - 10}
+                          width={44}
+                          height={20}
+                          rx={10}
+                          fill="white"
+                          stroke={deltaColor}
+                          strokeWidth={1.5}
                         />
-                        {v.is_latest && (
-                          <Chip label="Latest" size="small" sx={{ height: 18, fontSize: '0.62rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
-                        )}
-                        {isCurrentDataset && (
-                          <Chip label="Actual" size="small" sx={{ height: 18, fontSize: '0.62rem', backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 600 }} />
-                        )}
+                        <text
+                          x={mx}
+                          y={my + 4}
+                          textAnchor="middle"
+                          fill={deltaColor}
+                          fontSize={11 * scale}
+                          fontWeight="600"
+                          fontFamily="inherit"
+                        >
+                          {deltaLabel}
+                        </text>
                       </>
                     )}
-                  </Box>
-                  {!isEditing && (
-                    <Tooltip title="Editar etiqueta">
-                      <IconButton
-                        size="small"
-                        onClick={e => { e.stopPropagation(); startEdit(v); }}
-                        sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, p: 0.3 }}
-                      >
-                        <EditIcon sx={{ fontSize: 13 }} />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Box>
+                  </g>
+                );
+              })}
+            </svg>
 
-                {/* Quality score + gate */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.75 }}>
-                  <GateIcon status={gateStatus} size={16 * scale} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: `${0.78 * scale}rem`, color: gateColor }}>
-                    {v.latestAnalysis?.quality_score != null
-                      ? `${Number(v.latestAnalysis.quality_score).toFixed(1)}%`
-                      : 'Sin análisis'}
+            {/* Nodes */}
+            {effectiveLayout.map(({ version: v, ex, ey }) => {
+              const isCurrentDataset = v.id === (currentDatasetId ?? datasetId);
+              const gateStatus = v.latestAnalysis?.quality_gate_status;
+              const gateColor = getGateColor(gateStatus);
+              const isEditing = editingId === v.id;
+              const score = v.latestAnalysis?.quality_score;
+
+              return (
+                <Paper
+                  key={v.id}
+                  data-node="true"
+                  elevation={isCurrentDataset ? 6 : 2}
+                  onPointerDown={e => handleNodePointerDown(e, v.id)}
+                  onClick={() => { if (!dragRef.current && !isEditing) router.push(`/datasets/${v.id}`); }}
+                  sx={{
+                    position: 'absolute',
+                    left: panOffset.x + ex * scale,
+                    top: panOffset.y + ey * scale,
+                    width: NODE_W * scale,
+                    p: `${12 * scale}px`,
+                    border: `2px solid ${isCurrentDataset ? gateColor : '#E8E8E8'}`,
+                    borderLeft: `5px solid ${gateColor}`,
+                    borderRadius: 2.5,
+                    backgroundColor: isCurrentDataset ? `${gateColor}08` : '#FFFFFF',
+                    cursor: isEditing ? 'default' : 'pointer',
+                    transition: 'box-shadow 0.15s',
+                    '&:hover': isEditing ? {} : { boxShadow: '0 6px 20px rgba(0,0,0,0.14)' },
+                    boxSizing: 'border-box',
+                    touchAction: 'none',
+                  }}
+                >
+                  {/* Top row: chips + edit */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                      {isEditing ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} onClick={e => e.stopPropagation()}>
+                          <TextField
+                            size="small"
+                            value={editTag}
+                            onChange={e => setEditTag(e.target.value)}
+                            placeholder={`v${v.version}`}
+                            sx={{ width: 100, '& input': { fontSize: '0.72rem', py: '2px', px: '6px' } }}
+                            autoFocus
+                            onKeyDown={e => { if (e.key === 'Enter') saveEdit(v); if (e.key === 'Escape') cancelEdit(); }}
+                          />
+                          <IconButton size="small" onClick={() => saveEdit(v)} disabled={savingId === v.id}>
+                            {savingId === v.id ? <CircularProgress size={12} /> : <CheckIcon sx={{ fontSize: 14, color: '#00B37E' }} />}
+                          </IconButton>
+                          <IconButton size="small" onClick={cancelEdit}>
+                            <CloseIcon sx={{ fontSize: 14, color: '#999' }} />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <>
+                          <Chip
+                            label={v.version_tag || `v${v.version}`}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: `${0.7 * scale}rem`,
+                              backgroundColor: v.version > 1 ? 'rgba(156,39,176,0.1)' : 'rgba(158,158,158,0.1)',
+                              color: v.version > 1 ? '#9c27b0' : '#757575',
+                              fontWeight: 700,
+                            }}
+                          />
+                          {v.is_latest && (
+                            <Chip label="Latest" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
+                          )}
+                          {isCurrentDataset && (
+                            <Chip label="Actual" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: `${gateColor}20`, color: gateColor, fontWeight: 600 }} />
+                          )}
+                        </>
+                      )}
+                    </Box>
+                    {!isEditing && (
+                      <Tooltip title="Editar etiqueta">
+                        <IconButton
+                          size="small"
+                          onClick={e => { e.stopPropagation(); startEdit(v); }}
+                          sx={{ opacity: 0.35, '&:hover': { opacity: 1 }, p: 0.3, ml: 0.5 }}
+                        >
+                          <EditIcon sx={{ fontSize: 13 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
+
+                  {/* Quality score — prominent */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                    <GateIcon status={gateStatus} size={20 * scale} />
+                    <Typography sx={{ fontSize: `${1.15 * scale}rem`, fontWeight: 700, color: gateColor, lineHeight: 1 }}>
+                      {score != null ? `${Number(score).toFixed(1)}%` : '—'}
+                    </Typography>
+                    {v.latestAnalysis?.total_issues_count != null && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.68 * scale}rem` }}>
+                        {v.latestAnalysis.total_issues_count} issues
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Stats row */}
+                  <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.68 * scale}rem` }}>
+                      {v.row_count?.toLocaleString() ?? '—'} filas
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.68 * scale}rem` }}>
+                      {v.column_count ?? '—'} cols
+                    </Typography>
+                  </Box>
+
+                  {/* Date */}
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.63 * scale}rem`, mt: 0.75, display: 'block', opacity: 0.7 }}>
+                    {v.created_at ? new Date(v.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
                   </Typography>
-                  {v.latestAnalysis?.total_issues_count != null && (
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.65 * scale}rem` }}>
-                      · {v.latestAnalysis.total_issues_count} issues
+
+                  {/* Description */}
+                  {v.description && (
+                    <Typography variant="caption" color="text.secondary" sx={{
+                      fontSize: `${0.63 * scale}rem`, mt: 0.5, display: 'block',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      opacity: 0.7,
+                    }}>
+                      {v.description}
                     </Typography>
                   )}
-                </Box>
-
-                {/* Stats */}
-                <Box sx={{ display: 'flex', gap: 1.5, mt: 0.75 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.65 * scale}rem` }}>
-                    {v.row_count?.toLocaleString() ?? '—'} filas
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.65 * scale}rem` }}>
-                    {v.column_count ?? '—'} cols
-                  </Typography>
-                </Box>
-
-                {/* Date */}
-                <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.62 * scale}rem`, mt: 0.5, display: 'block' }}>
-                  {v.created_at ? new Date(v.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
-                </Typography>
-              </Paper>
-            );
-          })}
+                </Paper>
+              );
+            })}
+          </Box>
         </Box>
       </Box>
 
       {/* Legend */}
-      <Box sx={{ display: 'flex', gap: 2.5, mt: 1.5, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: 2.5, mt: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
         {[
           { label: 'Passed', color: '#00B37E' },
           { label: 'Warning', color: '#FFB800' },
@@ -459,8 +529,8 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
             <Typography variant="caption" color="text.secondary">{label}</Typography>
           </Box>
         ))}
-        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', fontStyle: 'italic' }}>
-          Haz clic en un nodo para navegar · Edita la etiqueta con el lápiz
+        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', opacity: 0.6 }}>
+          Click en nodo para navegar · ✏️ para editar etiqueta · La etiqueta de la flecha muestra el cambio de calidad
         </Typography>
       </Box>
     </Box>

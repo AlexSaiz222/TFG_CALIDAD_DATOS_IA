@@ -40,6 +40,8 @@ import {
   FileUpload as FileUploadIcon,
   History as HistoryIcon,
   VisibilityOff as VisibilityOffIcon,
+  ViewList as ViewListIcon,
+  AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
@@ -84,6 +86,7 @@ const DatasetDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [evalError, setEvalError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [lineageView, setLineageView] = useState<'list' | 'canvas'>('list');
   const [runningEvaluation, setRunningEvaluation] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -684,8 +687,7 @@ const DatasetDetail = () => {
             <Tab label="Data Profiling" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
             <Tab label="Evaluaciones" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
             <Tab label="Issues" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
-            <Tab label="Versiones" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
-            <Tab label="Linaje" id="dataset-tab-5" aria-controls="dataset-tabpanel-5" />
+            <Tab label="Versiones & Linaje" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
           </Tabs>
         </Box>
 
@@ -892,24 +894,61 @@ const DatasetDetail = () => {
           )}
         </TabPanel>
 
-        {/* Versions Tab */}
+        {/* Versions & Lineage Tab — unified */}
         <TabPanel value={tabValue} index={4}>
-          <DatasetVersionHistory
-            datasetId={dataset.id}
-            projectId={dataset.project_id}
-            onCompare={(versionA, versionB) => {
-              router.push(`/datasets/${versionA}?compare=${versionB}`);
-            }}
-          />
-        </TabPanel>
+          {/* View toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {lineageView === 'list' ? 'Historial de versiones' : 'Linaje visual'}
+            </Typography>
+            <Box sx={{ display: 'flex', border: '1px solid #E0E0E0', borderRadius: 1.5, overflow: 'hidden' }}>
+              <Box
+                onClick={() => setLineageView('list')}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 0.75,
+                  cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
+                  backgroundColor: lineageView === 'list' ? '#00B37E' : 'transparent',
+                  color: lineageView === 'list' ? '#fff' : '#555',
+                  transition: 'all 0.15s',
+                  '&:hover': lineageView !== 'list' ? { backgroundColor: '#F5F5F5' } : {},
+                }}
+              >
+                <ViewListIcon sx={{ fontSize: 17 }} />
+                Lista
+              </Box>
+              <Box
+                onClick={() => setLineageView('canvas')}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 0.75,
+                  cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
+                  backgroundColor: lineageView === 'canvas' ? '#00B37E' : 'transparent',
+                  color: lineageView === 'canvas' ? '#fff' : '#555',
+                  borderLeft: '1px solid #E0E0E0',
+                  transition: 'all 0.15s',
+                  '&:hover': lineageView !== 'canvas' ? { backgroundColor: '#F5F5F5' } : {},
+                }}
+              >
+                <AccountTreeIcon sx={{ fontSize: 17 }} />
+                Canvas
+              </Box>
+            </Box>
+          </Box>
 
-        {/* Lineage Tab */}
-        <TabPanel value={tabValue} index={5}>
-          <DatasetLineageCanvas
-            datasetId={dataset.id}
-            projectId={dataset.project_id}
-            currentDatasetId={dataset.id}
-          />
+          {lineageView === 'list' ? (
+            <DatasetVersionHistory
+              datasetId={dataset.id}
+              projectId={dataset.project_id}
+              onCompare={(versionA, versionB) => {
+                router.push(`/datasets/${versionA}?compare=${versionB}`);
+              }}
+            />
+          ) : (
+            <DatasetLineageCanvas
+              datasetId={dataset.id}
+              projectId={dataset.project_id}
+              currentDatasetId={dataset.id}
+            />
+          )}
         </TabPanel>
       </Box>
 
