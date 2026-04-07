@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -6,37 +6,51 @@ import {
   PointElement,
   LineElement,
   BarElement,
-  Title,
   Tooltip,
   Legend,
   Filler,
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
-import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { TrendingUp as TrendingUpIcon, BarChart as BarChartIcon } from '@mui/icons-material';
+import { Box, Typography } from '@mui/material';
 import type { AnalysisRun } from '../types';
 
-// Registrar componentes de Chart.js
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+  CategoryScale, LinearScale, PointElement,
+  LineElement, BarElement, Tooltip, Legend, Filler,
 );
 
-// Colores consistentes
-const GREEN = '#00B37E';
-const RED = '#E5484D';
+// ─── paleta de la app ──────────────────────────────────────────────────────
+const GREEN  = '#00B37E';
+const RED    = '#E5484D';
 const ORANGE = '#FFB800';
-const GRAY = '#888888';
-const LIGHT_GREEN = 'rgba(0, 179, 126, 0.1)';
-const LIGHT_RED = 'rgba(229, 72, 77, 0.1)';
+const GRAY   = '#888888';
 
+// ─── plugin: bandas de zona de calidad ────────────────────────────────────
+function makeZonesPlugin(threshold: number) {
+  return {
+    id: 'qualityZones',
+    beforeDatasetsDraw(chart: any) {
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea || !scales.y) return;
+      const { left, right } = chartArea;
+
+      const band = (top: number, bottom: number, color: string) => {
+        const y0 = scales.y.getPixelForValue(top);
+        const y1 = scales.y.getPixelForValue(bottom);
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.fillRect(left, y0, right - left, y1 - y0);
+        ctx.restore();
+      };
+
+      band(100, threshold, 'rgba(0,179,126,0.04)');
+      band(threshold, 60,  'rgba(255,184,0,0.04)');
+      band(60, 0,          'rgba(229,72,77,0.04)');
+    },
+  };
+}
+
+// ─── tipos ────────────────────────────────────────────────────────────────
 interface DatasetInfo {
   id: number;
   name: string;
@@ -51,288 +65,443 @@ interface QualityTrendChartProps {
   datasets?: DatasetInfo[];
 }
 
+// ─── helpers ──────────────────────────────────────────────────────────────
+const fmtDate = (s?: string) => {
+  if (!s) return '';
+  return new Date(s).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+};
+
+// ─── componente ────────────────────────────────────────────────────────────
 const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
   runs,
-  qualityGateThreshold = 80,
+  qualityGateThreshold = 70,
   selectedDatasetId = null,
   datasets = [],
 }) => {
-  const [chartType, setChartType] = React.useState<'score' | 'issues'>('score');
+  const [view, setView] = React.useState<'score' | 'issues'>('score');
 
-  // Obtener nombre del dataset seleccionado
-  const selectedDatasetName = useMemo(() => {
+  // versión cadena filter
+  const findRootId = useCallback(
+    (id: number): number => {
+      const ds = datasets.find(d => d.id === id);
+      if (!ds || !ds.parent_dataset_id) return id;
+      return findRootId(ds.parent_dataset_id);
+    },
+    [datasets],
+  );
+
+  const chainIds = useMemo(() => {
     if (!selectedDatasetId) return null;
-    const dataset = datasets.find(d => d.id === selectedDatasetId);
-    return dataset?.name || `Dataset ${selectedDatasetId}`;
-  }, [selectedDatasetId, datasets]);
-
-  // Helper para encontrar el root de una cadena de versiones
-  const findRootId = useMemo(() => {
-    return (datasetId: number): number => {
-      const dataset = datasets.find(d => d.id === datasetId);
-      if (!dataset || !dataset.parent_dataset_id) return datasetId;
-      return findRootId(dataset.parent_dataset_id);
-    };
-  }, [datasets]);
-
-  // Obtener todos los IDs de la cadena de versiones del dataset seleccionado
-  const versionChainIds = useMemo(() => {
-    if (!selectedDatasetId) return [];
-    const rootId = findRootId(selectedDatasetId);
-    // Incluir todos los datasets que pertenecen a esta cadena
-    return datasets
-      .filter(d => findRootId(d.id) === rootId)
-      .map(d => d.id);
+    const root = findRootId(selectedDatasetId);
+    return datasets.filter(d => findRootId(d.id) === root).map(d => d.id);
   }, [selectedDatasetId, datasets, findRootId]);
 
-  // Filtrar y ordenar runs por fecha (más antiguo primero para el gráfico)
+  const getVersion = (dsId?: number) =>
+    datasets.find(d => d.id === dsId)?.version ?? 1;
+
   const sortedRuns = useMemo(() => {
-    let filteredRuns = [...runs].filter((run) => run.status === 'COMPLETED' && run.quality_score !== null);
-    
-    // Si hay un dataset seleccionado, filtrar por toda la cadena de versiones
-    if (selectedDatasetId && versionChainIds.length > 0) {
-      filteredRuns = filteredRuns.filter((run) => run.dataset_id && versionChainIds.includes(run.dataset_id));
-    }
-    
-    return filteredRuns.sort((a, b) => {
-      const dateA = new Date(a.completed_at || a.created_at).getTime();
-      const dateB = new Date(b.completed_at || b.created_at).getTime();
-      return dateA - dateB;
-    });
-  }, [runs, selectedDatasetId, versionChainIds]);
-
-  // Formatear fecha para labels
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-    });
-  };
-
-  // Helper para obtener la versión del dataset de un run
-  const getDatasetVersion = (datasetId: number | undefined): number => {
-    if (!datasetId) return 1;
-    const dataset = datasets.find(d => d.id === datasetId);
-    return dataset?.version || 1;
-  };
-
-  // Datos para el gráfico de Quality Score
-  const scoreChartData = useMemo(() => {
-    const labels = sortedRuns.map((run) => {
-      const date = formatDate(run.completed_at || run.created_at);
-      const version = getDatasetVersion(run.dataset_id);
-      return `${date} (v${version})`;
-    });
-    const scores = sortedRuns.map((run) => run.quality_score || 0);
-    
-    // Colores según si está por encima o debajo del umbral
-    const pointColors = scores.map((score) => (score >= qualityGateThreshold ? GREEN : RED));
-    const bgColors = scores.map((score) => 
-      score >= qualityGateThreshold ? LIGHT_GREEN : LIGHT_RED
+    let r = [...runs].filter(x => x.status === 'COMPLETED' && x.quality_score != null);
+    if (chainIds) r = r.filter(x => chainIds.includes(x.dataset_id!));
+    return r.sort(
+      (a, b) =>
+        new Date(a.completed_at || a.created_at).getTime() -
+        new Date(b.completed_at || b.created_at).getTime(),
     );
+  }, [runs, chainIds]);
 
+  // estadísticas del footer
+  const stats = useMemo(() => {
+    if (!sortedRuns.length) return null;
+    const scores = sortedRuns.map(r => r.quality_score!);
+    const last = scores.at(-1)!;
+    const prev = scores.at(-2) ?? null;
     return {
-      labels,
-      datasets: [
-        {
-          label: 'Quality Score',
-          data: scores,
-          borderColor: GREEN,
-          backgroundColor: (context: any) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return LIGHT_GREEN;
-            
-            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-            gradient.addColorStop(0, 'rgba(0, 179, 126, 0.0)');
-            gradient.addColorStop(1, 'rgba(0, 179, 126, 0.3)');
-            return gradient;
-          },
-          fill: true,
-          tension: 0.3,
-          pointBackgroundColor: pointColors,
-          pointBorderColor: pointColors,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-        },
-        {
-          label: 'Umbral Quality Gate',
-          data: Array(labels.length).fill(qualityGateThreshold),
-          borderColor: ORANGE,
-          borderDash: [5, 5],
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-        },
-      ],
+      last,
+      trend: prev !== null ? last - prev : null,
+      min: Math.min(...scores),
+      max: Math.max(...scores),
+      passing: scores.filter(s => s >= qualityGateThreshold).length,
+      total: scores.length,
     };
   }, [sortedRuns, qualityGateThreshold]);
 
-  // Opciones para el gráfico de Quality Score
-  const scoreChartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          usePointStyle: true,
-          padding: 20,
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleFont: { size: 14 },
-        bodyFont: { size: 13 },
-        padding: 12,
-        callbacks: {
-          label: (context: any) => {
-            if (context.dataset.label === 'Umbral Quality Gate') {
-              return `Umbral: ${context.raw}%`;
-            }
-            const run = sortedRuns[context.dataIndex];
-            return [
-              `Score: ${context.raw?.toFixed(1)}%`,
-              `Issues: ${run?.total_issues_count || 0}`,
-              `Nuevos: ${run?.new_issues_count || 0}`,
-            ];
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        min: 0,
-        max: 100,
-        ticks: {
-          callback: (value: any) => `${value}%`,
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-        },
-      },
-      x: {
-        grid: {
-          display: false,
-        },
-      },
-    },
-  }), [sortedRuns]);
+  const labels = useMemo(
+    () =>
+      sortedRuns.map(r => {
+        const d = fmtDate(r.completed_at || r.created_at);
+        const v = getVersion(r.dataset_id);
+        return selectedDatasetId ? d : `${d} v${v}`;
+      }),
+    [sortedRuns, selectedDatasetId],
+  );
 
-  // Datos para el gráfico de Issues
-  const issuesChartData = useMemo(() => {
-    const labels = sortedRuns.map((run) => {
-      const date = formatDate(run.completed_at || run.created_at);
-      const version = getDatasetVersion(run.dataset_id);
-      return `${date} (v${version})`;
-    });
-    
+  // ── datos score ───────────────────────────────────────────────────────
+  const scoreData = useMemo(() => {
+    const scores = sortedRuns.map(r => r.quality_score!);
+
     return {
       labels,
       datasets: [
+        // área de relleno
         {
-          label: 'Nuevos Issues',
-          data: sortedRuns.map((run) => run.new_issues_count || 0),
-          backgroundColor: RED,
-          borderRadius: 4,
+          label: '_fill',
+          data: scores,
+          borderWidth: 0,
+          pointRadius: 0,
+          clip: false,
+          fill: 'origin',
+          tension: 0.38,
+          backgroundColor: (ctx: any) => {
+            const { chartArea, ctx: c } = ctx.chart;
+            if (!chartArea) return 'rgba(0,179,126,0.06)';
+            const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            g.addColorStop(0, 'rgba(0,179,126,0.10)');
+            g.addColorStop(1, 'rgba(0,179,126,0.00)');
+            return g;
+          },
         },
+        // línea principal con segmentos coloreados según umbral
         {
-          label: 'Issues Corregidos',
-          data: sortedRuns.map((run) => run.fixed_issues_count || 0),
-          backgroundColor: GREEN,
-          borderRadius: 4,
+          label: 'Quality Score',
+          data: scores,
+          borderWidth: 2,
+          pointStyle: 'circle',
+          pointRadius: scores.map((_, i) => (i === scores.length - 1 ? 5 : 3.5)),
+          pointHoverRadius: 6,
+          pointBackgroundColor: scores.map(s =>
+            s >= qualityGateThreshold ? GREEN : RED,
+          ),
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5,
+          clip: false,
+          fill: false,
+          tension: 0.38,
+          segment: {
+            borderColor: (ctx: any) => {
+              const avg = (ctx.p0.parsed.y + ctx.p1.parsed.y) / 2;
+              return avg >= qualityGateThreshold
+                ? 'rgba(0,179,126,0.85)'
+                : 'rgba(229,72,77,0.85)';
+            },
+          },
         },
+        // umbral (línea discontinua ámbar, círculo relleno en leyenda)
         {
-          label: 'Total Issues',
-          data: sortedRuns.map((run) => run.total_issues_count || 0),
-          backgroundColor: GRAY,
-          borderRadius: 4,
+          label: `Umbral (${qualityGateThreshold}%)`,
+          data: Array(labels.length).fill(qualityGateThreshold),
+          borderColor: 'rgba(255,184,0,0.65)',
+          borderWidth: 1.5,
+          borderDash: [5, 4],
+          pointStyle: 'circle',
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          pointBackgroundColor: ORANGE,
+          pointBorderColor: ORANGE,
+          clip: false,
+          fill: false,
+          tension: 0,
         },
       ],
     };
-  }, [sortedRuns]);
+  }, [sortedRuns, labels, qualityGateThreshold]);
 
-  // Opciones para el gráfico de Issues
-  const issuesChartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          usePointStyle: true,
-          padding: 20,
+  // opciones score
+  const scoreOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 500 },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top' as const,
+          align: 'end' as const,
+          labels: {
+            color: GRAY,
+            font: { size: 11 },
+            usePointStyle: true,
+            boxWidth: 8,
+            boxHeight: 8,
+            padding: 16,
+            filter: (item: any) => !item.text.startsWith('_'),
+          },
+        },
+        tooltip: {
+          backgroundColor: 'rgba(26,26,26,0.92)',
+          titleColor: '#fff',
+          bodyColor: 'rgba(255,255,255,0.7)',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: false,
+          titleFont: { size: 12, weight: 'bold' as const },
+          bodyFont: { size: 11 },
+          filter: (item: any) => !item.dataset.label?.startsWith('_'),
+          callbacks: {
+            title: (items: any[]) => items[0]?.label ?? '',
+            label: (ctx: any) => {
+              if (ctx.dataset.label?.startsWith('Umbral')) {
+                return `Umbral: ${ctx.parsed.y}%`;
+              }
+              const run = sortedRuns[ctx.dataIndex];
+              const gate = ctx.parsed.y >= qualityGateThreshold ? '✓ Passed' : '✗ Failed';
+              return [
+                `Score: ${ctx.parsed.y.toFixed(1)}%  —  ${gate}`,
+                `Issues: ${run?.total_issues_count ?? 0}  (↑${run?.new_issues_count ?? 0} nuevos  ↓${run?.fixed_issues_count ?? 0} corregidos)`,
+              ];
+            },
+          },
         },
       },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleFont: { size: 14 },
-        bodyFont: { size: 13 },
-        padding: 12,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          border: { color: '#F0F0F0' },
+          ticks: {
+            color: '#AAAAAA',
+            font: { size: 11 },
+            callback: (v: any) => `${v}%`,
+            maxTicksLimit: 6,
+          },
+          grid: { color: 'rgba(0,0,0,0.04)' },
         },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-        },
-      },
-      x: {
-        grid: {
-          display: false,
+        x: {
+          border: { color: '#F0F0F0' },
+          ticks: { color: '#AAAAAA', font: { size: 11 }, maxRotation: 30, maxTicksLimit: 10 },
+          grid: { display: false },
         },
       },
-    },
-  }), []);
+    }),
+    [sortedRuns, qualityGateThreshold],
+  );
 
+  // ── datos issues (barras apiladas) ──────────────────────────────────
+  const issuesData = useMemo(() => ({
+    labels,
+    datasets: [
+      {
+        label: 'Recurrentes',
+        data: sortedRuns.map(r =>
+          Math.max(0, (r.total_issues_count ?? 0) - (r.new_issues_count ?? 0)),
+        ),
+        backgroundColor: 'rgba(140,140,160,0.35)',
+        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
+        stack: 'total',
+      },
+      {
+        label: 'Nuevos',
+        data: sortedRuns.map(r => r.new_issues_count ?? 0),
+        backgroundColor: 'rgba(229,72,77,0.70)',
+        borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
+        stack: 'total',
+      },
+      {
+        label: 'Corregidos',
+        data: sortedRuns.map(r => r.fixed_issues_count ?? 0),
+        backgroundColor: 'rgba(0,179,126,0.65)',
+        borderRadius: 4,
+        stack: 'fixed',
+      },
+    ],
+  }), [sortedRuns, labels]);
+
+  const issuesOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 500 },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top' as const,
+          align: 'end' as const,
+          labels: {
+            color: GRAY,
+            font: { size: 11 },
+            usePointStyle: true,
+            pointStyleWidth: 8,
+            padding: 16,
+          },
+        },
+        tooltip: {
+          backgroundColor: 'rgba(26,26,26,0.92)',
+          titleColor: '#fff',
+          bodyColor: 'rgba(255,255,255,0.7)',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+          titleFont: { size: 12, weight: 'bold' as const },
+          bodyFont: { size: 11 },
+          callbacks: {
+            footer: (items: any[]) => {
+              const total = sortedRuns[items[0]?.dataIndex]?.total_issues_count ?? 0;
+              return `Total: ${total} issues`;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          stacked: false,
+          border: { color: '#F0F0F0' },
+          ticks: { color: '#AAAAAA', font: { size: 11 }, stepSize: 1 },
+          grid: { color: 'rgba(0,0,0,0.04)' },
+        },
+        x: {
+          stacked: true,
+          border: { color: '#F0F0F0' },
+          ticks: { color: '#AAAAAA', font: { size: 11 }, maxRotation: 30, maxTicksLimit: 10 },
+          grid: { display: false },
+        },
+      },
+    }),
+    [sortedRuns],
+  );
+
+  const zonesPlugin = useMemo(
+    () => makeZonesPlugin(qualityGateThreshold),
+    [qualityGateThreshold],
+  );
+
+  // ── empty state ───────────────────────────────────────────────────────
   if (sortedRuns.length === 0) {
     return (
-      <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
-        <TrendingUpIcon sx={{ fontSize: 48, color: GRAY, mb: 2 }} />
-        <Typography variant="h6" sx={{ color: '#555555' }}>
-          No hay análisis para este dataset
+      <Box sx={{ py: 5, textAlign: 'center' }}>
+        <Typography sx={{ color: '#AAAAAA', fontSize: '0.9rem' }}>
+          Sin análisis completados
+          {selectedDatasetId ? ' para este dataset' : ''}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#888888' }}>
-          El dataset "{selectedDatasetName}" aún no tiene análisis completados.
-        </Typography>
-      </Paper>
+      </Box>
     );
   }
 
+  const trendColor =
+    stats?.trend == null ? GRAY
+    : stats.trend > 0    ? GREEN
+    : stats.trend < 0    ? RED
+                         : ORANGE;
+
   return (
     <Box>
-      {/* Selector de tipo de gráfico */}
+      {/* Toggle */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <ToggleButtonGroup
-          value={chartType}
-          exclusive
-          onChange={(_, value) => value && setChartType(value)}
-          size="small"
-        >
-          <ToggleButton value="score" sx={{ px: 2 }}>
-            <TrendingUpIcon sx={{ mr: 1, fontSize: 18 }} />
-            Quality Score
-          </ToggleButton>
-          <ToggleButton value="issues" sx={{ px: 2 }}>
-            <BarChartIcon sx={{ mr: 1, fontSize: 18 }} />
-            Issues
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <Box sx={{
+          display: 'flex',
+          border: '1px solid #E8E8E8',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          backgroundColor: '#FAFAFA',
+        }}>
+          {(['score', 'issues'] as const).map(v => (
+            <Box
+              key={v}
+              onClick={() => setView(v)}
+              sx={{
+                px: 1.75, py: 0.6,
+                fontSize: '0.78rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                backgroundColor: view === v ? '#00B37E' : 'transparent',
+                color: view === v ? '#fff' : '#777',
+                borderLeft: v === 'issues' ? '1px solid #E8E8E8' : 'none',
+                '&:hover': view !== v ? { backgroundColor: '#F0F0F0', color: '#333' } : {},
+              }}
+            >
+              {v === 'score' ? 'Score' : 'Issues'}
+            </Box>
+          ))}
+        </Box>
       </Box>
 
       {/* Gráfico */}
       <Box sx={{ height: 300 }}>
-        {chartType === 'score' ? (
-          <Line data={scoreChartData} options={scoreChartOptions} />
+        {view === 'score' ? (
+          <Line
+            key="score"
+            data={scoreData as any}
+            options={scoreOptions as any}
+            plugins={[zonesPlugin] as any}
+          />
         ) : (
-          <Bar data={issuesChartData} options={issuesChartOptions} />
+          <Bar
+            key="issues"
+            data={issuesData as any}
+            options={issuesOptions as any}
+          />
         )}
       </Box>
+
+      {/* Footer de estadísticas — solo en vista Score */}
+      {view === 'score' && stats && (
+        <Box sx={{
+          display: 'flex',
+          mt: 3,
+          pt: 2,
+          borderTop: '1px solid #F0F0F0',
+        }}>
+          {[
+            {
+              label: 'Último',
+              value: `${stats.last.toFixed(1)}%`,
+              color: stats.last >= qualityGateThreshold ? GREEN : RED,
+            },
+            {
+              label: 'Tendencia',
+              value: stats.trend == null
+                ? '—'
+                : `${stats.trend >= 0 ? '+' : ''}${stats.trend.toFixed(1)}%`,
+              color: trendColor,
+            },
+            {
+              label: 'Rango',
+              value: `${stats.min.toFixed(0)}% – ${stats.max.toFixed(0)}%`,
+              color: '#555',
+            },
+            {
+              label: 'Umbral',
+              value: `${qualityGateThreshold}%`,
+              color: ORANGE,
+            },
+            {
+              label: 'Superado',
+              value: `${stats.passing} / ${stats.total}`,
+              color: stats.passing === stats.total ? GREEN : '#555',
+            },
+          ].map(({ label, value, color }, i, arr) => (
+            <Box
+              key={label}
+              sx={{
+                flex: 1,
+                textAlign: 'center',
+                borderRight: i < arr.length - 1 ? '1px solid #F0F0F0' : 'none',
+              }}
+            >
+              <Typography sx={{
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: '#BBBBBB',
+                mb: 0.4,
+              }}>
+                {label}
+              </Typography>
+              <Typography sx={{
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color,
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };

@@ -226,21 +226,27 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
 
           {/* Toggle Por tiempo / Por versión */}
           {(hasVersionToggle || chainLoading) && (
-            <Box sx={{ display: 'flex', border: '1px solid #E0E0E0', borderRadius: 1, overflow: 'hidden' }}>
+            <Box sx={{
+              display: 'flex',
+              border: '1px solid #E8E8E8',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              backgroundColor: '#FAFAFA',
+            }}>
               {(['time', 'version'] as const).map(view => (
                 <Box
                   key={view}
                   onClick={() => !chainLoading && setChartView(view)}
                   sx={{
-                    px: 1.5, py: 0.5,
+                    px: 1.75, py: 0.6,
                     fontSize: '0.78rem', fontWeight: 500,
                     cursor: chainLoading ? 'default' : 'pointer',
-                    backgroundColor: chartView === view ? '#1A1A1A' : 'transparent',
-                    color: chartView === view ? '#fff' : '#666',
-                    borderLeft: view === 'version' ? '1px solid #E0E0E0' : 'none',
-                    transition: 'all 0.12s',
-                    '&:hover': chartView !== view && !chainLoading ? { backgroundColor: '#F5F5F5' } : {},
+                    backgroundColor: chartView === view ? '#00B37E' : 'transparent',
+                    color: chartView === view ? '#fff' : '#777',
+                    borderLeft: view === 'version' ? '1px solid #E8E8E8' : 'none',
+                    transition: 'all 0.15s',
                     display: 'flex', alignItems: 'center', gap: 0.5,
+                    '&:hover': chartView !== view && !chainLoading ? { backgroundColor: '#F0F0F0', color: '#333' } : {},
                   }}
                 >
                   {chainLoading && view === 'version' ? (
