@@ -9,6 +9,7 @@ import {
   IconButton,
   Tooltip,
   Divider,
+  TextField,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -17,6 +18,9 @@ import {
   Schedule as ScheduleIcon,
   Visibility as VisibilityIcon,
   CompareArrows as CompareArrowsIcon,
+  Edit as EditIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import { datasetsAPI } from '../services/api';
@@ -47,6 +51,19 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedForCompare, setSelectedForCompare] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editTag, setEditTag] = useState('');
+  const [savingId, setSavingId] = useState<number | null>(null);
+
+  const startEdit = (v: VersionWithAnalysis) => { setEditingId(v.id); setEditTag(v.version_tag || ''); };
+  const cancelEdit = () => { setEditingId(null); setEditTag(''); };
+  const saveEdit = async (v: VersionWithAnalysis) => {
+    setSavingId(v.id);
+    try {
+      await (datasetsAPI as any).patchVersionTag(projectId, v.id, { version_tag: editTag.trim() || null });
+      setVersions(prev => prev.map(ver => ver.id === v.id ? { ...ver, version_tag: editTag.trim() || undefined } : ver));
+    } catch { /* keep original */ } finally { setSavingId(null); setEditingId(null); }
+  };
 
   useEffect(() => {
     const fetchVersions = async () => {
@@ -213,43 +230,50 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    <Chip
-                      label={version.version_tag || `v${version.version}`}
-                      size="small"
-                      sx={{
-                        backgroundColor: version.version > 1 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(158, 158, 158, 0.1)',
-                        color: version.version > 1 ? '#9c27b0' : '#757575',
-                        fontWeight: 600,
-                      }}
-                    />
-                    {version.is_latest && (
-                      <Chip
-                        label="Latest"
-                        size="small"
-                        sx={{
-                          height: '20px',
-                          fontSize: '0.7rem',
-                          backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                          color: '#1976d2',
-                          fontWeight: 600,
-                        }}
-                      />
-                    )}
-                    {version.id === datasetId && (
-                      <Chip
-                        label="Actual"
-                        size="small"
-                        sx={{
-                          height: '20px',
-                          fontSize: '0.7rem',
-                          backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                          color: '#00B37E',
-                          fontWeight: 600,
-                        }}
-                      />
+                    {editingId === version.id ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <TextField
+                          size="small"
+                          value={editTag}
+                          onChange={e => setEditTag(e.target.value)}
+                          placeholder={`v${version.version}`}
+                          sx={{ width: 110, '& input': { fontSize: '0.75rem', py: '3px', px: '8px' } }}
+                          autoFocus
+                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(version); if (e.key === 'Escape') cancelEdit(); }}
+                        />
+                        <IconButton size="small" onClick={() => saveEdit(version)} disabled={savingId === version.id}>
+                          {savingId === version.id ? <CircularProgress size={14} /> : <CheckIcon sx={{ fontSize: 15, color: '#00B37E' }} />}
+                        </IconButton>
+                        <IconButton size="small" onClick={cancelEdit}>
+                          <CloseIcon sx={{ fontSize: 15, color: '#999' }} />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      <>
+                        <Chip
+                          label={version.version_tag || `v${version.version}`}
+                          size="small"
+                          sx={{
+                            backgroundColor: version.version > 1 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(158, 158, 158, 0.1)',
+                            color: version.version > 1 ? '#9c27b0' : '#757575',
+                            fontWeight: 600,
+                          }}
+                        />
+                        {version.is_latest && (
+                          <Chip label="Latest" size="small" sx={{ height: '20px', fontSize: '0.7rem', backgroundColor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2', fontWeight: 600 }} />
+                        )}
+                        {version.id === datasetId && (
+                          <Chip label="Actual" size="small" sx={{ height: '20px', fontSize: '0.7rem', backgroundColor: 'rgba(0, 179, 126, 0.1)', color: '#00B37E', fontWeight: 600 }} />
+                        )}
+                        <Tooltip title="Editar etiqueta">
+                          <IconButton size="small" onClick={() => startEdit(version)} sx={{ opacity: 0.35, '&:hover': { opacity: 1 }, p: 0.25 }}>
+                            <EditIcon sx={{ fontSize: 13 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </>
                     )}
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <Tooltip title="Ver dataset">
                       <IconButton

@@ -344,30 +344,51 @@ const Projects = () => {
                       {project.description || 'Sin descripción'}
                     </Typography>
                     
-                    {/* Quality Gate Badge - Sonar-Lite */}
-                    <Box 
-                      sx={{ 
+                    {/* Quality Gate + Score */}
+                    <Box
+                      sx={{
                         mb: 2,
                         cursor: projectAnalysis[project.id] ? 'pointer' : 'default',
-                        '&:hover': projectAnalysis[project.id] ? {
-                          opacity: 0.8,
-                        } : {},
+                        '&:hover': projectAnalysis[project.id] ? { opacity: 0.8 } : {},
                       }}
                       onClick={(e) => {
                         if (projectAnalysis[project.id]) {
                           e.stopPropagation();
-                          router.push(`/projects/${project.id}/runs/${projectAnalysis[project.id]?.id}`);
+                          router.push(`/evaluations/${projectAnalysis[project.id]?.id}`);
                         }
                       }}
                     >
-                      <QualityGateBadge
-                        status={projectAnalysis[project.id]?.quality_gate_status}
-                        newIssuesCount={projectAnalysis[project.id]?.new_issues_count || 0}
-                        fixedIssuesCount={projectAnalysis[project.id]?.fixed_issues_count || 0}
-                        size="small"
-                        showLabel={true}
-                        showIssuesCounts={true}
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <QualityGateBadge
+                          status={projectAnalysis[project.id]?.quality_gate_status}
+                          size="small"
+                          showLabel={true}
+                          showIssuesCounts={false}
+                        />
+                        {projectAnalysis[project.id]?.quality_score != null && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontWeight: 700,
+                                color: (projectAnalysis[project.id]?.quality_score ?? 0) >= 80
+                                  ? '#00B37E'
+                                  : (projectAnalysis[project.id]?.quality_score ?? 0) >= 60
+                                  ? '#FFB800'
+                                  : '#E5484D',
+                              }}
+                            >
+                              {Math.round(projectAnalysis[project.id]?.quality_score ?? 0)}/100
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#888' }}>
+                              &middot;
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#888' }}>
+                              {projectAnalysis[project.id]?.total_issues_count ?? 0} issues
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
                     </Box>
                     
                     <Divider sx={{ my: 1 }} />

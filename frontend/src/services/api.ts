@@ -524,6 +524,9 @@ export const datasetsAPI = {
       timeout: 10000
     }),
 
+  patchVersionTag: (projectId: number, datasetId: number, data: { version_tag?: string | null; description?: string }) =>
+    api.patch(`/api/projects/${projectId}/datasets/${datasetId}/version-tag`, data),
+
   getDatasetProfiling: (id: number, iqrFactor?: number) =>
     api.get(`/api/datasets/${id}/profiling`, {
       params: iqrFactor !== undefined ? { iqr_factor: iqrFactor } : {},
@@ -734,7 +737,7 @@ export const metricsAPI = {
 // Analysis Runs API (Sonar-Lite)
 export const analysisAPI = {
   // Obtener historial de análisis de un proyecto
-  getProjectAnalysisRuns: (projectId: number, params?: { page?: number; per_page?: number; status?: string }) =>
+  getProjectAnalysisRuns: (projectId: number, params?: { page?: number; per_page?: number; status?: string; dataset_id?: number }) =>
     api.get(`/api/evaluations/projects/${projectId}/analysis_runs`, { params }),
   
   // Obtener el análisis más reciente completado de un proyecto

@@ -43,9 +43,11 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
+import DatasetLineageCanvas from '../../components/DatasetLineageCanvas';
 import DataProfilingTab from '../../components/DataProfilingTab';
-import { datasetsAPI, evaluationsAPI, projectsAPI } from '../../services/api';
-import { Dataset, Evaluation, Issue } from '../../types';
+import { datasetsAPI, evaluationsAPI, projectsAPI, analysisAPI } from '../../services/api';
+import { Dataset, Evaluation, Issue, AnalysisRun } from '../../types';
+import QualityGateBadge from '../../components/QualityGateBadge';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -76,6 +78,7 @@ const DatasetDetail = () => {
 
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [analysisRuns, setAnalysisRuns] = useState<AnalysisRun[]>([]);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,6 +208,24 @@ const DatasetDetail = () => {
           } else {
             // Otro tipo de error, pero no bloqueamos la carga de la página
             console.error('Error al cargar evaluaciones:', evalError?.message);
+          }
+        }
+
+        // Fetch AnalysisRuns for this dataset (server-side filtered)
+        if (normalized.project_id && datasetId) {
+          try {
+            const runsResponse = await analysisAPI.getProjectAnalysisRuns(
+              normalized.project_id,
+              { dataset_id: datasetId, per_page: 100 }
+            );
+            const runsData = runsResponse?.data?.data?.analysis_runs || runsResponse?.data?.data || runsResponse?.data || [];
+            const datasetRuns: AnalysisRun[] = Array.isArray(runsData)
+              ? [...runsData].sort((a: AnalysisRun, b: AnalysisRun) => b.id - a.id)
+              : [];
+            setAnalysisRuns(datasetRuns);
+          } catch (runError) {
+            console.warn('Error fetching analysis runs:', runError);
+            setAnalysisRuns([]);
           }
         }
 
@@ -569,7 +590,7 @@ const DatasetDetail = () => {
                 },
               }}
             >
-              {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
+              {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Ejecutar evaluación'}
             </Button>
           </Box>
         </Box>
@@ -661,9 +682,10 @@ const DatasetDetail = () => {
           >
             <Tab label="Preview" id="dataset-tab-0" aria-controls="dataset-tabpanel-0" />
             <Tab label="Data Profiling" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
-            <Tab label="Evaluations" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
+            <Tab label="Evaluaciones" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
             <Tab label="Issues" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
             <Tab label="Versiones" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
+            <Tab label="Linaje" id="dataset-tab-5" aria-controls="dataset-tabpanel-5" />
           </Tabs>
         </Box>
 
@@ -728,201 +750,68 @@ const DatasetDetail = () => {
           <DataProfilingTab datasetId={dataset.id} sensitiveColumns={sensitiveColumns} />
         </TabPanel>
 
-        {/* Evaluations Tab */}
+        {/* Evaluations Tab — shows AnalysisRuns for this dataset */}
         <TabPanel value={tabValue} index={2}>
-          {evaluations.length > 0 ? (
+          {analysisRuns.length > 0 ? (
             <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
-              <Table aria-label="evaluations table">
+              <Table aria-label="analysis runs table">
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Duration</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Quality Score</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Duraci&oacute;n</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Quality Gate</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Score</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Issues</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {evaluations.map((evaluation) => (
-                    <TableRow key={evaluation.id} hover>
-                      <TableCell>{evaluation.id}</TableCell>
-                      <TableCell>
-                        {(evaluation.status === 'pending' || evaluation.status === 'processing') ? (
-                          <Tooltip title={evaluation.current_step || (evaluation.status === 'pending' ? 'Esperando worker de Celery...' : 'Procesando...')} arrow>
-                            <Box sx={{ minWidth: 200 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                {evaluation.status === 'pending' ? (
-                                  <CircularProgress size={16} sx={{ color: '#FFB800' }} />
-                                ) : (
-                                  <HourglassEmptyIcon sx={{ color: '#00B37E', fontSize: 18 }} />
-                                )}
-                                <Typography variant="body2" sx={{
-                                  fontWeight: 500,
-                                  color: evaluation.status === 'pending' ? '#FFB800' : '#00B37E'
-                                }}>
-                                  {evaluation.status === 'pending' ? 'En cola' : 'Procesando'}
-                                </Typography>
-                                {evaluation.status === 'processing' && (
-                                  <Typography variant="body2" sx={{ color: '#666', ml: 'auto' }}>
-                                    {evaluation.progress || 0}%
-                                  </Typography>
-                                )}
-                              </Box>
-                              <LinearProgress
-                                variant={evaluation.status === 'pending' ? 'indeterminate' : 'determinate'}
-                                value={evaluation.progress || 0}
-                                sx={{
-                                  height: 6,
-                                  borderRadius: 3,
-                                  backgroundColor: '#E0E0E0',
-                                  '& .MuiLinearProgress-bar': {
-                                    borderRadius: 3,
-                                    backgroundColor: evaluation.status === 'pending' ? '#FFB800' : '#00B37E',
-                                  },
-                                }}
-                              />
-                              <Typography variant="caption" sx={{ color: '#888', display: 'block', mt: 0.5, fontSize: '0.7rem' }}>
-                                {evaluation.current_step || (evaluation.status === 'pending' ? 'Esperando en cola...' : 'Procesando...')}
-                              </Typography>
-                            </Box>
-                          </Tooltip>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {getStatusIcon(evaluation.status)}
-                            <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-                              {evaluation.status}
-                            </Typography>
-                          </Box>
-                        )}
-                      </TableCell>
-                      <TableCell>{new Date(evaluation.created_at).toLocaleString()}</TableCell>
-                      <TableCell>
-                        {(() => {
-                          if (evaluation.status === 'completed' && evaluation.started_at && evaluation.completed_at) {
-                            const start = new Date(evaluation.started_at).getTime();
-                            const end = new Date(evaluation.completed_at).getTime();
-                            const durationMs = end - start;
-                            const seconds = Math.floor(durationMs / 1000);
-                            const minutes = Math.floor(seconds / 60);
-                            const remainingSeconds = seconds % 60;
-                            if (minutes > 0) {
-                              return `${minutes}m ${remainingSeconds}s`;
-                            }
-                            return `${seconds}s`;
-                          } else if (evaluation.status === 'processing' && evaluation.started_at) {
-                            const start = new Date(evaluation.started_at).getTime();
-                            const now = Date.now();
-                            const durationMs = now - start;
-                            const seconds = Math.floor(durationMs / 1000);
-                            const minutes = Math.floor(seconds / 60);
-                            const remainingSeconds = seconds % 60;
-                            if (minutes > 0) {
-                              return `${minutes}m ${remainingSeconds}s...`;
-                            }
-                            return `${seconds}s...`;
-                          }
-                          return '-';
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        {evaluation.status === 'completed' && evaluation.quality_score !== null && evaluation.quality_score !== undefined && typeof evaluation.quality_score === 'number' ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: 600,
-                                color: evaluation.quality_score >= 80 ? '#00B37E' : evaluation.quality_score >= 60 ? '#FFB800' : '#E5484D'
-                              }}
-                            >
-                              {evaluation.quality_score.toFixed(1)}%
-                            </Typography>
-                            <Box
-                              sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                backgroundColor: evaluation.quality_score >= 80 ? '#00B37E' : evaluation.quality_score >= 60 ? '#FFB800' : '#E5484D'
-                              }}
-                            />
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" sx={{ color: '#888' }}>—</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>{evaluation.issue_count || 0}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => router.push(`/evaluations/${evaluation.id}`)}
-                          disabled={evaluation.status !== 'completed'}
-                          sx={{
-                            backgroundColor: '#00B37E',
-                            color: '#FFFFFF',
-                            mr: 1,
-                            '&:hover': {
-                              backgroundColor: '#00A070',
-                            },
-                          }}
-                        >
-                          View details
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => {
-                            // Fetch issues for this evaluation
-                            evaluationsAPI.getIssues(evaluation.id)
-                              .then(response => {
-                                const data = response.data?.data?.issues || response.data?.data || response.data || [];
-                                setIssues(Array.isArray(data) ? data : []);
-                                setTabValue(3); // Switch to Issues tab
-                              })
-                              .catch(error => {
-                                console.error('Error fetching issues:', error);
-                                setError('Failed to fetch issues for this evaluation.');
-                              });
-                          }}
-                          disabled={evaluation.status !== 'completed'}
-                          sx={{
-                            borderColor: '#00B37E',
-                            color: '#00B37E',
-                            '&:hover': {
-                              borderColor: '#00A070',
-                              backgroundColor: 'rgba(0, 179, 126, 0.04)',
-                            },
-                          }}
-                        >
-                          View issues
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {analysisRuns.map((run) => {
+                    const dur = (() => {
+                      if (run.started_at && run.completed_at) {
+                        const s = Math.floor((new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()) / 1000);
+                        return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
+                      }
+                      return '\u2014';
+                    })();
+                    const sc = run.quality_score;
+                    const scColor = sc == null ? '#888' : sc >= 80 ? '#00B37E' : sc >= 60 ? '#FFB800' : '#E5484D';
+                    return (
+                      <TableRow key={run.id} hover>
+                        <TableCell>{run.id}</TableCell>
+                        <TableCell>{new Date(run.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                        <TableCell>{dur}</TableCell>
+                        <TableCell>
+                          <QualityGateBadge status={run.quality_gate_status} size="small" showIssuesCounts={false} />
+                        </TableCell>
+                        <TableCell>
+                          {sc != null
+                            ? <Typography variant="body2" sx={{ fontWeight: 600, color: scColor }}>{sc.toFixed(1)}%</Typography>
+                            : <Typography variant="body2" sx={{ color: '#888' }}>\u2014</Typography>}
+                        </TableCell>
+                        <TableCell>{run.total_issues_count ?? 0}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => router.push(`/evaluations/${run.id}`)}
+                            sx={{ backgroundColor: '#00B37E', color: '#FFFFFF', '&:hover': { backgroundColor: '#00A070' } }}
+                          >
+                            Ver detalles
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
-              <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-                No evaluations have been run for this dataset.
+              <Typography variant="body1" sx={{ color: '#555555' }}>
+                No hay evaluaciones ejecutadas para este dataset
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<PlayArrowIcon sx={{ color: '#FFFFFF' }} />}
-                onClick={handleRunEvaluation}
-                disabled={runningEvaluation}
-                sx={{
-                  backgroundColor: '#00B37E',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#00A070',
-                  },
-                }}
-              >
-                {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
-              </Button>
             </Box>
           )}
         </TabPanel>
@@ -979,8 +868,8 @@ const DatasetDetail = () => {
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
                 {evaluations.length > 0
-                  ? 'No issues found in the latest evaluation.'
-                  : 'Run an evaluation to identify data quality issues.'}
+                  ? 'No hay issues encontrados en la última evaluación'
+                  : 'Ejecuta una evaluación para identificar problemas de calidad de datos'}
               </Typography>
               {evaluations.length === 0 && (
                 <Button
@@ -996,7 +885,7 @@ const DatasetDetail = () => {
                     },
                   }}
                 >
-                  {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Run evaluation'}
+                  {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Ejecuta una evaluación'}
                 </Button>
               )}
             </Box>
@@ -1013,6 +902,15 @@ const DatasetDetail = () => {
             }}
           />
         </TabPanel>
+
+        {/* Lineage Tab */}
+        <TabPanel value={tabValue} index={5}>
+          <DatasetLineageCanvas
+            datasetId={dataset.id}
+            projectId={dataset.project_id}
+            currentDatasetId={dataset.id}
+          />
+        </TabPanel>
       </Box>
 
       {/* Delete confirmation dialog */}
@@ -1027,12 +925,12 @@ const DatasetDetail = () => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete the dataset "{dataset.name}"? This action cannot be undone and will delete all associated evaluations and issues.
+            Estás seguro de que quieres eliminar el dataset "{dataset.name}"? Esta acción no se puede deshacer y eliminará todas las evaluaciones y problemas asociados.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
-            Cancel
+            Cancelar
           </Button>
           <Button
             onClick={handleDeleteConfirm}

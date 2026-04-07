@@ -37,7 +37,7 @@ import {
 import MainLayout from '../../components/layout/MainLayout';
 import { ColumnMetricsTable, IssuesSummary, MetricDetailsTabs, ExecutiveMetricCard } from '../../components/evaluations';
 import QualityGateBadge from '../../components/QualityGateBadge';
-import { analysisAPI, datasetsAPI } from '../../services/api';
+import { analysisAPI, datasetsAPI, projectsAPI } from '../../services/api';
 import type { AnalysisRun, DataQualityIssue, Issue, Dataset, ColumnMetrics } from '../../types';
 
 const EvaluationDetail = () => {
@@ -56,6 +56,7 @@ const EvaluationDetail = () => {
   const [activeDetailTab, setActiveDetailTab] = useState(0);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [scoreExpanded, setScoreExpanded] = useState(true);
+  const [qgThreshold, setQgThreshold] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,6 +83,16 @@ const EvaluationDetail = () => {
             setDataset(datasetResponse.data?.data || datasetResponse.data);
           } catch {
             console.warn('Error fetching dataset');
+          }
+        }
+
+        if (runData?.project_id) {
+          try {
+            const qgResponse = await projectsAPI.getQualityGate(runData.project_id);
+            const qgData = qgResponse.data?.data || qgResponse.data;
+            setQgThreshold(qgData?.thresholds?.min_score ?? null);
+          } catch {
+            console.warn('Could not load quality gate');
           }
         }
 
@@ -415,7 +426,7 @@ const EvaluationDetail = () => {
                             ? 'El análisis cumple los estándares de calidad definidos para este proyecto.'
                             : warned
                             ? 'El análisis presenta advertencias que requieren atención.'
-                            : 'El score obtenido no alcanza el umbral mínimo requerido para este proyecto.';
+                            : `El score obtenido (${Math.round(score)}/100) no alcanza el umbral mínimo${qgThreshold !== null ? ` requerido: ${qgThreshold}/100` : ' requerido para este proyecto'}.`;
                           return (
                             <Box sx={{ mb: 3, p: 2, borderRadius: 2, backgroundColor: gateBg, border: `1px solid ${gateBorder}`, display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
                               <GateIcon sx={{ color: gateColor, fontSize: 28, mt: 0.25, flexShrink: 0 }} />

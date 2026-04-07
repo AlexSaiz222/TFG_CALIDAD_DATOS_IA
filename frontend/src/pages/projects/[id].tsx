@@ -48,6 +48,7 @@ import AnalysisHistory from '../../components/AnalysisHistory';
 import QualityTrendChart from '../../components/QualityTrendChart';
 import DatasetStatusSnapshot from '../../components/DatasetStatusSnapshot';
 import QualityGateSettings from '../../components/QualityGateSettings';
+import VersionEvolutionChart from '../../components/VersionEvolutionChart';
 import { projectsAPI, datasetsAPI, metricsAPI, analysisAPI } from '../../services/api';
 import { GREEN, GREEN_HOVER, ORANGE, RED, getMetricMeta, formatParamValue, DEFAULT_METRIC_META } from '../../utils/metricColors';
 import type { AnalysisRun } from '../../types';
@@ -137,6 +138,8 @@ const ProjectDetail = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
   const [qualityGateThreshold, setQualityGateThreshold] = useState<number>(70);
+  const [versionChains, setVersionChains] = useState<{ name: string; versions: any[] }[]>([]);
+  const [versionChainsLoading, setVersionChainsLoading] = useState(false);
   const fetchedRef = useRef(false);
 
   // Cargar datos del proyecto
@@ -429,8 +432,37 @@ const ProjectDetail = () => {
   }, [projectId, router.isReady]);
 
   // Manejadores de eventos
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = async (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    if (newValue === 4 && versionChains.length === 0 && !versionChainsLoading && projectId) {
+      setVersionChainsLoading(true);
+      try {
+        const rootDatasets = datasets.filter((d: any) => !d.parent_dataset_id);
+        const chains: { name: string; versions: any[] }[] = [];
+        for (const root of rootDatasets) {
+          try {
+            const res = await datasetsAPI.getDatasetVersions(projectId, root.id);
+            const data = res?.data?.data || res?.data || {};
+            const versions = (data.versions || []) as any[];
+            if (versions.length > 1) {
+              chains.push({
+                name: root.name,
+                versions: versions.map((v: any) => ({
+                  version: v.version,
+                  version_tag: v.version_tag,
+                  quality_score: v.latestAnalysis?.quality_score ?? null,
+                  total_issues: v.latestAnalysis?.total_issues_count ?? 0,
+                  created_at: v.created_at,
+                })),
+              });
+            }
+          } catch { /* skip */ }
+        }
+        setVersionChains(chains);
+      } finally {
+        setVersionChainsLoading(false);
+      }
+    }
   };
 
   const handleDeleteClick = () => {
@@ -650,6 +682,7 @@ const ProjectDetail = () => {
             />
             <Tab label="Historial de análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
             <Tab label="Quality Gate" id="project-tab-3" aria-controls="project-tabpanel-3" />
+            <Tab label="Evolución de versiones" id="project-tab-4" aria-controls="project-tabpanel-4" />
           </Tabs>
         </Box>
 
@@ -1095,6 +1128,39 @@ const ProjectDetail = () => {
               projectId={projectId}
               onThresholdsLoaded={(t) => setQualityGateThreshold(t.min_score)}
             />
+          )}
+        </TabPanel>
+
+        {/* Pestaña de Evolución de versiones */}
+        <TabPanel value={tabValue} index={4}>
+          {versionChainsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : versionChains.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center', border: '2px dashed #E0E0E0', borderRadius: 2 }}>
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                Sin datos de evolución
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Este tab muestra la evolución de calidad de los datasets con múltiples versiones.
+                Sube versiones adicionales de un dataset y ejecuta evaluaciones para ver tendencias aquí.
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {versionChains.map((chain) => (
+                <Box key={chain.name}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
+                    {chain.name}
+                  </Typography>
+                  <VersionEvolutionChart
+                    versions={chain.versions}
+                    title={`Evolución de calidad — ${chain.name}`}
+                  />
+                </Box>
+              ))}
+            </Box>
           )}
         </TabPanel>
       </Box>
