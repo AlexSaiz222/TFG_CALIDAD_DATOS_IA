@@ -11,11 +11,7 @@ import {
   Chip,
   Tooltip,
 } from '@mui/material';
-import {
-  ExpandLess,
-  ExpandMore,
-} from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { safeNavigate } from '../../../utils/routeTransition';
 import { SidebarItem as SidebarItemType } from './types';
 
@@ -25,207 +21,165 @@ interface SidebarItemProps {
   isCollapsed?: boolean;
 }
 
-const StyledListItemButton = styled(ListItemButton)<{ depth?: number; isactive?: string; isexpanded?: string; iscontrol?: string }>(
-  ({ theme, depth = 0, isactive, isexpanded, iscontrol }) => ({
-    margin: depth === 0 ? '3px 8px' : iscontrol === 'true' ? '2px 8px 2px 16px' : '1px 8px 1px 16px',
-    marginLeft: depth === 0 ? '8px' : depth === 1 ? '24px' : '40px',
-    marginRight: '8px',
-    borderRadius: depth === 0 ? '8px' : '6px',
-    padding: depth === 0 ? '10px 14px' : iscontrol === 'true' ? '6px 12px' : '7px 12px',
-    minHeight: depth === 0 ? 44 : iscontrol === 'true' ? 34 : 36,
-    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    position: 'relative',
-    // Only highlight if this exact item is active
-    ...(isactive === 'true' && {
-      backgroundColor: 'rgba(0, 179, 126, 0.1)',
-      borderLeft: '3px solid #00B37E',
-      '&:hover': {
-        backgroundColor: 'rgba(0, 179, 126, 0.15)',
-      },
-    }),
-    // Expanded parent state (subtle)
-    ...(isexpanded === 'true' && isactive !== 'true' && depth === 0 && {
-      backgroundColor: 'rgba(0, 0, 0, 0.025)',
-    }),
-    // Hover states with clear visual feedback
-    '&:hover': {
-      backgroundColor: isactive === 'true' 
-        ? 'rgba(0, 179, 126, 0.15)' 
-        : depth === 0 ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.04)',
-      transform: depth === 0 ? 'translateX(2px)' : 'none',
-    },
-  })
-);
-
-const SidebarItemComponent: React.FC<SidebarItemProps> = ({ 
-  item, 
+const SidebarItemComponent: React.FC<SidebarItemProps> = ({
+  item,
   depth = 0,
-  isCollapsed = false 
+  isCollapsed = false,
 }) => {
   const router = useRouter();
-  const hasChildren = item.children && item.children.length > 0;
-  
-  // Only mark as active if this exact path matches (not children)
-  const isActive = item.path 
-    ? router.pathname === item.path
-    : false;
+  const hasChildren = Boolean(item.children?.length);
 
-  // Check if any child (or grandchild) is active (but not the parent itself)
+  const isActive = item.path ? router.pathname === item.path : false;
+
   const checkChildActive = (children: typeof item.children): boolean => {
     if (!children) return false;
     return children.some(child => {
-      if (child.path && (router.pathname === child.path || router.pathname.startsWith(child.path + '/'))) {
-        return true;
-      }
-      if (child.children) {
-        return checkChildActive(child.children);
-      }
+      if (child.path && (router.pathname === child.path || router.pathname.startsWith(child.path + '/'))) return true;
+      if (child.children) return checkChildActive(child.children);
       return false;
     });
   };
 
   const isChildActive = checkChildActive(item.children);
-
-  // Auto-expand ONLY when a specific child is active (not when parent route is active)
   const [open, setOpen] = useState(false);
 
-  // Update open state when route changes - only expand if a CHILD is active, not the parent
   useEffect(() => {
-    // Only auto-expand if a child is active AND we're not on the parent route
-    if (isChildActive && !isActive) {
-      setOpen(true);
-    } else if (isActive && hasChildren) {
-      // If we're on the parent route, collapse the children
-      setOpen(false);
-    }
+    if (isChildActive && !isActive) setOpen(true);
+    else if (isActive && hasChildren)  setOpen(false);
   }, [isChildActive, isActive, router.pathname]);
 
   const handleClick = () => {
-    // Control items (like "Ver todos") should navigate even if they have children
-    if (item.isControl && item.path) {
-      safeNavigate(item.path);
-    } else if (hasChildren) {
-      // Regular items with children toggle expansion
-      setOpen(!open);
-    } else if (item.path) {
-      safeNavigate(item.path);
-    } else if (item.action) {
-      item.action();
-    }
+    if (item.isControl && item.path) safeNavigate(item.path);
+    else if (hasChildren) setOpen(o => !o);
+    else if (item.path) safeNavigate(item.path);
+    else item.action?.();
   };
 
   const handleChevronClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent double toggle
-    setOpen(!open);
+    e.stopPropagation();
+    setOpen(o => !o);
   };
 
-  const buttonContent = (
-    <StyledListItemButton
-      depth={depth}
-      isactive={isActive ? 'true' : 'false'}
-      isexpanded={open && hasChildren ? 'true' : 'false'}
-      iscontrol={item.isControl ? 'true' : 'false'}
-      onClick={handleClick}
-      sx={{
-        justifyContent: isCollapsed ? 'center' : 'flex-start',
-        px: isCollapsed ? 1 : 1.5,
-      }}
-    >
-      <ListItemIcon
-        sx={{
-          color: isActive ? '#00B37E' : depth === 0 ? '#374151' : '#6B7280',
-          minWidth: isCollapsed ? 0 : depth === 0 ? 36 : 32,
-          mr: isCollapsed ? 0 : depth === 0 ? 1.5 : 1.25,
-          justifyContent: 'center',
-          opacity: depth === 0 ? 1 : 0.8,
-          '& .MuiSvgIcon-root': {
-            fontSize: depth === 0 ? '1.3rem' : '1.05rem',
-          },
-        }}
-      >
+  // ── Visual variants based on depth and state ──────────────────────────
+  const isTopLevel = depth === 0;
+  const activeColor = '#00B37E';
+
+  const buttonSx = {
+    // Margins and padding
+    mx: '6px',
+    my: isTopLevel ? '1px' : '0px',
+    pl: isCollapsed ? 0 : depth === 0 ? 1.5 : depth === 1 ? 3 : 4.5,
+    pr: 1,
+    borderRadius: '8px',
+    minHeight: isTopLevel ? 40 : item.isControl ? 32 : 34,
+    justifyContent: isCollapsed ? 'center' : 'flex-start',
+
+    // Active state
+    ...(isActive && {
+      backgroundColor: 'rgba(0,179,126,0.1)',
+      '&:hover': { backgroundColor: 'rgba(0,179,126,0.14)' },
+    }),
+
+    // Expanded parent (not active)
+    ...(!isActive && open && isTopLevel && {
+      backgroundColor: 'rgba(0,0,0,0.02)',
+    }),
+
+    // Default hover
+    ...(!isActive && {
+      '&:hover': {
+        backgroundColor: depth === 0
+          ? 'rgba(0,0,0,0.04)'
+          : 'rgba(0,0,0,0.03)',
+      },
+    }),
+  };
+
+  const iconSx = {
+    minWidth: isCollapsed ? 0 : depth === 0 ? 34 : 28,
+    mr: isCollapsed ? 0 : 1,
+    justifyContent: 'center',
+    color: isActive ? activeColor : depth === 0 ? '#4B5563' : '#6B7280',
+    '& .MuiSvgIcon-root': {
+      fontSize: depth === 0 ? '1.2rem' : '1rem',
+    },
+  };
+
+  const textProps = {
+    fontSize: depth === 0 ? '0.875rem' : '0.8125rem',
+    fontWeight: isActive ? 600 : depth === 0 ? 500 : 400,
+    color: isActive ? activeColor : depth === 0 ? '#1F2937' : '#4B5563',
+    letterSpacing: '0.005em',
+  };
+
+  const button = (
+    <ListItemButton onClick={handleClick} sx={buttonSx}>
+      {/* Active indicator dot (top-level only) */}
+      {isTopLevel && !isCollapsed && isActive && (
+        <Box sx={{
+          position: 'absolute', left: 0,
+          width: 3, height: 18,
+          borderRadius: '0 2px 2px 0',
+          backgroundColor: activeColor,
+        }} />
+      )}
+
+      <ListItemIcon sx={iconSx}>
         {item.icon}
       </ListItemIcon>
-      
+
       {!isCollapsed && (
         <>
           <ListItemText
             primary={item.text}
-            primaryTypographyProps={{
-              fontSize: depth === 0 ? '0.9375rem' : '0.8125rem',
-              fontWeight: isActive ? 600 : depth === 0 ? 600 : 400,
-              color: isActive ? '#00B37E' : depth === 0 ? '#1F2937' : '#4B5563',
-              letterSpacing: depth === 0 ? '0.01em' : '0',
-            }}
+            primaryTypographyProps={textProps}
           />
-          
+
           {item.badge && (
             <Chip
               label={item.badge}
               size="small"
               sx={{
-                height: 20,
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                backgroundColor: '#00B37E',
-                color: 'white',
+                height: 18, fontSize: '0.68rem', fontWeight: 700,
+                backgroundColor: activeColor, color: '#fff',
               }}
             />
           )}
-          
+
           {hasChildren && (
             <Box
               onClick={handleChevronClick}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 24,
-                height: 24,
-                borderRadius: '4px',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                },
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 22, height: 22, borderRadius: '5px',
+                transition: 'background-color 0.15s',
+                '&:hover': { backgroundColor: 'rgba(0,0,0,0.07)' },
               }}
             >
-              {open ? (
-                <ExpandLess fontSize="small" sx={{ color: '#888' }} />
-              ) : (
-                <ExpandMore fontSize="small" sx={{ color: '#888' }} />
-              )}
+              {open
+                ? <ExpandLess  sx={{ fontSize: 16, color: '#AAAAAA' }} />
+                : <ExpandMore sx={{ fontSize: 16, color: '#AAAAAA' }} />
+              }
             </Box>
           )}
         </>
       )}
-    </StyledListItemButton>
+    </ListItemButton>
   );
 
   return (
     <>
-      <ListItem 
-        disablePadding 
-        sx={{ display: 'block' }}
-      >
-        {isCollapsed ? (
-          <Tooltip title={item.text} placement="right" arrow>
-            {buttonContent}
-          </Tooltip>
-        ) : (
-          buttonContent
-        )}
+      <ListItem disablePadding sx={{ display: 'block', position: 'relative' }}>
+        {isCollapsed
+          ? <Tooltip title={item.text} placement="right" arrow>{button}</Tooltip>
+          : button
+        }
       </ListItem>
-      
+
       {hasChildren && !isCollapsed && (
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List 
-            component="div" 
-            disablePadding 
-            sx={{ 
-              mt: depth === 0 ? 0.5 : 0.25, 
-              mb: depth === 0 ? 1 : 0.5,
-            }}
-          >
-            {item.children!.map((child) => (
+        <Collapse in={open} timeout={200} unmountOnExit>
+          <List component="div" disablePadding sx={{ mb: 0.5 }}>
+            {item.children!.map(child => (
               <SidebarItemComponent
                 key={child.id}
                 item={child}

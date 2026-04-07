@@ -2,200 +2,127 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  List,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Skeleton,
-  Collapse,
-  IconButton,
   Tooltip,
+  IconButton,
 } from '@mui/material';
 import {
   Folder as FolderIcon,
   Storage as StorageIcon,
-  ExpandLess,
-  ExpandMore,
   History as HistoryIcon,
 } from '@mui/icons-material';
 import { safeNavigate } from '../../../utils/routeTransition';
 import { projectsAPI } from '../../../services/api';
+import { useRouter } from 'next/router';
 
 interface RecentItem {
   id: number;
   name: string;
   type: 'project' | 'dataset';
   path: string;
-  updatedAt?: string;
 }
 
 interface RecentItemsProps {
   isCollapsed?: boolean;
 }
 
+const MAX_ITEMS = 4;
+
 const RecentItems: React.FC<RecentItemsProps> = ({ isCollapsed = false }) => {
-  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const [items, setItems]   = useState<RecentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchRecentItems = async () => {
-      try {
-        setLoading(true);
-        
-        const projectsRes = await projectsAPI.getProjects().catch(() => ({ data: [] }));
-
-        // Handle different API response formats
+    projectsAPI.getProjects()
+      .then(res => {
         let projects: any[] = [];
-        if (projectsRes?.data?.data?.projects) {
-          projects = projectsRes.data.data.projects;
-        } else if (projectsRes?.data?.projects) {
-          projects = projectsRes.data.projects;
-        } else if (projectsRes?.data?.data && Array.isArray(projectsRes.data.data)) {
-          projects = projectsRes.data.data;
-        } else if (Array.isArray(projectsRes?.data)) {
-          projects = projectsRes.data;
-        } else if (Array.isArray(projectsRes)) {
-          projects = projectsRes;
-        }
+        if (res?.data?.data?.projects)           projects = res.data.data.projects;
+        else if (res?.data?.projects)            projects = res.data.projects;
+        else if (Array.isArray(res?.data?.data)) projects = res.data.data;
+        else if (Array.isArray(res?.data))       projects = res.data;
+        else if (Array.isArray(res))             projects = res as any;
 
-        const recentProjects: RecentItem[] = projects
-          .slice(0, 5)
-          .map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            type: 'project' as const,
-            path: `/projects/${p.id}`,
-            updatedAt: p.updated_at,
-          }));
-
-        setRecentItems(recentProjects);
-      } catch (error) {
-        console.error('Error fetching recent items:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecentItems();
+        setItems(
+          projects.slice(0, MAX_ITEMS).map((p: any) => ({
+            id: p.id, name: p.name, type: 'project', path: `/projects/${p.id}`,
+          }))
+        );
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
+  // Collapsed: just an icon
   if (isCollapsed) {
     return (
-      <Box sx={{ py: 1, borderTop: '1px solid #E5E5E5' }}>
-        <Tooltip title="Recientes" placement="right" arrow>
-          <IconButton
-            size="small"
-            sx={{
-              display: 'flex',
-              mx: 'auto',
-              color: '#888',
-            }}
-          >
-            <HistoryIcon fontSize="small" />
+      <Box sx={{ py: 0.5, mt: 0.5, borderTop: '1px solid #E8E8E8' }}>
+        <Tooltip title="Proyectos recientes" placement="right">
+          <IconButton size="small" sx={{ display: 'flex', mx: 'auto', color: '#BBBBBB', borderRadius: '7px' }}>
+            <HistoryIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Tooltip>
       </Box>
     );
   }
 
-  return (
-    <Box sx={{ borderTop: '1px solid #E5E5E5' }}>
-      <ListItemButton
-        onClick={() => setExpanded(!expanded)}
-        sx={{
-          py: 1,
-          px: 2,
-          '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.02)',
-          },
-        }}
-      >
-        <ListItemIcon sx={{ minWidth: 32, color: '#888' }}>
-          <HistoryIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText
-          primary="Recientes"
-          primaryTypographyProps={{
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: '#888',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}
-        />
-        {expanded ? (
-          <ExpandLess fontSize="small" sx={{ color: '#888' }} />
-        ) : (
-          <ExpandMore fontSize="small" sx={{ color: '#888' }} />
-        )}
-      </ListItemButton>
+  if (!loading && items.length === 0) return null;
 
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <List disablePadding sx={{ pb: 1 }}>
-          {loading ? (
-            <>
-              {[1, 2, 3].map((i) => (
-                <ListItem key={i} sx={{ py: 0.5, px: 2 }}>
-                  <Skeleton variant="rectangular" width="100%" height={32} sx={{ borderRadius: 1 }} />
-                </ListItem>
-              ))}
-            </>
-          ) : recentItems.length === 0 ? (
-            <Typography
-              variant="caption"
+  return (
+    <Box sx={{ mt: 1, borderTop: '1px solid #E8E8E8', pt: 1.5 }}>
+      {/* Header */}
+      <Box sx={{ px: 2.5, mb: 0.75 }}>
+        <Typography sx={{
+          fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase',
+          letterSpacing: '0.09em', color: '#BBBBBB',
+        }}>
+          Recientes
+        </Typography>
+      </Box>
+
+      {/* Items */}
+      {loading ? (
+        <Box sx={{ px: 1.5 }}>
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} height={32} sx={{ borderRadius: 1, mb: 0.25 }} />
+          ))}
+        </Box>
+      ) : (
+        items.map(item => {
+          const isActive = router.pathname === item.path;
+          return (
+            <ListItemButton
+              key={`${item.type}-${item.id}`}
+              onClick={() => safeNavigate(item.path)}
               sx={{
-                display: 'block',
-                textAlign: 'center',
-                color: '#999',
-                py: 2,
+                mx: '6px', py: 0.6, pl: 1.5, pr: 1,
+                borderRadius: '8px', minHeight: 32,
+                backgroundColor: isActive ? 'rgba(0,179,126,0.08)' : 'transparent',
+                '&:hover': { backgroundColor: isActive ? 'rgba(0,179,126,0.12)' : 'rgba(0,0,0,0.03)' },
               }}
             >
-              No hay items recientes
-            </Typography>
-          ) : (
-            recentItems.map((item) => (
-              <ListItem key={`${item.type}-${item.id}`} disablePadding>
-                <ListItemButton
-                  onClick={() => safeNavigate(item.path)}
-                  sx={{
-                    py: 0.75,
-                    px: 2,
-                    mx: 1,
-                    borderRadius: '6px',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 179, 126, 0.08)',
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 28,
-                      color: item.type === 'project' ? '#00B37E' : '#3B82F6',
-                    }}
-                  >
-                    {item.type === 'project' ? (
-                      <FolderIcon sx={{ fontSize: '1rem' }} />
-                    ) : (
-                      <StorageIcon sx={{ fontSize: '1rem' }} />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.name}
-                    primaryTypographyProps={{
-                      fontSize: '0.8rem',
-                      fontWeight: 500,
-                      color: '#555',
-                      noWrap: true,
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))
-          )}
-        </List>
-      </Collapse>
+              <ListItemIcon sx={{ minWidth: 26, color: isActive ? '#00B37E' : '#BBBBBB' }}>
+                {item.type === 'project'
+                  ? <FolderIcon sx={{ fontSize: '0.95rem' }} />
+                  : <StorageIcon sx={{ fontSize: '0.95rem' }} />
+                }
+              </ListItemIcon>
+              <ListItemText
+                primary={item.name}
+                primaryTypographyProps={{
+                  fontSize: '0.8rem',
+                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? '#00B37E' : '#555555',
+                  noWrap: true,
+                }}
+              />
+            </ListItemButton>
+          );
+        })
+      )}
     </Box>
   );
 };
