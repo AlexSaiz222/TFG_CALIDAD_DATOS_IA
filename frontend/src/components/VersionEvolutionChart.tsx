@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Chip,
 } from '@mui/material';
 import {
@@ -154,72 +153,32 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        border: '1px solid #EEEEEE',
-        borderRadius: 2,
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          {title}
-        </Typography>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {getTrendIcon()}
-            <Typography variant="body2" sx={{ color: getTrendColor(), fontWeight: 500 }}>
-              {getTrendLabel()}
-            </Typography>
-          </Box>
-          
-          <Chip
-            label={`${scoreDiff >= 0 ? '+' : ''}${scoreDiff.toFixed(1)}%`}
-            size="small"
-            sx={{
-              backgroundColor: scoreDiff >= 0 ? 'rgba(0, 179, 126, 0.1)' : 'rgba(229, 72, 77, 0.1)',
-              color: scoreDiff >= 0 ? '#00B37E' : '#E5484D',
-              fontWeight: 600,
-            }}
-          />
+    <Box>
+      {/* Indicador de tendencia — compacto */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, mb: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          {getTrendIcon()}
+          <Typography variant="body2" sx={{ color: getTrendColor(), fontWeight: 500, fontSize: '0.82rem' }}>
+            {getTrendLabel()}
+          </Typography>
         </Box>
+        <Chip
+          label={`${scoreDiff >= 0 ? '+' : ''}${scoreDiff.toFixed(1)}%`}
+          size="small"
+          sx={{
+            height: 22,
+            fontSize: '0.75rem',
+            backgroundColor: scoreDiff >= 0 ? 'rgba(0, 179, 126, 0.1)' : 'rgba(229, 72, 77, 0.1)',
+            color: scoreDiff >= 0 ? '#00B37E' : '#E5484D',
+            fontWeight: 600,
+          }}
+        />
       </Box>
 
-      <Box sx={{ height: 250 }}>
+      <Box sx={{ height: 240 }}>
         <Line data={chartData} options={chartOptions} />
       </Box>
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 3, pt: 2, borderTop: '1px solid #EEEEEE' }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            {sortedVersions.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Versiones
-          </Typography>
-        </Box>
-        
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#00B37E' }}>
-            {lastScore !== null ? `${lastScore}%` : '—'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Score actual
-          </Typography>
-        </Box>
-        
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            {issues[issues.length - 1] ?? '—'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Issues actuales
-          </Typography>
-        </Box>
-      </Box>
-    </Paper>
+    </Box>
   );
 };
 

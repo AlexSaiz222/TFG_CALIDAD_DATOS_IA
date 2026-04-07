@@ -12,7 +12,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
-import { Box, Typography, Paper, Grid, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { TrendingUp as TrendingUpIcon, BarChart as BarChartIcon } from '@mui/icons-material';
 import type { AnalysisRun } from '../types';
 
@@ -290,44 +290,6 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     },
   }), []);
 
-  // Calcular estadísticas agregadas del proyecto
-  const stats = useMemo(() => {
-    if (sortedRuns.length === 0) return null;
-    
-    const scores = sortedRuns.map((r) => r.quality_score || 0);
-    const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const latestScore = scores[scores.length - 1];
-    
-    // Contar datasets únicos analizados
-    const uniqueDatasets = new Set(sortedRuns.map(r => r.dataset_id).filter(Boolean));
-    
-    // Total de issues en el último análisis de cada dataset
-    const totalIssuesLastRun = sortedRuns.length > 0 ? (sortedRuns[sortedRuns.length - 1].total_issues_count || 0) : 0;
-    
-    return {
-      avgScore,
-      latestScore,
-      runsCount: sortedRuns.length,
-      datasetsAnalyzed: uniqueDatasets.size,
-      totalIssuesLastRun,
-    };
-  }, [sortedRuns]);
-
-  // Mensaje cuando no hay dataset seleccionado
-  if (!selectedDatasetId) {
-    return (
-      <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
-        <TrendingUpIcon sx={{ fontSize: 48, color: GRAY, mb: 2 }} />
-        <Typography variant="h6" sx={{ color: '#555555' }}>
-          Selecciona un dataset
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#888888' }}>
-          Haz clic en un dataset de la lista superior para ver su evolución temporal.
-        </Typography>
-      </Paper>
-    );
-  }
-
   if (sortedRuns.length === 0) {
     return (
       <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
@@ -344,52 +306,6 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
 
   return (
     <Box>
-      {/* Estadísticas resumen del proyecto */}
-      {stats && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} sm={3}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: GRAY }}>
-                Score promedio
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: stats.avgScore >= qualityGateThreshold ? GREEN : RED }}>
-                {stats.avgScore.toFixed(1)}%
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: GRAY }}>
-                Último score
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: stats.latestScore >= qualityGateThreshold ? GREEN : RED }}>
-                {stats.latestScore.toFixed(1)}%
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: GRAY }}>
-                Análisis realizados
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-                {stats.runsCount}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: GRAY }}>
-                Datasets analizados
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-                {stats.datasetsAnalyzed}
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      )}
-
       {/* Selector de tipo de gráfico */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <ToggleButtonGroup
@@ -410,24 +326,13 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
       </Box>
 
       {/* Gráfico */}
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 2, border: '1px solid #EEEEEE' }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-          {chartType === 'score' 
-            ? `Evolución del Quality Score${selectedDatasetName ? ` - ${selectedDatasetName}` : ''}`
-            : `Evolución de Issues${selectedDatasetName ? ` - ${selectedDatasetName}` : ''}`
-          }
-        </Typography>
-        <Box sx={{ height: 300 }}>
-          {chartType === 'score' ? (
-            <Line data={scoreChartData} options={scoreChartOptions} />
-          ) : (
-            <Bar data={issuesChartData} options={issuesChartOptions} />
-          )}
-        </Box>
-        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: GRAY, textAlign: 'center' }}>
-          Basado en {sortedRuns.length} análisis completados
-        </Typography>
-      </Paper>
+      <Box sx={{ height: 300 }}>
+        {chartType === 'score' ? (
+          <Line data={scoreChartData} options={scoreChartOptions} />
+        ) : (
+          <Bar data={issuesChartData} options={issuesChartOptions} />
+        )}
+      </Box>
     </Box>
   );
 };
