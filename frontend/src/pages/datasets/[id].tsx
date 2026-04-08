@@ -799,7 +799,7 @@ const DatasetDetail = () => {
             <Tab label="Data Profiling" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
             <Tab label="Evaluaciones" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
             <Tab label="Issues" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
-            <Tab label="Versiones & Linaje" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
+            <Tab label="Versiones" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
           </Tabs>
         </Box>
 

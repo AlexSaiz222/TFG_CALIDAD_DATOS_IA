@@ -2010,13 +2010,28 @@ def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
         if analysis_b:
             issues_b_list = DataQualityIssue.query.filter_by(analysis_run_id=analysis_b.id).all()
         
-        # Compare issues by description to find new/resolved
-        issues_a_descriptions = {i.description for i in issues_a_list}
-        issues_b_descriptions = {i.description for i in issues_b_list}
-        
-        resolved_issues = [i.to_dict() for i in issues_a_list if i.description not in issues_b_descriptions]
-        new_issues = [i.to_dict() for i in issues_b_list if i.description not in issues_a_descriptions]
-        common_issues = [i.to_dict() for i in issues_b_list if i.description in issues_a_descriptions]
+        # Compare issues using fingerprints (stable across runs) when available,
+        # falling back to exact description match for legacy issues without fingerprints.
+        fps_a = {i.fingerprint for i in issues_a_list if i.fingerprint}
+        fps_b = {i.fingerprint for i in issues_b_list if i.fingerprint}
+
+        # Issues that have no fingerprint fall back to description matching
+        no_fp_desc_a = {i.description for i in issues_a_list if not i.fingerprint}
+        no_fp_desc_b = {i.description for i in issues_b_list if not i.fingerprint}
+
+        def _is_in_b(issue_a):
+            if issue_a.fingerprint:
+                return issue_a.fingerprint in fps_b
+            return issue_a.description in no_fp_desc_b
+
+        def _is_in_a(issue_b):
+            if issue_b.fingerprint:
+                return issue_b.fingerprint in fps_a
+            return issue_b.description in no_fp_desc_a
+
+        resolved_issues = [i.to_dict() for i in issues_a_list if not _is_in_b(i)]
+        new_issues      = [i.to_dict() for i in issues_b_list if not _is_in_a(i)]
+        common_issues   = [i.to_dict() for i in issues_b_list if _is_in_a(i)]
         
         # Build comparison response with frontend-expected structure
         dataset_a_dict = dataset_a.to_dict()

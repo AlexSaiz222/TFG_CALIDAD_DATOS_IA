@@ -43,7 +43,7 @@ export const METRIC_META: Record<string, MetricMeta> = {
   currentness: {
     icon: Clock, color: '#7C3AED', bg: '#EDE9FE', category: 'Temporal',
     label: 'Actualidad de los datos (Currentness)',
-    description: 'Evalúa si las columnas de fecha contienen registros desactualizados (ISO 5259-2, Cur-ML-1). Datos obsoletos pueden hacer que un modelo aprenda patrones que ya no reflejan la realidad operativa actual.',
+    description: 'Mide la obsolescencia temporal de los registros. En entornos dinámicos, la validez predictiva de los datos decae con el tiempo. Entrenar con datos antiguos asume un mundo estático y provoca Data Drift: el modelo aprende patrones que ya no representan la realidad operativa.',
   },
   logical_consistency: {
     icon: GitBranch, color: '#0D7377', bg: '#E0F2F1', category: 'Consistencia',
@@ -53,12 +53,12 @@ export const METRIC_META: Record<string, MetricMeta> = {
   class_balance: {
     icon: Scale, color: '#2E7D32', bg: '#E8F5E9', category: 'Distribución',
     label: 'Equilibrio de clases',
-    description: 'Detecta desequilibrios en columnas categóricas donde una clase domina de forma desproporcionada. El desequilibrio severo lleva a modelos de clasificación sesgados hacia la clase mayoritaria.',
+    description: 'Detecta desequilibrios en columnas categóricas donde una clase domina. El desequilibrio severo en la variable a predecir lleva a modelos de clasificación sesgados hacia la clase mayoritaria.',
   },
   syntactic_accuracy: {
     icon: Braces, color: '#C75000', bg: '#FBE9E7', category: 'Exactitud',
     label: 'Exactitud sintáctica',
-    description: 'Verifica que los valores cumplan el formato esperado (emails, teléfonos, DNIs, fechas, URLs…). Formatos incorrectos en columnas clave generan errores en pipelines de procesamiento y empeorar la calidad de features.',
+    description: 'Verifica que los valores cumplan el formato esperado (emails, teléfonos, DNIs, fechas, URLs…). Formatos incorrectos en columnas clave generan errores en pipelines de procesamiento y empeoran la calidad de las features.',
   },
 };
 
