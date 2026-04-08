@@ -16,7 +16,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
@@ -90,21 +90,27 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
     return '#FFB800';
   };
 
+  const THRESHOLD = 70;
+
   const chartData = {
     labels,
     datasets: [
       {
         label: 'Quality Score',
         data: scores,
-        borderColor: '#00B37E',
-        backgroundColor: 'rgba(0, 179, 126, 0.1)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        pointBackgroundColor: '#00B37E',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
+        backgroundColor: scores.map(s =>
+          s === null ? 'rgba(180,180,180,0.4)'
+          : s >= THRESHOLD ? 'rgba(0,179,126,0.75)'
+          : 'rgba(229,72,77,0.75)'
+        ),
+        borderColor: scores.map(s =>
+          s === null ? 'rgba(180,180,180,0.6)'
+          : s >= THRESHOLD ? '#00B37E'
+          : '#E5484D'
+        ),
+        borderWidth: 1.5,
+        borderRadius: 6,
+        borderSkipped: false,
       },
     ],
   };
@@ -113,21 +119,32 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleFont: { size: 14 },
-        bodyFont: { size: 13 },
+        backgroundColor: 'rgba(26,26,26,0.92)',
+        titleColor: '#fff',
+        bodyColor: 'rgba(255,255,255,0.75)',
+        borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1,
         padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
+        titleFont: { size: 12, weight: 'bold' as const },
+        bodyFont: { size: 11 },
         callbacks: {
+          title: (items: any[]) => {
+            const v = sortedVersions[items[0]?.dataIndex];
+            return v?.version_tag || `v${v?.version}`;
+          },
           label: (context: any) => {
             const score = context.raw;
-            const issueCount = issues[context.dataIndex];
+            const v = sortedVersions[context.dataIndex];
+            const gate = score !== null
+              ? (score >= THRESHOLD ? '\u2713 Passed' : '\u2717 Failed')
+              : '';
             return [
-              `Score: ${score !== null ? `${score}%` : 'Sin análisis'}`,
-              `Issues: ${issueCount}`,
+              `Score: ${score !== null ? `${Number(score).toFixed(1)}%  \u2014  ${gate}` : 'Sin an\u00e1lisis'}`,
+              `Issues: ${v?.total_issues ?? 0}`,
             ];
           },
         },
@@ -137,17 +154,19 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
       y: {
         min: 0,
         max: 100,
+        border: { color: '#F0F0F0' },
         ticks: {
+          color: '#AAAAAA',
+          font: { size: 11 },
           callback: (value: any) => `${value}%`,
+          maxTicksLimit: 6,
         },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-        },
+        grid: { color: 'rgba(0,0,0,0.04)' },
       },
       x: {
-        grid: {
-          display: false,
-        },
+        border: { color: '#F0F0F0' },
+        ticks: { color: '#AAAAAA', font: { size: 11 }, maxRotation: 20 },
+        grid: { display: false },
       },
     },
   };
@@ -176,7 +195,7 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
       </Box>
 
       <Box sx={{ height: 240 }}>
-        <Line data={chartData} options={chartOptions} />
+        <Bar data={chartData as any} options={chartOptions as any} />
       </Box>
     </Box>
   );

@@ -39,26 +39,27 @@ def get_flask_app():
     return app
 
 @shared_task(bind=True, name='tasks.run_evaluation', max_retries=3, default_retry_delay=60, acks_late=True, reject_on_worker_lost=True)
-def run_evaluation(self, evaluation_id):
+def run_evaluation(self, evaluation_id, analysis_run_id=None):
     """
     Tarea asíncrona para ejecutar una evaluación de calidad de datos
     
     Args:
         self: Instancia de la tarea (proporcionada por Celery)
         evaluation_id: ID de la evaluación a ejecutar
+        analysis_run_id: ID del AnalysisRun existente a actualizar (Sonar-Lite, opcional)
     
     Returns:
         dict: Resultado de la evaluación
     """
-    logger.info(f"Iniciando evaluación asíncrona ID: {evaluation_id}")
+    logger.info(f"Iniciando evaluación asíncrona ID: {evaluation_id}, AnalysisRun: {analysis_run_id}")
     
     # Obtener contexto de la aplicación Flask
     app = get_flask_app()
     
     with app.app_context():
-        return _run_evaluation_impl(self, evaluation_id)
+        return _run_evaluation_impl(self, evaluation_id, analysis_run_id=analysis_run_id)
 
-def _run_evaluation_impl(task_self, evaluation_id):
+def _run_evaluation_impl(task_self, evaluation_id, analysis_run_id=None):
     """Implementación real de la evaluación dentro del contexto de Flask
     
     Esta función implementa el ciclo de vida completo de AnalysisRun (Sonar-Lite):
@@ -66,8 +67,6 @@ def _run_evaluation_impl(task_self, evaluation_id):
     2. PROCESSING -> Durante la ejecución
     3. COMPLETED/FAILED -> Al finalizar
     """
-    analysis_run_id = None
-    
     try:
         logger.info(f"Iniciando procesamiento de evaluación {evaluation_id} con task_id {task_self.request.id}")
         
@@ -93,39 +92,52 @@ def _run_evaluation_impl(task_self, evaluation_id):
             return {"success": False, "error": error_msg}
         
         # ============================================================
-        # SONAR-LITE: Crear AnalysisRun con estado PENDING
+        # SONAR-LITE: Usar AnalysisRun existente o crear uno nuevo
         # ============================================================
-        # Auto-baseline: buscar el último AnalysisRun completado del dataset padre
-        baseline_id = None
-        if dataset.parent_dataset_id:
-            ancestor_id = dataset.parent_dataset_id
-            while ancestor_id:
-                candidate = AnalysisRun.query.filter_by(
-                    dataset_id=ancestor_id
-                ).filter(
-                    AnalysisRun.status == AnalysisStatus.COMPLETED
-                ).order_by(AnalysisRun.completed_at.desc()).first()
-                if candidate:
-                    baseline_id = candidate.id
-                    logger.info(f"[SONAR-LITE] Auto-baseline: AnalysisRun {baseline_id} del dataset {ancestor_id} asignado como baseline")
-                    break
-                ancestor_ds = Dataset.query.get(ancestor_id)
-                ancestor_id = ancestor_ds.parent_dataset_id if ancestor_ds else None
+        if analysis_run_id:
+            # Reutilizar el AnalysisRun creado por el endpoint start_analysis
+            analysis_run = AnalysisRun.query.get(analysis_run_id)
+            if analysis_run:
+                analysis_run.task_id = task_self.request.id
+                analysis_run.started_at = datetime.utcnow()
+                db.session.commit()
+                logger.info(f"[SONAR-LITE] Reutilizando AnalysisRun {analysis_run_id} para evaluación {evaluation_id}")
+            else:
+                logger.warning(f"[SONAR-LITE] AnalysisRun {analysis_run_id} no encontrado, creando uno nuevo")
+                analysis_run_id = None
 
-        analysis_run = AnalysisRun(
-            project_id=dataset.project_id,
-            dataset_id=dataset.id,
-            status=AnalysisStatus.PENDING,
-            metrics_config=evaluation.metrics_config,
-            task_id=task_self.request.id,
-            progress=0,
-            current_step="Iniciando análisis",
-            baseline_analysis_id=baseline_id
-        )
-        db.session.add(analysis_run)
-        db.session.commit()
-        analysis_run_id = analysis_run.id
-        logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run_id} creado con estado PENDING para evaluación {evaluation_id}")
+        if not analysis_run_id:
+            # Auto-baseline: buscar el último AnalysisRun completado del dataset padre
+            baseline_id = None
+            if dataset.parent_dataset_id:
+                ancestor_id = dataset.parent_dataset_id
+                while ancestor_id:
+                    candidate = AnalysisRun.query.filter_by(
+                        dataset_id=ancestor_id
+                    ).filter(
+                        AnalysisRun.status == AnalysisStatus.COMPLETED
+                    ).order_by(AnalysisRun.completed_at.desc()).first()
+                    if candidate:
+                        baseline_id = candidate.id
+                        logger.info(f"[SONAR-LITE] Auto-baseline: AnalysisRun {baseline_id} del dataset {ancestor_id} asignado como baseline")
+                        break
+                    ancestor_ds = Dataset.query.get(ancestor_id)
+                    ancestor_id = ancestor_ds.parent_dataset_id if ancestor_ds else None
+
+            analysis_run = AnalysisRun(
+                project_id=dataset.project_id,
+                dataset_id=dataset.id,
+                status=AnalysisStatus.PENDING,
+                metrics_config=evaluation.metrics_config,
+                task_id=task_self.request.id,
+                progress=0,
+                current_step="Iniciando análisis",
+                baseline_analysis_id=baseline_id
+            )
+            db.session.add(analysis_run)
+            db.session.commit()
+            analysis_run_id = analysis_run.id
+            logger.info(f"[SONAR-LITE] AnalysisRun {analysis_run_id} creado con estado PENDING para evaluación {evaluation_id}")
         
         # Actualizar progreso
         _update_evaluation_status(evaluation_id, "processing", progress=10, 

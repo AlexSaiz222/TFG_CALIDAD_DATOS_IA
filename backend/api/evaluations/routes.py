@@ -1025,8 +1025,9 @@ def start_analysis(project_id):
         }), 400
     
     try:
-        # Validar configuración de métricas
-        validated_data = create_evaluation_schema.load(data)
+        # Validar configuración de métricas (excluir campos no pertenecientes al schema)
+        schema_data = {k: v for k, v in data.items() if k in ('metrics', 'options')}
+        validated_data = create_evaluation_schema.load(schema_data)
         metrics = validated_data['metrics']
         options = validated_data.get('options', {})
     except ValidationError as err:
@@ -1069,7 +1070,7 @@ def start_analysis(project_id):
         
         # Importar y lanzar tarea asíncrona
         from tasks.evaluation_tasks import run_evaluation
-        task = run_evaluation.delay(new_evaluation.id)
+        task = run_evaluation.delay(new_evaluation.id, analysis_run_id=analysis_run.id)
         
         # Actualizar task_id en ambos modelos
         new_evaluation.task_id = task.id
