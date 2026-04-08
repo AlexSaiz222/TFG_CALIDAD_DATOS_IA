@@ -221,10 +221,10 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
               <Box sx={{ width: graphWidth, flexShrink: 0, position: 'relative', mr: 1.5 }}>
 
                 {/* Ancestor continuation lines (vertical, one per ancestor depth that still has siblings) */}
-                {node.hasMoreSiblings.slice(0, node.depth).map((active, di) => active && (
+                {node.hasMoreSiblings.slice(0, node.depth + 1).map((active, di) => active && (
                   <Box key={di} sx={{
                     position: 'absolute',
-                    left: di * COL_W + 11,
+                    left: Math.max(di - 1, 0) * COL_W + 11,
                     top: '-3px', bottom: '-3px', width: 2,
                     backgroundColor: getAncestorLineColor(flatNodes, nodeIdx, di),
                     opacity: 0.55,
@@ -242,7 +242,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
                 )}
 
                 {/* Line from this dot downward (if has children or more siblings follow) */}
-                {(hasChildren || hasMoreSelf) && (
+                {hasChildren && (
                   <Box sx={{
                     position: 'absolute',
                     left: dotLeft + 7,
