@@ -148,7 +148,7 @@ const EvaluationDetail = () => {
     if (type === 'outliers') return 'Outliers';
     if (type === 'syntactic_accuracy') return 'Exactitud sintáctica';
     if (type === 'class_balance') return 'Equilibrio de clases';
-    if (type === 'timeliness') return 'Actualidad';
+    if (type === 'currentness') return 'Actualidad';
     if (type === 'logical_consistency') return 'Consistencia lógica';
     const lower = (issue.description || '').toLowerCase();
     if (lower.includes('completitud') || lower.includes('completeness') || lower.includes('null') || lower.includes('nulo')) return 'Completitud';
@@ -156,7 +156,7 @@ const EvaluationDetail = () => {
     if (lower.includes('atípico') || lower.includes('outlier')) return 'Outliers';
     if (lower.includes('tipo esperado') || lower.includes('conformidad') || lower.includes('sintáct') || lower.includes('syntactic')) return 'Exactitud sintáctica';
     if (lower.includes('clase') || lower.includes('desequilibr') || lower.includes('balance') || lower.includes('minoritaria')) return 'Equilibrio de clases';
-    if (lower.includes('desactualiz') || lower.includes('timeliness') || lower.includes('obsolet') || lower.includes('frescura')) return 'Actualidad';
+    if (lower.includes('desactualiz') || lower.includes('currentness') || lower.includes('obsolet') || lower.includes('frescura')) return 'Actualidad';
     if (lower.includes('regla') || lower.includes('consistencia') || lower.includes('violó') || lower.includes('logical')) return 'Consistencia lógica';
     return 'General';
   };
@@ -328,8 +328,8 @@ const EvaluationDetail = () => {
                 });
               }
 
-              if (overallMetrics.timeliness?.columns) {
-                const tl = overallMetrics.timeliness;
+              if (overallMetrics.currentness?.columns) {
+                const tl = overallMetrics.currentness;
                 const v = tl.overall_freshness_score ?? 0;
                 const stale = tl.columns_stale ?? 0;
                 const analyzed = tl.columns_analyzed ?? 0;
@@ -340,12 +340,12 @@ const EvaluationDetail = () => {
                        : v >= 0.70 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
                        : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
                   insight: stale === 0 ? `${analyzed} columna${analyzed !== 1 ? 's' : ''} actualizadas` : `${stale} de ${analyzed} columna${analyzed !== 1 ? 's' : ''} desactualizadas`,
-                  tabKey: 'timeliness',
+                  tabKey: 'currentness',
                 });
               }
 
-              // Tab order in MetricDetailsTabs: completeness, uniqueness, outliers, syntactic_accuracy, logical_consistency, class_balance, timeliness
-              const tabOrder = ['completeness', 'uniqueness', 'outliers', 'syntactic_accuracy', 'logical_consistency', 'class_balance', 'timeliness'];
+              // Tab order in MetricDetailsTabs: completeness, uniqueness, outliers, syntactic_accuracy, logical_consistency, class_balance, currentness
+              const tabOrder = ['completeness', 'uniqueness', 'outliers', 'syntactic_accuracy', 'logical_consistency', 'class_balance', 'currentness'];
               const availableTabs = tabOrder.filter(key => {
                 if (key === 'completeness') return overallMetrics.completeness !== undefined;
                 if (key === 'uniqueness') return overallMetrics.uniqueness !== undefined;
@@ -353,7 +353,7 @@ const EvaluationDetail = () => {
                 if (key === 'syntactic_accuracy') return overallMetrics.syntactic_accuracy?.columns;
                 if (key === 'logical_consistency') return overallMetrics.logical_consistency?.rules;
                 if (key === 'class_balance') return overallMetrics.class_balance?.columns;
-                if (key === 'timeliness') return overallMetrics.timeliness?.columns;
+                if (key === 'currentness') return overallMetrics.currentness?.columns;
                 return false;
               });
 

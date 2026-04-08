@@ -35,10 +35,54 @@ interface VersionWithAnalysis extends Dataset {
   } | null;
 }
 
+interface FlatNode {
+  version: VersionWithAnalysis;
+  depth: number;
+  /** For each depth level 0..depth, whether that level has more siblings after current subtree */
+  hasMoreSiblings: boolean[];
+  branchColorIdx: number;
+}
+
 interface DatasetVersionHistoryProps {
   datasetId: number;
   projectId: number;
   onCompare?: (versionA: number, versionB: number) => void;
+}
+
+const BRANCH_COLORS = ['#00B37E', '#9c27b0', '#1976d2', '#f57c00', '#e91e63', '#00bcd4'];
+const COL_W = 22; // px per depth column in the graph
+
+/** Look ahead in flatNodes to find which branchColorIdx will appear next at depth d after nodeIdx */
+function getAncestorLineColor(flatNodes: FlatNode[], nodeIdx: number, d: number): string {
+  for (let j = nodeIdx + 1; j < flatNodes.length; j++) {
+    if (flatNodes[j].depth === d) return BRANCH_COLORS[flatNodes[j].branchColorIdx % BRANCH_COLORS.length];
+  }
+  return BRANCH_COLORS[0];
+}
+
+function buildFlatTree(
+  parentId: number | null,
+  depth: number,
+  siblingsStack: boolean[],
+  childrenMap: Map<number | null, VersionWithAnalysis[]>,
+  parentColorIdx: number,
+  nextColorIdx: { value: number },
+  result: FlatNode[]
+) {
+  const children = (childrenMap.get(parentId) || []).slice().sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+  children.forEach((v, i) => {
+    const isLast = i === children.length - 1;
+    const colorIdx = i === 0 ? parentColorIdx : nextColorIdx.value++;
+    result.push({
+      version: v,
+      depth,
+      hasMoreSiblings: [...siblingsStack, !isLast],
+      branchColorIdx: colorIdx,
+    });
+    buildFlatTree(v.id, depth + 1, [...siblingsStack, !isLast], childrenMap, colorIdx, nextColorIdx, result);
+  });
 }
 
 const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
@@ -74,272 +118,279 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
         setVersions(data.versions || []);
         setError(null);
       } catch (err: any) {
-        console.error('Error fetching versions:', err);
         setError('No se pudieron cargar las versiones del dataset');
       } finally {
         setLoading(false);
       }
     };
-
-    if (datasetId && projectId) {
-      fetchVersions();
-    }
+    if (datasetId && projectId) fetchVersions();
   }, [datasetId, projectId]);
 
-  const getQualityGateIcon = (status: string | null | undefined) => {
-    switch (status) {
-      case 'PASSED':
-        return <CheckCircleIcon sx={{ color: '#00B37E', fontSize: 20 }} />;
-      case 'FAILED':
-        return <ErrorIcon sx={{ color: '#E5484D', fontSize: 20 }} />;
-      case 'WARNING':
-        return <WarningIcon sx={{ color: '#FFB800', fontSize: 20 }} />;
-      default:
-        return <ScheduleIcon sx={{ color: '#999', fontSize: 20 }} />;
-    }
+  const qualityIcon = (status: string | null | undefined) => {
+    if (status === 'PASSED') return <CheckCircleIcon sx={{ color: '#00B37E', fontSize: 17 }} />;
+    if (status === 'FAILED') return <ErrorIcon sx={{ color: '#E5484D', fontSize: 17 }} />;
+    if (status === 'WARNING') return <WarningIcon sx={{ color: '#FFB800', fontSize: 17 }} />;
+    return <ScheduleIcon sx={{ color: '#BDBDBD', fontSize: 17 }} />;
   };
 
-  const getDotColor = (status: string | null | undefined): string => {
-    switch (status) {
-      case 'PASSED':
-        return '#00B37E';
-      case 'FAILED':
-        return '#E5484D';
-      case 'WARNING':
-        return '#FFB800';
-      default:
-        return '#BDBDBD';
-    }
+  const scoreColor = (score: number | null | undefined) => {
+    if (score == null) return '#BDBDBD';
+    return score >= 70 ? '#00B37E' : '#E5484D';
   };
 
-  const handleSelectForCompare = (versionId: number) => {
-    if (selectedForCompare === null) {
-      setSelectedForCompare(versionId);
-    } else if (selectedForCompare === versionId) {
-      setSelectedForCompare(null);
-    } else {
-      // Navigate to compare page
+  const formatDate = (d: string | null | undefined) => {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleCompare = (versionId: number) => {
+    if (selectedForCompare === null) { setSelectedForCompare(versionId); }
+    else if (selectedForCompare === versionId) { setSelectedForCompare(null); }
+    else {
       router.push(`/datasets/compare?a=${selectedForCompare}&b=${versionId}&projectId=${projectId}`);
       setSelectedForCompare(null);
     }
   };
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return '—';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress size={32} /></Box>;
+  if (error) return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
+  if (versions.length === 0) return (
+    <Box sx={{ p: 3, textAlign: 'center' }}>
+      <Typography variant="body1" color="text.secondary">No hay historial de versiones disponible</Typography>
+    </Box>
+  );
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress size={32} />
-      </Box>
-    );
-  }
+  // Build tree structure
+  const childrenMap = new Map<number | null, VersionWithAnalysis[]>();
+  versions.forEach(v => {
+    const p = v.parent_dataset_id ?? null;
+    if (!childrenMap.has(p)) childrenMap.set(p, []);
+    childrenMap.get(p)!.push(v);
+  });
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        {error}
-      </Alert>
-    );
-  }
+  const flatNodes: FlatNode[] = [];
+  buildFlatTree(null, 0, [], childrenMap, 0, { value: 1 }, flatNodes);
 
-  if (versions.length === 0) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="body1" color="text.secondary">
-          No hay historial de versiones disponible
-        </Typography>
-      </Box>
-    );
-  }
+  const isBranched = versions.some(v => {
+    const siblings = childrenMap.get(v.parent_dataset_id ?? null) || [];
+    return siblings.length > 1;
+  });
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Historial de versiones
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {versions.length} versión{versions.length !== 1 ? 'es' : ''}
-        </Typography>
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>Árbol de versiones</Typography>
+          <Chip
+            label={`${versions.length} versión${versions.length !== 1 ? 'es' : ''}`}
+            size="small"
+            sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500, height: 22 }}
+          />
+          {isBranched && (
+            <Chip
+              label="Ramificado"
+              size="small"
+              sx={{ backgroundColor: 'rgba(156,39,176,0.1)', color: '#9c27b0', fontWeight: 500, height: 22 }}
+            />
+          )}
+        </Box>
       </Box>
 
       {selectedForCompare && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Selecciona otra versión para comparar con v{versions.find(v => v.id === selectedForCompare)?.version}
+          Selecciona otra versión para comparar con{' '}
+          <strong>{versions.find(v => v.id === selectedForCompare)?.version_tag || `v${versions.find(v => v.id === selectedForCompare)?.version}`}</strong>
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {versions.map((version, index) => (
-          <Box key={version.id} sx={{ display: 'flex', gap: 2 }}>
-            {/* Timeline indicator */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24 }}>
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  backgroundColor: getDotColor(version.latestAnalysis?.quality_gate_status),
-                  border: version.is_latest ? 'none' : '2px solid',
-                  borderColor: getDotColor(version.latestAnalysis?.quality_gate_status),
-                  boxSizing: 'border-box',
-                }}
-              />
-              {index < versions.length - 1 && (
-                <Box
-                  sx={{
-                    width: 2,
-                    flexGrow: 1,
-                    backgroundColor: '#E0E0E0',
-                    minHeight: 60,
-                  }}
-                />
-              )}
-            </Box>
+      {/* Tree rows */}
+      <Box>
+        {flatNodes.map((node, nodeIdx) => {
+          const v = node.version;
+          const isCurrent = v.id === datasetId;
+          const col = BRANCH_COLORS[node.branchColorIdx % BRANCH_COLORS.length];
+          const graphWidth = node.depth * COL_W + 28;
+          const dotLeft = node.depth * COL_W + 4;
+          const hasChildren = (childrenMap.get(v.id) || []).length > 0;
+          const hasMoreSelf = node.hasMoreSiblings[node.depth];
 
-            {/* Content */}
-            <Box sx={{ flex: 1, pb: 2 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                {formatDate(version.created_at)}
-              </Typography>
-              
+          return (
+            <Box key={v.id} sx={{ display: 'flex', alignItems: 'stretch', mb: 0.75, minHeight: 54 }}>
+              {/* ── Graph column ── */}
+              <Box sx={{ width: graphWidth, flexShrink: 0, position: 'relative', mr: 1.5 }}>
+
+                {/* Ancestor continuation lines (vertical, one per ancestor depth that still has siblings) */}
+                {node.hasMoreSiblings.slice(0, node.depth).map((active, di) => active && (
+                  <Box key={di} sx={{
+                    position: 'absolute',
+                    left: di * COL_W + 11,
+                    top: '-3px', bottom: '-3px', width: 2,
+                    backgroundColor: getAncestorLineColor(flatNodes, nodeIdx, di),
+                    opacity: 0.55,
+                  }} />
+                ))}
+
+                {/* Line from previous row into this dot */}
+                {nodeIdx > 0 && (
+                  <Box sx={{
+                    position: 'absolute',
+                    left: dotLeft + 7,
+                    top: '-3px', height: 'calc(50% + 3px)', width: 2,
+                    backgroundColor: col, opacity: 0.55,
+                  }} />
+                )}
+
+                {/* Line from this dot downward (if has children or more siblings follow) */}
+                {(hasChildren || hasMoreSelf) && (
+                  <Box sx={{
+                    position: 'absolute',
+                    left: dotLeft + 7,
+                    top: '50%', bottom: '-3px', width: 2,
+                    backgroundColor: col, opacity: 0.55,
+                  }} />
+                )}
+
+                {/* Horizontal branch connector (depth > 0 → L-turn from parent column) */}
+                {node.depth > 0 && (
+                  <Box sx={{
+                    position: 'absolute',
+                    left: (node.depth - 1) * COL_W + 11,
+                    top: '50%', marginTop: '-1px',
+                    width: COL_W + 1, height: 2,
+                    backgroundColor: col, opacity: 0.65,
+                  }} />
+                )}
+
+                {/* Node dot */}
+                <Box sx={{
+                  position: 'absolute',
+                  left: dotLeft,
+                  top: '50%', transform: 'translateY(-50%)',
+                  width: 14, height: 14, borderRadius: '50%',
+                  backgroundColor: isCurrent ? col : 'white',
+                  border: `2.5px solid ${col}`,
+                  boxShadow: isCurrent ? `0 0 0 3px ${col}33` : '0 1px 3px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                }} />
+              </Box>
+
+              {/* ── Version card ── */}
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2,
+                  flex: 1,
+                  px: 1.75, py: 1,
                   border: '1px solid',
-                  borderColor: version.id === datasetId ? '#00B37E' : '#EEEEEE',
-                  borderRadius: 2,
-                  backgroundColor: version.id === datasetId ? 'rgba(0, 179, 126, 0.04)' : 'transparent',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    borderColor: '#00B37E',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                  },
+                  borderColor: isCurrent ? '#00B37E' : selectedForCompare === v.id ? '#9c27b0' : '#EDEDED',
+                  borderRadius: 1.5,
+                  backgroundColor: isCurrent
+                    ? 'rgba(0,179,126,0.04)'
+                    : selectedForCompare === v.id ? 'rgba(156,39,176,0.04)' : 'white',
+                  transition: 'all 0.15s',
+                  '&:hover': { borderColor: col, boxShadow: '0 1px 6px rgba(0,0,0,0.07)' },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    {editingId === version.id ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                  {/* Left: tag, badges, date */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', minWidth: 0 }}>
+                    {editingId === v.id ? (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <TextField
                           size="small"
                           value={editTag}
                           onChange={e => setEditTag(e.target.value)}
-                          placeholder={`v${version.version}`}
+                          placeholder={`v${v.version}`}
                           sx={{ width: 110, '& input': { fontSize: '0.75rem', py: '3px', px: '8px' } }}
                           autoFocus
-                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(version); if (e.key === 'Escape') cancelEdit(); }}
+                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(v); if (e.key === 'Escape') cancelEdit(); }}
                         />
-                        <IconButton size="small" onClick={() => saveEdit(version)} disabled={savingId === version.id}>
-                          {savingId === version.id ? <CircularProgress size={14} /> : <CheckIcon sx={{ fontSize: 15, color: '#00B37E' }} />}
+                        <IconButton size="small" onClick={() => saveEdit(v)} disabled={savingId === v.id}>
+                          {savingId === v.id ? <CircularProgress size={13} /> : <CheckIcon sx={{ fontSize: 13, color: '#00B37E' }} />}
                         </IconButton>
                         <IconButton size="small" onClick={cancelEdit}>
-                          <CloseIcon sx={{ fontSize: 15, color: '#999' }} />
+                          <CloseIcon sx={{ fontSize: 13, color: '#999' }} />
                         </IconButton>
                       </Box>
                     ) : (
                       <>
                         <Chip
-                          label={version.version_tag || `v${version.version}`}
+                          label={v.version_tag || `v${v.version}`}
                           size="small"
-                          sx={{
-                            backgroundColor: version.version > 1 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(158, 158, 158, 0.1)',
-                            color: version.version > 1 ? '#9c27b0' : '#757575',
-                            fontWeight: 600,
-                          }}
+                          sx={{ height: 22, fontSize: '0.73rem', fontWeight: 700, backgroundColor: `${col}1a`, color: col }}
                         />
-                        {version.is_latest && (
-                          <Chip label="Latest" size="small" sx={{ height: '20px', fontSize: '0.7rem', backgroundColor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2', fontWeight: 600 }} />
+                        {v.is_latest && (
+                          <Chip label="Latest" size="small" sx={{ height: 18, fontSize: '0.63rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
                         )}
-                        {version.id === datasetId && (
-                          <Chip label="Actual" size="small" sx={{ height: '20px', fontSize: '0.7rem', backgroundColor: 'rgba(0, 179, 126, 0.1)', color: '#00B37E', fontWeight: 600 }} />
+                        {isCurrent && (
+                          <Chip label="Actual" size="small" sx={{ height: 18, fontSize: '0.63rem', backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 600 }} />
+                        )}
+                        {node.depth > 0 && (
+                          <Chip label="rama" size="small" sx={{ height: 18, fontSize: '0.63rem', backgroundColor: `${col}18`, color: col, fontWeight: 500 }} />
                         )}
                         <Tooltip title="Editar etiqueta">
-                          <IconButton size="small" onClick={() => startEdit(version)} sx={{ opacity: 0.35, '&:hover': { opacity: 1 }, p: 0.25 }}>
-                            <EditIcon sx={{ fontSize: 13 }} />
+                          <IconButton size="small" onClick={() => startEdit(v)} sx={{ opacity: 0.3, '&:hover': { opacity: 1 }, p: 0.2 }}>
+                            <EditIcon sx={{ fontSize: 12 }} />
                           </IconButton>
                         </Tooltip>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem' }}>
+                          {formatDate(v.created_at)}
+                        </Typography>
                       </>
                     )}
                   </Box>
 
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {/* Right: metrics + actions */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                      {qualityIcon(v.latestAnalysis?.quality_gate_status)}
+                      <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.82rem', color: scoreColor(v.latestAnalysis?.quality_score) }}>
+                        {v.latestAnalysis?.quality_score != null
+                          ? `${Number(v.latestAnalysis.quality_score).toFixed(1)}%`
+                          : '—'}
+                      </Typography>
+                    </Box>
+                    <Divider orientation="vertical" flexItem sx={{ mx: 0.25 }} />
+                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.75rem' }}>
+                      {v.row_count?.toLocaleString() || '—'} filas · {v.column_count || '—'} cols
+                    </Typography>
+                    <Divider orientation="vertical" flexItem sx={{ mx: 0.25 }} />
                     <Tooltip title="Ver dataset">
-                      <IconButton
-                        size="small"
-                        onClick={() => router.push(`/datasets/${version.id}`)}
-                        sx={{ color: '#00B37E' }}
-                      >
-                        <VisibilityIcon fontSize="small" />
+                      <IconButton size="small" onClick={() => router.push(`/datasets/${v.id}`)} sx={{ color: '#00B37E', p: 0.5 }}>
+                        <VisibilityIcon sx={{ fontSize: 16 }} />
                       </IconButton>
                     </Tooltip>
                     {onCompare && versions.length > 1 && (
-                      <Tooltip title={selectedForCompare === version.id ? 'Cancelar comparación' : 'Comparar'}>
+                      <Tooltip title={selectedForCompare === v.id ? 'Cancelar comparación' : 'Comparar'}>
                         <IconButton
                           size="small"
-                          onClick={() => handleSelectForCompare(version.id)}
+                          onClick={() => handleCompare(v.id)}
                           sx={{
-                            color: selectedForCompare === version.id ? '#9c27b0' : '#757575',
-                            backgroundColor: selectedForCompare === version.id ? 'rgba(156, 39, 176, 0.1)' : 'transparent',
+                            p: 0.5,
+                            color: selectedForCompare === v.id ? '#9c27b0' : '#bbb',
+                            backgroundColor: selectedForCompare === v.id ? 'rgba(156,39,176,0.1)' : 'transparent',
                           }}
                         >
-                          <CompareArrowsIcon fontSize="small" />
+                          <CompareArrowsIcon sx={{ fontSize: 16 }} />
                         </IconButton>
                       </Tooltip>
                     )}
                   </Box>
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1, flexWrap: 'wrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    {getQualityGateIcon(version.latestAnalysis?.quality_gate_status)}
-                    <Typography variant="body2" color="text.secondary">
-                      {version.latestAnalysis?.quality_score != null
-                        ? `${Number(version.latestAnalysis.quality_score).toFixed(1)}%`
-                        : 'Sin análisis'}
-                    </Typography>
-                  </Box>
-                  
-                  <Divider orientation="vertical" flexItem />
-                  
-                  <Typography variant="body2" color="text.secondary">
-                    {version.row_count?.toLocaleString() || '—'} filas
-                  </Typography>
-                  
-                  <Typography variant="body2" color="text.secondary">
-                    {version.column_count || '—'} columnas
-                  </Typography>
-                </Box>
-
-                {version.description && (
+                {v.description && (
                   <Typography
-                    variant="body2"
+                    variant="caption"
                     color="text.secondary"
-                    sx={{
-                      mt: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
+                    sx={{ mt: 0.25, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                   >
-                    {version.description}
+                    {v.description}
                   </Typography>
                 )}
               </Paper>
             </Box>
-          </Box>
-        ))}
+          );
+        })}
       </Box>
     </Box>
   );

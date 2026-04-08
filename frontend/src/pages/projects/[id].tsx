@@ -106,7 +106,7 @@ const PARAM_HELP: Record<string, Record<string, ParamHelp>> = {
     imbalance_threshold_low:   { label: 'Umbral de minoría',   unit: '0 – 1', description: 'Porcentaje mínimo que debe tener cualquier clase. Por debajo = infrarepresentada.' },
     weight:                    { label: 'Peso en puntuación',  unit: '0 – 1', description: 'Influencia de esta métrica en el Quality Score global.' },
   },
-  timeliness: {
+  currentness: {
     auto_detect:              { label: 'Detección automática',           description: 'Detecta automáticamente columnas de tipo fecha, timestamp o datetime.' },
     columns:                  { label: 'Columnas de fecha',              description: 'Columnas de fecha específicas. Vacío = todas las detectadas automáticamente.' },
     staleness_threshold_days: { label: 'Umbral de obsolescencia', unit: 'días', description: 'Días sin actualización a partir de los cuales un registro se considera desactualizado.' },
@@ -201,9 +201,9 @@ const ProjectDetail = () => {
           if (!metricName) {
             // Nombres de métricas conocidas
             const knownMetrics: Record<string, {name: string, description: string}> = {
-              'timeliness': {
-                name: 'timeliness',
-                description: 'Assesses if data is up-to-date'
+              'currentness': {
+                name: 'currentness',
+                description: 'Assesses if data is up-to-date (Currentness, ISO 5259-2 Cur-ML-1)'
               },
               'class_balance': {
                 name: 'class_balance',

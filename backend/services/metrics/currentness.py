@@ -1,16 +1,25 @@
-"""Métrica de actualidad: frescura y antigüedad de columnas de fecha."""
+"""Métrica de actualidad (Currentness): frescura y antigüedad de columnas de fecha.
+
+Implementa la dimensión Currentness (ΔT₂) de ISO/IEC 5259-2:2024 §6.2.5 / §6.5.9,
+medida Cur-ML-1 (Feature currentness).
+
+Currentness mide el tiempo transcurrido desde que se registró el dato hasta hoy
+(staleness/frescura). No confundir con currentness (ΔT₁), que sería la latencia
+entre el evento real y su ingesta en el sistema — esa medida requiere dos
+timestamps externos y no es calculable desde un dataset estático.
+"""
 import logging
 
 import pandas as pd
 
-from utils.fingerprint_utils import generate_issue_fingerprint, generate_timeliness_fingerprint
+from utils.fingerprint_utils import generate_issue_fingerprint, generate_currentness_fingerprint
 from .base import BaseMetric, MetricResult
 
 logger = logging.getLogger(__name__)
 
 
-class TimelinessMetric(BaseMetric):
-    log_prefix = "TIMELINESS"
+class CurrentnessMetric(BaseMetric):
+    log_prefix = "CURRENTNESS"
 
     # Scale controls how slowly the score decays once the dataset is past the
     # staleness threshold. score reaches 0 at (1 + DECAY_SCALE) × threshold.
@@ -55,7 +64,7 @@ class TimelinessMetric(BaseMetric):
                     except Exception:
                         continue
 
-        timeliness_results = {}
+        currentness_results = {}
         freshness_scores = []
         issues = []
 
@@ -89,7 +98,7 @@ class TimelinessMetric(BaseMetric):
             freshness_scores.append(col_freshness)
             age_human = self._format_age(age_days)
 
-            timeliness_results[col_name] = {
+            currentness_results[col_name] = {
                 "max_date": max_date.isoformat() if pd.notna(max_date) else None,
                 "min_date": min_date.isoformat() if pd.notna(min_date) else None,
                 "age_days": int(age_days) if age_days is not None else None,
@@ -115,7 +124,7 @@ class TimelinessMetric(BaseMetric):
 
                 issues.append({
                     "evaluation_id": evaluation_id,
-                    "metric_id": metrics_map.get("timeliness"),
+                    "metric_id": metrics_map.get("currentness"),
                     "severity": severity,
                     "description": (
                         f"La columna '{col_name}' contiene datos desactualizados: el registro más reciente "
@@ -127,8 +136,8 @@ class TimelinessMetric(BaseMetric):
                         "max_date": max_date.isoformat(),
                         "freshness_score": round(col_freshness, 4),
                     }],
-                    "issue_type": "timeliness",
-                    "fingerprint": generate_timeliness_fingerprint(
+                    "issue_type": "currentness",
+                    "fingerprint": generate_currentness_fingerprint(
                         column_name=col_name,
                         staleness_threshold_days=staleness_days,
                     ),
@@ -137,7 +146,7 @@ class TimelinessMetric(BaseMetric):
             if parse_success_rate < 0.80 and len(df) > 10:
                 issues.append({
                     "evaluation_id": evaluation_id,
-                    "metric_id": metrics_map.get("timeliness"),
+                    "metric_id": metrics_map.get("currentness"),
                     "severity": "low",
                     "description": (
                         f"La columna '{col_name}' tiene baja tasa de parseo de fechas "
@@ -147,9 +156,9 @@ class TimelinessMetric(BaseMetric):
                         "column": col_name,
                         "parse_success_rate": round(parse_success_rate, 4),
                     }],
-                    "issue_type": "timeliness",
+                    "issue_type": "currentness",
                     "fingerprint": generate_issue_fingerprint(
-                        issue_type="timeliness",
+                        issue_type="currentness",
                         column_name=col_name,
                         rule_key="parse_quality_check",
                     ),
@@ -160,22 +169,22 @@ class TimelinessMetric(BaseMetric):
         )
 
         logger.info(
-            f"[{self.log_prefix}] analyzed={len(timeliness_results)} cols, "
-            f"stale={sum(1 for r in timeliness_results.values() if r.get('is_stale'))}, "
+            f"[{self.log_prefix}] analyzed={len(currentness_results)} cols, "
+            f"stale={sum(1 for r in currentness_results.values() if r.get('is_stale'))}, "
             f"freshness={overall_freshness:.2%}"
         )
         return MetricResult(
-            metric_id="timeliness",
+            metric_id="currentness",
             score=float(overall_freshness),
-            results={"timeliness": {
+            results={"currentness": {
                 "overall_freshness_score": round(overall_freshness, 4),
-                "columns_analyzed": len(timeliness_results),
+                "columns_analyzed": len(currentness_results),
                 "columns_stale": sum(
-                    1 for r in timeliness_results.values() if r.get("is_stale")
+                    1 for r in currentness_results.values() if r.get("is_stale")
                 ),
                 "staleness_threshold_days": staleness_days,
                 "analysis_timestamp": now.isoformat(),
-                "columns": timeliness_results,
+                "columns": currentness_results,
             }},
             issues=issues,
         )

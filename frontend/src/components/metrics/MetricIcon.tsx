@@ -20,7 +20,7 @@ const ICON_MAP: Record<string, IconMeta> = {
   completeness:        { icon: FileCheck2,    color: '#1976D2', bg: '#E3F2FD' },
   uniqueness:          { icon: Fingerprint,   color: '#7B2FBE', bg: '#F3E5F5' },
   outliers:            { icon: AlertTriangle, color: '#E08C00', bg: '#FFF8E1' },
-  timeliness:          { icon: Clock,         color: '#7C3AED', bg: '#EDE9FE' },
+  currentness:         { icon: Clock,         color: '#7C3AED', bg: '#EDE9FE' },
   logical_consistency: { icon: GitBranch,     color: '#0D7377', bg: '#E0F2F1' },
   class_balance:       { icon: Scale,         color: '#2E7D32', bg: '#E8F5E9' },
   syntactic_accuracy:  { icon: Braces,        color: '#C75000', bg: '#FBE9E7' },

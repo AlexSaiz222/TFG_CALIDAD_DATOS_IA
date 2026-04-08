@@ -22,7 +22,7 @@ import OutlierDetail from './OutlierDetail';
 import SyntacticAccuracyDetail from './SyntacticAccuracyDetail';
 import LogicalConsistencyDetail from './LogicalConsistencyDetail';
 import ClassBalanceDetail from './ClassBalanceDetail';
-import TimelinessDetail from './TimelinessDetail';
+import CurrentnessDetail from './CurrentnessDetail';
 import { ColumnMetrics } from '../../types';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -88,7 +88,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   const hasSyntacticAccuracy = overallMetrics.syntactic_accuracy && overallMetrics.syntactic_accuracy.columns;
   const hasLogicalConsistency = overallMetrics.logical_consistency && overallMetrics.logical_consistency.rules;
   const hasClassBalance = overallMetrics.class_balance && overallMetrics.class_balance.columns;
-  const hasTimeliness = overallMetrics.timeliness && overallMetrics.timeliness.columns;
+  const hasCurrentness = overallMetrics.currentness && overallMetrics.currentness.columns;
 
   const tabs: Array<{ name: string; summary: string }> = [];
 
@@ -124,9 +124,9 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
     tabs.push({ name: 'Equilibrio de clases', summary: `${balanceIdx}/100` });
   }
 
-  if (hasTimeliness) {
-    const staleCount = overallMetrics.timeliness.columns_stale || 0;
-    const freshPct = (overallMetrics.timeliness.overall_freshness_score * 100).toFixed(0);
+  if (hasCurrentness) {
+    const staleCount = overallMetrics.currentness.columns_stale || 0;
+    const freshPct = (overallMetrics.currentness.overall_freshness_score * 100).toFixed(0);
     tabs.push({
       name: 'Actualidad',
       summary: staleCount > 0 ? `${staleCount} obsoletas` : `${freshPct}%`,
@@ -280,10 +280,10 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
             tabIdx++;
           }
 
-          if (hasTimeliness) {
+          if (hasCurrentness) {
             panels.push(
-              <TabPanel key="timeliness" value={safeTab} index={tabIdx}>
-                <TimelinessDetail data={overallMetrics.timeliness} />
+              <TabPanel key="currentness" value={safeTab} index={tabIdx}>
+                <CurrentnessDetail data={overallMetrics.currentness} />
               </TabPanel>
             );
             tabIdx++;

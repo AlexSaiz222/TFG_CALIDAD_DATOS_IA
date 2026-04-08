@@ -102,7 +102,7 @@ INSERT INTO metrics (name, description, category, parameters) VALUES
 ('syntactic_accuracy', 'Valida que los valores cumplan con el tipo de dato esperado, patrones regex o restricciones de longitud. Detecta errores de formato y valores mal tipados.', 'accuracy', '{"columns": [], "custom_patterns": {}, "auto_detect_types": true, "threshold": 0.95}'),
 ('logical_consistency', 'Valida reglas lógicas entre campos dentro de cada registro. Detecta inconsistencias como fechas de fin anteriores a fechas de inicio o valores mutuamente excluyentes.', 'consistency', '{"rules": []}'),
 ('class_balance', 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.', 'distribution', '{"columns": [], "threshold": 0.8, "auto_detect": true}'),
-('timeliness', 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.', 'data_quality', '{"date_columns": [], "max_age_days": 365, "expected_range": null, "auto_detect": true}');
+('currentness', 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.', 'data_quality', '{"date_columns": [], "max_age_days": 365, "expected_range": null, "auto_detect": true}');
 
 -- Insert demo user
 INSERT INTO users (username, email, password_hash, first_name, last_name, organization, role)

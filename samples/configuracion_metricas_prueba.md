@@ -210,7 +210,7 @@ Mide si la distribución de valores categóricos es equilibrada o presenta clase
 
 ---
 
-### 7. Timeliness (Frescura Temporal)
+### 7. currentness (Frescura Temporal)
 
 Mide la antigüedad de los registros de fecha. Usa `fecha_actualizacion`, que representa cuándo
 fue actualizado el registro por última vez.
@@ -324,7 +324,7 @@ al crear el proyecto en DataQual:
     }
   },
   {
-    "type": "timeliness",
+    "type": "currentness",
     "name": "Frescura de la última actualización",
     "parameters": {
       "columns": ["fecha_actualizacion"],

@@ -10,7 +10,7 @@ from .uniqueness import UniquenessMetric
 from .syntactic_accuracy import SyntacticAccuracyMetric
 from .logical_consistency import LogicalConsistencyMetric
 from .class_balance import ClassBalanceMetric
-from .timeliness import TimelinessMetric
+from .currentness import CurrentnessMetric
 
 METRIC_REGISTRY: dict = {
     "completeness": CompletenessMetric,
@@ -18,7 +18,7 @@ METRIC_REGISTRY: dict = {
     "syntactic_accuracy": SyntacticAccuracyMetric,
     "logical_consistency": LogicalConsistencyMetric,
     "class_balance": ClassBalanceMetric,
-    "timeliness": TimelinessMetric,
+    "currentness": CurrentnessMetric,
 }
 
 

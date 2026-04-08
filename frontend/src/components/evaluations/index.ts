@@ -10,4 +10,4 @@ export { default as ExecutiveMetricCard } from './ExecutiveMetricCard';
 export { default as SyntacticAccuracyDetail } from './SyntacticAccuracyDetail';
 export { default as LogicalConsistencyDetail } from './LogicalConsistencyDetail';
 export { default as ClassBalanceDetail } from './ClassBalanceDetail';
-export { default as TimelinessDetail } from './TimelinessDetail';
+export { default as CurrentnessDetail } from './CurrentnessDetail';

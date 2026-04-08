@@ -215,7 +215,7 @@ La severidad se calcula dinámicamente según la distancia entre el valor real y
 | `≥ 95%` | `high` |
 | `≥ 90%` | `medium` |
 
-**Para timeliness** (basado en ratio antigüedad/umbral):
+**Para currentness** (basado en ratio antigüedad/umbral):
 
 | Ratio = días / umbral | Severidad |
 |------------------------|-----------|
@@ -315,7 +315,7 @@ Cada métrica evalúa un aspecto diferente de la calidad del dataset y genera is
 | **Syntactic Accuracy** | Formato correcto según tipo (email, fecha, UUID…) | Columna con valores que no cumplen el patrón |
 | **Logical Consistency** | Reglas de negocio IF-THEN entre columnas | Regla de negocio violada (con filas de ejemplo) |
 | **Class Balance** | Distribución equilibrada de categorías (opt-in) | Clase dominante, clase minoritaria |
-| **Timeliness** | Frescura y antigüedad de fechas | Datos obsoletos, baja tasa de parseo de fechas |
+| **currentness** | Frescura y antigüedad de fechas | Datos obsoletos, baja tasa de parseo de fechas |
 
 > **Outliers** no es una métrica de calidad según ISO/IEC 5259. La clase `OutliersMetric` existe en el código pero solo se usa desde el flujo de **Data Profiling** y no contribuye al Quality Score.
 
@@ -333,7 +333,7 @@ Cada métrica evalúa un aspecto diferente de la calidad del dataset y genera is
 ├───────────────┤                                         │
 │ Class Balance │──► issues (si opt-in)                   │
 ├───────────────┤                                         │
-│ Timeliness    │──► issues                               │
+│ currentness    │──► issues                               │
 └───────────────┘                                         │
                                                           ▼
                         raw_penalty / √(cols/10) = issue_penalty

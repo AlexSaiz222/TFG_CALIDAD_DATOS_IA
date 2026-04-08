@@ -34,7 +34,7 @@ base_score = sum(metric_scores) / sum(metric_weights)
 | syntactic_accuracy   | 0.867     | 1.0    | 0.867          |
 | logical_consistency  | 0.909     | 1.0    | 0.909          |
 | class_balance        | 0.890     | 0.8    | 0.712          |
-| timeliness           | 0.500     | 1.0    | 0.500          |
+| currentness           | 0.500     | 1.0    | 0.500          |
 | **Totales**          |           | **7.8**| **6.359**      |
 
 ```
@@ -130,7 +130,7 @@ Con 7 métricas evaluadas, el peor caso teórico sería:
 | syntactic_accuracy  | email 76% conformidad            | `high`    | −8%         |
 | logical_consistency | salario_maximo_razonable 88%     | `medium`  | −4%         |
 | class_balance       | nivel_experiencia minoritaria    | `low`     | −1%         |
-| timeliness          | fecha_actualizacion obsoleta     | `high`    | −8%         |
+| currentness          | fecha_actualizacion obsoleta     | `high`    | −8%         |
 
 ```
 issue_penalty = 0.08 + 0.15 + 0.08 + 0.08 + 0.04 + 0.01 + 0.08 = 0.52

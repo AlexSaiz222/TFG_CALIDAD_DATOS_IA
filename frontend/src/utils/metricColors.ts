@@ -40,10 +40,10 @@ export const METRIC_META: Record<string, MetricMeta> = {
     label: 'Detección de outliers',
     description: 'Detecta valores que se alejan anormalmente del resto en columnas numéricas. Los outliers sin gestionar pueden degradar el rendimiento de modelos sensibles a la escala y distorsionar métricas estadísticas.',
   },
-  timeliness: {
+  currentness: {
     icon: Clock, color: '#7C3AED', bg: '#EDE9FE', category: 'Temporal',
-    label: 'Actualidad de los datos',
-    description: 'Evalúa si las columnas de fecha contienen registros desactualizados. Datos obsoletos pueden hacer que un modelo aprenda patrones que ya no reflejan la realidad operativa actual.',
+    label: 'Actualidad de los datos (Currentness)',
+    description: 'Evalúa si las columnas de fecha contienen registros desactualizados (ISO 5259-2, Cur-ML-1). Datos obsoletos pueden hacer que un modelo aprenda patrones que ya no reflejan la realidad operativa actual.',
   },
   logical_consistency: {
     icon: GitBranch, color: '#0D7377', bg: '#E0F2F1', category: 'Consistencia',

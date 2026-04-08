@@ -120,7 +120,7 @@ La norma ISO/IEC 25012, parte de la familia SQuaRE (Systems and Software Quality
 - Completitud (completeness)
 - Consistencia (consistency)
 - Credibilidad (credibility)
-- Actualidad (currentness / timeliness)
+- Actualidad (currentness / currentness)
 
 **Calidad dependiente del sistema:**
 - Disponibilidad (availability)
@@ -134,7 +134,7 @@ La norma ISO/IEC 25012, parte de la familia SQuaRE (Systems and Software Quality
 | Completitud | `completeness` | Ratio de valores no nulos |
 | Exactitud | `syntactic_accuracy` | Conformidad con patrones de formato |
 | Consistencia | `logical_consistency` | Reglas IF-THEN entre columnas |
-| Actualidad | `timeliness` | Antigüedad del dato más reciente |
+| Actualidad | `currentness` | Antigüedad del dato más reciente |
 | Credibilidad | `uniqueness` | Detección de duplicados |
 | — | `outliers` | Detección de valores atípicos |
 | — | `class_balance` | Equilibrio de clases (específica para ML) |
@@ -219,7 +219,7 @@ DataQual se diferencia de las alternativas existentes en varios aspectos clave:
 
 1. **Solución full-stack con UI integrada.** A diferencia de Great Expectations o Deequ, DataQual proporciona una interfaz web completa que permite a usuarios no técnicos configurar métricas, lanzar evaluaciones y consultar resultados sin escribir código. La API RESTful coexiste para integraciones programáticas.
 
-2. **Diseño centrado en IA/ML.** DataQual incluye métricas específicas para el contexto de inteligencia artificial que no están presentes en herramientas generalistas: el equilibrio de clases (basado en entropía de Shannon) detecta desequilibrios que sesgan los modelos, y la actualidad (timeliness) alerta cuando los datos de entrenamiento han quedado obsoletos.
+2. **Diseño centrado en IA/ML.** DataQual incluye métricas específicas para el contexto de inteligencia artificial que no están presentes en herramientas generalistas: el equilibrio de clases (basado en entropía de Shannon) detecta desequilibrios que sesgan los modelos, y la actualidad (currentness) alerta cuando los datos de entrenamiento han quedado obsoletos.
 
 3. **Sistema de fingerprinting para trazabilidad.** Cada issue detectado recibe un fingerprint SHA-256 determinista que permite rastrearlo entre ejecuciones. Esta capacidad —inspirada en cómo SonarQube rastrea issues de código— permite visualizar la evolución de la calidad: qué problemas son nuevos, cuáles persisten y cuáles se han corregido.
 
@@ -719,7 +719,7 @@ METRIC_REGISTRY = {
     "syntactic_accuracy":  SyntacticAccuracyMetric,
     "logical_consistency": LogicalConsistencyMetric,
     "class_balance":       ClassBalanceMetric,
-    "timeliness":          TimelinessMetric,
+    "currentness":          currentnessMetric,
 }
 ```
 
@@ -957,10 +957,10 @@ Si `auto_detect=True`, se analizan automáticamente las columnas que cumplan:
 
 **Parámetros:** `columns` (list), `auto_detect` (bool, default true), `max_cardinality` (int, default 50), `imbalance_threshold_high` (float, default 0.90), `imbalance_threshold_low` (float, default 0.05), `weight`.
 
-## 5.9 Métrica: Actualidad (Timeliness)
+## 5.9 Métrica: Actualidad (currentness)
 
-**Archivo:** `backend/services/metrics/timeliness.py`
-**ID:** `timeliness`
+**Archivo:** `backend/services/metrics/currentness.py`
+**ID:** `currentness`
 
 ### Fundamento teórico
 
@@ -1042,7 +1042,7 @@ El fingerprint es **determinista**: el mismo problema en el mismo dataset con la
 | Exactitud sintáctica | `generate_syntactic_accuracy_fingerprint()` | columna + tipo esperado + patrón |
 | Consistencia lógica | `generate_logical_consistency_fingerprint()` | expresión + nombre de regla |
 | Balance de clases | `generate_class_balance_fingerprint()` | columna + tipo de desequilibrio |
-| Actualidad | `generate_timeliness_fingerprint()` | columna + umbral de staleness |
+| Actualidad | `generate_currentness_fingerprint()` | columna + umbral de staleness |
 
 ## 5.12 Comparación con baseline
 
@@ -1224,7 +1224,7 @@ El resultado del Quality Gate se muestra como un badge visual prominente:
 
 - **Quality Score Gauge:** medidor circular de 0 a 100.
 - **Pestañas por métrica:** componentes especializados para cada tipo de métrica:
-  - CompletenessDetail, UniquenessDetail, OutlierDetail, SyntacticAccuracyDetail, LogicalConsistencyDetail, ClassBalanceDetail, TimelinessDetail.
+  - CompletenessDetail, UniquenessDetail, OutlierDetail, SyntacticAccuracyDetail, LogicalConsistencyDetail, ClassBalanceDetail, currentnessDetail.
 - **Tabla de métricas por columna:** completitud, unicidad, estadísticas descriptivas.
 - **Lista de issues:** con severidad, descripción, columnas y filas afectadas.
 
@@ -1680,7 +1680,7 @@ DataQual es una plataforma funcional end-to-end que cumple con los 5 objetivos e
 
 6. **Parseo robusto de CSV.** La matriz de fallback (codificaciones × separadores × motores) maneja archivos CSV "del mundo real" que fallan con parsers estándar.
 
-7. **Métricas específicas para ML.** Class balance (entropía de Shannon) y timeliness no están presentes en la mayoría de herramientas de calidad de datos generalistas.
+7. **Métricas específicas para ML.** Class balance (entropía de Shannon) y currentness no están presentes en la mayoría de herramientas de calidad de datos generalistas.
 
 8. **Procesamiento asíncrono con resiliencia.** Celery con reintentos, watchdog para tareas atascadas y fallback síncrono garantizan que las evaluaciones siempre se completen.
 
@@ -1714,7 +1714,7 @@ DataQual es una plataforma funcional end-to-end que cumple con los 5 objetivos e
 | **Quality Gates** | Sí (3 criterios) | No nativo | No | Sí |
 | **Issue tracking** | Fingerprints SHA-256 | No | No | Parcial |
 | **Diff entre runs** | Sí (new/fixed/recurrent) | No | Parcial | Sí |
-| **Métricas ML** | Sí (class balance, timeliness) | No | Parcial | No |
+| **Métricas ML** | Sí (class balance, currentness) | No | Parcial | No |
 | **PII masking** | Sí (nativo) | No | No | No |
 | **Versionado datasets** | Sí (parent-child) | No | No | No |
 | **Async** | Sí (Celery) | No | Sí (Spark) | Sí |

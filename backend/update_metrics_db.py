@@ -53,8 +53,8 @@ with app.app_context():
             'parameters': {"method": "iqr", "factor": 1.5, "columns": []}
         },
         {
-            'name': 'timeliness',
-            'description': 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.',
+            'name': 'currentness',
+            'description': 'Evalúa la frescura y antigüedad de fechas (Currentness, ISO 5259-2 Cur-ML-1). Detecta datos obsoletos o fuera del rango temporal esperado.',
             'category': 'data_quality',
             'parameters': {"columns": [], "staleness_threshold_days": 30, "auto_detect": True}
         },

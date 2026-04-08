@@ -1,7 +1,15 @@
-# Timeliness — Métrica de Actualidad
+# Currentness — Métrica de Actualidad
 
-**Archivo fuente:** `backend/services/metrics/timeliness.py`
-**ID en el sistema:** `timeliness`
+**Archivo fuente:** `backend/services/metrics/currentness.py`
+**ID en el sistema:** `currentness`
+**Código ISO/IEC 5259-2:2024:** `Cur-ML-1` (Feature currentness)
+
+> **Nota terminológica (ISO/IEC 5259-2:2024 §6.2.5 y §6.5.9):**
+> La norma distingue dos conceptos temporales con nombres distintos:
+> - **Currentness (ΔT₂)** — tiempo transcurrido desde que se registró el dato hasta hoy (*staleness/frescura*). **Esto es lo que mide esta métrica.**
+> - **currentness (ΔT₁)** — latencia entre el evento real en el mundo y su ingesta en el sistema. Requiere dos timestamps externos y no es calculable desde un dataset estático.
+>
+> La métrica se llamaba `currentness` en versiones anteriores del sistema. Se renombró a `currentness` para ser fiel al estándar ISO y dejar el nombre `currentness` libre si en el futuro se implementa la medida ΔT₁.
 
 ---
 
@@ -140,7 +148,7 @@ El método `_format_age()` convierte los días en texto:
       "freshness_score": 0.0
     }
   ],
-  "issue_type": "timeliness",
+  "issue_type": "currentness",
   "fingerprint": "<hash>"
 }
 ```
@@ -158,7 +166,7 @@ Indica que muchos valores no pudieron interpretarse como fechas válidas.
   "affected_columns": [
     { "column": "fecha_registro", "parse_success_rate": 0.65 }
   ],
-  "issue_type": "timeliness",
+  "issue_type": "currentness",
   "fingerprint": "<hash>"
 }
 ```
@@ -196,8 +204,8 @@ Ejemplos con `staleness_threshold_days=30`:
 
 | Tipo de issue | Función |
 |---------------|---------|
-| Datos obsoletos | `generate_timeliness_fingerprint(column_name=col, staleness_threshold_days=days)` |
-| Baja tasa de parseo | `generate_issue_fingerprint(type="timeliness", column, rule_key="parse_quality_check")` |
+| Datos obsoletos | `generate_currentness_fingerprint(column_name=col, staleness_threshold_days=days)` |
+| Baja tasa de parseo | `generate_issue_fingerprint(type="currentness", column, rule_key="parse_quality_check")` |
 
 El fingerprint de datos obsoletos incluye el umbral de staleness, por lo que cambiar el umbral genera un fingerprint nuevo.
 

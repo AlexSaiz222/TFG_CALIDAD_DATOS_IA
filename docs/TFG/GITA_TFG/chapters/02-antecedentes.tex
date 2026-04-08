@@ -150,7 +150,7 @@ características de \ac{ISO}/IEC 25012 y las métricas implementadas en
     Completitud     & \texttt{completeness}        & Ratio de valores no nulos por columna \\
     Exactitud       & \texttt{syntactic\_accuracy}  & Conformidad con patrones de formato \\
     Consistencia    & \texttt{logical\_consistency} & Reglas IF-THEN entre columnas \\
-    Actualidad      & \texttt{timeliness}           & Antigüedad del dato más reciente \\
+    Actualidad      & \texttt{currentness}           & Antigüedad del dato más reciente \\
     Credibilidad    & \texttt{uniqueness}           & Detección de registros duplicados \\
     \midrule
     \multicolumn{3}{l}{\emph{Métricas adicionales específicas para IA/ML}} \\
@@ -377,7 +377,7 @@ clave que diferencian a \dataqual de las herramientas existentes:
     específicas para proyectos de aprendizaje automático que no se encuentran
     en las herramientas generalistas: equilibrio de clases medido mediante
     entropía de Shannon y evaluación de la actualidad temporal de los datos
-    (\emph{timeliness}).
+    (\emph{currentness}).
 
   \item \textbf{Sistema de fingerprinting SHA-256.} Inspirado en
     SonarQube~\cite{sonarqube}, \dataqual genera un hash \ac{SHA}-256 para cada

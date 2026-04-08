@@ -32,7 +32,7 @@ UPDATE metrics SET
     description = 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.',
     category = 'data_quality',
     parameters = '{"date_columns": [], "max_age_days": 365, "expected_range": null, "auto_detect": true}'::jsonb
-WHERE name = 'timeliness';
+WHERE name = 'currentness';
 
 UPDATE metrics SET 
     description = 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.',
