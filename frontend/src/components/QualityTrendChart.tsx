@@ -66,9 +66,22 @@ interface QualityTrendChartProps {
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────
+const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  return new Date(s).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+  const d = new Date(s);
+  const hh = d.getHours().toString().padStart(2, '0');
+  const mm = d.getMinutes().toString().padStart(2, '0');
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${hh}:${mm}`;
+};
+
+const fmtDateFull = (s?: string) => {
+  if (!s) return '';
+  const d = new Date(s);
+  const hh = d.getHours().toString().padStart(2, '0');
+  const mm = d.getMinutes().toString().padStart(2, '0');
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
 };
 
 // ─── componente ────────────────────────────────────────────────────────────
@@ -130,9 +143,9 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
       sortedRuns.map(r => {
         const d = fmtDate(r.completed_at || r.created_at);
         const v = getVersion(r.dataset_id);
-        return selectedDatasetId ? d : `${d} v${v}`;
+        return selectedDatasetId ? d : `${d} · v${v}`;
       }),
-    [sortedRuns, selectedDatasetId],
+    [sortedRuns, selectedDatasetId, datasets],
   );
 
   // ── datos score ───────────────────────────────────────────────────────
@@ -239,17 +252,23 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
           bodyFont: { size: 11 },
           filter: (item: any) => !item.dataset.label?.startsWith('_'),
           callbacks: {
-            title: (items: any[]) => items[0]?.label ?? '',
+            title: (items: any[]) => {
+              const run = sortedRuns[items[0]?.dataIndex];
+              return fmtDateFull(run?.completed_at || run?.created_at);
+            },
             label: (ctx: any) => {
-              if (ctx.dataset.label?.startsWith('Umbral')) {
-                return `Umbral: ${ctx.parsed.y}%`;
-              }
+              if (ctx.dataset.label?.startsWith('Umbral')) return `Umbral: ${ctx.parsed.y}%`;
+              if (ctx.dataset.label?.startsWith('_')) return '';
               const run = sortedRuns[ctx.dataIndex];
+              const ds = datasets.find(d => d.id === run?.dataset_id);
               const gate = ctx.parsed.y >= qualityGateThreshold ? '✓ Passed' : '✗ Failed';
-              return [
-                `Score: ${ctx.parsed.y.toFixed(1)}%  —  ${gate}`,
-                `Issues: ${run?.total_issues_count ?? 0}  (↑${run?.new_issues_count ?? 0} nuevos  ↓${run?.fixed_issues_count ?? 0} corregidos)`,
-              ];
+              const lines: string[] = [];
+              if (ds && !selectedDatasetId) {
+                lines.push(`Dataset: ${ds.name}${ds.version != null ? ` · v${ds.version}` : ''}`);
+              }
+              lines.push(`Score: ${ctx.parsed.y.toFixed(1)}%  —  ${gate}`);
+              lines.push(`Issues: ${run?.total_issues_count ?? 0}  (↑${run?.new_issues_count ?? 0} nuevos  ↓${run?.fixed_issues_count ?? 0} corregidos)`);
+              return lines;
             },
           },
         },
@@ -274,7 +293,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         },
       },
     }),
-    [sortedRuns, qualityGateThreshold],
+    [sortedRuns, qualityGateThreshold, selectedDatasetId, datasets],
   );
 
   // ── datos issues (barras apiladas) ──────────────────────────────────
@@ -336,18 +355,28 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
           titleFont: { size: 12, weight: 'bold' as const },
           bodyFont: { size: 11 },
           callbacks: {
+            title: (items: any[]) => {
+              const run = sortedRuns[items[0]?.dataIndex];
+              return fmtDateFull(run?.completed_at || run?.created_at);
+            },
             footer: (items: any[]) => {
-              const total = sortedRuns[items[0]?.dataIndex]?.total_issues_count ?? 0;
-              return `Total: ${total} issues`;
+              const run = sortedRuns[items[0]?.dataIndex];
+              const ds = datasets.find(d => d.id === run?.dataset_id);
+              const lines: string[] = [];
+              if (ds && !selectedDatasetId) {
+                lines.push(`Dataset: ${ds.name}${ds.version != null ? ` · v${ds.version}` : ''}`);
+              }
+              lines.push(`Total: ${run?.total_issues_count ?? 0} issues`);
+              return lines;
             },
           },
         },
       },
       scales: {
         y: {
-          stacked: false,
+          stacked: true,
           border: { color: '#F0F0F0' },
-          ticks: { color: '#AAAAAA', font: { size: 11 }, stepSize: 1 },
+          ticks: { color: '#AAAAAA', font: { size: 11 }, precision: 0 },
           grid: { color: 'rgba(0,0,0,0.04)' },
         },
         x: {
@@ -358,7 +387,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         },
       },
     }),
-    [sortedRuns],
+    [sortedRuns, selectedDatasetId, datasets],
   );
 
   const zonesPlugin = useMemo(

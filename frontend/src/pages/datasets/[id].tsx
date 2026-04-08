@@ -326,6 +326,28 @@ const DatasetDetail = () => {
                   setRunningEvaluation(false);
                 }
 
+                // Actualizar el AnalysisRun correspondiente en la tabla
+                setAnalysisRuns((prevRuns: AnalysisRun[]) =>
+                  prevRuns.map((r: AnalysisRun) => {
+                    if (r.id === statusData.analysis_run_id || r.id === evalId) {
+                      return {
+                        ...r,
+                        status: (statusData.status?.toUpperCase() ?? r.status) as AnalysisRun['status'],
+                        progress: statusData.progress ?? r.progress,
+                        current_step: statusData.current_step ?? r.current_step,
+                        quality_score: statusData.quality_score ?? r.quality_score,
+                        quality_gate_status: statusData.quality_gate_status ?? r.quality_gate_status,
+                        total_issues_count: statusData.total_issues_count ?? r.total_issues_count,
+                        new_issues_count: statusData.new_issues_count ?? r.new_issues_count,
+                        fixed_issues_count: statusData.fixed_issues_count ?? r.fixed_issues_count,
+                        completed_at: statusData.completed_at ?? r.completed_at,
+                        started_at: statusData.started_at ?? r.started_at,
+                      };
+                    }
+                    return r;
+                  })
+                );
+
                 if (wasCompleted) {
                   // Cargar issues cuando se complete
                   evaluationsAPI.getIssues(evalId)
@@ -361,6 +383,65 @@ const DatasetDetail = () => {
 
     return () => clearInterval(pollInterval);
   }, [evaluations.filter((e: Evaluation) => e.status === 'pending' || e.status === 'processing').length]);
+
+  // Polling dedicado para AnalysisRuns en PENDING/RUNNING
+  const analysisRunsRef = useRef(analysisRuns);
+  analysisRunsRef.current = analysisRuns;
+
+  useEffect(() => {
+    const hasPending = analysisRuns.some(
+      (r: AnalysisRun) => r.status === 'PENDING' || r.status === 'RUNNING'
+    );
+    if (!hasPending) return;
+
+    const pollInterval = setInterval(async () => {
+      const current = analysisRunsRef.current;
+      const pendingRuns = current.filter(
+        (r: AnalysisRun) => r.status === 'PENDING' || r.status === 'RUNNING'
+      );
+      if (pendingRuns.length === 0) {
+        clearInterval(pollInterval);
+        return;
+      }
+
+      for (const run of pendingRuns) {
+        try {
+          const res = await analysisAPI.getAnalysisRunStatus(run.id);
+          const d = res.data?.data || res.data;
+          const newStatus: string = (d.status ?? run.status).toUpperCase();
+          const wasCompleted = run.status !== 'COMPLETED' && newStatus === 'COMPLETED';
+          const wasFailed = run.status !== 'FAILED' && newStatus === 'FAILED';
+
+          if (wasCompleted || wasFailed) {
+            setRunningEvaluation(false);
+          }
+
+          setAnalysisRuns((prev: AnalysisRun[]) =>
+            prev.map((r: AnalysisRun) => {
+              if (r.id !== run.id) return r;
+              return {
+                ...r,
+                status: newStatus as AnalysisRun['status'],
+                progress: d.progress ?? r.progress,
+                current_step: d.current_step ?? r.current_step,
+                quality_score: d.quality_score ?? r.quality_score,
+                quality_gate_status: d.quality_gate_status ?? r.quality_gate_status,
+                total_issues_count: d.total_issues_count ?? r.total_issues_count,
+                new_issues_count: d.new_issues_count ?? r.new_issues_count,
+                fixed_issues_count: d.fixed_issues_count ?? r.fixed_issues_count,
+                completed_at: d.completed_at ?? r.completed_at,
+                started_at: d.started_at ?? r.started_at,
+              };
+            })
+          );
+        } catch (err) {
+          console.warn(`Error polling analysis run ${run.id}:`, err);
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [analysisRuns.filter((r: AnalysisRun) => r.status === 'PENDING' || r.status === 'RUNNING').length]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -419,19 +500,50 @@ const DatasetDetail = () => {
     setEvalError(null);
 
     try {
-      const response = await evaluationsAPI.createEvaluation(dataset.id, projectMetricsConfig);
+      // Preparar métricas con el mismo cleaning que el endpoint legacy
+      const metricsConfig: any = projectMetricsConfig;
+      const rawMetrics: any[] = Array.isArray(metricsConfig?.metrics)
+        ? metricsConfig.metrics
+        : Array.isArray(metricsConfig)
+        ? metricsConfig
+        : [];
+      const cleanedMetrics = rawMetrics.map((metric: any) => {
+        const cleanedParams: any = {};
+        Object.entries(metric.parameters || {}).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) cleanedParams[key] = value;
+        });
+        return { id: metric.name || metric.id, name: metric.name, parameters: cleanedParams };
+      });
 
-      // Extraer la evaluación de la estructura de respuesta
-      // La respuesta tiene formato: { success: true, data: { evaluation: {...} } }
-      const newEvaluation = response.data?.data?.evaluation || response.data;
+      // Usar el endpoint Sonar-Lite que devuelve analysis_run_id directamente
+      const response = await analysisAPI.startAnalysis(
+        dataset.project_id,
+        dataset.id,
+        cleanedMetrics,
+        metricsConfig?.options || {}
+      );
 
-      console.log('Evaluation response:', response.data);
-      console.log('Extracted evaluation:', newEvaluation);
+      const newRunId = response.data?.data?.analysis_run_id;
+      console.log('Analysis run started:', response.data);
 
-      // Add the new evaluation to the list - el useEffect de polling se encargará de actualizar el estado
-      setEvaluations((prev: Evaluation[]) => [newEvaluation, ...prev]);
-
-      // No necesitamos polling aquí - el useEffect de polling automático se encarga de todo
+      // Añadir AnalysisRun optimista para que aparezca inmediatamente en la tabla
+      if (newRunId) {
+        const optimisticRun: AnalysisRun = {
+          id: newRunId,
+          project_id: dataset.project_id,
+          dataset_id: dataset.id,
+          status: 'PENDING',
+          progress: 0,
+          critical_issues_count: 0,
+          total_issues_count: 0,
+          new_issues_count: 0,
+          fixed_issues_count: 0,
+          recurrent_issues_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setAnalysisRuns((prev: AnalysisRun[]) => [optimisticRun, ...prev]);
+      }
     } catch (error: any) {
       console.error('Error running evaluation:', error);
       setEvalError(error.response?.data?.message || 'Error al lanzar la evaluación. Por favor, inténtalo de nuevo.');
@@ -755,7 +867,7 @@ const DatasetDetail = () => {
         {/* Evaluations Tab — shows AnalysisRuns for this dataset */}
         <TabPanel value={tabValue} index={2}>
           {analysisRuns.length > 0 ? (
-            <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
+            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 420px)', minHeight: 200, overflow: 'auto' }}>
               <Table aria-label="analysis runs table">
                 <TableHead>
                   <TableRow>
@@ -770,37 +882,66 @@ const DatasetDetail = () => {
                 </TableHead>
                 <TableBody>
                   {analysisRuns.map((run) => {
+                    const isPending = run.status === 'PENDING';
+                    const isRunning = run.status === 'RUNNING';
+                    const isActive = isPending || isRunning;
                     const dur = (() => {
                       if (run.started_at && run.completed_at) {
                         const s = Math.floor((new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()) / 1000);
                         return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
                       }
-                      return '\u2014';
+                      if (isRunning) return 'En curso…';
+                      return '—';
                     })();
                     const sc = run.quality_score;
                     const scColor = sc == null ? '#888' : sc >= 80 ? '#00B37E' : sc >= 60 ? '#FFB800' : '#E5484D';
                     return (
-                      <TableRow key={run.id} hover>
+                      <TableRow key={run.id} hover sx={isActive ? { backgroundColor: 'rgba(0,179,126,0.04)' } : {}}>
                         <TableCell>{run.id}</TableCell>
                         <TableCell>{new Date(run.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
                         <TableCell>{dur}</TableCell>
                         <TableCell>
-                          <QualityGateBadge status={run.quality_gate_status} size="small" showIssuesCounts={false} />
+                          {isActive ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CircularProgress size={14} thickness={5} sx={{ color: isPending ? '#FFB800' : '#00B37E' }} />
+                              <Typography variant="body2" sx={{ color: isPending ? '#FFB800' : '#00B37E', fontWeight: 600, fontSize: 12 }}>
+                                {isPending ? 'En cola' : `Ejecutando ${run.progress ?? 0}%`}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <QualityGateBadge status={run.quality_gate_status} size="small" showIssuesCounts={false} />
+                          )}
                         </TableCell>
                         <TableCell>
-                          {sc != null
-                            ? <Typography variant="body2" sx={{ fontWeight: 600, color: scColor }}>{sc.toFixed(1)}%</Typography>
-                            : <Typography variant="body2" sx={{ color: '#888' }}>\u2014</Typography>}
+                          {isActive ? (
+                            <Box>
+                              <Typography variant="body2" sx={{ color: '#888', fontSize: 11, fontStyle: 'italic' }}>
+                                {run.current_step ?? (isPending ? 'Esperando worker…' : 'Procesando…')}
+                              </Typography>
+                              {isRunning && (
+                                <LinearProgress
+                                  variant={run.progress ? 'determinate' : 'indeterminate'}
+                                  value={run.progress ?? 0}
+                                  sx={{ mt: 0.5, height: 3, borderRadius: 2, backgroundColor: 'rgba(0,179,126,0.15)', '& .MuiLinearProgress-bar': { backgroundColor: '#00B37E' } }}
+                                />
+                              )}
+                            </Box>
+                          ) : sc != null ? (
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: scColor }}>{sc.toFixed(1)}%</Typography>
+                          ) : (
+                            <Typography variant="body2" sx={{ color: '#888' }}>{'—'}</Typography>
+                          )}
                         </TableCell>
                         <TableCell>{run.total_issues_count ?? 0}</TableCell>
                         <TableCell>
                           <Button
                             size="small"
                             variant="contained"
+                            disabled={isActive}
                             onClick={() => router.push(`/evaluations/${run.id}`)}
-                            sx={{ backgroundColor: '#00B37E', color: '#FFFFFF', '&:hover': { backgroundColor: '#00A070' } }}
+                            sx={{ backgroundColor: '#00B37E', color: '#FFFFFF', '&:hover': { backgroundColor: '#00A070' }, '&.Mui-disabled': { backgroundColor: '#CCCCCC', color: '#888' } }}
                           >
-                            Ver detalles
+                            {isActive ? 'Procesando…' : 'Ver detalles'}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -821,7 +962,7 @@ const DatasetDetail = () => {
         {/* Issues Tab */}
         <TabPanel value={tabValue} index={3}>
           {issues.length > 0 ? (
-            <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
+            <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 420px)', minHeight: 200, overflow: 'auto' }}>
               <Table aria-label="issues table">
                 <TableHead>
                   <TableRow>
