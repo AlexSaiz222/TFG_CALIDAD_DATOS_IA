@@ -3,21 +3,16 @@ import { useRouter } from 'next/router';
 import {
   Box,
   Typography,
-  Chip,
   CircularProgress,
   Alert,
   Button,
-  IconButton,
   Tooltip,
 } from '@mui/material';
 import {
-  ArrowBack as ArrowBackIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
   ArrowForward as ArrowForwardIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI } from '../../services/api';
@@ -224,44 +219,85 @@ const DeltaColumn: React.FC<{
   issuesDiff: number;
   rowsDiff: number;
   colsDiff: number;
-}> = ({ scoreDiff, issuesDiff, rowsDiff, colsDiff }) => (
-  <Box sx={{
-    width: 120, flexShrink: 0,
-    display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center',
-    px: 1.5, gap: 2,
-  }}>
-    {/* Arrow */}
-    <Box sx={{
-      width: 36, height: 36,
-      borderRadius: '50%',
-      backgroundColor: '#F5F5F5',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <ArrowForwardIcon sx={{ fontSize: 18, color: '#BBBBBB' }} />
-    </Box>
+}> = ({ scoreDiff, issuesDiff, rowsDiff, colsDiff }) => {
+  const deltaItems = [
+    {
+      label: 'Calidad',
+      sublabel: 'Score de calidad',
+      value: fmtDiff(scoreDiff, '%'),
+      color: diffColor(scoreDiff),
+      tooltip: scoreDiff === null ? 'Sin datos' : scoreDiff > 0
+        ? `Mejoró ${scoreDiff}%`
+        : scoreDiff < 0
+        ? `Empeoró ${Math.abs(scoreDiff)}%`
+        : 'Sin cambios',
+    },
+    {
+      label: 'Issues',
+      sublabel: 'Problemas detectados',
+      value: issuesDiff === 0 ? '0' : issuesDiff > 0 ? `+${issuesDiff} más` : `${Math.abs(issuesDiff)} menos`,
+      color: diffColor(issuesDiff, true),
+      tooltip: issuesDiff === 0
+        ? 'Sin cambios en issues'
+        : issuesDiff > 0
+        ? `Aparecieron ${issuesDiff} issues nuevos`
+        : `Se resolvieron ${Math.abs(issuesDiff)} issues`,
+    },
+    {
+      label: 'Filas',
+      sublabel: 'Registros',
+      value: rowsDiff === 0 ? '0' : rowsDiff > 0 ? `+${rowsDiff}` : `${rowsDiff}`,
+      color: '#AAAAAA',
+      tooltip: rowsDiff === 0 ? 'Mismas filas' : rowsDiff > 0 ? `${rowsDiff} filas añadidas` : `${Math.abs(rowsDiff)} filas eliminadas`,
+    },
+    {
+      label: 'Columnas',
+      sublabel: 'Campos',
+      value: colsDiff === 0 ? '0' : colsDiff > 0 ? `+${colsDiff}` : `${colsDiff}`,
+      color: '#AAAAAA',
+      tooltip: colsDiff === 0 ? 'Mismas columnas' : colsDiff > 0 ? `${colsDiff} columnas añadidas` : `${Math.abs(colsDiff)} columnas eliminadas`,
+    },
+  ];
 
-    {/* Delta pills */}
-    {[
-      { label: 'Score',   value: fmtDiff(scoreDiff, '%'),          color: diffColor(scoreDiff) },
-      { label: 'Issues',  value: fmtDiff(issuesDiff, '', true),    color: diffColor(issuesDiff, true) },
-      { label: 'Filas',   value: fmtDiff(rowsDiff),                color: '#AAAAAA' },
-      { label: 'Cols',    value: fmtDiff(colsDiff),                color: '#AAAAAA' },
-    ].map(({ label, value, color }) => (
-      <Box key={label} sx={{ textAlign: 'center' }}>
-        <Typography sx={{ fontSize: '0.6rem', color: '#BBBBBB', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.2 }}>
-          {label}
-        </Typography>
-        <Typography sx={{
-          fontSize: '0.9rem', fontWeight: 700, color,
-          fontVariantNumeric: 'tabular-nums',
-        }}>
-          {value}
-        </Typography>
+  return (
+    <Box sx={{
+      width: 130, flexShrink: 0,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      px: 1.5, gap: 1.75,
+    }}>
+      {/* Arrow */}
+      <Box sx={{
+        width: 36, height: 36,
+        borderRadius: '50%',
+        backgroundColor: '#F5F5F5',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <ArrowForwardIcon sx={{ fontSize: 18, color: '#BBBBBB' }} />
       </Box>
-    ))}
-  </Box>
-);
+
+      {/* Delta pills */}
+      {deltaItems.map(({ label, sublabel, value, color, tooltip }) => (
+        <Tooltip key={label} title={tooltip} placement="right" arrow>
+          <Box sx={{ textAlign: 'center', cursor: 'default' }}>
+            <Typography sx={{ fontSize: '0.58rem', color: '#BBBBBB', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.1 }}>
+              {label}
+            </Typography>
+            <Typography sx={{
+              fontSize: '0.85rem', fontWeight: 700, color,
+              fontVariantNumeric: 'tabular-nums', lineHeight: 1.1,
+            }}>
+              {value}
+            </Typography>
+            <Typography sx={{ fontSize: '0.56rem', color: '#CCCCCC', mt: 0.1 }}>
+              {sublabel}
+            </Typography>
+          </Box>
+        </Tooltip>
+      ))}
+    </Box>
+  );
+};
 
 /** Fila de issue en la lista */
 const IssueRow: React.FC<{ issue: any; resolved?: boolean }> = ({ issue, resolved = false }) => {
@@ -350,36 +386,6 @@ const DatasetCompare = () => {
   return (
     <MainLayout>
       <Box sx={{ p: 3, maxWidth: 1100, mx: 'auto' }}>
-
-        {/* ── Header ── */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-          <IconButton
-            size="small"
-            onClick={() => router.back()}
-            sx={{ color: GRAY, border: '1px solid #EEEEEE', borderRadius: 1.5,
-              '&:hover': { backgroundColor: '#F5F5F5' } }}
-          >
-            <ArrowBackIcon fontSize="small" />
-          </IconButton>
-          <Box>
-            <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}>
-              Comparación de versiones
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.3 }}>
-              <Typography sx={{ fontSize: '0.78rem', color: GRAY }}>
-                {dataset_a.name}
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#CCCCCC' }}>·</Typography>
-              <Typography sx={{ fontSize: '0.78rem', color: GRAY }}>
-                {dataset_a.version_tag || `v${dataset_a.version}`}
-              </Typography>
-              <ArrowForwardIcon sx={{ fontSize: 13, color: '#BBBBBB' }} />
-              <Typography sx={{ fontSize: '0.78rem', color: GRAY, fontWeight: 600 }}>
-                {dataset_b.version_tag || `v${dataset_b.version}`}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
 
         {/* ── Version comparison card ── */}
         <Box sx={{
