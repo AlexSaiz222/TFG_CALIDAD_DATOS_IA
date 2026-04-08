@@ -290,11 +290,11 @@ def generate_class_balance_fingerprint(
     )
 
 
-def generate_timeliness_fingerprint(
+def generate_currentness_fingerprint(
     column_name: str,
     staleness_threshold_days: int = 30
 ) -> str:
-    """Genera fingerprint para issues de actualidad/frescura de datos.
+    """Genera fingerprint para issues de actualidad/frescura de datos (Currentness, ISO 5259-2 Cur-ML-1).
 
     Args:
         column_name: Nombre de la columna de fecha afectada
@@ -304,7 +304,7 @@ def generate_timeliness_fingerprint(
         str: Fingerprint de 16 caracteres
     """
     return generate_issue_fingerprint(
-        issue_type="timeliness",
+        issue_type="currentness",
         column_name=column_name,
         rule_key="staleness_check",
         extra_params={"threshold_days": staleness_threshold_days}

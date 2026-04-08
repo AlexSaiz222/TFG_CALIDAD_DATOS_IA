@@ -61,7 +61,7 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
     },
     description: 'auto_detect: detectar columnas categóricas. max_cardinality: máx. valores únicos para considerar categórico. imbalance_threshold_high/low: umbrales de desequilibrio.',
   },
-  timeliness: {
+  currentness: {
     example: {
       auto_detect: true,
       columns: ['fecha_registro', 'fecha_actualizacion'],

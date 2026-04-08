@@ -14,12 +14,11 @@ import {
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
   Error as ErrorIcon,
   AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
 
-interface ColumnTimeliness {
+interface ColumnCurrentness {
   max_date: string | null;
   min_date: string | null;
   age_days: number | null;
@@ -32,17 +31,17 @@ interface ColumnTimeliness {
   staleness_threshold_days: number;
 }
 
-interface TimelinessData {
+interface CurrentnessData {
   overall_freshness_score: number;
   columns_analyzed: number;
   columns_stale: number;
   staleness_threshold_days: number;
   analysis_timestamp: string;
-  columns: Record<string, ColumnTimeliness>;
+  columns: Record<string, ColumnCurrentness>;
 }
 
-interface TimelinessDetailProps {
-  data: TimelinessData;
+interface CurrentnessDetailProps {
+  data: CurrentnessData;
 }
 
 const formatDate = (isoStr: string | null): string => {
@@ -55,7 +54,7 @@ const formatDate = (isoStr: string | null): string => {
   }
 };
 
-const TimelinessDetail: React.FC<TimelinessDetailProps> = ({ data }) => {
+const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
   if (!data || !data.columns || Object.keys(data.columns).length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -260,4 +259,4 @@ const TimelinessDetail: React.FC<TimelinessDetailProps> = ({ data }) => {
   );
 };
 
-export default TimelinessDetail;
+export default CurrentnessDetail;

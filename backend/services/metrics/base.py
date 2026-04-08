@@ -79,7 +79,7 @@ class BaseMetric(ABC):
         Args:
             actual_value: Valor real de la métrica (0.0-1.0 para porcentajes).
             threshold: Umbral configurado.
-            metric_type: 'completeness' | 'outliers' | 'class_balance' | 'timeliness_ratio'.
+            metric_type: 'completeness' | 'outliers' | 'class_balance' | 'currentness_ratio'.
             higher_is_better: True si valores altos son mejores.
 
         Returns:
@@ -106,7 +106,7 @@ class BaseMetric(ABC):
             else:
                 return "low"
 
-        if metric_type == "timeliness_ratio":
+        if metric_type == "currentness_ratio":
             # actual_value = age_days / threshold (mayor es peor)
             if actual_value >= 10:
                 return "critical"

@@ -481,7 +481,7 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
   );
 };
 
-// ---------- TIMELINESS ----------
+// ---------- currentness ----------
 const STALENESS_PRESETS = [
   { label: '7 días', days: 7 },
   { label: '30 días', days: 30 },
@@ -489,7 +489,7 @@ const STALENESS_PRESETS = [
   { label: '6 meses', days: 180 },
   { label: '1 año', days: 365 },
 ];
-const TimelinessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
   const autoDetect = params.auto_detect !== false;
   const staleness = params.staleness_threshold_days ?? 30;
   const columns: string[] = params.columns ?? [];
@@ -514,8 +514,8 @@ const TimelinessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
   return (
     <Box>
       <SectionBanner
-        metricName="timeliness"
-        title="Actualidad de datos"
+        metricName="currentness"
+        title="Actualidad de datos (Currentness)"
         description="Detecta si las columnas de fecha contienen datos desactualizados. Por ejemplo: si la última fecha registrada es más antigua de lo esperado, puede indicar que los datos no se están actualizando correctamente."
         autoDetect
       />
@@ -735,8 +735,8 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
         return <SyntacticAccuracyConfig params={params} onChange={setParams} />;
       case 'class_balance':
         return <ClassBalanceConfig params={params} onChange={setParams} />;
-      case 'timeliness':
-        return <TimelinessConfig params={params} onChange={setParams} />;
+      case 'currentness':
+        return <CurrentnessConfig params={params} onChange={setParams} />;
       case 'logical_consistency':
         return <LogicalConsistencyConfig params={params} onChange={setParams} />;
       default:

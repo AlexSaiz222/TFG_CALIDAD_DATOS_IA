@@ -19,7 +19,7 @@ class MetricSchema(Schema):
         """Valida que el ID de la métrica sea válido"""
         valid_metrics = [
             'completeness', 'uniqueness',
-            'timeliness', 'validity', 'integrity', 'conformity',
+            'currentness', 'validity', 'integrity', 'conformity',
             'outliers', 'correlation',
             'syntactic_accuracy', 'logical_consistency', 'class_balance',
         ]

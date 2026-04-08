@@ -17,7 +17,7 @@ Métricas cubiertas por este dataset:
   - syntactic_accuracy:   email, phone_es, dni_es, postal_code_es, date_iso
   - logical_consistency:  salario > 0, Lead → salario >= 50000, salario <= 300000
   - class_balance:        distribución de 'departamento' y 'nivel_experiencia'
-  - timeliness:           frescura de 'fecha_actualizacion' (threshold = 365 días)
+  - currentness:           frescura de 'fecha_actualizacion' (threshold = 365 días)
 
 Uso:
     python samples/generate_test_datasets.py
@@ -152,7 +152,7 @@ def generar_v1_desastre() -> list[list]:
         nivel     = random.choices(NIVELES_EXPERIENCIA, weights=[80, 15, 5])[0]
         salario   = salario_por_nivel(nivel)
         fecha_con = fecha_aleatoria(2022, 2025)
-        # Fecha de actualización muy antigua (2020-2022) → timeliness crítica
+        # Fecha de actualización muy antigua (2020-2022) → currentness crítica
         fecha_act = fecha_aleatoria(2020, 2022)
 
         # ── completeness: nulos masivos ──
@@ -271,7 +271,7 @@ def generar_v3_limpio() -> list[list]:
         nivel     = random.choices(NIVELES_EXPERIENCIA, weights=[34, 34, 32])[0]
         salario   = salario_por_nivel(nivel)
         fecha_con = fecha_aleatoria(2022, 2025)
-        # Fecha de actualización reciente (últimos 30 días de marzo 2026) → timeliness fresca
+        # Fecha de actualización reciente (últimos 30 días de marzo 2026) → currentness fresca
         fecha_act = fecha_actualizacion(0, 30)
 
         # Dos nulos menores para que el score no sea un 100% perfecto
@@ -331,7 +331,7 @@ def main():
     print()
     print("Metricas cubiertas:")
     print("  completeness, uniqueness, outliers, syntactic_accuracy,")
-    print("  logical_consistency, class_balance, timeliness")
+    print("  logical_consistency, class_balance, currentness")
     print()
     print("Proximos pasos:")
     print("  1. Lee samples/configuracion_metricas_prueba.md para la")
