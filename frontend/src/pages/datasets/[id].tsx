@@ -40,8 +40,7 @@ import {
   FileUpload as FileUploadIcon,
   History as HistoryIcon,
   VisibilityOff as VisibilityOffIcon,
-  ViewList as ViewListIcon,
-  AccountTree as AccountTreeIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
@@ -86,7 +85,7 @@ const DatasetDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [evalError, setEvalError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
-  const [lineageView, setLineageView] = useState<'list' | 'canvas'>('list');
+  const [lineageModalOpen, setLineageModalOpen] = useState(false);
   const [runningEvaluation, setRunningEvaluation] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -96,25 +95,20 @@ const DatasetDetail = () => {
   const [projectName, setProjectName] = useState<string>('');
   const [projectMetricsConfig, setProjectMetricsConfig] = useState<any[]>([]);
   const [sensitiveColumns, setSensitiveColumns] = useState<string[]>([]);
-  const fetchedRef = useRef(false);
-
   useEffect(() => {
+    // Flag para evitar actualizaciones de estado si el efecto se cancela
+    // (navegación a otro dataset o desmontaje del componente)
+    let cancelled = false;
+
     const fetchDatasetData = async () => {
       // Check if datasetId is valid
       if (datasetId === undefined || isNaN(datasetId)) {
         console.error('Invalid dataset ID:', datasetId);
-        setLoading(false);
-        setError('ID de dataset inválido o no especificado.');
+        if (!cancelled) { setLoading(false); setError('ID de dataset inválido o no especificado.'); }
         return;
       }
 
-      // Evitar doble fetch en modo desarrollo (React Strict Mode)
-      if (fetchedRef.current) {
-        return;
-      }
-      fetchedRef.current = true;
-
-      setLoading(true);
+      if (!cancelled) setLoading(true);
       setError(null);
       setPreviewError(null);
 
@@ -274,10 +268,11 @@ const DatasetDetail = () => {
     if (router.isReady && datasetId !== undefined) {
       fetchDatasetData();
     } else if (router.isReady && (datasetId === undefined || isNaN(datasetId))) {
-      // If router is ready but ID is invalid, show error
       setLoading(false);
       setError('ID de dataset inválido o no especificado.');
     }
+
+    return () => { cancelled = true; };
   }, [datasetId, router.isReady]);
 
   // Ref para mantener las evaluaciones actualizadas sin causar re-renders del useEffect
@@ -566,16 +561,48 @@ const DatasetDetail = () => {
 
   const getIssueSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'high':
+      case 'high': case 'critical':
         return <ErrorIcon sx={{ color: '#E5484D' }} />;
-      case 'medium':
+      case 'medium': case 'major':
         return <WarningIcon sx={{ color: '#FFB800' }} />;
-      case 'low':
+      case 'low': case 'minor':
         return <WarningIcon sx={{ color: '#00B37E' }} />;
       default:
         return <WarningIcon sx={{ color: '#999999' }} />;
     }
   };
+
+  const SEVERITY_LABELS: Record<string, string> = {
+    critical: 'Crítico', high: 'Alto', major: 'Mayor',
+    medium: 'Medio', minor: 'Menor', low: 'Bajo', info: 'Info',
+  };
+
+  const ISSUE_TYPE_LABELS: Record<string, string> = {
+    completeness: 'Completitud',
+    low_variability: 'Baja variabilidad',
+    high_variability: 'Alta variabilidad',
+    outlier: 'Valor atípico',
+    outliers: 'Valores atípicos',
+    duplicate: 'Duplicado',
+    duplicates: 'Duplicados',
+    uniqueness: 'Unicidad',
+    consistency: 'Consistencia',
+    validity: 'Validez',
+    accuracy: 'Exactitud',
+    timeliness: 'Actualidad',
+    currentness: 'Actualidad',
+    class_balance: 'Balance de clases',
+    distribution: 'Distribución',
+    correlation: 'Correlación',
+    format: 'Formato',
+    schema: 'Esquema',
+    null_rate: 'Tasa de nulos',
+    range: 'Rango',
+    pattern: 'Patrón',
+  };
+
+  const formatIssueType = (type: string) =>
+    ISSUE_TYPE_LABELS[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
   if (loading) {
     return (
@@ -966,10 +993,10 @@ const DatasetDetail = () => {
               <Table aria-label="issues table">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Severity</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Column</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Severidad</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Columnas</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -981,16 +1008,16 @@ const DatasetDetail = () => {
                           <Typography
                             variant="body2"
                             sx={{
-                              textTransform: 'capitalize',
-                              color: issue.severity === 'high' ? '#E5484D' :
-                                issue.severity === 'medium' ? '#FFB800' : '#00B37E'
+                              color: ['high', 'critical'].includes(issue.severity) ? '#E5484D' :
+                                ['medium', 'major'].includes(issue.severity) ? '#FFB800' : '#00B37E',
+                              fontWeight: 500,
                             }}
                           >
-                            {issue.severity}
+                            {SEVERITY_LABELS[issue.severity] ?? issue.severity}
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{issue.issue_type || 'System'}</TableCell>
+                      <TableCell>{formatIssueType(issue.issue_type || 'system')}</TableCell>
                       <TableCell>
                         {issue.affected_columns && issue.affected_columns.length > 0
                           ? issue.affected_columns.map((col: any) => {
@@ -999,7 +1026,7 @@ const DatasetDetail = () => {
                             if (col?.name) return col.name;
                             return JSON.stringify(col);
                           }).join(', ')
-                          : 'N/A'}
+                          : '—'}
                       </TableCell>
                       <TableCell>{issue.description}</TableCell>
                     </TableRow>
@@ -1035,63 +1062,45 @@ const DatasetDetail = () => {
           )}
         </TabPanel>
 
-        {/* Versions & Lineage Tab — unified */}
+        {/* Versions Tab */}
         <TabPanel value={tabValue} index={4}>
-          {/* View toggle */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {lineageView === 'list' ? 'Historial de versiones' : 'Linaje visual'}
-            </Typography>
-            <Box sx={{ display: 'flex', border: '1px solid #E0E0E0', borderRadius: 1.5, overflow: 'hidden' }}>
-              <Box
-                onClick={() => setLineageView('list')}
-                sx={{
-                  display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 0.75,
-                  cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
-                  backgroundColor: lineageView === 'list' ? '#00B37E' : 'transparent',
-                  color: lineageView === 'list' ? '#fff' : '#555',
-                  transition: 'all 0.15s',
-                  '&:hover': lineageView !== 'list' ? { backgroundColor: '#F5F5F5' } : {},
-                }}
-              >
-                <ViewListIcon sx={{ fontSize: 17 }} />
-                Lista
-              </Box>
-              <Box
-                onClick={() => setLineageView('canvas')}
-                sx={{
-                  display: 'flex', alignItems: 'center', gap: 0.75, px: 2, py: 0.75,
-                  cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
-                  backgroundColor: lineageView === 'canvas' ? '#00B37E' : 'transparent',
-                  color: lineageView === 'canvas' ? '#fff' : '#555',
-                  borderLeft: '1px solid #E0E0E0',
-                  transition: 'all 0.15s',
-                  '&:hover': lineageView !== 'canvas' ? { backgroundColor: '#F5F5F5' } : {},
-                }}
-              >
-                <AccountTreeIcon sx={{ fontSize: 17 }} />
-                Canvas
-              </Box>
-            </Box>
-          </Box>
+          <DatasetVersionHistory
+            datasetId={dataset.id}
+            projectId={dataset.project_id}
+            onCompare={(versionA, versionB) => {
+              router.push(`/datasets/${versionA}?compare=${versionB}`);
+            }}
+            onOpenCanvas={() => setLineageModalOpen(true)}
+          />
+        </TabPanel>
+      </Box>
 
-          {lineageView === 'list' ? (
-            <DatasetVersionHistory
-              datasetId={dataset.id}
-              projectId={dataset.project_id}
-              onCompare={(versionA, versionB) => {
-                router.push(`/datasets/${versionA}?compare=${versionB}`);
-              }}
-            />
-          ) : (
+      {/* Version tree canvas modal */}
+      <Dialog
+        open={lineageModalOpen}
+        onClose={() => setLineageModalOpen(false)}
+        fullWidth
+        maxWidth="xl"
+        PaperProps={{ sx: { height: '90vh', maxHeight: '90vh', display: 'flex', flexDirection: 'column' } }}
+      >
+        <DialogTitle sx={{ m: 0, p: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F0F0F0' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Árbol de versiones visual
+          </Typography>
+          <IconButton size="small" onClick={() => setLineageModalOpen(false)} sx={{ color: '#777' }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {lineageModalOpen && (
             <DatasetLineageCanvas
               datasetId={dataset.id}
               projectId={dataset.project_id}
               currentDatasetId={dataset.id}
             />
           )}
-        </TabPanel>
-      </Box>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <Dialog

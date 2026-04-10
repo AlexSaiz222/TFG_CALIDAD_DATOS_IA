@@ -21,7 +21,9 @@ import {
   Edit as EditIcon,
   Check as CheckIcon,
   Close as CloseIcon,
+  AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
+import Button from '@mui/material/Button';
 import { useRouter } from 'next/router';
 import { datasetsAPI } from '../services/api';
 import { Dataset } from '../types';
@@ -46,6 +48,7 @@ interface DatasetVersionHistoryProps {
   datasetId: number;
   projectId: number;
   onCompare?: (versionA: number, versionB: number) => void;
+  onOpenCanvas?: () => void;
 }
 
 const LANE_COLORS = ['#00B37E', '#9c27b0', '#1976d2', '#f57c00', '#e91e63', '#00bcd4'];
@@ -103,9 +106,11 @@ function buildLayout(versions: VersionWithAnalysis[]): NodeLayout[] {
 interface TreeSVGProps {
   layout: NodeLayout[];
   datasetId: number;
+  onNavigate: (id: number) => void;
 }
 
-function TreeSVG({ layout, datasetId }: TreeSVGProps) {
+function TreeSVG({ layout, datasetId, onNavigate }: TreeSVGProps) {
+  const [hoveredId, setHoveredId] = React.useState<number | null>(null);
   if (!layout.length) return null;
 
   const nodeMap = new Map<number, NodeLayout>();
@@ -171,28 +176,39 @@ function TreeSVG({ layout, datasetId }: TreeSVGProps) {
     const y = cy(node.row);
     const col = laneColor(node.colorIdx);
     const isCurrent = node.version.id === datasetId;
-
-    // Glow ring for the active/current node
-    if (isCurrent) {
-      dotEls.push(
-        <circle
-          key={`glow-${node.version.id}`}
-          cx={x} cy={y} r={DOT_R + 4.5}
-          fill={`${col}22`}
-          stroke={col}
-          strokeWidth={1.2}
-        />
-      );
-    }
+    const isHovered = hoveredId === node.version.id;
 
     dotEls.push(
-      <circle
-        key={`dot-${node.version.id}`}
-        cx={x} cy={y} r={DOT_R}
-        fill={isCurrent ? col : '#fff'}
-        stroke={col}
-        strokeWidth={2.5}
-      />
+      <g
+        key={`node-${node.version.id}`}
+        onClick={() => onNavigate(node.version.id)}
+        onMouseEnter={() => setHoveredId(node.version.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        style={{ cursor: isCurrent ? 'default' : 'pointer' }}
+      >
+        {/* Glow ring — current node or hover */}
+        {(isCurrent || isHovered) && (
+          <circle
+            cx={x} cy={y} r={DOT_R + 4.5}
+            fill={isCurrent ? `${col}22` : `${col}18`}
+            stroke={col}
+            strokeWidth={isCurrent ? 1.2 : 1}
+            opacity={isCurrent ? 1 : 0.7}
+          />
+        )}
+        {/* Visible dot */}
+        <circle
+          cx={x} cy={y} r={DOT_R}
+          fill={isCurrent || isHovered ? col : '#fff'}
+          stroke={col}
+          strokeWidth={2.5}
+        />
+        {/* Invisible hit area — makes it easier to click the small dot */}
+        <circle
+          cx={x} cy={y} r={DOT_R + 8}
+          fill="transparent"
+        />
+      </g>
     );
   });
 
@@ -214,6 +230,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
   datasetId,
   projectId,
   onCompare,
+  onOpenCanvas,
 }) => {
   const router = useRouter();
   const [versions, setVersions] = useState<VersionWithAnalysis[]>([]);
@@ -304,19 +321,37 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
   return (
     <Box>
       {/* ── Header ── */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5, gap: 1.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>Árbol de versiones</Typography>
-        <Chip
-          label={`${versions.length} versión${versions.length !== 1 ? 'es' : ''}`}
-          size="small"
-          sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500, height: 22 }}
-        />
-        {isBranched && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Chip
-            label="Ramificado"
+            label={versions.length === 1 ? '1 versión' : `${versions.length} versiones`}
             size="small"
-            sx={{ backgroundColor: 'rgba(156,39,176,0.1)', color: '#9c27b0', fontWeight: 500, height: 22 }}
+            sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500, height: 22 }}
           />
+          {isBranched && (
+            <Chip
+              label="Ramificado"
+              size="small"
+              sx={{ backgroundColor: 'rgba(156,39,176,0.1)', color: '#9c27b0', fontWeight: 500, height: 22 }}
+            />
+          )}
+        </Box>
+        {onOpenCanvas && (
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<AccountTreeIcon sx={{ fontSize: 16 }} />}
+            onClick={onOpenCanvas}
+            sx={{
+              fontSize: '0.78rem',
+              textTransform: 'none',
+              borderColor: '#E0E0E0',
+              color: '#555',
+              '&:hover': { borderColor: '#00B37E', color: '#00B37E', backgroundColor: 'rgba(0,179,126,0.04)' },
+            }}
+          >
+            Ver árbol visual
+          </Button>
         )}
       </Box>
 
@@ -334,7 +369,11 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
 
         {/* SVG graph — renders all edges and dots on a shared canvas */}
-        <TreeSVG layout={layout} datasetId={datasetId} />
+        <TreeSVG
+          layout={layout}
+          datasetId={datasetId}
+          onNavigate={id => router.push(`/datasets/${id}`)}
+        />
 
         {/* Cards — one per row, fixed height to align with SVG rows */}
         <Box sx={{ flex: 1, ml: 1.5, minWidth: 0 }}>
