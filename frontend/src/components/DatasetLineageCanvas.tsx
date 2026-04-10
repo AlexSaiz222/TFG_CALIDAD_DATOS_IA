@@ -9,7 +9,6 @@ import {
   Tooltip,
   IconButton,
   TextField,
-  Button,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -18,7 +17,6 @@ import {
   Schedule as ScheduleIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
-  CenterFocusStrong as FitIcon,
   Edit as EditIcon,
   Check as CheckIcon,
   Close as CloseIcon,
@@ -248,22 +246,26 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
   const isPanning = panRef.current.active;
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Toolbar */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-            {versions.length} versión{versions.length !== 1 ? 'es' : ''} · Arrastra nodos para reorganizar · Rueda para zoom · Arrastra el fondo para desplazar
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1, borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Chip
+            label={versions.length === 1 ? '1 versión' : `${versions.length} versiones`}
+            size="small"
+            sx={{ height: 22, fontSize: '0.73rem', backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500 }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ ml: 1, fontSize: '0.75rem', opacity: 0.7 }}>
+            Arrastra el fondo para desplazar · rueda para zoom · arrastra nodos para reorganizar
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums', minWidth: 36, textAlign: 'right' }}>
             {Math.round(scale * 100)}%
           </Typography>
           <Tooltip title="Zoom in"><IconButton size="small" onClick={() => setScale(s => Math.min(2.5, s * 1.15))}><ZoomInIcon fontSize="small" /></IconButton></Tooltip>
           <Tooltip title="Zoom out"><IconButton size="small" onClick={() => setScale(s => Math.max(0.3, s / 1.15))}><ZoomOutIcon fontSize="small" /></IconButton></Tooltip>
-          <Tooltip title="Ajustar vista"><IconButton size="small" onClick={() => setScale(1)}><FitIcon fontSize="small" /></IconButton></Tooltip>
-          <Tooltip title="Resetear posiciones">
+          <Tooltip title="Resetear posiciones y zoom">
             <IconButton size="small" onClick={handleReset}><ResetIcon fontSize="small" /></IconButton>
           </Tooltip>
         </Box>
@@ -276,13 +278,11 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
         onPointerMove={handleCanvasPointerMove}
         onPointerUp={handleCanvasPointerUp}
         sx={{
+          flex: 1,
           overflow: 'hidden',
-          border: '1px solid #E0E0E0',
-          borderRadius: 2,
           backgroundColor: '#F8F9FA',
           backgroundImage: 'radial-gradient(circle, #D4D6D8 1px, transparent 1px)',
           backgroundSize: '28px 28px',
-          minHeight: 520,
           position: 'relative',
           cursor: isPanning ? 'grabbing' : isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
@@ -419,7 +419,11 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                       {isEditing ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} onClick={e => e.stopPropagation()}>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                          onClick={e => e.stopPropagation()}
+                          onPointerDown={e => e.stopPropagation()}
+                        >
                           <TextField
                             size="small"
                             value={editTag}
@@ -463,6 +467,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
                         <IconButton
                           size="small"
                           onClick={e => { e.stopPropagation(); startEdit(v); }}
+                          onPointerDown={e => e.stopPropagation()}
                           sx={{ opacity: 0.35, '&:hover': { opacity: 1 }, p: 0.3, ml: 0.5 }}
                         >
                           <EditIcon sx={{ fontSize: 13 }} />
@@ -517,7 +522,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
       </Box>
 
       {/* Legend */}
-      <Box sx={{ display: 'flex', gap: 2.5, mt: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', gap: 2, px: 2, py: 1, borderTop: '1px solid #F0F0F0', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
         {[
           { label: 'Passed', color: '#00B37E' },
           { label: 'Warning', color: '#FFB800' },
@@ -525,12 +530,12 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
           { label: 'Sin análisis', color: '#BDBDBD' },
         ].map(({ label, color }) => (
           <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: color }} />
-            <Typography variant="caption" color="text.secondary">{label}</Typography>
+            <Box sx={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: color }} />
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem' }}>{label}</Typography>
           </Box>
         ))}
-        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', opacity: 0.6 }}>
-          Click en nodo para navegar · ✏️ para editar etiqueta · La etiqueta de la flecha muestra el cambio de calidad
+        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', opacity: 0.55, fontSize: '0.7rem' }}>
+          Click en nodo para navegar · ✏️ editar etiqueta · etiqueta en flecha = cambio de calidad
         </Typography>
       </Box>
     </Box>

@@ -18,6 +18,7 @@ import {
   TextField,
   Chip,
   Tooltip,
+  Collapse,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -25,19 +26,17 @@ import {
   Visibility as VisibilityIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  History as HistoryIcon,
+  AccountTree as AccountTreeIcon,
+  Storage as StorageIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI, projectsAPI } from '../../services/api';
-import axios from 'axios';
 import { Dataset, Project } from '../../types';
 
-// Interface for grouped datasets
 interface DatasetGroup {
   rootId: number;
   latestDataset: Dataset;
   allVersions: Dataset[];
-  versionCount: number;
 }
 
 const DatasetsList = () => {
@@ -49,671 +48,412 @@ const DatasetsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
 
-  // Datos de ejemplo para usar cuando el endpoint falla
-  const exampleDatasets: Dataset[] = [
-    {
-      id: 1,
-      name: 'Customer Data Sample',
-      description: 'Sample dataset with customer information',
-      project_id: 1,
-      file_path: '/data/customers.csv',
-      file_size: 1024 * 1024 * 2.5, // 2.5 MB
-      row_count: 5000,
-      column_count: 12,
-      schema: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      evaluation_count: 3,
-      version: 1,
-      is_latest: true,
-    },
-    {
-      id: 2,
-      name: 'Product Inventory',
-      description: 'Current product inventory with stock levels',
-      project_id: 1,
-      file_path: '/data/inventory.csv',
-      file_size: 1024 * 1024 * 1.8, // 1.8 MB
-      row_count: 3200,
-      column_count: 8,
-      schema: [],
-      created_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-      updated_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-      evaluation_count: 1,
-      version: 1,
-      is_latest: true,
-    },
-    {
-      id: 3,
-      name: 'Sales Transactions 2024',
-      description: 'All sales transactions from current year',
-      project_id: 2,
-      file_path: '/data/sales_2024.csv',
-      file_size: 1024 * 1024 * 5.2, // 5.2 MB
-      row_count: 12500,
-      column_count: 15,
-      schema: [],
-      created_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-      updated_at: new Date(Date.now() - 86400000 * 5).toISOString(),
-      evaluation_count: 2,
-      version: 1,
-      is_latest: true,
-    },
-  ];
-
-  // Proyectos de ejemplo
-  const exampleProjects: Record<number, Project> = {
-    1: {
-      id: 1,
-      name: 'Customer Analytics',
-      description: 'Analysis of customer data and behavior',
-      owner_id: 1,
-      created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
-      updated_at: new Date(Date.now() - 86400000 * 5).toISOString(),
-      dataset_count: 2
-    },
-    2: {
-      id: 2,
-      name: 'Sales Dashboard',
-      description: 'Sales performance tracking and analysis',
-      owner_id: 1,
-      created_at: new Date(Date.now() - 86400000 * 15).toISOString(),
-      updated_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-      dataset_count: 1
-    }
-  };
-
   useEffect(() => {
-    // Referencia para controlar si el componente está montado
-    const isMountedRef = { current: true };
-    
+    let cancelled = false;
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      
-      // Crear un controlador para cancelar peticiones
-      const controller = new AbortController();
-      
-      // Establecer un timeout global para toda la operación
-      const globalTimeoutId = setTimeout(() => {
-        console.log('Timeout global alcanzado, cancelando todas las peticiones pendientes');
-        controller.abort();
-        
-        // Solo actualizar el estado si el componente sigue montado
-        if (isMountedRef.current) {
-          setDatasets(exampleDatasets);
-          setProjects(exampleProjects);
-          setError('Se agotó el tiempo de espera. Mostrando datos de ejemplo.');
-          setLoading(false);
-        }
-      }, 15000); // 15 segundos de timeout global
-
       try {
-        // ESTRATEGIA Única: Usar datasetsAPI.getAllDatasets que es la que funciona
-        console.log('Obteniendo datasets con datasetsAPI.getAllDatasets');
-        const datasetsResponse = await datasetsAPI.getAllDatasets();
-        const datasetsData = datasetsResponse?.data?.data ?? datasetsResponse?.data ?? [];
-        
-        // Solo continuar si el componente sigue montado
-        if (!isMountedRef.current) return;
-        
-        if (Array.isArray(datasetsData) && datasetsData.length > 0) {
-          console.log(`Obtenidos ${datasetsData.length} datasets correctamente`);
-          console.log('Datos crudos de datasets:', JSON.stringify(datasetsData.map(d => ({
-            id: d.id,
-            name: d.name,
-            version: d.version,
-            parent_dataset_id: d.parent_dataset_id,
-            is_latest: d.is_latest
-          })), null, 2));
-          setDatasets(datasetsData);
-          
-          // Extract unique project IDs
-          const uniqueIds = new Set<number>();
-          datasetsData.forEach(dataset => uniqueIds.add(dataset.project_id));
-          const projectIds = Array.from(uniqueIds);
-          
-          // Fetch project details for each unique project ID
-          const projectsMap: Record<number, Project> = {};
-          
-          await Promise.all(
-            projectIds.map(async (projectId) => {
-              try {
-                const projectResponse = await projectsAPI.getProject(projectId);
-                const projectData = projectResponse?.data?.data ?? projectResponse?.data ?? {};
-                projectsMap[projectId] = projectData;
-              } catch (err) {
-                console.warn(`Error al obtener detalles del proyecto ${projectId}:`, err);
-                // Use a placeholder for failed project fetches
-                projectsMap[projectId] = { id: projectId, name: `Project ${projectId}` } as Project;
-              }
-            })
-          );
-          
-          // Solo actualizar el estado si el componente sigue montado
-          if (isMountedRef.current) {
-            setProjects(projectsMap);
-          }
-        } else {
-          console.warn('No se encontraron datasets, usando datos de ejemplo');
-          setDatasets(exampleDatasets);
-          setProjects(exampleProjects);
-          setError('No se encontraron datasets en tus proyectos. Mostrando datos de ejemplo.');
-        }
-      } catch (err: any) {
-        console.error('Error al obtener datasets:', err);
-        
-        // Solo actualizar el estado si el componente sigue montado
-        if (isMountedRef.current) {
-          // Si hay un error, usar datos de ejemplo
-          console.log('Usando datos de ejemplo debido al error');
-          setDatasets(exampleDatasets);
-          setProjects(exampleProjects);
-          
-          // Mostrar mensaje de error más amigable
-          setError('No se pudieron cargar los datasets del servidor. Mostrando datos de ejemplo para demostración.');
-        }
+        const res = await datasetsAPI.getAllDatasets();
+        const data: Dataset[] = res?.data?.data ?? res?.data ?? [];
+        if (cancelled) return;
+
+        const list = Array.isArray(data) ? data : [];
+        setDatasets(list);
+
+        // Fetch project names for all unique project IDs
+        const uniqueProjectIds = [...new Set(list.map(d => d.project_id).filter(Boolean))];
+        const projectsMap: Record<number, Project> = {};
+        await Promise.all(
+          uniqueProjectIds.map(async (pid) => {
+            try {
+              const pr = await projectsAPI.getProject(pid);
+              projectsMap[pid] = pr?.data?.data ?? pr?.data ?? ({ id: pid, name: `Proyecto ${pid}` } as Project);
+            } catch {
+              projectsMap[pid] = { id: pid, name: `Proyecto ${pid}` } as Project;
+            }
+          })
+        );
+        if (!cancelled) setProjects(projectsMap);
+      } catch {
+        if (!cancelled) setError('No se pudieron cargar los datasets. Verifica la conexión con el servidor.');
       } finally {
-        // Limpiar el timeout global si aún no se ha disparado
-        clearTimeout(globalTimeoutId);
-        
-        // Solo actualizar el estado si el componente sigue montado
-        if (isMountedRef.current) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchData();
-    
-    // Cleanup function para evitar actualizar el estado después de desmontar
-    return () => {
-      isMountedRef.current = false;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
+  // Group datasets by version chain (parent_dataset_id)
+  const groupedDatasets = React.useMemo<DatasetGroup[]>(() => {
+    const idMap = new Map(datasets.map(d => [d.id, d]));
 
-  // Group datasets by version chain using parent_dataset_id
-  const groupedDatasets = React.useMemo(() => {
-    const groups: Map<number, DatasetGroup> = new Map();
-    const processedIds = new Set<number>();
-    
-    // Debug: log datasets to see what we're receiving
-    console.log('Datasets received:', datasets.map(d => ({
-      id: d.id,
-      name: d.name,
-      version: d.version,
-      parent_dataset_id: d.parent_dataset_id,
-      is_latest: d.is_latest
-    })));
-    
-    // Helper to find root dataset ID
-    const findRootId = (dataset: Dataset): number => {
-      if (!dataset.parent_dataset_id) return dataset.id;
-      const parent = datasets.find((d: Dataset) => d.id === dataset.parent_dataset_id);
-      if (!parent) return dataset.id;
-      return findRootId(parent);
+    const findRoot = (d: Dataset): number => {
+      if (!d.parent_dataset_id) return d.id;
+      const parent = idMap.get(d.parent_dataset_id);
+      return parent ? findRoot(parent) : d.id;
     };
-    
-    // Process all datasets
-    datasets.forEach((dataset: Dataset) => {
-      const rootId = findRootId(dataset);
-      
-      if (!groups.has(rootId)) {
-        const rootDataset = datasets.find((d: Dataset) => d.id === rootId) || dataset;
-        groups.set(rootId, {
-          rootId,
-          latestDataset: rootDataset,
-          allVersions: [],
-          versionCount: 0,
-        });
-      }
-      
-      const group = groups.get(rootId)!;
-      
-      // Add dataset if not already in the group
-      if (!processedIds.has(dataset.id)) {
-        group.allVersions.push(dataset);
-        group.versionCount++;
-        processedIds.add(dataset.id);
-        
-        // Update latest based on is_latest flag or version number
-        if (dataset.is_latest || ((dataset.version || 1) > (group.latestDataset.version || 1))) {
-          group.latestDataset = dataset;
-        }
-      }
+
+    const groupMap = new Map<number, Dataset[]>();
+    datasets.forEach(d => {
+      const rootId = findRoot(d);
+      if (!groupMap.has(rootId)) groupMap.set(rootId, []);
+      groupMap.get(rootId)!.push(d);
     });
-    
-    // Sort versions within each group by version number (descending)
-    const allGroups = Array.from(groups.values());
-    
-    // Debug: log groups
-    console.log('Groups created:', allGroups.map(g => ({
-      rootId: g.rootId,
-      versionCount: g.versionCount,
-      latestId: g.latestDataset.id,
-      latestVersion: g.latestDataset.version,
-      allVersionIds: g.allVersions.map(v => v.id)
-    })));
-    
-    allGroups.forEach(group => {
-      group.allVersions.sort((a: Dataset, b: Dataset) => {
-        const versionDiff = (b.version || 1) - (a.version || 1);
-        if (versionDiff !== 0) return versionDiff;
-        if (a.created_at && b.created_at) {
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        }
-        return 0;
+
+    return Array.from(groupMap.entries())
+      .map(([rootId, versions]) => {
+        versions.sort((a, b) => (b.version ?? 1) - (a.version ?? 1));
+        const latest = versions.find(v => v.is_latest) ?? versions[0];
+        return { rootId, latestDataset: latest, allVersions: versions };
+      })
+      .sort((a, b) => {
+        const ta = new Date(a.latestDataset.updated_at || a.latestDataset.created_at).getTime();
+        const tb = new Date(b.latestDataset.updated_at || b.latestDataset.created_at).getTime();
+        return tb - ta;
       });
-      // Ensure latestDataset is the one with is_latest=true or highest version
-      const latest = group.allVersions.find((d: Dataset) => d.is_latest) || group.allVersions[0];
-      if (latest) group.latestDataset = latest;
-    });
-    
-    return allGroups;
   }, [datasets]);
 
-  // Filter groups based on search
   const filteredGroups = groupedDatasets.filter(group => {
-    const searchLower = searchTerm.toLowerCase();
-    // Search in latest dataset and all versions
-    return group.allVersions.some(dataset => 
-      dataset.name.toLowerCase().includes(searchLower) ||
-      (dataset.description && dataset.description.toLowerCase().includes(searchLower)) ||
-      (projects[dataset.project_id]?.name || '').toLowerCase().includes(searchLower)
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return group.allVersions.some(d =>
+      d.name.toLowerCase().includes(q) ||
+      (d.description ?? '').toLowerCase().includes(q) ||
+      (projects[d.project_id]?.name ?? '').toLowerCase().includes(q)
     );
   });
 
   const toggleGroup = (rootId: number) => {
     setExpandedGroups(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(rootId)) {
-        newSet.delete(rootId);
-      } else {
-        newSet.add(rootId);
-      }
-      return newSet;
+      const next = new Set(prev);
+      next.has(rootId) ? next.delete(rootId) : next.add(rootId);
+      return next;
     });
   };
 
-  const handleCreateDataset = () => {
-    router.push('/datasets/upload');
+  const fmtDate = (d?: string | null) =>
+    d ? new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+  const fmtSize = (bytes?: number | null) => {
+    if (!bytes) return null;
+    return bytes < 1024 * 1024
+      ? `${(bytes / 1024).toFixed(0)} KB`
+      : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   };
 
-  const handleViewDataset = (datasetId: number) => {
-    router.push(`/datasets/${datasetId}`);
+  const renderStats = (d: Dataset) => {
+    const parts: string[] = [];
+    const size = fmtSize(d.file_size);
+    if (size) parts.push(size);
+    if (d.row_count) parts.push(`${d.row_count.toLocaleString('es-ES')} filas`);
+    if (d.column_count) parts.push(`${d.column_count} cols`);
+    return parts.join(' · ') || '—';
   };
 
   return (
     <MainLayout>
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Datasets
-          </Typography>
+        {/* ── Header ── */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+              Datasets
+            </Typography>
+            {!loading && !error && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {groupedDatasets.length} dataset{groupedDatasets.length !== 1 ? 's' : ''}
+                {datasets.length > groupedDatasets.length && (
+                  <> · {datasets.length} versiones totales</>
+                )}
+              </Typography>
+            )}
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={handleCreateDataset}
-            sx={{
-              backgroundColor: '#00B37E',
-              color: '#FFFFFF',
-              '&:hover': {
-                backgroundColor: '#00A070',
-              },
-            }}
+            onClick={() => router.push('/datasets/upload')}
+            sx={{ backgroundColor: '#00B37E', color: '#fff', '&:hover': { backgroundColor: '#00A070' }, textTransform: 'none' }}
           >
-            Crear dataset
+            Subir dataset
           </Button>
         </Box>
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            borderRadius: 2,
-            border: '1px solid #EEEEEE',
-          }}
-        >
-          {error && (
-            <Alert 
-              severity="warning" 
-              variant="outlined"
-              sx={{ 
-                mb: 3, 
-                display: 'flex', 
-                alignItems: 'center',
-                '& .MuiAlert-icon': {
-                  fontSize: '1.5rem',
-                  color: '#FFB800',
-                },
-                border: '1px solid rgba(255, 184, 0, 0.3)',
-                backgroundColor: 'rgba(255, 184, 0, 0.05)'
-              }}
-            >
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Mostrando datos de ejemplo
-                </Typography>
-                <Typography variant="body2">
-                  {error}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                  Nota: Puedes seguir explorando la interfaz con estos datos de demostración.
-                </Typography>
-              </Box>
-            </Alert>
-          )}
-
-          <Box sx={{ mb: 3 }}>
+        <Paper elevation={0} sx={{ borderRadius: 2, border: '1px solid #EEEEEE', overflow: 'hidden' }}>
+          {/* ── Search bar ── */}
+          <Box sx={{ p: 2, borderBottom: '1px solid #F0F0F0', backgroundColor: '#FAFAFA' }}>
             <TextField
               fullWidth
-              placeholder="Buscar datasets por nombre, descripción o proyecto"
-              variant="outlined"
+              size="small"
+              placeholder="Buscar por nombre, descripción o proyecto..."
               value={searchTerm}
-              onChange={handleSearchChange}
+              onChange={e => setSearchTerm(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#999999' }} />
+                    <SearchIcon sx={{ color: '#999', fontSize: 20 }} />
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                },
-              }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5, backgroundColor: '#fff' } }}
             />
           </Box>
 
+          {/* ── Error ── */}
+          {error && (
+            <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>
+          )}
+
+          {/* ── Loading ── */}
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-              <CircularProgress />
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress size={32} />
             </Box>
-          ) : filteredGroups.length > 0 ? (
+
+          ) : filteredGroups.length === 0 ? (
+            /* ── Empty state ── */
+            <Box sx={{ py: 8, textAlign: 'center' }}>
+              <StorageIcon sx={{ fontSize: 52, color: '#D0D0D0', mb: 2 }} />
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2.5 }}>
+                {searchTerm
+                  ? 'No hay datasets que coincidan con la búsqueda.'
+                  : 'Aún no hay datasets. Sube el primero.'}
+              </Typography>
+              {!searchTerm && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push('/datasets/upload')}
+                  sx={{ backgroundColor: '#00B37E', color: '#fff', '&:hover': { backgroundColor: '#00A070' }, textTransform: 'none' }}
+                >
+                  Subir dataset
+                </Button>
+              )}
+            </Box>
+
+          ) : (
+            /* ── Table ── */
             <TableContainer>
-              <Table aria-label="datasets table">
+              <Table size="small">
                 <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, width: '40px' }}></TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Versiones</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Proyecto</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Creado</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Tamaño</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
+                  <TableRow sx={{
+                    backgroundColor: '#F8F8F8',
+                    '& th': { fontWeight: 600, fontSize: '0.78rem', color: '#555', borderBottom: '2px solid #EEEEEE', py: 1.25 },
+                  }}>
+                    <TableCell sx={{ width: 36, px: 1 }} />
+                    <TableCell>Nombre</TableCell>
+                    <TableCell>Proyecto</TableCell>
+                    <TableCell>Versión</TableCell>
+                    <TableCell>Tamaño · Filas · Cols</TableCell>
+                    <TableCell>Actualizado</TableCell>
+                    <TableCell align="right" sx={{ pr: 2 }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredGroups.map((group) => {
-                    const isExpanded = expandedGroups.has(group.rootId);
-                    const dataset = group.latestDataset;
-                    
+                  {filteredGroups.map(group => {
+                    const { rootId, latestDataset: d, allVersions } = group;
+                    const isExpanded = expandedGroups.has(rootId);
+                    const hasVersions = allVersions.length > 1;
+
                     return (
-                      <React.Fragment key={group.rootId}>
-                        {/* Main row - Latest version */}
-                        <TableRow 
-                          hover 
-                          sx={{ 
+                      <React.Fragment key={rootId}>
+                        {/* ── Main row (latest version) ── */}
+                        <TableRow
+                          hover
+                          onClick={() => router.push(`/datasets/${d.id}`)}
+                          sx={{
                             cursor: 'pointer',
-                            backgroundColor: isExpanded ? 'rgba(156, 39, 176, 0.04)' : 'inherit',
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 179, 126, 0.04)',
-                            },
+                            '& td': { borderBottom: isExpanded ? '1px solid #F0F0F0' : undefined },
+                            '&:hover': { backgroundColor: 'rgba(0,179,126,0.03)' },
                           }}
-                          onClick={() => handleViewDataset(dataset.id)}
                         >
-                          <TableCell sx={{ width: '40px', p: 1 }}>
-                            {group.versionCount > 1 && (
+                          {/* Expand toggle */}
+                          <TableCell sx={{ px: 1, py: 0.5, width: 36 }}>
+                            {hasVersions && (
                               <IconButton
                                 size="small"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleGroup(group.rootId);
-                                }}
-                                sx={{ color: '#9c27b0' }}
+                                onClick={e => { e.stopPropagation(); toggleGroup(rootId); }}
+                                sx={{ color: '#9c27b0', p: 0.5 }}
                               >
-                                {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                {isExpanded
+                                  ? <ExpandLessIcon sx={{ fontSize: 18 }} />
+                                  : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
                               </IconButton>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                {dataset.name}
+
+                          {/* Name + description */}
+                          <TableCell sx={{ py: 1.25 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.25 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
+                                {d.name}
                               </Typography>
-                              <Chip
-                                label="Latest"
-                                size="small"
-                                sx={{
-                                  height: '20px',
-                                  fontSize: '0.7rem',
-                                  backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                                  color: '#00B37E',
-                                  fontWeight: 600,
-                                }}
-                              />
+                              <Chip label="Latest" size="small" sx={{
+                                height: 18, fontSize: '0.62rem', fontWeight: 600,
+                                backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E',
+                              }} />
                             </Box>
+                            {d.description && (
+                              <Typography variant="caption" color="text.secondary" sx={{
+                                display: 'block', overflow: 'hidden', textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap', maxWidth: 280, fontSize: '0.72rem',
+                              }}>
+                                {d.description}
+                              </Typography>
+                            )}
                           </TableCell>
+
+                          {/* Project */}
                           <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Tooltip title={dataset.version_tag || `Versión ${dataset.version || 1}`}>
-                                <Chip
-                                  label={dataset.version_tag || `v${dataset.version || 1}`}
-                                  size="small"
-                                  sx={{
-                                    backgroundColor: 'rgba(23, 69, 79, 0.1)',
-                                    color: '#17454F',
-                                    fontWeight: 500,
-                                    minWidth: '40px',
-                                  }}
-                                />
-                              </Tooltip>
-                              {group.versionCount > 1 && (
-                                <Tooltip title={`${group.versionCount} versiones disponibles`}>
+                            <Chip
+                              label={projects[d.project_id]?.name ?? `Proyecto ${d.project_id}`}
+                              size="small"
+                              onClick={e => { e.stopPropagation(); router.push(`/projects/${d.project_id}`); }}
+                              sx={{
+                                height: 22, fontSize: '0.72rem', fontWeight: 500, cursor: 'pointer',
+                                backgroundColor: 'rgba(0,179,126,0.08)', color: '#00B37E',
+                                '&:hover': { backgroundColor: 'rgba(0,179,126,0.16)' },
+                              }}
+                            />
+                          </TableCell>
+
+                          {/* Version */}
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                              <Chip
+                                label={d.version_tag || `v${d.version ?? 1}`}
+                                size="small"
+                                sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(0,0,0,0.06)', color: '#444' }}
+                              />
+                              {hasVersions && (
+                                <Tooltip title={`${allVersions.length} versiones disponibles`}>
                                   <Chip
-                                    icon={<HistoryIcon sx={{ fontSize: '14px !important' }} />}
-                                    label={`${group.versionCount}`}
+                                    icon={<AccountTreeIcon sx={{ fontSize: '11px !important' }} />}
+                                    label={allVersions.length}
                                     size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleGroup(group.rootId);
-                                    }}
+                                    onClick={e => { e.stopPropagation(); toggleGroup(rootId); }}
                                     sx={{
-                                      height: '22px',
-                                      fontSize: '0.75rem',
-                                      backgroundColor: 'rgba(158, 158, 158, 0.1)',
-                                      color: '#757575',
-                                      cursor: 'pointer',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                                        color: '#9c27b0',
-                                      },
+                                      height: 20, fontSize: '0.7rem', cursor: 'pointer',
+                                      backgroundColor: 'rgba(156,39,176,0.08)', color: '#9c27b0',
+                                      '&:hover': { backgroundColor: 'rgba(156,39,176,0.15)' },
                                     }}
                                   />
                                 </Tooltip>
                               )}
                             </Box>
                           </TableCell>
+
+                          {/* Stats */}
                           <TableCell>
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
-                                color: '#555555',
-                                maxWidth: '200px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {dataset.description || '—'}
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.74rem' }}>
+                              {renderStats(d)}
                             </Typography>
                           </TableCell>
+
+                          {/* Date */}
                           <TableCell>
-                            <Chip 
-                              label={projects[dataset.project_id]?.name || `Project ${dataset.project_id}`}
-                              size="small"
-                              sx={{ 
-                                backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                                color: '#00B37E',
-                                fontWeight: 500,
-                                '&:hover': {
-                                  backgroundColor: 'rgba(0, 179, 126, 0.2)',
-                                },
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/projects/${dataset.project_id}`);
-                              }}
-                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.74rem', whiteSpace: 'nowrap' }}>
+                              {fmtDate(d.updated_at || d.created_at)}
+                            </Typography>
                           </TableCell>
-                          <TableCell>
-                            {dataset.created_at ? new Date(dataset.created_at).toLocaleDateString() : '—'}
-                          </TableCell>
-                          <TableCell>
-                            {dataset.file_size ? `${(dataset.file_size / 1024 / 1024).toFixed(2)} MB` : '—'}
-                          </TableCell>
-                          <TableCell>
-                            <Tooltip title="Ver Dataset">
-                              <IconButton 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleViewDataset(dataset.id);
-                                }}
+
+                          {/* Actions */}
+                          <TableCell align="right" sx={{ pr: 1.5 }}>
+                            <Tooltip title="Ver dataset">
+                              <IconButton
                                 size="small"
-                                sx={{
-                                  color: '#00B37E',
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(0, 179, 126, 0.1)',
-                                  },
-                                }}
+                                onClick={e => { e.stopPropagation(); router.push(`/datasets/${d.id}`); }}
+                                sx={{ color: '#00B37E', '&:hover': { backgroundColor: 'rgba(0,179,126,0.08)' } }}
                               >
-                                <VisibilityIcon />
+                                <VisibilityIcon sx={{ fontSize: 18 }} />
                               </IconButton>
                             </Tooltip>
                           </TableCell>
                         </TableRow>
-                        
-                        {/* Expanded rows - Previous versions */}
-                        {isExpanded && group.allVersions
-                          .filter(v => v.id !== dataset.id)
-                          .map((version) => (
-                            <TableRow 
-                              key={version.id}
-                              hover 
-                              sx={{ 
-                                cursor: 'pointer',
-                                backgroundColor: 'rgba(156, 39, 176, 0.02)',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(156, 39, 176, 0.08)',
-                                },
-                              }}
-                              onClick={() => handleViewDataset(version.id)}
-                            >
-                              <TableCell sx={{ width: '40px', p: 1 }}>
-                                <Box sx={{ width: '24px', height: '24px', ml: 1, borderLeft: '2px solid #9c27b0', borderBottom: '2px solid #9c27b0', borderRadius: '0 0 0 8px' }} />
-                              </TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pl: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 400, color: '#666' }}>
-                                    {version.name}
-                                  </Typography>
+
+                        {/* ── Expanded: previous versions ── */}
+                        {hasVersions && (
+                          <TableRow sx={{ '& > td': { p: 0 } }}>
+                            <TableCell colSpan={7}>
+                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                <Box sx={{ backgroundColor: 'rgba(156,39,176,0.015)', borderBottom: '1px solid #F0F0F0' }}>
+                                  {allVersions
+                                    .filter(v => v.id !== d.id)
+                                    .map((v, idx, arr) => (
+                                      <Box
+                                        key={v.id}
+                                        onClick={() => router.push(`/datasets/${v.id}`)}
+                                        sx={{
+                                          display: 'flex', alignItems: 'center', gap: 2,
+                                          pl: 2, pr: 1.5, py: 1,
+                                          cursor: 'pointer',
+                                          borderBottom: idx < arr.length - 1 ? '1px solid #F5F5F5' : 'none',
+                                          '&:hover': { backgroundColor: 'rgba(156,39,176,0.04)' },
+                                        }}
+                                      >
+                                        {/* Branch indicator */}
+                                        <Box sx={{ width: 36, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                          <Box sx={{
+                                            width: 8, height: 8, borderRadius: '50%',
+                                            border: '2px solid #9c27b0', opacity: 0.45,
+                                          }} />
+                                        </Box>
+
+                                        {/* Version chip */}
+                                        <Chip
+                                          label={v.version_tag || `v${v.version ?? 1}`}
+                                          size="small"
+                                          sx={{
+                                            height: 20, fontSize: '0.7rem', fontWeight: 600, flexShrink: 0,
+                                            backgroundColor: 'rgba(156,39,176,0.08)', color: '#9c27b0',
+                                          }}
+                                        />
+
+                                        {/* Name */}
+                                        <Typography variant="body2" sx={{ flex: 1, color: '#555', fontSize: '0.8rem', minWidth: 0,
+                                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                          {v.name}
+                                        </Typography>
+
+                                        {/* Stats */}
+                                        <Typography variant="caption" color="text.secondary"
+                                          sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 150 }}>
+                                          {renderStats(v)}
+                                        </Typography>
+
+                                        {/* Date */}
+                                        <Typography variant="caption" color="text.secondary"
+                                          sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 90 }}>
+                                          {fmtDate(v.created_at)}
+                                        </Typography>
+
+                                        {/* Action */}
+                                        <Tooltip title="Ver esta versión">
+                                          <IconButton
+                                            size="small"
+                                            onClick={e => { e.stopPropagation(); router.push(`/datasets/${v.id}`); }}
+                                            sx={{ color: '#9c27b0', flexShrink: 0,
+                                              '&:hover': { backgroundColor: 'rgba(156,39,176,0.08)' } }}
+                                          >
+                                            <VisibilityIcon sx={{ fontSize: 16 }} />
+                                          </IconButton>
+                                        </Tooltip>
+                                      </Box>
+                                    ))}
                                 </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Tooltip title={version.version_tag || `Versión ${version.version || 1}`}>
-                                  <Chip
-                                    label={version.version_tag || `v${version.version || 1}`}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: 'rgba(158, 158, 158, 0.1)',
-                                      color: '#757575',
-                                      fontWeight: 500,
-                                      minWidth: '40px',
-                                    }}
-                                  />
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell>
-                                <Typography 
-                                  variant="body2" 
-                                  sx={{ 
-                                    color: '#888',
-                                    maxWidth: '200px',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {version.description || '—'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" sx={{ color: '#888' }}>—</Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" sx={{ color: '#888' }}>
-                                  {version.created_at ? new Date(version.created_at).toLocaleDateString() : '—'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" sx={{ color: '#888' }}>
-                                  {version.file_size ? `${(version.file_size / 1024 / 1024).toFixed(2)} MB` : '—'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Tooltip title="Ver esta versión">
-                                  <IconButton 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleViewDataset(version.id);
-                                    }}
-                                    size="small"
-                                    sx={{
-                                      color: '#9c27b0',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                                      },
-                                    }}
-                                  >
-                                    <VisibilityIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        }
+                              </Collapse>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </React.Fragment>
                     );
                   })}
                 </TableBody>
               </Table>
             </TableContainer>
-          ) : (
-            <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
-              <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-                {searchTerm ? 'No se encontraron datasets con ese criterio de búsqueda.' : 'Aún no hay datasets disponibles.'}
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleCreateDataset}
-                sx={{
-                  backgroundColor: '#00B37E',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#00A070',
-                  },
-                }}
-              >
-                Subir dataset
-              </Button>
-            </Box>
           )}
         </Paper>
       </Box>
