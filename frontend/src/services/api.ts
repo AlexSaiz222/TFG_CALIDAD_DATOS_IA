@@ -734,6 +734,12 @@ export const metricsAPI = {
     }),
 };
 
+// Dashboard API
+export const dashboardAPI = {
+  getSummary: (historyDays: number = 90) =>
+    api.get('/api/dashboard/summary', { params: { history_days: historyDays } }),
+};
+
 // Analysis Runs API (Sonar-Lite)
 export const analysisAPI = {
   // Obtener historial de análisis de un proyecto
