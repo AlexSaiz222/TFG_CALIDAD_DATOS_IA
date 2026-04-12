@@ -115,12 +115,6 @@ function Dashboard() {
       });
   }, [data]);
 
-  const qualityScoreColor = useMemo(() => {
-    if (!data?.aggregated.avg_quality_score) return '#888';
-    const score = data.aggregated.avg_quality_score;
-    return score >= 80 ? GREEN : score >= 60 ? ORANGE : RED;
-  }, [data]);
-
   // Auth loading state
   if (authLoading) {
     return (
@@ -222,9 +216,9 @@ function Dashboard() {
                 title="Datasets"
                 value={agg!.total_datasets}
                 chipLabel="Datos"
-                chipColor={ORANGE}
+                chipColor={GREEN}
                 icon={<StorageIcon sx={{ fontSize: 26 }} />}
-                iconBgColor={ORANGE}
+                iconBgColor={GREEN}
                 footer={
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <Button
@@ -233,13 +227,13 @@ function Dashboard() {
                       onClick={() => router.push('/datasets/upload')}
                       disabled={agg!.total_projects === 0}
                       sx={{
-                        backgroundColor: ORANGE,
+                        backgroundColor: GREEN,
                         color: '#fff',
                         textTransform: 'none',
                         fontSize: '0.75rem',
                         borderRadius: 2,
                         px: 1.5,
-                        '&:hover': { backgroundColor: '#E5A600' },
+                        '&:hover': { backgroundColor: '#00A070' },
                       }}
                     >
                       Subir
@@ -258,9 +252,9 @@ function Dashboard() {
                 title="Calidad Media"
                 value={agg!.avg_quality_score !== null ? `${agg!.avg_quality_score}%` : '-'}
                 chipLabel="Score"
-                chipColor={qualityScoreColor}
+                chipColor={GREEN}
                 icon={<AssessmentIcon sx={{ fontSize: 26 }} />}
-                iconBgColor={qualityScoreColor}
+                iconBgColor={GREEN}
                 footer={
                   agg!.avg_quality_score !== null ? (
                     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
