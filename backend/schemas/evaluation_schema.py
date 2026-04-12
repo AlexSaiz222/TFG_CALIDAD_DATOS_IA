@@ -12,7 +12,6 @@ class MetricSchema(Schema):
     id = fields.String(required=True)
     name = fields.String()
     parameters = fields.Dict(keys=fields.String(), values=fields.Raw())
-    weight = fields.Float(validate=validate.Range(min=0), load_default=1.0)
     
     @validates('id')
     def validate_metric_id(self, value):

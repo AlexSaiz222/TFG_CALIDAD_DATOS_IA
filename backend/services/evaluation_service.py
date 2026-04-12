@@ -331,7 +331,6 @@ class EvaluationService:
             # Track processed metrics for quality score calculation
             processed_metrics = []
             metric_scores = []
-            metric_weights = []
 
             # Process each configured metric
             for metric_index, metric_config in enumerate(metrics_config):
@@ -339,9 +338,6 @@ class EvaluationService:
                 metric_progress = 25 + int(((metric_index + 1) / total_metrics) * 45)
                 metric_id = metric_config.get('id')
                 parameters = metric_config.get('parameters', {})
-                # Weight lives inside parameters (from template config); fall back to
-                # top-level 'weight' field (MetricSchema default = 1.0) only if absent.
-                weight = parameters.get('weight', metric_config.get('weight', 1.0))
 
                 # Update progress for current metric
                 self._update_progress(evaluation_id, metric_progress, f"Analizando métrica: {metric_id}...", analysis_run_id)
@@ -354,7 +350,6 @@ class EvaluationService:
                     if metric_result.score is not None:
                         processed_metrics.append(metric_id)
                         metric_scores.append(metric_result.score)
-                        metric_weights.append(weight)
                     results.update(metric_result.results)
                     issues.extend(metric_result.issues)
                 except KeyError:
@@ -419,13 +414,9 @@ class EvaluationService:
             # regardless of dataset width.
             #   formula: quality_score = max(0, 1 − min(0.97, raw_penalty / scale))
 
-            # Step 1: diagnostic base score (weighted mean, NOT used in grade).
+            # Step 1: diagnostic base score (simple mean, NOT used in grade).
             if metric_scores:
-                total_weight = sum(metric_weights)
-                if total_weight > 0:
-                    base_score = sum(s * w for s, w in zip(metric_scores, metric_weights)) / total_weight
-                else:
-                    base_score = sum(metric_scores) / len(metric_scores)
+                base_score = sum(metric_scores) / len(metric_scores)
             else:
                 base_score = 0.0
 
@@ -474,11 +465,6 @@ class EvaluationService:
                     'score_breakdown': {
                         # Diagnostic: per-metric ratio scores (not used in grade)
                         'metric_scores': score_breakdown,
-                        'metric_weights': {
-                            processed_metrics[i]: metric_weights[i]
-                            for i in range(len(processed_metrics))
-                            if i < len(metric_weights)
-                        },
                         'diagnostic_base_score': round(base_score, 4),
                         # Grade formula: 1 − min(0.97, raw_penalty / column_scale)
                         'raw_penalty': round(raw_penalty, 4),

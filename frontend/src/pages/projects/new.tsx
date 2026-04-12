@@ -165,7 +165,6 @@ const NewProject = () => {
         return {
           id: metric?.name || String(id),
           parameters: metric?.parameters || {},
-          weight: 1.0,
         };
       });
 

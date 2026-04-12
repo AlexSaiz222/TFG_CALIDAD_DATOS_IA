@@ -1297,18 +1297,15 @@ def create_dataset_evaluation(dataset_id):
     default_metrics = project_metrics if len(project_metrics) > 0 else [
         {
             "id": "completeness",
-            "parameters": {},
-            "weight": 1.0
+            "parameters": {}
         },
         {
             "id": "uniqueness",
-            "parameters": {},
-            "weight": 1.0
+            "parameters": {}
         },
         {
             "id": "outliers",
-            "parameters": {"method": "iqr", "factor": 1.5},
-            "weight": 1.0
+            "parameters": {"method": "iqr", "factor": 1.5}
         }
     ]
     
