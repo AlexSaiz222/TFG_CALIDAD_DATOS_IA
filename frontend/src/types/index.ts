@@ -218,6 +218,68 @@ export interface DataQualityIssue {
   created_at: string;
 }
 
+// ── Dashboard types ──────────────────────────────────────────────
+export interface DashboardProjectAnalysis {
+  id: number;
+  quality_score: number | null;
+  quality_gate_status: QualityGateStatus | null;
+  total_issues_count: number;
+  critical_issues_count: number;
+  new_issues_count: number;
+  fixed_issues_count: number;
+  completed_at: string | null;
+  issue_severity_breakdown?: {
+    critical: number;
+    major: number;
+    minor: number;
+    info: number;
+  };
+}
+
+export interface DashboardRunHistory {
+  id: number;
+  quality_gate_status: QualityGateStatus | null;
+  quality_score: number | null;
+  status: string;
+  total_issues_count: number;
+  critical_issues_count: number;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface DashboardProject {
+  id: number;
+  name: string;
+  dataset_count: number;
+  latest_analysis: DashboardProjectAnalysis | null;
+  runs_history: DashboardRunHistory[];
+}
+
+export interface DashboardAggregated {
+  total_projects: number;
+  total_datasets: number;
+  avg_quality_score: number | null;
+  total_issues: number;
+  critical_issues: number;
+  gate_distribution: {
+    passed: number;
+    warning: number;
+    failed: number;
+    no_analysis: number;
+  };
+  issue_severity_distribution: {
+    critical: number;
+    major: number;
+    minor: number;
+    info: number;
+  };
+}
+
+export interface DashboardSummary {
+  projects: DashboardProject[];
+  aggregated: DashboardAggregated;
+}
+
 // ── Data Profiling / EDA types ──────────────────────────────────
 export interface ProfilingOverview {
   total_rows: number;
