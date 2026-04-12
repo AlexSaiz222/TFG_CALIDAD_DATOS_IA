@@ -215,7 +215,7 @@ function Dashboard() {
               <KpiCard
                 title="Datasets"
                 value={agg!.total_datasets}
-                chipLabel="Datos"
+                chipLabel="En uso"
                 chipColor={GREEN}
                 icon={<StorageIcon sx={{ fontSize: 26 }} />}
                 iconBgColor={GREEN}
@@ -249,34 +249,41 @@ function Dashboard() {
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
               <KpiCard
-                title="Calidad Media"
+                title="Calidad media"
                 value={agg!.avg_quality_score !== null ? `${agg!.avg_quality_score}%` : '-'}
-                chipLabel="Score"
+                chipLabel="Puntuación"
                 chipColor={GREEN}
                 icon={<AssessmentIcon sx={{ fontSize: 26 }} />}
                 iconBgColor={GREEN}
                 footer={
-                  agg!.avg_quality_score !== null ? (
-                    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                      {agg!.gate_distribution.passed > 0 && (
-                        <Typography variant="caption" sx={{ color: GREEN, fontWeight: 600 }}>
-                          {agg!.gate_distribution.passed} passed
-                        </Typography>
-                      )}
-                      {agg!.gate_distribution.warning > 0 && (
-                        <Typography variant="caption" sx={{ color: ORANGE, fontWeight: 600 }}>
-                          {agg!.gate_distribution.warning} warning
-                        </Typography>
-                      )}
-                      {agg!.gate_distribution.failed > 0 && (
-                        <Typography variant="caption" sx={{ color: RED, fontWeight: 600 }}>
-                          {agg!.gate_distribution.failed} failed
-                        </Typography>
-                      )}
-                    </Box>
-                  ) : (
-                    <Typography variant="caption" sx={{ color: '#888' }}>Sin evaluaciones</Typography>
-                  )
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    {agg!.avg_quality_score !== null ? (
+                      <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                        {agg!.gate_distribution.passed > 0 && (
+                          <Typography variant="caption" sx={{ color: GREEN, fontWeight: 600 }}>
+                            {agg!.gate_distribution.passed} passed
+                          </Typography>
+                        )}
+                        {agg!.gate_distribution.warning > 0 && (
+                          <Typography variant="caption" sx={{ color: ORANGE, fontWeight: 600 }}>
+                            {agg!.gate_distribution.warning} warning
+                          </Typography>
+                        )}
+                        {agg!.gate_distribution.failed > 0 && (
+                          <Typography variant="caption" sx={{ color: RED, fontWeight: 600 }}>
+                            {agg!.gate_distribution.failed} failed
+                          </Typography>
+                        )}
+                      </Box>
+                    ) : (
+                      <Typography variant="caption" sx={{ color: '#888' }}>Sin evaluaciones</Typography>
+                    )}
+                    <Tooltip title="Ver análisis">
+                      <IconButton size="small" onClick={() => router.push('/evaluations')} sx={{ color: '#AAA' }}>
+                        <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 }
               />
             </Grid>
@@ -287,35 +294,64 @@ function Dashboard() {
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid item xs={12} md={5}>
                 <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', height: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 2, fontSize: '1rem' }}>
-                    Distribucion de calidad
-                  </Typography>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', fontSize: '1rem' }}>
+                      Distribución de calidad
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#888' }}>
+                      Último análisis completado por proyecto
+                    </Typography>
+                  </Box>
                   <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Grid item xs={5} sx={{ display: 'flex', justifyContent: 'center' }}>
                       <StatusDonut
                         passed={agg!.gate_distribution.passed}
                         warning={agg!.gate_distribution.warning}
                         failed={agg!.gate_distribution.failed}
                         noAnalysis={agg!.gate_distribution.no_analysis}
-                        size={130}
+                        size={120}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={7}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {[
-                          { label: 'Passed', color: GREEN, count: agg!.gate_distribution.passed },
-                          { label: 'Warning', color: ORANGE, count: agg!.gate_distribution.warning },
-                          { label: 'Failed', color: RED, count: agg!.gate_distribution.failed },
-                          { label: 'Sin analisis', color: '#CCCCCC', count: agg!.gate_distribution.no_analysis },
-                        ].map(item => (
-                          <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: item.color }} />
-                              <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>{item.label}</Typography>
+                          { label: 'Aprobado', desc: 'Score ≥ umbral', color: GREEN, count: agg!.gate_distribution.passed },
+                          { label: 'Advertencia', desc: 'Score en el límite', color: ORANGE, count: agg!.gate_distribution.warning },
+                          { label: 'Fallido', desc: 'Score < umbral', color: RED, count: agg!.gate_distribution.failed },
+                          { label: 'Sin análisis', desc: 'Aún no evaluado', color: '#CCCCCC', count: agg!.gate_distribution.no_analysis },
+                        ].map(item => {
+                          const pct = agg!.total_projects > 0
+                            ? Math.round((item.count / agg!.total_projects) * 100)
+                            : 0;
+                          return (
+                            <Box key={item.label} sx={{ opacity: item.count === 0 ? 0.4 : 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
+                                  <Box>
+                                    <Typography variant="body2" sx={{ fontSize: '0.78rem', fontWeight: 600, lineHeight: 1.2 }}>
+                                      {item.label}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ fontSize: '0.67rem', color: '#AAA', lineHeight: 1 }}>
+                                      {item.desc}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                                  <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: item.count > 0 ? item.color : '#BBB' }}>
+                                    {item.count}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.68rem', color: '#AAA' }}>
+                                    {pct}%
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Box sx={{ height: 4, borderRadius: 2, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>
+                                <Box sx={{ height: '100%', width: `${pct}%`, backgroundColor: item.color, borderRadius: 2, transition: 'width 0.6s ease' }} />
+                              </Box>
                             </Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{item.count}</Typography>
-                          </Box>
-                        ))}
+                          );
+                        })}
                       </Box>
                     </Grid>
                   </Grid>
@@ -323,9 +359,14 @@ function Dashboard() {
               </Grid>
               <Grid item xs={12} md={7}>
                 <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', height: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 2, fontSize: '1rem' }}>
-                    Problemas de calidad por proyecto
-                  </Typography>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', fontSize: '1rem' }}>
+                      Problemas de calidad por proyecto
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#888' }}>
+                      Último análisis completado por proyecto
+                    </Typography>
+                  </Box>
                   <IssueSeverityChart projects={issuesByProject} maxProjects={8} />
                 </Card>
               </Grid>
@@ -339,7 +380,7 @@ function Dashboard() {
                 Historial de salud de proyectos
               </Typography>
               <Typography variant="body2" sx={{ color: '#888', mb: 2, fontSize: '0.78rem' }}>
-                Cada barra representa el resultado de las evaluaciones de un dia
+                Cada barra es un día. Si hay varias evaluaciones en un día, se muestra la más desfavorable.
               </Typography>
               <ProjectHealthTimeline
                 projects={data.projects}
@@ -352,8 +393,11 @@ function Dashboard() {
           {/* ═══ Section D: Requires Attention ═══ */}
           {data.projects.some(p => p.latest_analysis) && (
             <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 2, fontSize: '1rem' }}>
-                Requiere atencion
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', fontSize: '1rem' }}>
+                Requiere atención
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 2 }}>
+                Proyectos con Quality Gate fallido, en advertencia o score inferior al 70%
               </Typography>
               <AttentionTable projects={data.projects} />
             </Card>

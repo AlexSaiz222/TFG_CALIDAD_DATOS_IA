@@ -34,10 +34,10 @@ function getGateColor(status: string | null | undefined): string {
 }
 
 function getGateLabel(status: string | null | undefined): string {
-  if (status === 'PASSED') return 'Passed';
-  if (status === 'WARNING') return 'Warning';
-  if (status === 'FAILED') return 'Failed';
-  return 'N/A';
+  if (status === 'PASSED') return 'Aprobado';
+  if (status === 'WARNING') return 'Advertencia';
+  if (status === 'FAILED') return 'Fallido';
+  return 'Sin datos';
 }
 
 function timeAgo(dateStr: string | null | undefined): string {
@@ -120,8 +120,8 @@ const AttentionTable: React.FC<AttentionTableProps> = ({ projects }) => {
             <TableCell sx={thSx}>Proyecto</TableCell>
             <TableCell sx={thSx} align="center">Score</TableCell>
             <TableCell sx={thSx} align="center">Estado</TableCell>
-            <TableCell sx={thSx} align="center">Criticas</TableCell>
-            <TableCell sx={thSx} align="right">Ultimo analisis</TableCell>
+            <TableCell sx={thSx} align="center">Problemas</TableCell>
+            <TableCell sx={thSx} align="right">Último análisis</TableCell>
             <TableCell sx={{ ...thSx, width: 40 }} />
           </TableRow>
         </TableHead>
@@ -185,10 +185,10 @@ const AttentionTable: React.FC<AttentionTableProps> = ({ projects }) => {
                     variant="body2"
                     sx={{
                       fontWeight: 600,
-                      color: analysis.critical_issues_count > 0 ? RED : '#888',
+                      color: analysis.total_issues_count > 0 ? ORANGE : '#888',
                     }}
                   >
-                    {analysis.critical_issues_count}
+                    {analysis.total_issues_count}
                   </Typography>
                 </TableCell>
                 <TableCell sx={tdSx} align="right">
@@ -197,7 +197,11 @@ const AttentionTable: React.FC<AttentionTableProps> = ({ projects }) => {
                   </Typography>
                 </TableCell>
                 <TableCell sx={tdSx}>
-                  <IconButton size="small" sx={{ color: '#CCC' }}>
+                  <IconButton
+                    size="small"
+                    sx={{ color: '#CCC', '&:hover': { color: RED } }}
+                    onClick={e => { e.stopPropagation(); router.push(`/evaluations/${analysis.id}`); }}
+                  >
                     <ArrowForwardIcon sx={{ fontSize: 16 }} />
                   </IconButton>
                 </TableCell>
