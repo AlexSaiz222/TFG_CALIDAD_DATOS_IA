@@ -20,6 +20,12 @@ const GATE_PRIORITY: Record<string, number> = {
   PASSED: 1,
 };
 
+const GATE_LABELS: Record<string, string> = {
+  PASSED: 'Aprobado',
+  WARNING: 'Advertencia',
+  FAILED: 'Fallido',
+};
+
 export type TimeRange = '30d' | '90d' | 'all';
 
 interface ProjectHealthTimelineProps {
@@ -31,6 +37,7 @@ interface ProjectHealthTimelineProps {
 interface TimeSlot {
   date: string;
   run: DashboardRunHistory | null;
+  runCount: number;
 }
 
 function getDateKey(dateStr: string): string {
@@ -39,27 +46,33 @@ function getDateKey(dateStr: string): string {
 
 function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot[] {
   const now = new Date();
-  let startDate: Date;
+  // Work entirely in UTC to match the UTC-based date keys returned by getDateKey()
+  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+  let startUTC: Date;
 
   if (timeRange === 'all') {
     if (runs.length === 0) {
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      startUTC = new Date(todayUTC.getTime() - 30 * 24 * 60 * 60 * 1000);
     } else {
       const earliest = runs.reduce((min, r) => {
         const d = r.completed_at || r.created_at;
         return d < min ? d : min;
       }, runs[0].completed_at || runs[0].created_at);
-      startDate = new Date(earliest);
+      const e = new Date(earliest);
+      startUTC = new Date(Date.UTC(e.getUTCFullYear(), e.getUTCMonth(), e.getUTCDate()));
     }
   } else {
     const days = timeRange === '30d' ? 30 : 90;
-    startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    startUTC = new Date(todayUTC.getTime() - days * 24 * 60 * 60 * 1000);
   }
 
-  // Build a map of date -> worst run
+  // Build a map of date -> worst run + count
   const runsByDate: Record<string, DashboardRunHistory> = {};
+  const countByDate: Record<string, number> = {};
   for (const run of runs) {
     const dateKey = getDateKey(run.completed_at || run.created_at);
+    countByDate[dateKey] = (countByDate[dateKey] || 0) + 1;
     const existing = runsByDate[dateKey];
     if (!existing) {
       runsByDate[dateKey] = run;
@@ -72,23 +85,36 @@ function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot
     }
   }
 
-  // Generate slots for each day
+  // Generate one slot per UTC day from startUTC to todayUTC (inclusive)
   const slots: TimeSlot[] = [];
-  const current = new Date(startDate);
-  current.setHours(0, 0, 0, 0);
-  const end = new Date(now);
-  end.setHours(23, 59, 59, 999);
+  const current = new Date(startUTC);
 
-  while (current <= end) {
+  while (current <= todayUTC) {
     const dateKey = current.toISOString().substring(0, 10);
     slots.push({
       date: dateKey,
       run: runsByDate[dateKey] || null,
+      runCount: countByDate[dateKey] || 0,
     });
-    current.setDate(current.getDate() + 1);
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   return slots;
+}
+
+function relativeTime(dateStr: string | null): string {
+  if (!dateStr) return '–';
+  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (days === 0) return 'Hoy';
+  if (days === 1) return 'Ayer';
+  if (days < 7) return `Hace ${days} d.`;
+  if (days < 30) return `Hace ${Math.floor(days / 7)} sem.`;
+  return `Hace ${Math.floor(days / 30)} mes.`;
+}
+
+function scoreColor(score: number | null): string {
+  if (score === null) return '#888';
+  return score >= 80 ? GREEN : score >= 60 ? ORANGE : RED;
 }
 
 function formatDate(dateStr: string): string {
@@ -180,7 +206,7 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
           {/* Project name */}
           <Box
             sx={{
-              width: 160,
+              width: 120,
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
@@ -226,9 +252,15 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
                 ? GATE_COLORS[slot.run!.quality_gate_status] || GRAY_EMPTY
                 : GRAY_EMPTY;
 
+              const gateLabel = slot.run?.quality_gate_status
+                ? GATE_LABELS[slot.run.quality_gate_status] || slot.run.quality_gate_status
+                : 'N/A';
+              const multiInfo = slot.runCount > 1
+                ? ` · ${slot.runCount} evaluaciones (se muestra la más desfavorable)`
+                : '';
               const tooltipContent = hasRun
-                ? `${formatDate(slot.date)} - Score: ${slot.run!.quality_score?.toFixed(1) ?? 'N/A'}% - ${slot.run!.quality_gate_status || 'N/A'} - ${slot.run!.total_issues_count} incidencias`
-                : `${formatDate(slot.date)} - Sin evaluacion`;
+                ? `${formatDate(slot.date)} · Score: ${slot.run!.quality_score?.toFixed(1) ?? 'N/A'}% · ${gateLabel} · ${slot.run!.total_issues_count} problemas${multiInfo}`
+                : `${formatDate(slot.date)} · Sin evaluación`;
 
               return (
                 <Tooltip key={i} title={tooltipContent} arrow placement="top">
@@ -247,7 +279,7 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
                     }}
                     onClick={() => {
                       if (hasRun && slot.run) {
-                        router.push(`/projects/${project.id}/analysis/${slot.run.id}`);
+                        router.push(`/evaluations/${slot.run.id}`);
                       }
                     }}
                   />
@@ -255,12 +287,36 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
               );
             })}
           </Box>
+
+          {/* Stats column */}
+          <Box sx={{ width: 155, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.2 }}>
+            {project.latest_analysis ? (
+              <>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', color: scoreColor(project.latest_analysis.quality_score) }}>
+                    {project.latest_analysis.quality_score?.toFixed(1) ?? '—'}%
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.68rem', fontWeight: 500, color: project.latest_analysis.quality_gate_status ? GATE_COLORS[project.latest_analysis.quality_gate_status] || '#888' : '#888' }}>
+                    {project.latest_analysis.quality_gate_status ? GATE_LABELS[project.latest_analysis.quality_gate_status] || project.latest_analysis.quality_gate_status : '–'}
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '0.67rem', color: '#AAA' }}>
+                  Última: {relativeTime(project.latest_analysis.completed_at)}
+                </Typography>
+                <Typography sx={{ fontSize: '0.67rem', color: '#AAA' }}>
+                  {project.runs_history.length} eval. en el periodo
+                </Typography>
+              </>
+            ) : (
+              <Typography sx={{ fontSize: '0.67rem', color: '#CCC' }}>Sin análisis</Typography>
+            )}
+          </Box>
         </Box>
       ))}
 
       {/* Date axis labels */}
       {dateLabels.length > 0 && (
-        <Box sx={{ display: 'flex', ml: '172px', mt: 0.5 }}>
+        <Box sx={{ display: 'flex', ml: '132px', mr: '167px', mt: 0.5 }}>
           <Typography variant="caption" sx={{ color: '#AAA', flex: 1, textAlign: 'left', fontSize: '0.65rem' }}>
             {dateLabels[0]}
           </Typography>
@@ -274,12 +330,12 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
       )}
 
       {/* Legend */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 1.5, ml: '172px' }}>
+      <Box sx={{ display: 'flex', gap: 2, mt: 1.5, ml: '132px' }}>
         {[
-          { label: 'Passed', color: GREEN },
-          { label: 'Warning', color: ORANGE },
-          { label: 'Failed', color: RED },
-          { label: 'Sin evaluacion', color: GRAY_EMPTY },
+          { label: 'Aprobado', color: GREEN },
+          { label: 'Advertencia', color: ORANGE },
+          { label: 'Fallido', color: RED },
+          { label: 'Sin evaluación', color: GRAY_EMPTY },
         ].map(item => (
           <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box sx={{ width: 10, height: 10, borderRadius: '2px', backgroundColor: item.color }} />

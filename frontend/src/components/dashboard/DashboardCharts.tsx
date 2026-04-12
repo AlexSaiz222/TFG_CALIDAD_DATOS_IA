@@ -134,7 +134,7 @@ export const StatusDonut: React.FC<StatusDonutProps> = ({
   }
 
   const chartData = {
-    labels: ['Passed', 'Warning', 'Failed', 'Sin análisis'],
+    labels: ['Aprobado', 'Advertencia', 'Fallido', 'Sin análisis'],
     datasets: [
       {
         data: [passed, warning, failed, noAnalysis],
@@ -151,17 +151,7 @@ export const StatusDonut: React.FC<StatusDonutProps> = ({
     cutout: '65%',
     plugins: {
       legend: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 10,
-        callbacks: {
-          label: (context: any) => {
-            const value = context.raw;
-            const percentage = ((value / total) * 100).toFixed(0);
-            return `${context.label}: ${value} (${percentage}%)`;
-          },
-        },
-      },
+      tooltip: { enabled: false },
     },
   };
 
@@ -184,7 +174,7 @@ export const StatusDonut: React.FC<StatusDonutProps> = ({
           {healthyPercentage}%
         </Typography>
         <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>
-          saludable
+          aprobados
         </Typography>
       </Box>
     </Box>
