@@ -79,24 +79,20 @@ const PARAM_HELP: Record<string, Record<string, ParamHelp>> = {
   completeness: {
     threshold:    { label: 'Umbral mínimo',      unit: '0 – 1',  description: 'Proporción mínima de valores no nulos exigida. Si la completitud real es inferior, se genera un issue.' },
     columns:      { label: 'Columnas',                           description: 'Columnas a evaluar. Vacío = todas las columnas del dataset.' },
-    weight:       { label: 'Peso en puntuación', unit: '0 – 1',  description: 'Influencia de esta métrica en el Quality Score global. Mayor peso = mayor impacto.' },
   },
   uniqueness: {
     threshold:    { label: 'Umbral de unicidad', unit: '0 – 1',  description: 'Proporción mínima de filas únicas exigida. 1.0 = ningún duplicado permitido.' },
     columns:      { label: 'Columnas clave',                     description: 'Columnas cuya combinación debe ser única (p.ej. identificadores). Vacío = filas completas.' },
-    weight:       { label: 'Peso en puntuación', unit: '0 – 1',  description: 'Influencia de esta métrica en el Quality Score global.' },
   },
   outliers: {
     method:       { label: 'Método de detección',               description: 'IQR es robusto ante distribuciones asimétricas. Z-Score asume distribución normal y es más sensible a extremos.' },
     factor:       { label: 'Factor de sensibilidad', unit: '> 0', description: 'Multiplicador de tolerancia. Más bajo = más estricto (más outliers detectados). 1.5 es el estándar; 3.0 es permisivo.' },
     columns:      { label: 'Columnas numéricas',                 description: 'Columnas numéricas a analizar. Vacío = todas las columnas numéricas detectadas.' },
-    weight:       { label: 'Peso en puntuación', unit: '0 – 1',  description: 'Influencia de esta métrica en el Quality Score global.' },
   },
   syntactic_accuracy: {
     auto_detect_types: { label: 'Detección automática',         description: 'Detecta formatos comunes (email, teléfono, fecha…) sin configuración manual. Si está desactivado, solo se evalúan las reglas de "columns".' },
     threshold:         { label: 'Umbral de conformidad', unit: '0 – 1', description: 'Porcentaje mínimo de valores que deben cumplir el formato en cada columna analizada.' },
     columns:           { label: 'Reglas de formato',            description: 'Lista de columnas con su tipo esperado (email, phone_es, date_iso, dni_es, url…). Complementa o reemplaza la detección automática.' },
-    weight:            { label: 'Peso en puntuación', unit: '0 – 1', description: 'Influencia de esta métrica en el Quality Score global.' },
   },
   class_balance: {
     auto_detect:               { label: 'Detección automática',       description: 'Detecta automáticamente columnas categóricas según el umbral de cardinalidad.' },
@@ -104,17 +100,14 @@ const PARAM_HELP: Record<string, Record<string, ParamHelp>> = {
     max_cardinality:           { label: 'Cardinalidad máxima', unit: 'entero', description: 'Nº máximo de valores únicos para considerar una columna como categórica. Columnas con más valores serán ignoradas.' },
     imbalance_threshold_high:  { label: 'Umbral de dominancia', unit: '0 – 1', description: 'Porcentaje máximo que puede ocupar una clase. Superarlo genera un issue de desequilibrio.' },
     imbalance_threshold_low:   { label: 'Umbral de minoría',   unit: '0 – 1', description: 'Porcentaje mínimo que debe tener cualquier clase. Por debajo = infrarepresentada.' },
-    weight:                    { label: 'Peso en puntuación',  unit: '0 – 1', description: 'Influencia de esta métrica en el Quality Score global.' },
   },
   currentness: {
     auto_detect:              { label: 'Detección automática',           description: 'Detecta automáticamente columnas de tipo fecha, timestamp o datetime.' },
     columns:                  { label: 'Columnas de fecha',              description: 'Columnas de fecha específicas. Vacío = todas las detectadas automáticamente.' },
     staleness_threshold_days: { label: 'Umbral de obsolescencia', unit: 'días', description: 'Días sin actualización a partir de los cuales un registro se considera desactualizado.' },
-    weight:                   { label: 'Peso en puntuación', unit: '0 – 1', description: 'Influencia de esta métrica en el Quality Score global.' },
   },
   logical_consistency: {
     rules:  { label: 'Reglas de negocio', description: 'Lista de reglas que los datos deben cumplir. "violation": expresión que selecciona filas inválidas. "if_then": si se cumple la condición, la aserción debe ser verdadera.' },
-    weight: { label: 'Peso en puntuación', unit: '0 – 1', description: 'Influencia de esta métrica en el Quality Score global.' },
   },
 };
 

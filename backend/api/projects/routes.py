@@ -144,18 +144,15 @@ def create_project():
         default_metrics = [
             {
                 "id": "completeness",
-                "parameters": {},
-                "weight": 1.0
+                "parameters": {}
             },
             {
                 "id": "uniqueness",
-                "parameters": {},
-                "weight": 1.0
+                "parameters": {}
             },
             {
                 "id": "outliers",
-                "parameters": {"method": "iqr", "factor": 1.5},
-                "weight": 1.0
+                "parameters": {"method": "iqr", "factor": 1.5}
             }
         ]
         

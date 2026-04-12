@@ -413,7 +413,6 @@ const MetricsConfigurationPage = () => {
       const metricsConfig = selectedMetrics.map((metric) => ({
         id: metric.name,  // Usar el nombre de la métrica como id (string) para consistencia
         parameters: metric.parameters || {},
-        weight: metric.weight || 1.0  // Incluir weight si existe
       }));
 
       // El formato esperado por la API

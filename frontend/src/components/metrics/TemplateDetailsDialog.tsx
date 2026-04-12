@@ -25,7 +25,6 @@ import { getMetricMeta, formatParamValue, GREEN, GREEN_HOVER } from '../../utils
 const PARAM_LABELS: Record<string, string> = {
   threshold: 'Umbral',
   columns: 'Columnas',
-  weight: 'Peso',
   method: 'Método',
   factor: 'Factor',
   auto_detect: 'Auto-detección',

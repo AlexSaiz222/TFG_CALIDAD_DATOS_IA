@@ -26,15 +26,13 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
     example: {
       threshold: 0.95,
       columns: ['nombre', 'email', 'telefono'],
-      weight: 1.0,
     },
-    description: 'threshold: mínimo de completitud (0–1). columns: vacío = todas. weight: peso en Quality Score.',
+    description: 'threshold: mínimo de completitud (0–1). columns: vacío = todas.',
   },
   uniqueness: {
     example: {
       threshold: 1.0,
       columns: ['user_id', 'transaction_id'],
-      weight: 1.0,
     },
     description: 'threshold: unicidad mínima de filas (1.0 = sin duplicados). columns: columnas que deben ser únicas.',
   },
@@ -46,7 +44,6 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
         { column: 'email', expected_type: 'email' },
         { column: 'telefono', expected_type: 'phone_es' },
       ],
-      weight: 1.0,
     },
     description: 'auto_detect_types: detectar formatos automáticamente. columns: reglas columna→formato. Tipos: email, phone_es, phone_intl, date_iso, date_eu, dni_es, postal_code_es, integer, decimal, url, uuid, ip_v4, credit_card.',
   },
@@ -57,7 +54,6 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
       max_cardinality: 50,
       imbalance_threshold_high: 0.90,
       imbalance_threshold_low: 0.05,
-      weight: 1.0,
     },
     description: 'auto_detect: detectar columnas categóricas. max_cardinality: máx. valores únicos para considerar categórico. imbalance_threshold_high/low: umbrales de desequilibrio.',
   },
@@ -66,7 +62,6 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
       auto_detect: true,
       columns: ['fecha_registro', 'fecha_actualizacion'],
       staleness_threshold_days: 30,
-      weight: 1.0,
     },
     description: 'auto_detect: detectar columnas de fecha. staleness_threshold_days: días sin actualización = alerta.',
   },
@@ -85,7 +80,6 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
           expression: 'precio < 0',
         },
       ],
-      weight: 1.0,
     },
     description: 'rules: lista de reglas. Tipo "if_then": condition + assertion. Tipo "violation": expression (filas que violan la regla).',
   },
@@ -185,16 +179,6 @@ const JsonParameterEditor: React.FC<JsonParameterEditorProps> = ({
         const f = parsed.factor;
         if (typeof f === 'number' && (f < 0 || f > 10)) {
           setError('factor debe estar entre 0 y 10');
-          onValidationChange?.(false);
-          return;
-        }
-      }
-      
-      // Validate weight
-      if ('weight' in parsed) {
-        const w = parsed.weight;
-        if (typeof w === 'number' && (w < 0 || w > 2)) {
-          setError('weight debe estar entre 0 y 2');
           onValidationChange?.(false);
           return;
         }
