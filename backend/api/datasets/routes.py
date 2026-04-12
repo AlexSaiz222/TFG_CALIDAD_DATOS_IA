@@ -2029,9 +2029,31 @@ def compare_dataset_versions(project_id, dataset_id, other_dataset_id):
                 return issue_b.fingerprint in fps_a
             return issue_b.description in no_fp_desc_a
 
+        # Lookups to retrieve the version-A counterpart of each persistent issue
+        fp_to_issue_a   = {i.fingerprint: i for i in issues_a_list if i.fingerprint}
+        desc_to_issue_a = {i.description: i  for i in issues_a_list if not i.fingerprint}
+
+        def _get_pair_from_a(issue_b):
+            if issue_b.fingerprint:
+                return fp_to_issue_a.get(issue_b.fingerprint)
+            return desc_to_issue_a.get(issue_b.description)
+
+        def _build_common_issue(issue_b):
+            d = issue_b.to_dict()
+            issue_a = _get_pair_from_a(issue_b)
+            if issue_a:
+                d['previous_actual_value']       = issue_a.actual_value
+                d['previous_affected_row_count'] = issue_a.affected_row_count
+                d['previous_severity']           = issue_a.severity
+                if issue_b.affected_row_count is not None and issue_a.affected_row_count is not None:
+                    d['row_count_delta'] = issue_b.affected_row_count - issue_a.affected_row_count
+                else:
+                    d['row_count_delta'] = None
+            return d
+
         resolved_issues = [i.to_dict() for i in issues_a_list if not _is_in_b(i)]
         new_issues      = [i.to_dict() for i in issues_b_list if not _is_in_a(i)]
-        common_issues   = [i.to_dict() for i in issues_b_list if _is_in_a(i)]
+        common_issues   = [_build_common_issue(i) for i in issues_b_list if _is_in_a(i)]
         
         # Build comparison response with frontend-expected structure
         dataset_a_dict = dataset_a.to_dict()

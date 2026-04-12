@@ -117,6 +117,7 @@ class LogicalConsistencyMetric(BaseMetric):
                             "sample": sample_violations[:5],
                         },
                         "issue_type": "logical_consistency",
+                        "actual_value": f"{compliance_rate:.2%}",
                         "fingerprint": generate_logical_consistency_fingerprint(
                             rule_expression=expression, rule_name=rule_name
                         ),

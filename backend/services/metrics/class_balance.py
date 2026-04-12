@@ -135,6 +135,7 @@ class ClassBalanceMetric(BaseMetric):
                         "balance_index": round(balance_index, 2),
                     }],
                     "issue_type": "class_balance",
+                    "actual_value": f"{dominant_prop:.1%}",
                     "fingerprint": generate_class_balance_fingerprint(
                         column_name=col, imbalance_type="dominant_class"
                     ),
@@ -156,6 +157,7 @@ class ClassBalanceMetric(BaseMetric):
                         "balance_index": round(balance_index, 2),
                     }],
                     "issue_type": "class_balance",
+                    "actual_value": f"{minority_prop:.2%}",
                     "fingerprint": generate_class_balance_fingerprint(
                         column_name=col, imbalance_type="minority_class"
                     ),

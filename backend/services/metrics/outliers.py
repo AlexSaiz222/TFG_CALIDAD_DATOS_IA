@@ -64,7 +64,9 @@ class OutliersMetric(BaseMetric):
                         "outlier_count": outliers["count"],
                         "outlier_proportion": float(proportion),
                     }],
+                    "affected_rows": {"count": outliers["count"]},
                     "issue_type": "outliers",
+                    "actual_value": f"{proportion:.1%}",
                     "fingerprint": generate_outlier_issue_fingerprint(
                         column_name=col, method=method, factor=factor
                     ),

@@ -158,7 +158,9 @@ class SyntacticAccuracyMetric(BaseMetric):
                         "invalid_count": invalid_count,
                         "conformance_rate": float(conformance_rate),
                     }],
+                    "affected_rows": {"count": invalid_count},
                     "issue_type": "syntactic_accuracy",
+                    "actual_value": f"{conformance_rate:.2%}",
                     "fingerprint": generate_syntactic_accuracy_fingerprint(
                         column_name=col_name,
                         expected_type=expected_type,

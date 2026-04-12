@@ -137,6 +137,7 @@ class CurrentnessMetric(BaseMetric):
                         "freshness_score": round(col_freshness, 4),
                     }],
                     "issue_type": "currentness",
+                    "actual_value": age_human,
                     "fingerprint": generate_currentness_fingerprint(
                         column_name=col_name,
                         staleness_threshold_days=staleness_days,

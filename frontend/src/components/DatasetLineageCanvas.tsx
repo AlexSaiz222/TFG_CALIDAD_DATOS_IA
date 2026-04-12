@@ -136,6 +136,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
   // Node drag state
   const [nodeOffsets, setNodeOffsets] = useState<Record<number, { dx: number; dy: number }>>({});
   const dragRef = useRef<{ nodeId: number; startMouseX: number; startMouseY: number; startDx: number; startDy: number } | null>(null);
+  const didDragRef = useRef(false);
 
   // Inline edit
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -199,6 +200,9 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
       const { nodeId, startMouseX, startMouseY, startDx, startDy } = dragRef.current;
       const dx = (e.clientX - startMouseX) / scale + startDx;
       const dy = (e.clientY - startMouseY) / scale + startDy;
+      if (Math.abs(e.clientX - startMouseX) > 4 || Math.abs(e.clientY - startMouseY) > 4) {
+        didDragRef.current = true;
+      }
       setNodeOffsets(prev => ({ ...prev, [nodeId]: { dx, dy } }));
       return;
     }
@@ -217,6 +221,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
   const handleNodePointerDown = (e: React.PointerEvent<HTMLDivElement>, nodeId: number) => {
     if (editingId === nodeId) return;
     e.stopPropagation();
+    didDragRef.current = false;
     const current = nodeOffsets[nodeId] ?? { dx: 0, dy: 0 };
     dragRef.current = { nodeId, startMouseX: e.clientX, startMouseY: e.clientY, startDx: current.dx, startDy: current.dy };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -397,7 +402,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
                   data-node="true"
                   elevation={isCurrentDataset ? 6 : 2}
                   onPointerDown={e => handleNodePointerDown(e, v.id)}
-                  onClick={() => { if (!dragRef.current && !isEditing) router.push(`/datasets/${v.id}`); }}
+                  onClick={() => { if (!didDragRef.current && !isEditing) router.push(`/datasets/${v.id}`); }}
                   sx={{
                     position: 'absolute',
                     left: panOffset.x + ex * scale,

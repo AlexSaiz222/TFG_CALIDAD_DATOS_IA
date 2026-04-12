@@ -43,6 +43,7 @@ class CompletenessMetric(BaseMetric):
                 ),
                 "affected_columns": problem_columns,
                 "issue_type": "completeness",
+                "actual_value": f"{completeness:.2%}",
                 "fingerprint": generate_column_issue_fingerprint(
                     issue_type="completeness",
                     column_name="_dataset_",
@@ -64,6 +65,7 @@ class CompletenessMetric(BaseMetric):
                     "description": f"La columna '{col}' tiene baja completitud ({col_completeness:.2%})",
                     "affected_columns": [{"column": col, "null_rate": float(1 - col_completeness)}],
                     "issue_type": "completeness",
+                    "actual_value": f"{col_completeness:.2%}",
                     "fingerprint": generate_column_issue_fingerprint(
                         issue_type="completeness", column_name=col
                     ),

@@ -73,6 +73,7 @@ class UniquenessMetric(BaseMetric):
                 ),
                 "affected_columns": [col_issue],
                 "issue_type": "low_variability",
+                "actual_value": f"{col_issue['variability']:.2%}",
                 "fingerprint": generate_issue_fingerprint(
                     issue_type="low_variability",
                     column_name=col_issue["column"],
@@ -104,6 +105,7 @@ class UniquenessMetric(BaseMetric):
                     ),
                     "affected_rows": {"count": duplicate_count, "sample": sample_data},
                     "issue_type": "duplicate_rows",
+                    "actual_value": f"{(1 - row_uniqueness):.2%}",
                     "fingerprint": generate_duplicate_issue_fingerprint(is_row_level=True),
                 })
 
@@ -135,6 +137,7 @@ class UniquenessMetric(BaseMetric):
                         "uniqueness": float(col_uniqueness),
                     }],
                     "issue_type": "non_unique_identifier",
+                    "actual_value": f"{col_uniqueness:.2%}",
                     "fingerprint": generate_issue_fingerprint(
                         issue_type="non_unique_identifier",
                         column_name=col,

@@ -605,6 +605,15 @@ class EvaluationService:
                     severity_map = {'high': 'major', 'medium': 'minor', 'low': 'info', 'critical': 'critical'}
                     mapped_severity = severity_map.get(issue_data['severity'], 'minor')
                     
+                    # Extract affected_row_count from affected_rows structure
+                    affected_rows_data = issue_data.get('affected_rows')
+                    if isinstance(affected_rows_data, dict):
+                        affected_row_count = affected_rows_data.get('count', 0) or 0
+                    elif isinstance(affected_rows_data, list):
+                        affected_row_count = len(affected_rows_data)
+                    else:
+                        affected_row_count = 0
+
                     dq_issue = DataQualityIssue(
                         analysis_run_id=analysis_run.id,
                         metric_id=issue_data.get('metric_id'),
@@ -613,7 +622,9 @@ class EvaluationService:
                         severity=mapped_severity,
                         description=desc,
                         affected_columns=issue_data.get('affected_columns'),
-                        affected_rows=issue_data.get('affected_rows'),
+                        affected_rows=affected_rows_data,
+                        affected_row_count=affected_row_count,
+                        actual_value=issue_data.get('actual_value'),
                         rule_key=f"{issue_type}_check",
                         is_new=True  # Will be updated by comparison below
                     )

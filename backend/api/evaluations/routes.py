@@ -1027,10 +1027,12 @@ def start_analysis(project_id):
     try:
         # Validar configuración de métricas (excluir campos no pertenecientes al schema)
         schema_data = {k: v for k, v in data.items() if k in ('metrics', 'options')}
+        logger.warning(f"[SONAR-LITE] schema_data for validation: {schema_data}")
         validated_data = create_evaluation_schema.load(schema_data)
         metrics = validated_data['metrics']
         options = validated_data.get('options', {})
     except ValidationError as err:
+        logger.warning(f"[SONAR-LITE] Validation error in /analyze: {err.messages}")
         return jsonify({
             "success": False,
             "error": "invalid_config",
