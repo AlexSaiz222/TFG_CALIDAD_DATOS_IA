@@ -161,7 +161,12 @@ class Dataset(db.Model):
     def get_root_dataset(self):
         """Get the root dataset (first version) in the version chain"""
         current = self
+        visited = set()
         while current.parent:
+            if current.id in visited:
+                logger.warning(f"Circular parent reference detected at dataset {current.id}")
+                break
+            visited.add(current.id)
             current = current.parent
         return current
     

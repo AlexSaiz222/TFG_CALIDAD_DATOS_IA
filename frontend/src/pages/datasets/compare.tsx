@@ -12,7 +12,9 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
+  WarningAmber as WarningAmberIcon,
   ArrowForward as ArrowForwardIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI } from '../../services/api';
@@ -63,9 +65,11 @@ function GateIcon({ status, size = 18 }: { status?: string | null; size?: number
 
 function severityColor(s: string): string {
   switch (s?.toLowerCase()) {
-    case 'critical': case 'high': return RED;
-    case 'medium':               return ORANGE;
-    case 'low':                  return GREEN;
+    // Backend values (critical/major/minor/info)
+    case 'critical':             return RED;
+    case 'major': case 'high':   return RED;
+    case 'minor': case 'medium': return ORANGE;
+    case 'info':  case 'low':    return GREEN;
     default:                     return GRAY;
   }
 }
@@ -80,6 +84,60 @@ function diffColor(n: number | null, lowerIsBetter = false): string {
   if (n === null || n === 0) return GRAY;
   const improved = lowerIsBetter ? n < 0 : n > 0;
   return improved ? GREEN : RED;
+}
+
+/** Extrae el primer número flotante de strings como "88.06%", "0.154", "12 rows" */
+function parseNumericValue(v: string | null | undefined): number | null {
+  if (!v) return null;
+  const m = v.match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+
+/**
+ * Calcula el chip de delta para issues persistentes.
+ * - Usa actual_value de ambas versiones si son parseables.
+ * - Fallback: usa row_count_delta.
+ * - Color: rojo si empeoró (más filas afectadas), verde si mejoró, gris si igual/desconocido.
+ */
+function buildPersistentDelta(
+  prevActual: string | null | undefined,
+  currActual: string | null | undefined,
+  rowCountDelta: number | null | undefined,
+): { text: string; color: string } | null {
+  const prev = parseNumericValue(prevActual);
+  const curr = parseNumericValue(currActual);
+  const isPercent = (s?: string | null) => typeof s === 'string' && s.includes('%');
+
+  if (prev !== null && curr !== null && prev !== curr) {
+    const delta = curr - prev;
+    const sign  = delta > 0 ? '+' : '';
+    const unit  = isPercent(prevActual) || isPercent(currActual) ? 'pp' : '';
+    const text  = `${sign}${delta.toFixed(2)}${unit}`;
+    // Direction: for row-count-based issues, more rows = worse.
+    // For percentage metrics (completeness, etc.) higher is generally better.
+    // We use row_count_delta as the ground truth for color when available.
+    let color: string;
+    if (rowCountDelta != null) {
+      color = rowCountDelta > 0 ? RED : rowCountDelta < 0 ? GREEN : GRAY;
+    } else {
+      // Heuristic: for % values, higher = better (completeness, uniqueness…)
+      color = isPercent(prevActual) || isPercent(currActual)
+        ? (delta < 0 ? RED : GREEN)
+        : GRAY;
+    }
+    return { text, color };
+  }
+
+  // Fallback to row count delta when no parseable actual_value change
+  if (rowCountDelta != null && rowCountDelta !== 0) {
+    const sign = rowCountDelta > 0 ? '+' : '';
+    return {
+      text:  `${sign}${rowCountDelta} filas`,
+      color: rowCountDelta > 0 ? RED : GREEN,
+    };
+  }
+
+  return null;
 }
 
 // ─── sub-componentes ──────────────────────────────────────────────────────
@@ -327,6 +385,65 @@ const IssueRow: React.FC<{ issue: any; resolved?: boolean }> = ({ issue, resolve
   );
 };
 
+/** Fila de issue persistente con chip de delta entre versiones */
+const PersistentIssueRow: React.FC<{ issue: any }> = ({ issue }) => {
+  const color = severityColor(issue.severity);
+  const delta = buildPersistentDelta(
+    issue.previous_actual_value,
+    issue.actual_value,
+    issue.row_count_delta,
+  );
+  const tooltipTitle = issue.previous_actual_value
+    ? `Versión anterior: ${issue.previous_actual_value}`
+    : issue.previous_affected_row_count != null
+    ? `Versión anterior: ${issue.previous_affected_row_count} filas afectadas`
+    : '';
+
+  return (
+    <Box sx={{
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+      gap: 1.25, py: 1, borderBottom: '1px solid #F8F8F8',
+      '&:last-child': { borderBottom: 'none' },
+    }}>
+      {/* Severity dot + description */}
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, flex: 1, minWidth: 0 }}>
+        <Tooltip title={issue.severity} placement="top">
+          <Box sx={{
+            width: 7, height: 7, borderRadius: '50%',
+            backgroundColor: color,
+            mt: '5px', flexShrink: 0,
+          }} />
+        </Tooltip>
+        <Typography sx={{ fontSize: '0.8rem', color: '#333', lineHeight: 1.45 }}>
+          {issue.description}
+        </Typography>
+      </Box>
+      {/* Delta chip */}
+      {delta && (
+        <Tooltip title={tooltipTitle} placement="top" arrow>
+          <Box sx={{
+            px: 1, py: 0.2,
+            borderRadius: '5px',
+            backgroundColor: `${delta.color}12`,
+            border: `1px solid ${delta.color}35`,
+            flexShrink: 0,
+            cursor: 'default',
+          }}>
+            <Typography sx={{
+              fontSize: '0.68rem', fontWeight: 700,
+              color: delta.color,
+              fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
+            }}>
+              {delta.text}
+            </Typography>
+          </Box>
+        </Tooltip>
+      )}
+    </Box>
+  );
+};
+
 // ─── página principal ─────────────────────────────────────────────────────
 const DatasetCompare = () => {
   const router = useRouter();
@@ -561,35 +678,48 @@ const DatasetCompare = () => {
           </Box>
         </Box>
 
-        {/* ── Issues comunes (si los hay, colapsado) ── */}
-        {commonCount > 0 && (
+        {/* ── Issues comunes ── */}
+        <Box sx={{
+          mt: 2,
+          border: '1px solid #EEEEEE',
+          borderRadius: 2,
+          overflow: 'hidden',
+          backgroundColor: '#fff',
+        }}>
           <Box sx={{
-            mt: 2,
-            border: '1px solid #EEEEEE',
-            borderRadius: 2,
-            overflow: 'hidden',
-            backgroundColor: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            px: 2.5, py: 1.75,
+            borderBottom: commonCount > 0 ? '1px solid #F5F5F5' : 'none',
+            backgroundColor: commonCount > 0 ? `${ORANGE}06` : '#FAFAFA',
           }}>
-            <Box sx={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              px: 2.5, py: 1.75,
-            }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <WarningAmberIcon sx={{ fontSize: 16, color: commonCount > 0 ? ORANGE : '#CCC' }} />
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
                 Issues persistentes
               </Typography>
-              <Box sx={{ px: 1, py: 0.15, borderRadius: '10px', backgroundColor: '#F0F0F0' }}>
-                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: GRAY }}>
-                  {commonCount}
-                </Typography>
-              </Box>
             </Box>
-            <Box sx={{ px: 2.5, pb: 1.5, maxHeight: 200, overflowY: 'auto', borderTop: '1px solid #F5F5F5' }}>
-              {comparison.common_issues.map((issue: any, i: number) => (
-                <IssueRow key={i} issue={issue} />
-              ))}
+            <Box sx={{
+              px: 1, py: 0.15,
+              borderRadius: '10px',
+              backgroundColor: commonCount > 0 ? `${ORANGE}18` : '#F0F0F0',
+            }}>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: commonCount > 0 ? ORANGE : '#AAAAAA' }}>
+                {commonCount}
+              </Typography>
             </Box>
           </Box>
-        )}
+          <Box sx={{ px: 2.5, py: commonCount > 0 ? 1.5 : 3, maxHeight: 320, overflowY: 'auto' }}>
+            {commonCount > 0 ? (
+              comparison.common_issues.map((issue: any, i: number) => (
+                <PersistentIssueRow key={i} issue={issue} />
+              ))
+            ) : (
+              <Typography sx={{ textAlign: 'center', color: '#CCCCCC', fontSize: '0.82rem' }}>
+                Sin issues persistentes
+              </Typography>
+            )}
+          </Box>
+        </Box>
 
       </Box>
     </MainLayout>

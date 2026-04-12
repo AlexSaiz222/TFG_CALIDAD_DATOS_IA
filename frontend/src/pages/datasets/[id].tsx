@@ -541,6 +541,9 @@ const DatasetDetail = () => {
       }
     } catch (error: any) {
       console.error('Error running evaluation:', error);
+      if (error.response?.data?.details) {
+        console.error('Validation details:', JSON.stringify(error.response.data.details, null, 2));
+      }
       setEvalError(error.response?.data?.message || 'Error al lanzar la evaluación. Por favor, inténtalo de nuevo.');
       setRunningEvaluation(false);
     }
