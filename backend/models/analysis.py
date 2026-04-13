@@ -311,6 +311,9 @@ class DataQualityIssue(db.Model):
     
     # Número de filas afectadas (para no tener que contar el array)
     affected_row_count = db.Column(db.Integer, default=0)
+
+    # Porcentaje de filas afectadas (0.0-1.0) — contexto informativo
+    affected_rows_pct = db.Column(db.Float, nullable=True)
     
     # Estado del issue en este run
     is_new = db.Column(db.Boolean, default=True)  # True si no existía en el baseline
@@ -342,6 +345,7 @@ class DataQualityIssue(db.Model):
                 'affected_columns': self.affected_columns or [],
                 'affected_rows': self.affected_rows,
                 'affected_row_count': self.affected_row_count or 0,
+                'affected_rows_pct': self.affected_rows_pct,
                 'is_new': self.is_new,
                 'rule_key': self.rule_key,
                 'actual_value': self.actual_value,
@@ -367,5 +371,6 @@ class DataQualityIssue(db.Model):
             'description': self.description[:200] if self.description else None,
             'affected_columns': self.affected_columns or [],
             'affected_row_count': self.affected_row_count or 0,
+            'affected_rows_pct': self.affected_rows_pct,
             'is_new': self.is_new,
         }

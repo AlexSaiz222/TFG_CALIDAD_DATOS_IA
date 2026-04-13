@@ -33,6 +33,8 @@ class CompletenessMetric(BaseMetric):
                     problem_columns.append({"column": col, "null_rate": null_rate})
 
             severity = self.calculate_dynamic_severity(completeness, threshold, higher_is_better=True)
+            problem_col_names = [c["column"] for c in problem_columns]
+            null_row_count = int(df[problem_col_names].isna().any(axis=1).sum()) if problem_col_names else 0
             issues.append({
                 "evaluation_id": evaluation_id,
                 "metric_id": metrics_map.get("completeness"),
@@ -42,6 +44,7 @@ class CompletenessMetric(BaseMetric):
                     f"del umbral ({threshold:.2%})"
                 ),
                 "affected_columns": problem_columns,
+                "affected_rows": {"count": null_row_count},
                 "issue_type": "completeness",
                 "actual_value": f"{completeness:.2%}",
                 "fingerprint": generate_column_issue_fingerprint(
@@ -58,12 +61,14 @@ class CompletenessMetric(BaseMetric):
                 col_severity = self.calculate_dynamic_severity(
                     col_completeness, threshold, higher_is_better=True
                 )
+                null_count = int(df[col].isna().sum())
                 issues.append({
                     "evaluation_id": evaluation_id,
                     "metric_id": metrics_map.get("completeness"),
                     "severity": col_severity,
                     "description": f"La columna '{col}' tiene baja completitud ({col_completeness:.2%})",
                     "affected_columns": [{"column": col, "null_rate": float(1 - col_completeness)}],
+                    "affected_rows": {"count": null_count},
                     "issue_type": "completeness",
                     "actual_value": f"{col_completeness:.2%}",
                     "fingerprint": generate_column_issue_fingerprint(

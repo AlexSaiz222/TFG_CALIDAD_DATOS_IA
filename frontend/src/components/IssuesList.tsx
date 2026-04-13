@@ -492,6 +492,11 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {issue.affected_row_count ? issue.affected_row_count : '—'}
                   </Typography>
+                  {issue.affected_rows_pct != null && issue.affected_rows_pct > 0 && (
+                    <Typography variant="caption" sx={{ color: '#888' }}>
+                      {(issue.affected_rows_pct * 100).toFixed(1)}%
+                    </Typography>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
