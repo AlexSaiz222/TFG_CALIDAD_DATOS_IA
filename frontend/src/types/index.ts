@@ -211,6 +211,7 @@ export interface DataQualityIssue {
   affected_columns?: any[];
   affected_rows?: any;
   affected_row_count: number;
+  affected_rows_pct?: number;
   is_new: boolean;
   rule_key?: string;
   actual_value?: string;

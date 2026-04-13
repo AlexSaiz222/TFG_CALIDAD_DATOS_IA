@@ -556,6 +556,7 @@ class EvaluationService:
                 )
                 
                 # Create DataQualityIssues for AnalysisRun (new table)
+                total_rows = len(df)
                 for issue_data in issues:
                     # Use pre-computed fingerprint if available, otherwise generate one
                     fingerprint = issue_data.get('fingerprint')
@@ -600,6 +601,8 @@ class EvaluationService:
                     else:
                         affected_row_count = 0
 
+                    affected_rows_pct = (affected_row_count / total_rows) if total_rows > 0 and affected_row_count > 0 else 0.0
+
                     dq_issue = DataQualityIssue(
                         analysis_run_id=analysis_run.id,
                         metric_id=issue_data.get('metric_id'),
@@ -610,6 +613,7 @@ class EvaluationService:
                         affected_columns=issue_data.get('affected_columns'),
                         affected_rows=affected_rows_data,
                         affected_row_count=affected_row_count,
+                        affected_rows_pct=affected_rows_pct,
                         actual_value=issue_data.get('actual_value'),
                         rule_key=f"{issue_type}_check",
                         is_new=True  # Will be updated by comparison below
