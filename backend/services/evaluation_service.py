@@ -665,7 +665,13 @@ class EvaluationService:
         
         except Exception as e:
             logger.error(f"[EVALUATION] Error in evaluation {evaluation_id}: {str(e)}", exc_info=True)
-            
+
+            # Rollback any failed transaction before issuing new queries
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
             # Update legacy Evaluation status to failed
             try:
                 evaluation = Evaluation.query.get(evaluation_id)
