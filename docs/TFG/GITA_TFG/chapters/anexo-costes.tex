@@ -1,0 +1,95 @@
+\chapter{Estimación de costes y viabilidad económica}
+\label{anx:costes}
+
+Este anexo amplía el análisis de costes de la sección~\ref{sec:costes} con
+un desglose detallado por sprint y un análisis de viabilidad económica.
+
+\section*{Desglose de horas reales por sprint}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Horas reales de desarrollo por sprint y categoría}
+  \begin{tabularx}{\textwidth}{l c c c c c}
+    \toprule
+    \textbf{Sprint} & \textbf{Backend} & \textbf{Frontend} &
+      \textbf{Infraestr.} & \textbf{Pruebas} & \textbf{Total} \\
+    \midrule
+    S1 --- Análisis y arquitectura & 20 &  0 & 30 &  0 &  60 \\
+    S2 --- Backend core            & 65 &  0 & 10 &  10 &  85 \\
+    S3 --- Motor de métricas       & 55 &  0 &  5 & 10 &  70 \\
+    S4 --- Frontend                & 10 & 50 &  0 &  5 &  65 \\
+    S5 --- Features avanzadas      & 40 & 10 &  5 &  0 &  55 \\
+    S6 --- Pruebas y documentación & 10 &  0 &  0 & 30 &  40 \\
+    S6 --- Documentación (memoria) &  0 &  0 &  0 &  0 &  50 \\
+    \midrule
+    \textbf{Total}                 & \textbf{200} & \textbf{60} &
+      \textbf{50} & \textbf{55} & \textbf{425} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Coste total del proyecto}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Desglose completo de costes del proyecto}
+  \begin{tabularx}{\textwidth}{l X c c c}
+    \toprule
+    \textbf{Categoría} & \textbf{Concepto} &
+      \textbf{Uds.} & \textbf{€/ud.} & \textbf{Total} \\
+    \midrule
+    Mano de obra & Desarrollador full-stack junior (425h real) &
+      425~h & 25~€/h & 10\,625~€ \\
+    Mano de obra & Supervisión tutores (2 tutores × 10h) &
+      20~h & 60~€/h & 1\,200~€ \\
+    \midrule
+    Software & Python, Flask, Next.js, PostgreSQL, Redis, MinIO &
+      Licencias open source & 0~€ & 0~€ \\
+    Software & GitHub (plan Free) & 1 & 0~€ & 0~€ \\
+    Software & Docker Desktop (personal, gratuito) & 1 & 0~€ & 0~€ \\
+    \midrule
+    Hardware & Equipo personal (amortización 3 años, 9 meses uso) &
+      9~meses & 28~€/mes & 252~€ \\
+    Hardware & Electricidad (estimada 50W × 8h/día × 270 días) &
+      108~kWh & 0,20~€/kWh & 22~€ \\
+    \midrule
+    \multicolumn{4}{r}{\textbf{TOTAL}} & \textbf{12\,099~€} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Análisis de viabilidad}
+
+Para evaluar la viabilidad de convertir \dataqual en un producto SaaS, se
+estiman los costes de infraestructura en un entorno AWS:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Estimación de costes de producción en AWS (por mes)}
+  \begin{tabularx}{\textwidth}{l X c}
+    \toprule
+    \textbf{Servicio AWS} & \textbf{Equivalente} & \textbf{€/mes} \\
+    \midrule
+    Amazon RDS (db.t3.small) & PostgreSQL & 30~€ \\
+    Amazon S3 (10~GB) & MinIO & 0,25~€ \\
+    Amazon ElastiCache (cache.t3.micro) & Redis & 15~€ \\
+    Amazon ECS (2 tareas) & Backend + Celery & 40~€ \\
+    Amazon CloudFront + S3 & Frontend estático & 5~€ \\
+    \midrule
+    \multicolumn{2}{l}{\textbf{Total infraestructura cloud/mes}} & \textbf{\(\sim\)90~€} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Con un coste de infraestructura de aproximadamente 90~€/mes, un modelo de
+suscripción de 15~€/usuario/mes requeriría solo 6 usuarios de pago para
+cubrir los costes operativos, lo que indica una \textbf{viabilidad económica
+favorable} para el modelo SaaS.
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

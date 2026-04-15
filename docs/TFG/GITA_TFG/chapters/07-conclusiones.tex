@@ -1,10 +1,73 @@
 \chapter{Conclusiones y trabajo futuro}
 \label{chap:conclusiones}
 
-\drop{E}{ste} capítulo final recoge las conclusiones del trabajo realizado,
-las lecciones aprendidas durante el desarrollo de \dataqual y las líneas de
-trabajo futuro identificadas para la evolución de la plataforma.
+\drop{E}{ste} capítulo final recoge la revisión punto por punto de los
+objetivos del proyecto, las conclusiones y valoración global, las lecciones
+aprendidas, las líneas de trabajo futuro, las competencias adquiridas y una
+valoración personal del proceso.
 
+
+%% =========================================================================
+\section{Revisión de objetivos}
+\label{sec:revision-objetivos}
+%% =========================================================================
+
+El presente \ac{TFG} estableció cinco objetivos específicos (OE1--OE5) y
+un conjunto de objetivos transversales.  A continuación se revisa el grado
+de cumplimiento de cada uno.
+
+\begin{description}
+  \item[OE1 — Módulo de ingesta y almacenamiento] \textbf{Cumplido.}
+    Se implementó soporte para CSV, XLSX, JSON y Parquet con estrategia de
+    \emph{fallback} múltiple (4 codificaciones $\times$ 5 delimitadores),
+    almacenamiento seguro en MinIO, extracción automática de esquema y
+    versionado padre-hijo con indicador \texttt{is\_latest}.
+
+  \item[OE2 — Motor de métricas parametrizables] \textbf{Cumplido.}
+    Se implementaron seis métricas de calidad evaluables (completitud,
+    unicidad, exactitud sintáctica, consistencia lógica, equilibrio de clases
+    y actualidad) mediante arquitectura de \emph{plugins}
+    (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY}), con parametrización
+    completa, sistema de pesos y plantillas reutilizables.  La clase
+    \texttt{OutliersMetric} se implementó como herramienta de diagnóstico
+    disponible en el módulo de perfilado, sin participar en el
+    \emph{Quality Score} (alineado con \ac{ISO}/IEC~5259).
+
+  \item[OE3 — \acs{API} \acs{REST} documentada] \textbf{Cumplido.}
+    Se implementaron seis \emph{blueprints} Flask con autenticación \ac{JWT},
+    formato de respuesta estandarizado \texttt{\{success, data, message\}},
+    paginación y validación Marshmallow.  La especificación completa se recoge
+    en el Anexo~A.
+
+  \item[OE4 — Aplicación web con cuadros de mando interactivos]
+    \textbf{Cumplido.}  Se desarrollaron más de 20 páginas con cuadros de
+    mando, visualizaciones interactivas (\emph{EDA}: histogramas, boxplots,
+    matrices de correlación) y diseño adaptable.
+
+  \item[OE5 — Mecanismos de identificación de problemas]
+    \textbf{Cumplido.}  Se implementaron el sistema de \emph{issues} con
+    cuatro niveles de severidad, el \emph{fingerprinting} \ac{SHA}-256
+    para trazabilidad entre evaluaciones y los \emph{Quality Gates} con
+    tres estados (PASSED/WARNING/FAILED).
+
+  \item[Objetivos transversales] \textbf{Cumplidos en su mayoría.}
+    Seguridad multicapa (JWT, PBKDF2, rate limiting, cabeceras), escalabilidad
+    asíncrona (Celery + Redis), mantenibilidad (módulos independientes) y
+    portabilidad (Docker Compose) han sido alcanzados.  La internacionalización
+    y las pruebas \emph{end-to-end} del \emph{frontend} quedan como trabajo
+    futuro.
+\end{description}
+
+\textbf{Valoración global del proyecto:} \dataqual es una plataforma
+funcional de extremo a extremo que supera en funcionalidades específicas para
+\ac{ML} (equilibrio de clases, fingerprinting, Quality Gates, PII nativo) a
+las alternativas open source revisadas.  Su madurez es la de un prototipo
+funcional, no de una herramienta de producción, lo cual está alineado con el
+alcance de un \ac{TFG}.
+
+\textbf{Limitaciones encontradas:} ausencia de Swagger/OpenAPI, sin
+exportación de informes, \emph{polling} en lugar de WebSockets, escalabilidad
+limitada a un nodo y cobertura de pruebas del \emph{frontend} insuficiente.
 
 %% =========================================================================
 \section{Conclusiones}
@@ -14,10 +77,10 @@ trabajo futuro identificadas para la evolución de la plataforma.
 El presente \ac{TFG} ha abordado el diseño, la implementación y la validación
 de \dataqual, una plataforma web integral para la evaluación automatizada de
 la calidad de datos en proyectos de \ac{IA}, \ac{ML} y minería de datos.
-A lo largo de las fases de desarrollo descritas en el
-capítulo~\ref{chap:metodologia}, se ha logrado construir un sistema funcional
-de extremo a extremo que cumple los cinco objetivos específicos establecidos
-en el capítulo~\ref{chap:objetivos}, tal como se ha verificado en la
+A lo largo de los seis sprints descritos en el capítulo~\ref{chap:desarrollo},
+se ha logrado construir un sistema funcional de extremo a extremo que cumple
+los cinco objetivos específicos establecidos en el
+capítulo~\ref{chap:objetivos}, tal como se ha verificado en la
 sección~\ref{sec:resultados-alcanzados}.
 
 Las principales conclusiones que se extraen del trabajo son las siguientes:
@@ -40,9 +103,9 @@ Las principales conclusiones que se extraen del trabajo son las siguientes:
   \item \textbf{La arquitectura de \emph{plugins} facilita la
     extensibilidad.}  El diseño del motor de métricas basado en una clase
     base abstracta y un registro dinámico ha demostrado ser una decisión
-    arquitectónica acertada: las siete métricas se han implementado de forma
-    independiente, y el proceso de incorporación de nuevas métricas está
-    formalizado en cuatro pasos claramente definidos.
+    arquitectónica acertada: las seis métricas evaluables se han implementado
+    de forma independiente, y el proceso de incorporación de nuevas métricas
+    está formalizado en cuatro pasos claramente definidos.
 
   \item \textbf{El \emph{fingerprinting} habilita la trazabilidad.}  La
     generación de \emph{hashes} deterministas para cada \emph{issue}
@@ -145,6 +208,150 @@ evolución de \dataqual:
     \emph{issues} detectados, cerrando el ciclo de diagnóstico con
     propuestas de acción.
 \end{enumerate}
+
+
+%% =========================================================================
+\section{Aportación del proyecto}
+\label{sec:aportacion}
+%% =========================================================================
+
+\subsection{Aportación técnica}
+
+\dataqual aporta al panorama de herramientas de calidad de datos una solución
+\emph{full-stack} autoalojada que combina en un único producto: interfaz web
+accesible sin necesidad de programar, métricas específicas para proyectos de
+\ac{ML} (equilibrio de clases, actualidad), sistema de \emph{fingerprinting}
+determinista para trazabilidad de \emph{issues}, \emph{Quality Gates}
+configurables y protección nativa de \ac{PII}.  Esta combinación no está
+disponible en ninguna de las herramientas de código abierto analizadas en el
+estado del arte (sección~\ref{sec:estado-arte}).
+
+\subsection{Aportación académica}
+
+El proyecto materializa la convergencia entre la ingeniería del software
+moderna (arquitecturas de microservicios, patrones de diseño como
+\emph{plugin} y factoría, CI/CD) y el dominio emergente de la calidad de
+datos para \ac{IA}.  Proporciona una implementación de referencia alineada
+con los estándares \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259, que puede servir
+como base para investigación futura sobre métricas de calidad específicas
+para \ac{ML}.
+
+\subsection{Aportación profesional}
+
+El proyecto ha permitido al autor desarrollar competencias profesionales
+en un conjunto amplio de tecnologías de producción: desarrollo \emph{full-stack}
+(Flask + Next.js), bases de datos relacionales con JSONB, almacenamiento de
+objetos S3, colas de tareas asíncronas (Celery + Redis) y despliegue
+contenerizado (Docker Compose), en un contexto de proyecto real con
+requisitos de seguridad, escalabilidad y mantenibilidad.
+
+
+%% =========================================================================
+\section{Competencias adquiridas}
+\label{sec:competencias}
+%% =========================================================================
+
+El desarrollo de este \ac{TFG} en la intensificación de Sistemas de
+Información ha permitido adquirir y consolidar las siguientes competencias:
+
+\subsection{Competencias técnicas}
+
+\begin{itemize}
+  \item \textbf{Desarrollo \emph{full-stack}:} diseño e implementación de
+    una aplicación web completa con separación clara entre \emph{frontend}
+    (Next.js, React, TypeScript) y \emph{backend} (Python, Flask,
+    SQLAlchemy).
+
+  \item \textbf{Arquitecturas distribuidas y contenerización:} orquestación
+    de ocho servicios Docker con Docker Compose, gestión de dependencias
+    entre servicios, \emph{healthchecks} y volúmenes persistentes.
+
+  \item \textbf{Procesamiento de datos tabulares:} manipulación de datasets
+    en múltiples formatos con Pandas, cálculo de métricas estadísticas
+    y gestión de casos extremos (nulos, tipos mixtos, codificaciones).
+
+  \item \textbf{Calidad de datos e ingeniería de la calidad:} comprensión
+    profunda de los estándares \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259 y su
+    aplicación práctica en el diseño de métricas.
+
+  \item \textbf{Seguridad en aplicaciones web:} autenticación \ac{JWT},
+    \emph{hashing} de contraseñas con \ac{PBKDF2}, limitación de tasa,
+    cabeceras de seguridad y prevención de inyección de código.
+
+  \item \textbf{Diseño de \ac{API}s \ac{REST}:} especificación y
+    documentación de \emph{endpoints}, gestión de versiones, paginación y
+    validación de entradas.
+\end{itemize}
+
+\subsection{Competencias metodológicas}
+
+\begin{itemize}
+  \item \textbf{Gestión ágil con Scrum adaptado:} planificación de sprints,
+    gestión del backlog con GitHub Issues, retrospectivas y adaptación del
+    plan ante imprevistos.
+
+  \item \textbf{Control de versiones avanzado:} estrategia de \emph{feature
+    branches}, mensajes de \emph{commit} descriptivos y trazabilidad entre
+    código e issues.
+
+  \item \textbf{Estimación y planificación:} uso de \emph{story points},
+    análisis de desviaciones y ajuste de estimaciones a lo largo del
+    proyecto.
+
+  \item \textbf{Documentación técnica:} redacción de una memoria de \ac{TFG}
+    completa en \LaTeX, especificaciones de \ac{API} y catálogos de métricas.
+\end{itemize}
+
+\subsection{Competencias transversales}
+
+\begin{itemize}
+  \item \textbf{Resolución autónoma de problemas técnicos:} diagnóstico y
+    resolución de problemas de integración entre servicios Docker,
+    incompatibilidades de formato de datos y gestión de errores en sistemas
+    distribuidos.
+
+  \item \textbf{Capacidad de síntesis y abstracción:} diseño de interfaces y
+    abstracciones que permiten extender el sistema (motor de métricas,
+    arquitectura de \emph{plugins}) sin conocer los detalles de las
+    implementaciones concretas.
+
+  \item \textbf{Trabajo autónomo bajo supervisión:} gestión del tiempo y la
+    priorización en un proyecto individual de nueve meses con reuniones de
+    seguimiento periódicas.
+\end{itemize}
+
+
+%% =========================================================================
+\section{Valoración personal}
+\label{sec:valoracion-personal}
+%% =========================================================================
+
+Este \ac{TFG} ha supuesto un reto de una dimensión cualitativamente
+diferente a los proyectos realizados durante el grado.  Por primera vez, he
+tenido que diseñar y construir un sistema completo desde cero, tomando
+decisiones de arquitectura con consecuencias a largo plazo, integrando
+tecnologías que no había utilizado antes (Celery, MinIO, Redis en producción)
+y manteniendo la coherencia de un proyecto de nueve meses en solitario.
+
+Lo que más me ha sorprendido es la complejidad inherente a los detalles:
+los ficheros CSV del mundo real no se comportan como los de los tutoriales,
+la configuración de Docker Compose con dependencias entre servicios exige
+una comprensión profunda de los tiempos de arranque, y el diseño de un
+\emph{fingerprint} determinista para issues requirió mucho más pensamiento
+del esperado.  Estas dificultades, en retrospectiva, son precisamente las
+más valiosas porque son las que ocurren en proyectos reales.
+
+Me llevo especialmente la convicción de que una buena arquitectura inicial
+(el modelo de datos pensado desde el principio, la arquitectura de
+\emph{plugins} para el motor de métricas) ahorra enormemente el trabajo en
+sprints posteriores, y que el desarrollo iterativo no es solo una metodología
+formal sino una forma de pensar que reduce el riesgo real de los proyectos.
+
+Estoy satisfecho con el resultado: \dataqual es una plataforma funcional,
+segura y extensible que cubre un hueco real en el ecosistema de herramientas
+de calidad de datos para \ac{IA}.  Queda trabajo por hacer (Swagger,
+WebSockets, pruebas de \emph{frontend}), pero eso es precisamente lo que
+convierte un \ac{TFG} en el punto de partida de algo mayor.
 
 
 % Local Variables:

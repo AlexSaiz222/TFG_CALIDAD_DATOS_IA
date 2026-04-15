@@ -96,10 +96,11 @@ de calidad estándar sobre los conjuntos de datos cargados, permitiendo su
 parametrización según la tipología del proyecto.
 
 Las métricas implementadas deben cubrir las principales dimensiones de calidad
-definidas en \ac{ISO}/IEC~25012~\cite{iso25012} y
-\ac{ISO}/IEC~25024~\cite{iso25024}, complementadas con métricas específicas
+definidas en \ac{ISO}/IEC~25012~\cite{iso25012} y en
+\ac{ISO}/IEC~5259~\cite{iso5259}, complementadas con métricas específicas
 para el contexto de \ac{IA} y \ac{ML}.  En concreto, el motor debe incluir
-las siguientes siete métricas:
+las siguientes \textbf{seis métricas evaluables} (que contribuyen al
+\emph{Quality Score}):
 
 \begin{enumerate}
   \item \textbf{Completitud} (\texttt{completeness}): ratio de valores no
@@ -121,16 +122,19 @@ las siguientes siete métricas:
   \item \textbf{Unicidad} (\texttt{uniqueness}): detección de registros
     duplicados, relacionada con la credibilidad de los datos.
 
-  \item \textbf{Valores atípicos} (\texttt{outliers}): detección de
-    \emph{outliers} mediante métodos estadísticos (\ac{IQR} y Z-score),
-    métrica complementaria no contemplada directamente en
-    \ac{ISO}/IEC~25012 pero esencial en el contexto de \ac{ML}.
-
   \item \textbf{Equilibrio de clases} (\texttt{class\_balance}): evaluación
     del balance de la variable objetivo mediante la entropía de Shannon,
     métrica específica para proyectos de \ac{ML} que permite detectar
     desequilibrios que sesgan los modelos~\cite{ng2021datacentric}.
 \end{enumerate}
+
+Adicionalmente, el motor debe incluir una clase de \textbf{detección de
+valores atípicos} (\texttt{outliers}) basada en \ac{IQR} y Z-score.
+Siguiendo la recomendación de \ac{ISO}/IEC~5259~\cite{iso5259} de no tratar
+los \emph{outliers} como una dimensión de calidad per~se, esta clase
+\textbf{no participará en el \emph{Quality Score}} sino que se utilizará
+exclusivamente como herramienta de diagnóstico en el módulo de perfilado
+de datos (\emph{EDA}).
 
 El motor debe adoptar una arquitectura de \emph{plugins}, de modo que cada
 métrica se implemente como una clase independiente que herede de una clase

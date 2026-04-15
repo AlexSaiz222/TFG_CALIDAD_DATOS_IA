@@ -1,0 +1,129 @@
+\chapter{Backlog completo del proyecto}
+\label{anx:backlog}
+
+Este anexo recoge el backlog completo del proyecto con todas las historias de
+usuario e ítems técnicos, organizados por sprint.  Los ítems marcados con
+asterisco (*) no estaban en el backlog inicial y se añadieron durante el
+desarrollo.
+
+\section*{Sprint 1 (octubre--noviembre 2025)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog Sprint 1}
+  \begin{tabularx}{\textwidth}{l X c l}
+    \toprule
+    \textbf{ID} & \textbf{Ítem} & \textbf{SP} & \textbf{Estado} \\
+    \midrule
+    HU-01 & Registro con email y contraseña & 3 & Cerrado \\
+    HU-02 & Login y JWT (access + refresh token) & 2 & Cerrado \\
+    T-01  & Setup Docker Compose (8 servicios + healthchecks) & 3 & Cerrado \\
+    T-02  & Diseño ERD y modelo de datos inicial & 3 & Cerrado \\
+    T-03  & Migraciones iniciales con Flask-Migrate & 2 & Cerrado \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Sprint 2 (diciembre 2025--enero 2026)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog Sprint 2}
+  \begin{tabularx}{\textwidth}{l X c l}
+    \toprule
+    \textbf{ID} & \textbf{Ítem} & \textbf{SP} & \textbf{Estado} \\
+    \midrule
+    HU-03 & CRUD de proyectos & 3 & Cerrado \\
+    HU-05 & Carga de archivos (CSV, XLSX, JSON, Parquet) & 5 & Cerrado \\
+    HU-06 & Versionado de datasets (parent-child) & 3 & Cerrado \\
+    T-04  & Arquitectura backend en capas (blueprints + servicios) & 4 & Cerrado \\
+    T-05  & Pruebas manuales de la API REST & 3 & Cerrado \\
+    T-06* & Parseo robusto CSV con matriz de fallback (4×5×2) & 2 & Cerrado \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Sprint 3 (febrero 2026)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog Sprint 3}
+  \begin{tabularx}{\textwidth}{l X c l}
+    \toprule
+    \textbf{ID} & \textbf{Ítem} & \textbf{SP} & \textbf{Estado} \\
+    \midrule
+    HU-07 & Configuración de métricas con parámetros y pesos & 5 & Cerrado \\
+    HU-08 & Plantillas de métricas del sistema & 3 & Cerrado \\
+    HU-09 & Lanzamiento de evaluación (Celery) + progreso & 5 & Cerrado \\
+    HU-10 & Listado de issues con severidad y columna afectada & 3 & Cerrado \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Sprint 4 (marzo 2026)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog Sprint 4}
+  \begin{tabularx}{\textwidth}{l X c l}
+    \toprule
+    \textbf{ID} & \textbf{Ítem} & \textbf{SP} & \textbf{Estado} \\
+    \midrule
+    HU-04 & Cuadro de mando principal con resumen de calidad & 5 & Cerrado \\
+    HU-09 & Progreso de evaluación en tiempo real (polling) & 3 & Cerrado \\
+    HU-13 & EDA: histogramas, boxplots, correlaciones & 5 & Cerrado \\
+    HU-14 & Marcado de columnas PII en la UI & 1 & Cerrado \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Sprint 5 (abril 2026)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog Sprint 5}
+  \begin{tabularx}{\textwidth}{l X c l}
+    \toprule
+    \textbf{ID} & \textbf{Ítem} & \textbf{SP} & \textbf{Estado} \\
+    \midrule
+    HU-11 & Quality Gates con tres estados (PASSED/WARNING/FAILED) & 5 & Cerrado \\
+    HU-12 & Fingerprinting SHA-256 para trazabilidad de issues & 5 & Cerrado \\
+    T-07  & Seguridad: rate limiting, cabeceras, PBKDF2 & 0 & Cerrado \\
+    T-08* & HybridEvaluationService (fallback síncrono) & 2 & Cerrado \\
+    T-09* & Evaluation Watchdog (detección de evaluaciones atascadas) & 1 & Cerrado \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{Sprint 6 (mayo--junio 2026)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog Sprint 6}
+  \begin{tabularx}{\textwidth}{l X l}
+    \toprule
+    \textbf{ID} & \textbf{Ítem} & \textbf{Estado} \\
+    \midrule
+    HU-15 & Panel de administración (/api/admin/) & Cerrado \\
+    T-10  & Suite de pruebas unitarias de métricas (pytest) & Cerrado \\
+    T-11  & Suite de pruebas de integración: versionado datasets & Cerrado \\
+    T-12  & Suite de pruebas de Quality Gates & Cerrado \\
+    T-13  & Corrección de defectos detectados en pruebas (11 issues) & Cerrado \\
+    T-14  & Redacción memoria TFG + Anexo A y B & Cerrado \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:
