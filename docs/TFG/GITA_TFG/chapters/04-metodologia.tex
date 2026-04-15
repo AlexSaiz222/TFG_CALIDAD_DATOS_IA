@@ -1,12 +1,96 @@
 \chapter{Metodología y herramientas}
 \label{chap:metodologia}
 
-\drop{E}{ste} capítulo describe el enfoque metodológico adoptado para el
-desarrollo de \dataqual, las herramientas y tecnologías seleccionadas para su
-implementación, y la planificación temporal seguida a lo largo del proyecto.
-La elección de la metodología, de la pila tecnológica y de las prácticas de
-ingeniería del software responde a los objetivos y restricciones definidos en
-el capítulo~\ref{chap:objetivos}.
+\drop{E}{ste} capítulo describe el enfoque metodológico completo adoptado
+para el desarrollo de \dataqual: la metodología de gestión del proyecto
+(Scrum adaptado), la metodología de desarrollo software, la pila tecnológica,
+la planificación temporal con diagrama de Gantt, la estimación de esfuerzo,
+el análisis de costes y la gestión de riesgos del proyecto.
+
+
+%% =========================================================================
+\section{Gestión del proyecto}
+\label{sec:gestion-proyecto}
+%% =========================================================================
+
+\subsection{Metodología ágil adoptada: Scrum adaptado}
+
+Para la gestión del proyecto se ha adoptado \textbf{Scrum adaptado a un TFG
+individual}, metodología ágil iterativa e incremental que estructura el
+trabajo en sprints de duración fija y favorece la entrega continua de valor.
+La justificación de esta elección se apoya en tres argumentos principales:
+
+\begin{itemize}
+  \item \textbf{Adecuación al tipo de proyecto.}  \dataqual es un proyecto de
+    desarrollo de software con requisitos que evolucionan conforme se profundiza
+    en el dominio (calidad de datos, estándares ISO).  Scrum permite incorporar
+    aprendizajes del dominio en el backlog de forma natural.
+
+  \item \textbf{Retroalimentación periódica de tutores.}  Las reuniones
+    quincenales con los tutores actúan como sprint reviews, proporcionando
+    retroalimentación continua sobre dirección técnica y calidad del trabajo.
+
+  \item \textbf{Trazabilidad del avance.}  El uso de GitHub Issues como
+    herramienta de backlog permite mantener un historial auditado del progreso,
+    esencial para la redacción de la memoria.
+\end{itemize}
+
+\subsection{Adaptación de Scrum al TFG individual}
+
+La metodología Scrum estándar ha sido adaptada a la naturaleza unipersonal y
+académica del proyecto de la siguiente forma:
+
+\begin{definitionlist}
+  \item[Sprints]  El proyecto se divide en \textbf{6 sprints} de entre dos y
+    cuatro semanas de duración, cada uno orientado a un conjunto coherente de
+    funcionalidades (véase la planificación en la
+    Sección~\ref{sec:planificacion}).
+
+  \item[Roles]  Al ser un proyecto individual, el estudiante asume
+    simultáneamente los tres roles de Scrum:
+    \begin{itemize}
+      \item \emph{Product Owner}: define y prioriza el backlog en función de
+        los objetivos del TFG y de la retroalimentación de los tutores.
+      \item \emph{Scrum Master}: vela por la aplicación de la metodología y
+        elimina impedimentos técnicos.
+      \item \emph{Developer}: implementa las historias de usuario seleccionadas
+        para cada sprint.
+    \end{itemize}
+
+  \item[Sprint planning]  Al inicio de cada sprint se define el objetivo,
+    se seleccionan las historias de usuario del backlog y se descomponen en
+    tareas concretas registradas en GitHub Issues.
+
+  \item[Daily standup]  Sustituido por una \textbf{revisión personal diaria}
+    informal: el desarrollador evalúa el progreso del día anterior y planifica
+    las tareas del día.
+
+  \item[Sprint review]  Reunión quincenal con los tutores en la que se
+    presenta el incremento funcional, se obtiene retroalimentación y se ajusta
+    el backlog si procede.
+
+  \item[Sprint retrospective]  Reflexión escrita al final de cada sprint sobre
+    qué ha ido bien, qué ha ido mal y qué mejorar, documentada en la memoria
+    (véase Capítulo~\ref{chap:desarrollo}).
+\end{itemize}
+
+\subsection{Herramientas de gestión}
+
+\begin{definitionlist}
+  \item[GitHub Issues]  Herramienta principal de gestión del backlog.  Cada
+    historia de usuario y tarea técnica se registra como una \emph{issue} con
+    etiquetas de prioridad, estimación en horas y sprint asignado.  Los
+    \emph{milestones} de GitHub corresponden a los sprints del proyecto.
+
+  \item[GitHub Projects (Kanban board)]  Tablero Kanban con columnas
+    \textit{Backlog}, \textit{Sprint activo}, \textit{En progreso},
+    \textit{En revisión} y \textit{Cerrado}, utilizado para visualizar el
+    flujo de trabajo dentro de cada sprint.
+
+  \item[Git + GitHub]  Control de versiones con ramas de funcionalidad
+    (\emph{feature branches}) por historia de usuario y \emph{merges} a
+    \texttt{main} tras revisión.
+\end{definitionlist}
 
 
 %% =========================================================================
@@ -15,14 +99,11 @@ el capítulo~\ref{chap:objetivos}.
 %% =========================================================================
 
 El desarrollo de \dataqual ha seguido una \textbf{metodología iterativa e
-incremental}, inspirada en los principios del desarrollo ágil pero adaptada
-a las características de un proyecto académico individual.  A diferencia de
-los marcos ágiles orientados a equipos (Scrum, Kanban), la naturaleza
-unipersonal del \ac{TFG} no justifica la adopción de ceremonias formales como
-reuniones diarias o retrospectivas de equipo; sin embargo, los principios
-subyacentes~\textemdash entrega frecuente de incrementos funcionales,
-retroalimentación continua y adaptación del plan ante nuevos
-requisitos~\textemdash han guiado todo el proceso de desarrollo.
+incremental}, donde cada sprint produce un incremento funcional desplegable
+que amplía las capacidades de la plataforma.  Los principios
+subyacentes~\textemdash entrega frecuente, retroalimentación continua y
+adaptación del plan ante nuevos requisitos~\textemdash han guiado todo el
+proceso de desarrollo.
 
 \subsection{Desarrollo iterativo}
 
@@ -305,8 +386,9 @@ multiformato y almacenamiento en MinIO, y esqueleto de la \ac{API}
 
 Diseño e implementación del motor de métricas con arquitectura de
 \emph{plugins}: clase base abstracta, registro dinámico e implementación de
-las siete métricas de calidad (completitud, exactitud sintáctica, consistencia
-lógica, actualidad, unicidad, valores atípicos y equilibrio de clases).
+las seis métricas de calidad evaluables (completitud, exactitud sintáctica,
+consistencia lógica, actualidad, unicidad y equilibrio de clases) y la clase
+de detección de valores atípicos para el módulo de perfilado.
 
 \subsection{Fase~4: Interfaz de usuario y visualización (marzo~2026)}
 
@@ -326,6 +408,258 @@ Implementación del sistema de \emph{fingerprinting} de \emph{issues},
 Redacción de la memoria del \ac{TFG}, preparación de los anexos técnicos
 (especificación de la \ac{API} y catálogo de métricas), validación final de
 la plataforma con conjuntos de datos reales y preparación de la defensa.
+
+\subsection{Diagrama de Gantt}
+\label{sec:gantt}
+
+La Tabla~\ref{tab:gantt} muestra la distribución temporal de las seis fases
+del proyecto a lo largo del curso académico 2025--2026.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Diagrama de Gantt del proyecto (curso 2025--2026)}
+  \label{tab:gantt}
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabularx}{\textwidth}{X *{9}{c}}
+    \toprule
+    \textbf{Fase / Sprint} & \textbf{Oct} & \textbf{Nov} & \textbf{Dic}
+      & \textbf{Ene} & \textbf{Feb} & \textbf{Mar} & \textbf{Abr}
+      & \textbf{May} & \textbf{Jun} \\
+    \midrule
+    S1: Análisis y arquitectura  & \(\bullet\) & \(\bullet\) & & & & & & & \\
+    S2: Backend core             & & & \(\bullet\) & \(\bullet\) & & & & & \\
+    S3: Motor de métricas        & & & & & \(\bullet\) & & & & \\
+    S4: Frontend y visualización & & & & & & \(\bullet\) & & & \\
+    S5: Features avanzadas       & & & & & & & \(\bullet\) & & \\
+    S6: Documentación y defensa  & & & & & & & & \(\bullet\) & \(\bullet\) \\
+    \midrule
+    Revisiones con tutores       & \(\circ\) & \(\circ\) & \(\circ\)
+      & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+    \bottomrule
+  \end{tabularx}
+  \medskip\par\small\raggedright
+  \(\bullet\)~fase activa\quad \(\circ\)~revisión con tutores (quincenal)
+\end{table}
+
+
+%% =========================================================================
+\section{Backlog inicial e historias de usuario}
+\label{sec:backlog-inicial}
+%% =========================================================================
+
+La Tabla~\ref{tab:backlog-hu} recoge el backlog inicial del proyecto,
+organizado por épicas.  Cada historia de usuario sigue el formato
+\textit{«Como [rol], quiero [acción] para [beneficio]»} y se estima en
+\emph{story points} (SP) usando la escala de Fibonacci.  El backlog completo
+con la asignación a sprints se incluye en el Anexo~C.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Backlog inicial — historias de usuario principales}
+  \label{tab:backlog-hu}
+  \begin{tabularx}{\textwidth}{l l X c c}
+    \toprule
+    \textbf{ID} & \textbf{Épica} & \textbf{Historia de usuario} &
+      \textbf{Prior.} & \textbf{SP} \\
+    \midrule
+    HU-01 & Auth    & Como usuario, quiero registrarme con email y contraseña
+      para acceder a la plataforma. & Alta & 3 \\
+    HU-02 & Auth    & Como usuario, quiero iniciar sesión y recibir un JWT para
+      autenticar mis peticiones. & Alta & 2 \\
+    HU-03 & Proyectos & Como usuario, quiero crear un proyecto para agrupar
+      conjuntos de datos relacionados. & Alta & 3 \\
+    HU-04 & Proyectos & Como usuario, quiero ver el resumen de calidad de mi
+      proyecto en un cuadro de mando. & Alta & 5 \\
+    HU-05 & Datasets  & Como usuario, quiero cargar un fichero CSV/XLSX/JSON
+      para evaluarlo. & Alta & 5 \\
+    HU-06 & Datasets  & Como usuario, quiero ver el versionsado de mis datasets
+      para rastrear cambios. & Media & 3 \\
+    HU-07 & Métricas  & Como usuario, quiero configurar métricas con umbrales
+      personalizados para adaptar la evaluación. & Alta & 5 \\
+    HU-08 & Métricas  & Como usuario, quiero usar plantillas de métricas para
+      reutilizar configuraciones. & Media & 3 \\
+    HU-09 & Evaluación & Como usuario, quiero lanzar una evaluación y ver el
+      progreso en tiempo real. & Alta & 8 \\
+    HU-10 & Evaluación & Como usuario, quiero ver los problemas detectados con
+      su severidad y columna afectada. & Alta & 5 \\
+    HU-11 & Quality Gates & Como usuario, quiero definir un Quality Gate para
+      saber si mi dataset es apto. & Alta & 5 \\
+    HU-12 & Fingerprinting & Como usuario, quiero que los issues se tracen
+      entre evaluaciones para detectar recurrencias. & Media & 8 \\
+    HU-13 & EDA       & Como usuario, quiero explorar distribuciones, nulos y
+      correlaciones de mis datos visualmente. & Media & 8 \\
+    HU-14 & PII       & Como usuario, quiero marcar columnas sensibles para que
+      sus valores no aparezcan en resultados. & Media & 5 \\
+    HU-15 & Admin     & Como administrador, quiero gestionar usuarios y ver el
+      estado del sistema. & Baja & 3 \\
+    \midrule
+    \multicolumn{4}{r}{\textbf{Total SP}} & \textbf{71} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Estimación de esfuerzo}
+\label{sec:estimacion}
+%% =========================================================================
+
+\subsection{Técnica de estimación}
+
+La estimación del esfuerzo se ha realizado combinando dos técnicas:
+
+\begin{itemize}
+  \item \textbf{\emph{Story Points} con escala de Fibonacci} para la
+    estimación relativa de las historias de usuario (véase
+    Tabla~\ref{tab:backlog-hu}).  Un \emph{story point} equivale
+    aproximadamente a 4~horas de trabajo efectivo.
+
+  \item \textbf{Descomposición en tareas y estimación en horas} para las
+    tareas técnicas más granulares registradas en GitHub Issues.
+\end{itemize}
+
+\subsection{Estimación inicial vs.\ real}
+
+La Tabla~\ref{tab:estimacion-sprints} compara la estimación inicial de cada
+sprint con el tiempo real invertido, registrado mediante el seguimiento de
+horas en GitHub Issues.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Estimación inicial vs.\ real por sprint}
+  \label{tab:estimacion-sprints}
+  \begin{tabularx}{\textwidth}{l X c c c}
+    \toprule
+    \textbf{Sprint} & \textbf{Objetivo} &
+      \textbf{SP} & \textbf{Est. (h)} & \textbf{Real (h)} \\
+    \midrule
+    S1 & Análisis, arquitectura y setup inicial  & 13 &  52 &  60 \\
+    S2 & Backend core (auth, datasets, API REST) & 18 &  72 &  85 \\
+    S3 & Motor de métricas (7 métricas)          & 16 &  64 &  70 \\
+    S4 & Frontend y visualizaciones              & 14 &  56 &  65 \\
+    S5 & Features avanzadas (fingerprinting, QG, PII) & 10 & 40 & 55 \\
+    S6 & Documentación, pruebas y defensa        &  0 &  80 &  90 \\
+    \midrule
+    \textbf{Total} & & \textbf{71} & \textbf{364} & \textbf{425} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La desviación media del \textbf{+16,8\,\%} sobre la estimación inicial es
+consistente con la literatura sobre proyectos de software de tamaño similar,
+y se explica principalmente por la subestimación del tiempo de configuración
+de la infraestructura Docker (S1), la complejidad del parseo robusto de CSV
+(S2) y la implementación del sistema de fingerprinting (S5).
+
+
+%% =========================================================================
+\section{Estimación de costes}
+\label{sec:costes}
+%% =========================================================================
+
+Con el objetivo de proporcionar una perspectiva de viabilidad económica,
+se estima el coste que tendría el proyecto en un entorno profesional real.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Estimación de costes del proyecto}
+  \label{tab:costes}
+  \begin{tabularx}{\textwidth}{l X c c c}
+    \toprule
+    \textbf{Concepto} & \textbf{Detalle} &
+      \textbf{Cantidad} & \textbf{Precio unit.} & \textbf{Total} \\
+    \midrule
+    \multicolumn{5}{l}{\textit{Recursos humanos}} \\
+    Desarrollador \emph{full-stack} (junior) &
+      425 h de desarrollo real & 425~h & 25~€/h & 10\,625~€ \\
+    \midrule
+    \multicolumn{5}{l}{\textit{Licencias de software}} \\
+    Python, Flask, Next.js, PostgreSQL\ldots &
+      Todo el stack es \emph{open source} & --- & 0~€ & 0~€ \\
+    GitHub (plan Free)                       &
+      Repositorio + Issues + Projects        &  1  & 0~€ & 0~€ \\
+    \midrule
+    \multicolumn{5}{l}{\textit{Infraestructura}} \\
+    Hardware de desarrollo &
+      Equipo propio (Windows 11, 16~GB RAM)  & --- & 0~€ & 0~€ \\
+    Servicios cloud        &
+      Despliegue local con Docker Compose    & --- & 0~€ & 0~€ \\
+    \midrule
+    \multicolumn{4}{r}{\textbf{Coste total estimado}} & \textbf{10\,625~€} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El coste total estimado de \textbf{10\,625~€} corresponde exclusivamente al
+coste de mano de obra a tarifa de desarrollador junior.  Dado que todas las
+tecnologías utilizadas son de código abierto y el despliegue es local, el
+coste de licencias e infraestructura es nulo.  Para un escenario de
+producción con despliegue en nube (AWS, Azure), debería añadirse el coste de
+los servicios equivalentes (RDS, S3, ElastiCache, ECS), estimado en
+unos 150--300~€/mes según el volumen de uso.
+
+
+%% =========================================================================
+\section{Gestión de riesgos}
+\label{sec:riesgos}
+%% =========================================================================
+
+La Tabla~\ref{tab:riesgos} recoge los principales riesgos identificados al
+inicio del proyecto, con su probabilidad de ocurrencia (Alta/Media/Baja),
+impacto (Alto/Medio/Bajo) y las acciones preventivas y correctivas definidas.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Plan de gestión de riesgos}
+  \label{tab:riesgos}
+  \begin{tabularx}{\textwidth}{l l c c X X}
+    \toprule
+    \textbf{ID} & \textbf{Riesgo} & \textbf{Prob.} & \textbf{Imp.} &
+      \textbf{Acción preventiva} & \textbf{Acción correctiva} \\
+    \midrule
+    R-01 & Complejidad mayor de lo esperada en el motor de métricas
+      & Media & Alto
+      & Reservar un sprint completo (S3) para esta fase
+      & Reducir el número de métricas en el MVP inicial \\
+    R-02 & Problemas de integración entre servicios Docker
+      & Media & Alto
+      & Levantar el stack completo desde el sprint~1
+      & Acotar el \emph{healthcheck} y consultar documentación oficial \\
+    R-03 & Desvío temporal por subestimación de tareas
+      & Alta  & Medio
+      & Añadir un 20\,\% de margen en cada sprint
+      & Repriorizar el backlog y mover HU a sprints siguientes \\
+    R-04 & Pérdida de datos o código por accidente
+      & Baja  & Alto
+      & Repositorio en GitHub con \emph{push} diario
+      & Restaurar desde el último \emph{commit} \\
+    R-05 & Cambios de requisitos por retroalimentación de tutores
+      & Media & Medio
+      & Revisiones quincenales para detectar desviaciones pronto
+      & Incorporar cambios al backlog en la siguiente sprint planning \\
+    R-06 & Problemas de rendimiento con ficheros grandes
+      & Media & Medio
+      & Establecer límite de 100\,MB; procesar con Pandas \emph{chunking}
+      & Añadir endpoint de estado y aviso al usuario \\
+    R-07 & Fallos en la autenticación JWT en producción
+      & Baja  & Alto
+      & Pruebas de integración del flujo auth completo
+      & Revisión de configuración de expiración y \emph{blacklisting} \\
+    R-08 & Incompatibilidad de versiones entre dependencias
+      & Media & Medio
+      & Fijar versiones en \texttt{requirements.txt} y \texttt{package.json}
+      & Revertir a la versión compatible e investigar la causa \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El riesgo de mayor exposición (R-03, probabilidad Alta) se materializó
+parcialmente en los sprints S2 y S5 (véanse las retrospectivas del
+Capítulo~\ref{chap:desarrollo}), aunque fue mitigado mediante la
+repriorización del backlog.
 
 
 % Local Variables:

@@ -1,0 +1,67 @@
+\chapter{Plan de riesgos detallado}
+\label{anx:riesgos}
+
+Este anexo amplía el plan de riesgos resumido en la
+sección~\ref{sec:riesgos} con el registro de ocurrencia real de cada riesgo
+y las acciones correctivas aplicadas durante el proyecto.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Registro de riesgos con ocurrencia y acciones aplicadas}
+  \begin{tabularx}{\textwidth}{l l c c X X X}
+    \toprule
+    \textbf{ID} & \textbf{Riesgo} & \textbf{P} & \textbf{I} &
+      \textbf{Preventiva} & \textbf{Correctiva} & \textbf{Ocurrió} \\
+    \midrule
+    R-01 & Complejidad del motor de métricas & M & A &
+      Sprint completo reservado para S3 &
+      Alcance de exactitud sintáctica ampliado a 13 tipos (mejora) &
+      Parcialmente (positivo) \\
+    R-02 & Problemas integración Docker & M & A &
+      Stack completo desde S1 &
+      Ajuste de healthchecks y tiempos de reconexión en S5 &
+      Sí (S5, Celery+Redis) \\
+    R-03 & Desvío temporal & A & M &
+      Margen del 20\,\% en estimaciones &
+      Repriorización del backlog; HU-13 reducida en alcance &
+      Sí (S2 y S5) \\
+    R-04 & Pérdida de datos/código & B & A &
+      Push diario a GitHub &
+      N/A &
+      No \\
+    R-05 & Cambios de requisitos por tutores & M & M &
+      Revisiones quincenales &
+      Añadidos ítems al backlog (T-08, T-09) en S5 &
+      Sí (menor) \\
+    R-06 & Rendimiento con ficheros grandes & M & M &
+      Límite de 100\,MB + chunking &
+      N/A (dentro del límite en todos los tests) &
+      No \\
+    R-07 & Fallos auth JWT en producción & B & A &
+      Pruebas de integración del flujo auth &
+      N/A &
+      No \\
+    R-08 & Incompatibilidad de versiones & M & M &
+      Versiones fijas en requirements.txt &
+      Actualización de SQLAlchemy 1.x → 2.0 en S2 &
+      Sí (menor, S2) \\
+    \bottomrule
+  \end{tabularx}
+  \medskip\par\small
+  P = Probabilidad (A=Alta, M=Media, B=Baja) \quad
+  I = Impacto (A=Alto, M=Medio, B=Bajo)
+\end{table}
+
+\textbf{Resumen de ocurrencia:} de los ocho riesgos identificados,
+tres se materializaron (R-02, R-03, R-08) y uno tuvo un efecto positivo
+(R-01).  Los cuatro riesgos restantes no ocurrieron, lo que valida
+las acciones preventivas adoptadas.
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

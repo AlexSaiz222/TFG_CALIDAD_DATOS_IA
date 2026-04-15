@@ -227,14 +227,48 @@ profesionales que intervienen en el ciclo de vida de un proyecto de datos:
 
 
 %% ---------------------------------------------------------------------------
+\section{Alcance del proyecto}
+\label{sec:alcance}
+
+\dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
+y \ac{ML} de escala mediana (conjuntos de datos de hasta 100\,MB).  El alcance
+del proyecto incluye:
+
+\begin{itemize}
+  \item Gestión de proyectos y conjuntos de datos con versionado y almacenamiento
+    seguro en MinIO.
+  \item Motor de evaluación con seis métricas de calidad evaluables alineadas
+    con \ac{ISO}/IEC~25012, más detección de valores atípicos disponible en
+    el módulo de perfilado de datos.
+  \item \ac{API} \ac{REST} documentada con autenticación \ac{JWT}.
+  \item Interfaz web interactiva con cuadros de mando, perfilado exploratorio de
+    datos y Quality~Gates.
+  \item Sistema de \emph{fingerprinting} \ac{SHA}-256 para el seguimiento
+    determinista de problemas entre evaluaciones.
+  \item Protección nativa de datos \ac{PII} con enmascaramiento en todas las
+    métricas.
+  \item Despliegue contenerizado mediante Docker~Compose.
+\end{itemize}
+
+Quedan \textbf{fuera del alcance} del presente trabajo: el procesamiento de
+conjuntos de datos superiores a 100\,MB, el análisis de flujos en tiempo real
+(\emph{streaming}), la corrección automática de errores, la integración nativa
+con plataformas \emph{cloud} propietarias (AWS, Azure, GCP) y la
+internacionalización de la interfaz.
+
+%% ---------------------------------------------------------------------------
 \section{Estructura del documento}
 \label{sec:estructura}
 
-El presente documento se organiza en siete capítulos y dos anexos.  A
+El presente documento se organiza en siete capítulos y siete anexos.  A
 continuación se describe brevemente el contenido de cada uno de los capítulos
 restantes:
 
 \begin{definitionlist}
+\item[Capítulo~\ref{chap:objetivos}: \nameref{chap:objetivos}]
+  Define el objetivo general y los objetivos específicos del proyecto,
+  estableciendo el alcance detallado y las restricciones del trabajo.
+
 \item[Capítulo~\ref{chap:antecedentes}: \nameref{chap:antecedentes}]
   Revisa los fundamentos teóricos de la calidad de datos, los principales
   estándares internacionales (\ac{ISO}/IEC~25012, \ac{ISO}/IEC~5259), las
@@ -242,34 +276,31 @@ restantes:
   mercado, identificando las carencias que justifican el desarrollo de
   \dataqual.
 
-\item[Capítulo~\ref{chap:objetivos}: \nameref{chap:objetivos}]
-  Define el objetivo general y los objetivos específicos del proyecto,
-  estableciendo el alcance y las restricciones del trabajo.
-
 \item[Capítulo~\ref{chap:metodologia}: \nameref{chap:metodologia}]
-  Describe la metodología de desarrollo adoptada, las herramientas y
-  tecnologías seleccionadas, y la planificación temporal del proyecto.
+  Describe la metodología de gestión y desarrollo adoptada, la pila
+  tecnológica, el backlog inicial, la planificación (Gantt), la
+  estimación de esfuerzo, los costes y la gestión de riesgos.
 
 \item[Capítulo~\ref{chap:desarrollo}: \nameref{chap:desarrollo}]
-  Detalla el proceso de diseño e implementación de la plataforma, incluyendo
-  la arquitectura del sistema, el modelo de datos, la implementación de las
-  métricas de calidad, la \ac{API} \ac{REST} y la interfaz de usuario.
+  Desarrolla el proceso de implementación iterativo por sprints, incluyendo
+  para cada sprint la planificación, el trabajo realizado, las decisiones
+  técnicas adoptadas y la retrospectiva.
 
 \item[Capítulo~\ref{chap:resultados}: \nameref{chap:resultados}]
-  Presenta los resultados obtenidos mediante la evaluación de la plataforma
-  con conjuntos de datos reales, analiza el cumplimiento de los objetivos
-  planteados y discute las limitaciones identificadas.
+  Presenta los resultados globales obtenidos, analiza el cumplimiento de los
+  objetivos planteados y compara \dataqual con las herramientas existentes.
 
 \item[Capítulo~\ref{chap:conclusiones}: \nameref{chap:conclusiones}]
-  Recoge las conclusiones del trabajo, las lecciones aprendidas durante su
-  desarrollo y las líneas de trabajo futuro identificadas para la evolución
-  de la plataforma.
+  Recoge las conclusiones, la revisión de objetivos, la aportación del
+  proyecto, las competencias adquiridas, la valoración personal y las líneas
+  de trabajo futuro.
 \end{definitionlist}
 
-Adicionalmente, el documento incluye dos anexos: el primero documenta la
-especificación completa de la \ac{API} \ac{REST}, y el segundo proporciona
-un catálogo detallado de las métricas de calidad implementadas con sus
-respectivos parámetros de configuración.
+El documento incluye siete anexos: especificación completa de la \ac{API}
+\ac{REST} (Anexo~A), catálogo de métricas de calidad (Anexo~B), backlog
+completo (Anexo~C), plan de riesgos detallado (Anexo~D), estimación de costes
+y viabilidad (Anexo~E), manual de usuario (Anexo~F) y colección de diagramas
+\ac{UML} (Anexo~G).
 
 
 % Local Variables:

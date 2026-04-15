@@ -1,0 +1,132 @@
+\chapter{Manual de usuario}
+\label{anx:manual}
+
+Este anexo proporciona una guía paso a paso para las operaciones principales
+de \dataqual.  Se asume que el sistema está desplegado y accesible en
+\texttt{http://localhost:3000}.
+
+\section*{Requisitos previos}
+
+\begin{enumerate}
+  \item Docker Desktop instalado y en ejecución.
+  \item Repositorio clonado: \texttt{git clone <url-repositorio>}.
+  \item Fichero \texttt{backend/.env} configurado con las variables de entorno
+    (plantilla en \texttt{backend/.env.example}).
+\end{enumerate}
+
+\section*{Arranque del sistema}
+
+\begin{verbatim}
+cd TFG_CALIDAD_DATOS_IA
+docker-compose up --build   # Primera vez (compila imágenes)
+docker-compose up           # Arranques posteriores
+\end{verbatim}
+
+El sistema tarda aproximadamente 30--60 segundos en estar completamente
+operativo.  Acceder a \texttt{http://localhost:3000}.
+
+\section*{Flujo principal de uso}
+
+\subsection*{1. Registro e inicio de sesión}
+
+\begin{enumerate}
+  \item Acceder a \texttt{/auth/register} y completar el formulario con
+    nombre, email y contraseña.
+  \item Iniciar sesión en \texttt{/auth/login}.  El token JWT se gestiona
+    automáticamente.
+\end{enumerate}
+
+\subsection*{2. Crear un proyecto}
+
+\begin{enumerate}
+  \item En el cuadro de mando, pulsar el botón \textbf{Nuevo proyecto}.
+  \item Introducir nombre y descripción.
+  \item El proyecto aparece en la lista con estado \emph{Sin evaluaciones}.
+\end{enumerate}
+
+\subsection*{3. Cargar un dataset}
+
+\begin{enumerate}
+  \item Acceder al proyecto y pulsar \textbf{Cargar dataset}.
+  \item Seleccionar un archivo CSV, XLSX, JSON o Parquet (máx. 100\,MB).
+  \item El sistema extrae automáticamente el esquema y estadísticas
+    descriptivas.
+  \item Opcional: marcar columnas sensibles (\acs{PII}) en la pestaña
+    \emph{Columnas}.
+\end{enumerate}
+
+\subsection*{4. Configurar métricas}
+
+\begin{enumerate}
+  \item En la página del proyecto, pestaña \emph{Métricas}.
+  \item Seleccionar las métricas deseadas de la lista o usar una plantilla del
+    sistema.
+  \item Ajustar parámetros: umbrales, pesos y columnas objetivo.
+  \item Pulsar \textbf{Guardar configuración}.
+\end{enumerate}
+
+\subsection*{5. Ejecutar una evaluación}
+
+\begin{enumerate}
+  \item En la página del proyecto, pulsar \textbf{Nueva evaluación}.
+  \item Seleccionar el dataset a evaluar.
+  \item La evaluación se lanza de forma asíncrona.  La barra de progreso
+    muestra el avance (0--100\,\%).
+  \item Al completarse, se muestra el \emph{Quality Score} y el estado del
+    \emph{Quality Gate}.
+\end{enumerate}
+
+\subsection*{6. Consultar resultados}
+
+\begin{enumerate}
+  \item Pulsar sobre una evaluación completada para ver el detalle.
+  \item El indicador circular muestra el \emph{Quality Score} (0--100).
+  \item Las pestañas muestran los resultados por métrica y la lista de
+    \emph{issues} con severidad, columna afectada y descripción.
+  \item Los \emph{badges} indican si los issues son nuevos, recurrentes o
+    corregidos respecto a la evaluación anterior.
+\end{enumerate}
+
+\subsection*{7. Explorar datos (EDA)}
+
+\begin{enumerate}
+  \item En la página del dataset, pestaña \emph{Profiling}.
+  \item Seleccionar columnas para visualizar histogramas y diagramas de caja.
+  \item La pestaña \emph{Correlaciones} muestra la matriz de correlación
+    de Pearson (numéricas) y Spearman (mixtas).
+  \item La pestaña \emph{Outliers} permite ajustar el factor IQR
+    interactivamente.
+\end{enumerate}
+
+\subsection*{8. Configurar un Quality Gate}
+
+\begin{enumerate}
+  \item En la página del proyecto, pestaña \emph{Quality Gate}.
+  \item Establecer: puntuación mínima (defecto: 70), máximo de issues
+    críticos (defecto: 0) y máximo de issues nuevos (defecto: 10).
+  \item Los estados son: \texttt{PASSED} (verde), \texttt{WARNING} (amarillo),
+    \texttt{FAILED} (rojo).
+\end{enumerate}
+
+\section*{Monitorización del sistema}
+
+\begin{itemize}
+  \item \textbf{Flower} (monitor de Celery): \texttt{http://localhost:5555}
+  \item \textbf{MinIO Console}: \texttt{http://localhost:9001}
+    (usuario/contraseña en \texttt{.env})
+\end{itemize}
+
+\section*{Apagado del sistema}
+
+\begin{verbatim}
+docker-compose down           # Apagar (conserva datos en volúmenes)
+docker-compose down -v        # Apagar y eliminar volúmenes (borra datos)
+\end{verbatim}
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

@@ -1,0 +1,107 @@
+\chapter{Diagramas UML del sistema}
+\label{anx:diagramas}
+
+Este anexo recoge las descripciones estructuradas de los principales diagramas
+\ac{UML} del sistema.  Los diagramas visuales se generarán con PlantUML o
+draw.io y se incluirán como figuras en la versión final de la memoria.
+
+\section*{Diagrama de casos de uso}
+
+\begin{itemize}
+  \item \textbf{Actor: Usuario autenticado}
+    \begin{itemize}
+      \item UC-01: Gestionar proyectos (crear, editar, eliminar, listar)
+      \item UC-02: Gestionar datasets (cargar, versionar, marcar PII)
+      \item UC-03: Configurar métricas (seleccionar, parametrizar, plantillas)
+      \item UC-04: Ejecutar evaluación (lanzar, monitorizar progreso, ver resultados)
+      \item UC-05: Gestionar Quality Gate (configurar umbrales, consultar estado)
+      \item UC-06: Explorar datos (EDA: histogramas, boxplots, correlaciones)
+    \end{itemize}
+  \item \textbf{Actor: Administrador} (hereda de Usuario)
+    \begin{itemize}
+      \item UC-07: Gestionar usuarios
+      \item UC-08: Ver métricas del sistema (rendimiento, salud)
+    \end{itemize}
+  \item \textbf{Actor: Sistema Celery} (interno)
+    \begin{itemize}
+      \item UC-09: Ejecutar tarea de evaluación asíncrona
+      \item UC-10: Detectar evaluaciones atascadas (Watchdog)
+    \end{itemize}
+\end{itemize}
+
+\section*{Diagrama entidad--relación (ERD)}
+
+Entidades y relaciones principales del esquema PostgreSQL:
+
+\begin{itemize}
+  \item \texttt{users} (1) --- (N) \texttt{projects}
+  \item \texttt{projects} (1) --- (N) \texttt{datasets}
+  \item \texttt{projects} (1) --- (N) \texttt{evaluations}
+  \item \texttt{projects} (1) --- (1) \texttt{quality\_gates}
+  \item \texttt{datasets} (1) --- (N) \texttt{datasets} [versionado:
+    parent\_dataset\_id]
+  \item \texttt{evaluations} (1) --- (N) \texttt{issues}
+  \item \texttt{evaluations} (1) --- (1) \texttt{analysis\_runs}
+  \item \texttt{analysis\_runs} (1) --- (N) \texttt{data\_quality\_issues}
+  \item \texttt{metric\_templates} (N) --- referenciados por
+    \texttt{projects.metrics\_config}~(JSONB)
+\end{itemize}
+
+\section*{Diagrama de secuencia: Ejecución de evaluación}
+
+Flujo principal de la ejecución de una evaluación (camino feliz):
+
+\begin{enumerate}
+  \item \textbf{Frontend} → POST \texttt{/api/evaluations/run}
+    [\texttt{dataset\_id}, \texttt{project\_id}]
+  \item \textbf{Backend} → Crea registro \texttt{Evaluation} (estado:
+    \texttt{PENDING})
+  \item \textbf{Backend} → Encola tarea Celery \texttt{run\_evaluation}
+  \item \textbf{Backend} → Devuelve \texttt{\{evaluation\_id\}} al Frontend
+  \item \textbf{Frontend} → Polling GET
+    \texttt{/api/evaluations/\{id\}/status} (cada 2s)
+  \item \textbf{Celery Worker} → Descarga dataset de MinIO
+  \item \textbf{Celery Worker} → Invoca \texttt{EvaluationService}
+  \item \textbf{EvaluationService} → Ejecuta cada métrica configurada
+  \item \textbf{EvaluationService} → Calcula Quality Score
+  \item \textbf{EvaluationService} → Genera fingerprints y compara con baseline
+  \item \textbf{EvaluationService} → Evalúa Quality Gate
+  \item \textbf{Celery Worker} → Actualiza \texttt{Evaluation} y
+    \texttt{AnalysisRun} en PostgreSQL (estado: \texttt{COMPLETED})
+  \item \textbf{Frontend} → Detecta estado \texttt{COMPLETED} → Redirige
+    a página de resultados
+\end{enumerate}
+
+\section*{Diagrama de clases: Motor de métricas}
+
+Jerarquía de clases del motor de métricas
+(\texttt{backend/services/metrics/}):
+
+\begin{itemize}
+  \item \textbf{BaseMetric} (abstracta)
+    \begin{itemize}
+      \item Atributos: \texttt{metric\_id: str}, \texttt{name: str},
+        \texttt{threshold: float}, \texttt{weight: float}
+      \item Métodos: \texttt{evaluate(df, params) → MetricResult} (abstracto),
+        \texttt{\_get\_severity()}, \texttt{\_mask\_pii()},
+        \texttt{\_infer\_column\_type()}
+    \end{itemize}
+  \item \textbf{CompletenessMetric} hereda BaseMetric
+  \item \textbf{UniquenessMetric} hereda BaseMetric
+  \item \textbf{OutliersMetric} hereda BaseMetric
+  \item \textbf{SyntacticAccuracyMetric} hereda BaseMetric
+  \item \textbf{LogicalConsistencyMetric} hereda BaseMetric
+  \item \textbf{ClassBalanceMetric} hereda BaseMetric
+  \item \textbf{CurrentnessMetric} hereda BaseMetric
+  \item \textbf{MetricResult} (dataclass):
+    \texttt{metric\_id, score, details, issues: List[Issue]}
+  \item \textbf{METRIC\_REGISTRY}: \texttt{Dict[str, Type[BaseMetric]]}
+\end{itemize}
+
+
+% Local Variables:
+%  coding: utf-8
+%  mode: latex
+%  mode: flyspell
+%  ispell-local-dictionary: "castellano8"
+% End:

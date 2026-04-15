@@ -1,5 +1,7 @@
 \documentclass[twoside]{gita-tfg}
 \usepackage{custom}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \input{misc/metadata.tex}
 
 
@@ -20,7 +22,7 @@
 
 \tableofcontents
 \listoftables
-% \listoffigures  % Descomentar si se incluyen figuras
+\listoffigures
 % \lstlistoflistings  % Descomentar si se incluyen listados de código
 \input{misc/acro.tex}
 
@@ -28,8 +30,8 @@
 \mainmatter
 
 \input{chapters/01-intro.tex}
-\input{chapters/02-antecedentes.tex}
 \input{chapters/03-objetivos.tex}
+\input{chapters/02-antecedentes.tex}
 \input{chapters/04-metodologia.tex}
 \input{chapters/05-desarrollo.tex}
 \input{chapters/06-resultados.tex}
@@ -41,6 +43,11 @@
 \appendixtitle
 \input{chapters/anexo-api.tex}
 \input{chapters/anexo-metricas.tex}
+\input{chapters/anexo-backlog.tex}
+\input{chapters/anexo-riesgos.tex}
+\input{chapters/anexo-costes.tex}
+\input{chapters/anexo-manual.tex}
+\input{chapters/anexo-diagramas.tex}
 % {\scriptsize \input{misc/GFDL.tex}}
 
 \bibliography{main}
