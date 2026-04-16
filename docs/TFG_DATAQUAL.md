@@ -701,7 +701,7 @@ class BaseMetric(ABC):
 ```python
 @dataclass
 class MetricResult:
-    metric_id: str            # Identificador de la métrica ("completeness", "outliers", etc.)
+    metric_id: str            # Identificador de la métrica ("completeness", "uniqueness", etc.)
     score: Optional[float]    # Puntuación 0.0-1.0 (None si no se pudo calcular)
     results: dict             # Datos detallados para almacenar en AnalysisRun.results
     issues: list[dict]        # Lista de issues detectados
@@ -715,13 +715,16 @@ Un diccionario que mapea identificadores de métrica a clases:
 METRIC_REGISTRY = {
     "completeness":        CompletenessMetric,
     "uniqueness":          UniquenessMetric,
-    "outliers":            OutliersMetric,
     "syntactic_accuracy":  SyntacticAccuracyMetric,
     "logical_consistency": LogicalConsistencyMetric,
     "class_balance":       ClassBalanceMetric,
     "currentness":          currentnessMetric,
 }
 ```
+
+> **Nota:** `OutliersMetric` **no está en el registro**. La clase existe en
+> `outliers.py` y se instancia directamente desde el pipeline de Data Profiling,
+> pero no es una métrica puntuable (ISO/IEC 5259).
 
 **Para añadir una nueva métrica** solo se necesitan 4 pasos:
 1. Crear una clase que herede de `BaseMetric` e implemente `evaluate()`.
@@ -816,12 +819,18 @@ La unicidad mide la ausencia de duplicados en el dataset. Opera en dos niveles: 
 
 **Parámetros:** `threshold` (float, default 1.0), `columns` (list de columnas que deben ser únicas), `weight`.
 
-## 5.5 Métrica: Detección de Outliers
+## 5.5 Herramienta de perfilado: Detección de Outliers
 
 **Archivo:** `backend/services/metrics/outliers.py`
-**ID:** `outliers`
+**ID:** `outliers` (solo perfilado — **no registrada en METRIC_REGISTRY**)
 
-### Fundamento teórico
+> **No es una métrica evaluable.** Según ISO/IEC 5259, la detección de outliers
+> no constituye una dimensión de calidad de datos. La clase `OutliersMetric`
+> existe como herramienta de diagnóstico y se invoca exclusivamente desde el
+> pipeline de Data Profiling. No produce puntuación (`score = None`) ni
+> contribuye al Quality Score.
+
+### Fundamento técnico
 
 Los outliers son observaciones que se desvían significativamente del resto del conjunto de datos. Pueden deberse a errores de medición, errores de entrada o eventos excepcionales reales. El sistema implementa dos métodos estadísticos clásicos:
 
@@ -841,17 +850,11 @@ z = (valor - media) / desviación_estándar
 outlier = |z| > factor
 ```
 
-### Score con penalización 3×
+### Resultado
 
-El score penaliza agresivamente la presencia de outliers:
-```
-col_score = max(0, 1 - outlier_ratio × 3)
-score = media(col_scores) × weight
-```
+La clase genera issues informativos (uno por columna con al menos un valor atípico), con severidad dinámica según la proporción de outliers en esa columna. No se calcula ningún score.
 
-Esto significa que un 33% de outliers produce score = 0 para esa columna.
-
-**Parámetros:** `method` ("iqr"|"zscore", default "iqr"), `factor` (float, default 1.5), `columns` (list, default: todas las numéricas), `weight`.
+**Parámetros:** `method` ("iqr"|"zscore", default "iqr"), `factor` (float, default 1.5), `columns` (list, default: todas las numéricas).
 
 ## 5.6 Métrica: Exactitud Sintáctica (Syntactic Accuracy)
 
