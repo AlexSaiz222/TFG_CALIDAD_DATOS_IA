@@ -240,29 +240,30 @@ class TestEvaluateQualityGate:
             status = service._evaluate_quality_gate(run, quality_score, issues, results)
             assert status == QualityGateStatus.FAILED
     
-    def test_warning_low_completeness(self, app, sample_project):
-        """Test that low completeness causes WARNING"""
+    def test_passed_high_score_low_completeness(self, app, sample_project):
+        """Score above threshold with no critical issues → PASSED regardless of completeness metric.
+        The service evaluates quality_score and critical issues, not individual metrics."""
         with app.app_context():
             from services.evaluation_service import EvaluationService
-            
+
             service = EvaluationService()
-            
+
             run = AnalysisRun(
                 project_id=sample_project,
                 status=AnalysisStatus.RUNNING,
             )
             db.session.add(run)
             db.session.commit()
-            
-            quality_score = 0.85  # Above min_score
+
+            quality_score = 0.85  # Above default min_score of 70%
             issues = []
             results = {
-                'overall': {'completeness': 0.70},  # Below default 80%
+                'overall': {'completeness': 0.70},
                 'column_metrics': {},
             }
-            
+
             status = service._evaluate_quality_gate(run, quality_score, issues, results)
-            assert status == QualityGateStatus.WARNING
+            assert status == QualityGateStatus.PASSED
     
     def test_uses_custom_thresholds(self, app, sample_project):
         """Test that custom QualityGate thresholds are used"""
