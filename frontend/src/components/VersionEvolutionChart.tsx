@@ -140,7 +140,7 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
             const score = context.raw;
             const v = sortedVersions[context.dataIndex];
             const gate = score !== null
-              ? (score >= THRESHOLD ? '\u2713 Passed' : '\u2717 Failed')
+              ? (score >= THRESHOLD ? '\u2713 Aprobado' : '\u2717 Fallido')
               : '';
             return [
               `Score: ${score !== null ? `${Number(score).toFixed(1)}%  \u2014  ${gate}` : 'Sin an\u00e1lisis'}`,

@@ -113,7 +113,7 @@ const DeltaChip: React.FC<{ delta: number | null }> = ({ delta }) => {
 // Gate status dot + label (compact)
 const GateDot: React.FC<{ status: string | null | undefined }> = ({ status }) => {
   const color = getGateColor(status);
-  const label = status === 'PASSED' ? 'Passed' : status === 'WARNING' ? 'Warning' : status === 'FAILED' ? 'Failed' : '—';
+  const label = status === 'PASSED' ? 'Aprobado' : status === 'WARNING' ? 'Advertencia' : status === 'FAILED' ? 'Fallido' : '—';
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
       <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />

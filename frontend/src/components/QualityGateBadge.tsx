@@ -100,7 +100,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
       {/* Quality Gate Status Badge */}
-      <Tooltip title={`Quality Gate: ${config.label}`}>
+      <Tooltip title={`Quality Gate: ${config.labelEs}`}>
         <Box
           sx={{
             display: 'flex',

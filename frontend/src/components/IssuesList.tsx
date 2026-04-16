@@ -230,7 +230,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
       return (
         <Chip
           icon={<NewReleasesIcon sx={{ fontSize: 14 }} />}
-          label="NEW"
+          label="NUEVO"
           size="small"
           sx={{
             backgroundColor: 'rgba(229, 72, 77, 0.1)',

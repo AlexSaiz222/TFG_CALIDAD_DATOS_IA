@@ -445,7 +445,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
                           />
                           {v.is_latest && (
                             <Chip
-                              label="Latest" size="small"
+                              label="Última" size="small"
                               sx={{ height: 18, fontSize: '0.63rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }}
                             />
                           )}

@@ -261,7 +261,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
               if (ctx.dataset.label?.startsWith('_')) return '';
               const run = sortedRuns[ctx.dataIndex];
               const ds = datasets.find(d => d.id === run?.dataset_id);
-              const gate = ctx.parsed.y >= qualityGateThreshold ? '✓ Passed' : '✗ Failed';
+              const gate = ctx.parsed.y >= qualityGateThreshold ? '✓ Aprobado' : '✗ Fallido';
               const lines: string[] = [];
               if (ds && !selectedDatasetId) {
                 lines.push(`Dataset: ${ds.name}${ds.version != null ? ` · v${ds.version}` : ''}`);

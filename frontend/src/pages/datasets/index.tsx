@@ -291,7 +291,7 @@ const DatasetsList = () => {
                               <Typography variant="body2" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
                                 {d.name}
                               </Typography>
-                              <Chip label="Latest" size="small" sx={{
+                              <Chip label="Última" size="small" sx={{
                                 height: 18, fontSize: '0.62rem', fontWeight: 600,
                                 backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E',
                               }} />

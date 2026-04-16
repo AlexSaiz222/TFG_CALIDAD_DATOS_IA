@@ -44,7 +44,7 @@ const EditProject = () => {
         });
       } catch (error: any) {
         console.error('Error fetching project:', error);
-        setError('Failed to load project. Please try again.');
+        setError('Error al cargar el proyecto. Inténtalo de nuevo.');
       } finally {
         setFetchLoading(false);
       }
@@ -75,7 +75,7 @@ const EditProject = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Project name is required';
+      newErrors.name = 'El nombre del proyecto es obligatorio';
     }
 
     setErrors(newErrors);
@@ -104,7 +104,7 @@ const EditProject = () => {
       safeNavigate(`/projects/${id}`);
     } catch (error: any) {
       console.error('Error updating project:', error);
-      setError(error.response?.data?.message || 'Failed to update project. Please try again.');
+      setError(error.response?.data?.message || 'Error al actualizar el proyecto. Inténtalo de nuevo.');
       setLoading(false);
     }
   };
