@@ -1,0 +1,50 @@
+This is BibTeX, Version 0.99e
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: es-alpha.bst
+Reallocating 'name_of_file' (item size: 1) to 5 items.
+Database file #1: main.bib
+Warning--can't use both volume and number fields in schelter2018
+You've used 37 entries,
+            2580 wiz_defined-function locations,
+            749 strings with 9919 characters,
+and the built_in function-call counts, 11992 in all, are:
+= -- 1162
+> -- 456
+< -- 33
++ -- 143
+- -- 139
+* -- 652
+:= -- 1938
+add.period$ -- 123
+call.type$ -- 37
+change.case$ -- 172
+chr.to.int$ -- 37
+cite$ -- 38
+duplicate$ -- 526
+empty$ -- 1052
+format.name$ -- 203
+if$ -- 2530
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 18
+newline$ -- 198
+num.names$ -- 111
+pop$ -- 313
+preamble$ -- 1
+purify$ -- 243
+quote$ -- 0
+skip$ -- 421
+stack$ -- 0
+substring$ -- 424
+swap$ -- 59
+text.length$ -- 33
+text.prefix$ -- 29
+top$ -- 0
+type$ -- 280
+warning$ -- 1
+while$ -- 96
+width$ -- 43
+write$ -- 480
+(There was 1 warning)
