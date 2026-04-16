@@ -129,7 +129,8 @@ las siguientes \textbf{seis métricas evaluables} (que contribuyen al
 \end{enumerate}
 
 Adicionalmente, el motor debe incluir una clase de \textbf{detección de
-valores atípicos} (\texttt{outliers}) basada en \ac{IQR} y Z-score.
+valores atípicos} (\texttt{outliers}) basada en \ac{IQR}~\cite{tukey1977}
+y Z-score.
 Siguiendo la recomendación de \ac{ISO}/IEC~5259~\cite{iso5259} de no tratar
 los \emph{outliers} como una dimensión de calidad per~se, esta clase
 \textbf{no participará en el \emph{Quality Score}} sino que se utilizará
@@ -185,7 +186,11 @@ patrón \emph{Blueprint} de Flask:
 Todos los \emph{endpoints} protegidos deben requerir autenticación mediante
 \ac{JWT}.  El formato de respuesta debe ser uniforme y predecible, siguiendo
 la estructura \texttt{\{success, data, message\}}, con soporte de paginación
-en los listados.
+en los listados.  Estos seis módulos funcionales se implementan como
+\emph{blueprints} Flask principales; la convención REST de rutas anidadas
+puede requerir \emph{blueprints} adicionales de organización técnica
+(sub-rutas de proyecto y vistas de agregación) sin que ello amplíe el
+alcance funcional del módulo.
 
 
 %% -------------------------------------------------------------------------
@@ -265,8 +270,9 @@ Este objetivo se materializa en tres componentes principales:
     \texttt{WARNING} (margen estrecho respecto a algún umbral) y
     \texttt{FAILED} (al menos un umbral incumplido).  Las \emph{Quality
     Gates} proporcionan una señal clara y automatizable que puede integrarse
-    en \emph{pipelines} de \ac{MLOps} o de integración continua para
-    bloquear el uso de conjuntos de datos de calidad insuficiente.
+    en \emph{pipelines} de \ac{MLOps}~\cite{kreuzberger2023} o de
+    integración continua para bloquear el uso de conjuntos de datos de
+    calidad insuficiente.
 \end{enumerate}
 
 

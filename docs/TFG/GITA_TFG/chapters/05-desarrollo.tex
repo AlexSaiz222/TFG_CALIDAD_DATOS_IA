@@ -16,40 +16,12 @@ realizado, evidencias técnicas (\emph{cómo se ha hecho}) y retrospectiva.
 
 \subsection{Historias de usuario}
 
-La Tabla~\ref{tab:hu-globales} recoge las quince historias de usuario
-principales que definen el alcance funcional de \dataqual.  El backlog
-completo con todas las tareas técnicas y la asignación sprint a sprint se
-incluye en el Anexo~C.
-
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{Historias de usuario globales del sistema}
-  \label{tab:hu-globales}
-  \begin{tabularx}{\textwidth}{l l X c}
-    \toprule
-    \textbf{ID} & \textbf{Épica} & \textbf{Historia de usuario (Como…quiero…para…)} & \textbf{SP} \\
-    \midrule
-    HU-01 & Auth       & \ldots\ usuario, registrarme con email y contraseña para acceder & 3 \\
-    HU-02 & Auth       & \ldots\ usuario, iniciar sesión y recibir un JWT para autenticar peticiones & 2 \\
-    HU-03 & Proyectos  & \ldots\ usuario, crear proyectos para agrupar datasets relacionados & 3 \\
-    HU-04 & Proyectos  & \ldots\ usuario, ver el resumen de calidad de mi proyecto en un cuadro de mando & 5 \\
-    HU-05 & Datasets   & \ldots\ usuario, cargar ficheros CSV/XLSX/JSON/Parquet para evaluarlos & 5 \\
-    HU-06 & Datasets   & \ldots\ usuario, ver el historial de versiones de mis datasets & 3 \\
-    HU-07 & Métricas   & \ldots\ usuario, configurar métricas con umbrales personalizados & 5 \\
-    HU-08 & Métricas   & \ldots\ usuario, usar plantillas de métricas para reutilizar configuraciones & 3 \\
-    HU-09 & Evaluación & \ldots\ usuario, lanzar una evaluación y ver el progreso en tiempo real & 8 \\
-    HU-10 & Evaluación & \ldots\ usuario, ver los issues detectados con su severidad y columna afectada & 5 \\
-    HU-11 & Quality Gates & \ldots\ usuario, definir un Quality Gate para saber si mi dataset es apto & 5 \\
-    HU-12 & Fingerprinting & \ldots\ usuario, que los issues se tracen entre evaluaciones para detectar recurrencias & 8 \\
-    HU-13 & EDA        & \ldots\ usuario, explorar distribuciones, nulos y correlaciones visualmente & 8 \\
-    HU-14 & PII        & \ldots\ usuario, marcar columnas sensibles para que sus valores no aparezcan en resultados & 5 \\
-    HU-15 & Admin      & \ldots\ administrador, gestionar usuarios y ver el estado del sistema & 3 \\
-    \midrule
-    \multicolumn{3}{r}{\textbf{Total story points}} & \textbf{71} \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+Las quince historias de usuario que definen el alcance funcional de \dataqual
+se recogen en la Tabla~\ref{tab:backlog-hu} del
+capítulo~\ref{chap:metodologia} (sección~\ref{sec:backlog-inicial}), donde
+se detallan también la épica, la prioridad y la estimación en \emph{story
+points}.  El backlog completo con todas las tareas técnicas y la asignación
+sprint a sprint se incluye en el Anexo~C.
 
 \subsection{Casos de uso principales}
 
@@ -77,8 +49,10 @@ mayor relevancia son:
 \label{sec:burndown-global}
 
 La Figura~\ref{fig:burndown-global} muestra el \emph{burndown} del proyecto
-en \emph{story points}, comparando la línea ideal de progreso con el avance
-real sprint a sprint (S1--S5; el Sprint~6 es de documentación y no consume
+(gráfico que representa los \emph{story points} pendientes en función del
+tiempo, indicando si el ritmo de avance es suficiente para completar el
+alcance previsto) en \emph{story points}, comparando la línea ideal de
+progreso con el avance real sprint a sprint (S1--S5; el Sprint~6 es de documentación y no consume
 \emph{story points}).
 
 \begin{figure}[htbp]
@@ -167,7 +141,7 @@ Se completaron los ítems del sprint con las siguientes observaciones:
 \begin{itemize}
   \item El entorno Docker Compose quedó completamente operativo con los ocho
     servicios, \emph{healthchecks}, red interna y volúmenes persistentes.
-  \item Se diseñó el modelo relacional de nueve tablas con campos JSONB para
+  \item Se diseñó el modelo relacional de diez tablas con campos JSONB para
     flexibilidad futura.
   \item Se implementó el módulo de autenticación JWT completo con registro,
     login, refresco de token y revocación por JTI.
@@ -247,7 +221,7 @@ su disponibilidad antes de que arranquen los servicios dependientes.
 \label{sec:modelo-datos}
 
 PostgreSQL~14~\cite{postgresql} almacena todos los datos relacionales y
-metadatos del sistema.  El esquema incluye aproximadamente nueve tablas, con
+metadatos del sistema.  El esquema comprende diez tablas, con
 un uso extensivo de campos \textbf{JSONB} para almacenar datos
 semiestructurados cuya estructura varía según la métrica o la configuración.
 
@@ -282,6 +256,24 @@ semiestructurados cuya estructura varía según la métrica o la configuración.
   \item[\texttt{metric\_templates}]  Plantillas de configuración de métricas,
     reutilizables entre proyectos.  Pueden ser del sistema
     (\texttt{is\_system\,=\,true}) o del usuario.
+
+  \item[\texttt{metrics}]  Configuraciones de métricas activas por proyecto:
+    tipo de métrica, parámetros, umbrales y peso relativo en el
+    \emph{Quality Score}.  Enlazada a \texttt{projects} mediante clave
+    foránea.
+
+  \item[\texttt{evaluations}]  Registro de alto nivel de cada evaluación
+    (modelo original): estado (\texttt{PENDING}/\texttt{RUNNING}/
+    \texttt{COMPLETED}/\texttt{FAILED}), referencia al dataset y al
+    proyecto, y marca temporal.  Coexiste con \texttt{analysis\_runs}
+    por razones de retrocompatibilidad (véase la nota sobre arquitectura
+    dual más adelante).
+
+  \item[\texttt{issues}]  Incidencias de calidad del modelo original:
+    métrica origen, columna afectada, severidad y descripción textual.
+    Vinculadas a \texttt{evaluations}.  Las evaluaciones nuevas utilizan
+    \texttt{data\_quality\_issues}, que añade \emph{fingerprint}
+    \ac{SHA}-256 y muestras de filas.
 \end{definitionlist}
 
 El empleo de campos JSONB permite almacenar estructuras flexibles dentro del
@@ -366,8 +358,13 @@ formatos de archivo y codificaciones de CSV puede generar una estrategia de
     estrategia de \emph{fallback} para CSV (4 codificaciones $\times$ 5
     delimitadores).
   \item Implementado el versionado de datasets con relaciones parent-child.
-  \item Completados los seis \emph{blueprints} de la API REST con formato de
-    respuesta estandarizado y paginación.
+  \item Completados los seis módulos funcionales de la \ac{API} \ac{REST}
+    con formato de respuesta estandarizado y paginación.  Durante la
+    implementación se añadieron tres \emph{blueprints} adicionales por
+    convención REST: \texttt{project\_metrics} y \texttt{project\_datasets}
+    (sub-rutas anidadas \texttt{/projects/<id>/…}) y \texttt{dashboard}
+    (agregación de solo lectura), elevando el total a nueve \emph{blueprints}
+    Flask registrados.
   \item \textbf{Cambio respecto a lo planificado}: el parseo robusto de CSV
     requirió una semana adicional por la casuística de ficheros con BOM,
     delimitadores inusuales y codificaciones mixtas.
@@ -384,8 +381,8 @@ clara de responsabilidades.
 La aplicación Flask se crea mediante el \textbf{patrón factoría}
 (\texttt{create\_app()} en \texttt{app.py})~\cite{design_patterns}, que
 inicializa las extensiones, registra los \emph{blueprints} y configura el
-\emph{middleware}.  Los seis \emph{blueprints} de la \ac{API} se montan bajo
-el prefijo \texttt{/api}:
+\emph{middleware}.  Los \textbf{seis módulos funcionales principales} de la \ac{API} se montan
+bajo el prefijo \texttt{/api}:
 
 \begin{itemize}
   \item \texttt{/api/auth/} --- autenticación (inicio de sesión, registro,
@@ -399,6 +396,13 @@ el prefijo \texttt{/api}:
   \item \texttt{/api/admin/} --- rendimiento del sistema y comprobación de salud.
 \end{itemize}
 
+Siguiendo la convención REST de rutas anidadas~\cite{fielding2000}, se implementaron adicionalmente
+tres \emph{blueprints} de organización técnica: \texttt{project\_metrics}
+(\texttt{/projects/<id>/metrics}), \texttt{project\_datasets}
+(\texttt{/projects/<id>/datasets}) y \texttt{dashboard} (agregaciones de solo
+lectura).  El total de \emph{blueprints} Flask registrados asciende a
+\textbf{nueve}.
+
 La lógica de negocio se encapsula en servicios independientes:
 \texttt{EvaluationService} (orquesta el flujo completo de evaluación),
 \texttt{DatasetService} (parseo y extracción de esquema),
@@ -409,11 +413,19 @@ El \emph{backend} incorpora cuatro capas de \emph{middleware}: generación de
 rendimiento por \emph{endpoint} (detecta peticiones lentas >500~ms) y el
 \emph{Evaluation Watchdog}.
 
-El sistema mantiene una \textbf{arquitectura dual de modelos} por razones de
-evolución incremental: el modelo original (\texttt{Evaluation} + \texttt{Issue})
-y el modelo Sonar-Lite (\texttt{AnalysisRun} + \texttt{DataQualityIssue} +
-\texttt{QualityGate}).  Ambos se actualizan en paralelo para garantizar
-retrocompatibilidad.
+El sistema mantiene una \textbf{arquitectura dual de modelos} como resultado
+de su evolución incremental.  El modelo original (\texttt{Evaluation} +
+\texttt{Issue}), implementado en el Sprint~2, ofrecía una estructura sencilla
+adecuada para el MVP.  Al diseñar en el Sprint~5 el sistema de
+\emph{fingerprinting} y los \emph{Quality Gates}, resultó necesario un modelo
+semánticamente más rico: el \textbf{modelo Sonar-Lite}
+(\texttt{AnalysisRun} + \texttt{DataQualityIssue} + \texttt{QualityGate}),
+que soporta comparación con línea base, contadores de \emph{issues}
+nuevos/recurrentes/corregidos y configuración de umbrales por proyecto.
+Ambos modelos coexisten para preservar la retrocompatibilidad con los
+\emph{endpoints} implementados en sprints anteriores; la unificación
+completa en un único modelo queda documentada como mejora futura en la
+sección~\ref{sec:trabajo-futuro}.
 
 \subsubsection{Módulo de ingesta y almacenamiento}
 \label{sec:impl-ingesta}
@@ -494,7 +506,7 @@ validar el parseo en el siguiente sprint.
 
 \textbf{Objetivo del sprint:} diseñar e implementar el motor de métricas con
 arquitectura de \emph{plugins} y las siete métricas de calidad alineadas con
-\ac{ISO}/IEC~25012.
+\ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259.
 
 \begin{table}[htbp]
   \centering
@@ -579,19 +591,32 @@ en el módulo de perfilado.
 
 \paragraph{Completitud (\texttt{completeness})}
 Mide el grado en que los datos esperados están presentes, calculando la ratio
-de valores no nulos por columna.  La puntuación es la media de las ratios de
-las columnas configuradas (o global si no se especifican).  Se generan
-\emph{issues} si la completitud global queda por debajo del umbral (0,95 por
-defecto) o si alguna columna supera el 2\,\% de nulos.
+de valores no nulos por columna.  La fórmula implementada corresponde
+directamente al \emph{Completeness Ratio} definido en
+\ac{ISO}/IEC~25024~\cite{iso25024}:
+\[
+  r_{\mathrm{comp}} = \frac{N - N_{\mathrm{null}}}{N}
+\]
+donde $N$ es el número total de valores esperados y $N_{\mathrm{null}}$ el
+número de valores nulos o ausentes.  La puntuación global es la media de
+$r_{\mathrm{comp}}$ sobre las columnas configuradas.  Se generan
+\emph{issues} si la completitud global queda por debajo del umbral (0,95
+por defecto) o si alguna columna supera el 2\,\% de nulos.
 
 \paragraph{Unicidad (\texttt{uniqueness})}
-Evalúa la ausencia de duplicados a dos niveles: filas completas y variabilidad
-por columna.  Los umbrales de variabilidad se adaptan al tipo semántico:
+Evalúa la ausencia de duplicados a dos niveles: filas completas y
+variabilidad por columna.  La ratio de unicidad sigue la fórmula del
+\emph{Uniqueness Ratio} de \ac{ISO}/IEC~25024~\cite{iso25024}:
+\[
+  r_{\mathrm{uniq}} = \frac{N_{\mathrm{distinct}}}{N}
+\]
+Los umbrales de variabilidad se adaptan al tipo semántico inferido:
 0,95 para identificadores, 0,05 para categóricas y 0,30 para el resto.
 
 \paragraph{Detección de valores atípicos (\texttt{outliers}) --- solo perfilado}
 La clase \texttt{OutliersMetric} detecta \emph{outliers} en columnas
-numéricas mediante \ac{IQR} (Rango Intercuartílico) y Z-score.
+numéricas mediante \ac{IQR} (Rango Intercuartílico)~\cite{tukey1977}
+y Z-score.
 \textbf{Esta clase no figura en el \texttt{METRIC\_REGISTRY} y no contribuye
 al \emph{Quality Score}:} siguiendo la recomendación de
 \ac{ISO}/IEC~5259~\cite{iso5259}, los valores atípicos no se consideran una
@@ -615,8 +640,9 @@ verifica la ausencia de \emph{tokens} prohibidos (\texttt{import},
 \texttt{exec}, \texttt{eval}) para prevenir inyección de código.
 
 \paragraph{Equilibrio de clases (\texttt{class\_balance})}
-Métrica específica para \ac{ML} supervisado.  Utiliza la entropía de Shannon
-para cuantificar el equilibrio de la variable objetivo: 100 indica
+Métrica específica para \ac{ML} supervisado.  Utiliza la entropía de
+Shannon~\cite{shannon1948} para cuantificar el equilibrio de la variable
+objetivo: 100 indica
 distribución uniforme; cercano a~0 indica desequilibrio total.  Se generan
 \emph{issues} cuando la clase dominante supera el 90\,\% o la minoritaria
 representa menos del 5\,\%.
@@ -784,14 +810,16 @@ La interfaz proporciona las siguientes visualizaciones principales:
   \item \textbf{Exploración de datos} (\texttt{/datasets/[id]}, pestaña
     \emph{Profiling}): histogramas, diagramas de caja, gráficos de barras,
     matrices de correlación (Pearson y Spearman) y detección interactiva de
-    valores atípicos con factor \ac{IQR} configurable.
+    valores atípicos con factor \ac{IQR} configurable.  Las estadísticas
+    descriptivas expuestas siguen el catálogo de métricas de perfilado
+    propuesto por Abedjan et~al.~\cite{abedjan2018}.
 
   \item \textbf{Gráficos de tendencia}: evolución de la puntuación de
     calidad a lo largo del tiempo y comparación entre versiones del dataset.
 \end{itemize}
 
-Las visualizaciones se implementan con Chart.js mediante el \emph{wrapper}
-\texttt{react-chartjs-2}~\cite{materialui}.
+Las visualizaciones se implementan con Chart.js~\cite{chartjs} mediante el
+\emph{wrapper} \texttt{react-chartjs-2}.
 
 Las figuras~\ref{fig:dashboard}--\ref{fig:eda} muestran las pantallas
 principales de la interfaz de usuario desarrolladas en este sprint.
@@ -880,7 +908,7 @@ al \emph{frontend}.
 
 \subsection{Planificación del sprint}
 
-\textbf{Objetivo del sprint:} implementar las funcionalidades diferenciadores
+\textbf{Objetivo del sprint:} implementar las funcionalidades diferenciadoras
 de \dataqual: sistema de \emph{fingerprinting} para trazabilidad de issues,
 \emph{Quality Gates} con tres estados, procesamiento asíncrono robusto y
 medidas de seguridad avanzadas.
@@ -1016,7 +1044,7 @@ implementado en este sprint.
 
 \subsection{Retrospectiva}
 
-\textbf{Conseguido:} funcionalidades diferenciadores completamente
+\textbf{Conseguido:} funcionalidades diferenciadoras completamente
 implementadas --- fingerprinting, Quality Gates, procesamiento asíncrono
 robusto y seguridad multicapa.
 
@@ -1110,23 +1138,66 @@ Las pruebas automatizadas se organizan en tres suites en
 \texttt{backend/tests/}:
 
 \begin{itemize}
-  \item \textbf{Pruebas unitarias de métricas:} verifican que cada una de
-    las siete métricas produce los resultados esperados ante conjuntos de
-    datos de prueba controlados (valores nulos, duplicados, outliers,
-    formatos inválidos, etc.).
+  \item \textbf{Pruebas unitarias de métricas
+    (\texttt{test\_metrics.py}):} verifican que cada una de las siete
+    métricas produce los resultados esperados ante conjuntos de datos de
+    prueba controlados.  Se cubren los casos canónicos (dataset sin
+    problemas), los casos límite (columna completamente nula, todos los
+    valores duplicados, distribución de una sola clase) y los casos de
+    error (tipos incompatibles, reglas con sintaxis inválida).
 
-  \item \textbf{Pruebas de integración de versionado:} validan la correcta
-    relación padre-hijo entre versiones de datasets y la actualización del
-    indicador \texttt{is\_latest} ante cargas sucesivas.
+  \item \textbf{Pruebas de integración de versionado
+    (\texttt{test\_dataset\_versioning.py}):} validan la correcta relación
+    padre-hijo entre versiones de datasets y la actualización del indicador
+    \texttt{is\_latest} ante cargas sucesivas.  Comprueban que solo la
+    versión más reciente tiene \texttt{is\_latest\,=\,true} y que el
+    historial de versiones se recupera ordenado.
 
-  \item \textbf{Pruebas de Quality Gates:} verifican que los umbrales
+  \item \textbf{Pruebas de \emph{Quality Gates}
+    (\texttt{test\_quality\_gates.py}):} verifican que los umbrales
     configurados producen los estados \texttt{PASSED}, \texttt{WARNING}
     y \texttt{FAILED} esperados para distintas combinaciones de scores e
-    issues.
+    issues, incluyendo los casos frontera (score exactamente en el umbral).
 \end{itemize}
 
 Las pruebas se ejecutan con \texttt{pytest} desde \texttt{backend/} y pueden
 generar informes de cobertura con la opción \texttt{-{}-cov}.
+
+\subsubsection{Defectos detectados y corregidos}
+
+La ejecución de las suites de pruebas reveló \textbf{11 defectos}, todos
+cerrados antes de la entrega final.  Por categoría:
+
+\begin{itemize}
+  \item \textbf{Módulo de \emph{fingerprinting} (3 defectos, severidad
+    media):} el \emph{hash} \ac{SHA}-256 no era completamente determinista
+    cuando los parámetros de la métrica contenían valores flotantes con
+    distinta representación textual (\texttt{0.95} vs.\ \texttt{0.950}).
+    Se corrigió normalizando los parámetros a cadena canónica antes del
+    \emph{hash}.
+
+  \item \textbf{Métrica de consistencia lógica (2 defectos, severidad
+    baja):} reglas con columnas que contienen espacios en el nombre
+    provocaban un error no controlado en \texttt{DataFrame.query()}.
+    Se añadió un paso de sanitización del nombre de columna.
+
+  \item \textbf{Versionado de datasets (2 defectos, severidad media):}
+    la carga concurrente de dos versiones del mismo dataset podía dejar
+    más de un registro con \texttt{is\_latest\,=\,true}.  Se resolvió
+    añadiendo una transacción con bloqueo pesimista en el servicio de
+    versionado.
+
+  \item \textbf{API REST --- paginación (2 defectos, severidad baja):}
+    el parámetro \texttt{per\_page} no estaba acotado superiormente,
+    permitiendo consultas que devolvían todos los registros sin límite.
+    Se añadió un máximo de 100 registros por página.
+
+  \item \textbf{Evaluación asíncrona (2 defectos, severidad baja):}
+    el \emph{Evaluation Watchdog} marcaba como fallidas evaluaciones que
+    simplemente estaban pausadas esperando un \emph{worker} Celery
+    disponible.  Se ajustó el umbral de tiempo de espera de 5 a
+    10~minutos.
+\end{itemize}
 
 \subsection{Retrospectiva}
 

@@ -34,9 +34,15 @@ de cumplimiento de cada uno.
     \emph{Quality Score} (alineado con \ac{ISO}/IEC~5259).
 
   \item[OE3 — \acs{API} \acs{REST} documentada] \textbf{Cumplido.}
-    Se implementaron seis \emph{blueprints} Flask con autenticación \ac{JWT},
-    formato de respuesta estandarizado \texttt{\{success, data, message\}},
-    paginación y validación Marshmallow.  La especificación completa se recoge
+    Se implementaron los seis módulos funcionales definidos como
+    \emph{blueprints} Flask principales (\texttt{auth}, \texttt{projects},
+    \texttt{datasets}, \texttt{metrics}, \texttt{evaluations},
+    \texttt{admin}), con autenticación \ac{JWT}, formato de respuesta
+    estandarizado \texttt{\{success, data, message\}}, paginación y
+    validación Marshmallow.  La convención REST de rutas anidadas añadió
+    tres \emph{blueprints} técnicos adicionales (\texttt{project\_metrics},
+    \texttt{project\_datasets}, \texttt{dashboard}), totalizando nueve
+    \emph{blueprints} registrados.  La especificación completa se recoge
     en el Anexo~A.
 
   \item[OE4 — Aplicación web con cuadros de mando interactivos]
