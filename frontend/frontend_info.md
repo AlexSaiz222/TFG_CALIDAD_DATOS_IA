@@ -1,30 +1,16 @@
 # Documentación del Frontend - Plataforma de Evaluación de Calidad de Datos para IA
 
 ## Índice
-1. [Introducción](#introducción)
-2. [Arquitectura General](#arquitectura-general)
-3. [Estructura de Directorios](#estructura-de-directorios)
-4. [Configuración](#configuración)
-5. [Sistema de Autenticación](#sistema-de-autenticación)
+1. [Arquitectura General](#arquitectura-general)
+2. [Estructura de Directorios](#estructura-de-directorios)
+3. [Configuración](#configuración)
+4. [Sistema de Autenticación](#sistema-de-autenticación)
+5. [Páginas](#páginas)
 6. [Componentes Principales](#componentes-principales)
-7. [Páginas](#páginas)
-8. [Integración con API](#integración-con-api)
-9. [Gestión de Estado](#gestión-de-estado)
-10. [Manejo de Errores](#manejo-de-errores)
-11. [Optimizaciones](#optimizaciones)
-12. [Guía de Desarrollo](#guía-de-desarrollo)
+7. [Integración con API](#integración-con-api)
+8. [Guía de Desarrollo](#guía-de-desarrollo)
 
-## Introducción
-
-El frontend de la Plataforma de Evaluación de Calidad de Datos para IA está construido con React y Next.js, utilizando TypeScript para proporcionar tipado estático. La interfaz de usuario está diseñada con Material-UI (MUI) para ofrecer una experiencia moderna y consistente.
-
-### Objetivos del Frontend
-
-- Proporcionar una interfaz intuitiva para gestionar proyectos y datasets
-- Visualizar métricas de calidad de datos
-- Facilitar la configuración de evaluaciones
-- Mostrar resultados de manera clara y accionable
-- Ofrecer una experiencia de usuario fluida y responsiva
+---
 
 ## Arquitectura General
 
@@ -33,245 +19,231 @@ El frontend sigue una arquitectura basada en componentes con las siguientes capa
 1. **Capa de Presentación**: Componentes React y páginas Next.js
 2. **Capa de Estado**: Contextos React para gestión de estado global
 3. **Capa de Servicios**: Funciones para comunicación con la API
-4. **Capa de Utilidades**: Funciones auxiliares y helpers
+4. **Capa de Tipos**: TypeScript compartido con el dominio backend
 
 ### Tecnologías Principales
 
-- **React**: Biblioteca para construir interfaces de usuario
-- **Next.js**: Framework de React para renderizado del lado del servidor y generación de sitios estáticos
-- **TypeScript**: Superset de JavaScript con tipado estático
-- **Material-UI**: Biblioteca de componentes de UI
-- **Axios**: Cliente HTTP para comunicación con la API
-- **SWR**: Biblioteca para manejo de caché y revalidación de datos
-- **React Hook Form**: Biblioteca para manejo de formularios
+- **React + Next.js**: Framework de UI con routing basado en sistema de archivos
+- **TypeScript**: Tipado estático en toda la codebase
+- **Material-UI (MUI)**: Componentes de UI
+- **Axios**: Cliente HTTP
+- **SWR**: Caché y revalidación de datos remotos
+- **React Hook Form**: Gestión de formularios
+
+---
 
 ## Estructura de Directorios
 
 ```
-frontend/
-├── public/                # Archivos estáticos
-│   └── images/           # Imágenes y recursos gráficos
-├── src/                  # Código fuente
-│   ├── components/       # Componentes reutilizables
-│   │   ├── layout/       # Componentes de layout
-│   │   └── metrics/      # Componentes específicos para métricas
-│   ├── contexts/         # Contextos de React para estado global
-│   ├── pages/            # Páginas de Next.js
-│   │   ├── api/          # Rutas de API de Next.js
-│   │   ├── datasets/     # Páginas relacionadas con datasets
-│   │   ├── metrics/      # Páginas relacionadas con métricas
-│   │   └── projects/     # Páginas relacionadas con proyectos
-│   ├── services/         # Servicios para comunicación con la API
-│   ├── types/            # Definiciones de tipos TypeScript
-│   └── utils/            # Utilidades y helpers
-├── .env.local            # Variables de entorno locales
-├── next.config.js        # Configuración de Next.js
-├── package.json          # Dependencias y scripts
-└── tsconfig.json         # Configuración de TypeScript
+frontend/src/
+├── components/                  # Componentes reutilizables
+│   ├── layout/                  # Navbar, Sidebar, Layout base
+│   ├── metrics/                 # MetricCard, MetricConfigDialog, MetricTemplateSelector
+│   ├── AnalysisDashboardPanel.tsx    # Panel de resumen de análisis Sonar-Lite
+│   ├── AnalysisHistory.tsx           # Historial de AnalysisRuns con comparativas
+│   ├── ConfirmDialog.tsx             # Diálogo de confirmación genérico
+│   ├── DataProfilingTab.tsx          # Pestaña de EDA/profiling (~85KB, principal componente de análisis)
+│   ├── DatasetLineageCanvas.tsx      # Canvas SVG para árbol de versiones/linaje de datasets
+│   ├── DatasetSelector.tsx           # Selector de dataset para un proyecto
+│   ├── DatasetStatusSnapshot.tsx     # Resumen de estado del dataset en un run
+│   ├── DatasetVersionHistory.tsx     # Historial de versiones de un dataset
+│   ├── IssuesList.tsx                # Lista de DataQualityIssue con filtros y severidad
+│   ├── QualityGateBadge.tsx          # Badge visual PASSED/WARNING/FAILED
+│   ├── QualityGateSettings.tsx       # Formulario de configuración de QualityGate por proyecto
+│   ├── QualityTrendChart.tsx         # Gráfico de tendencia de calidad a lo largo de runs
+│   └── VersionEvolutionChart.tsx     # Gráfico de evolución de métricas por versión
+├── contexts/
+│   └── AuthContext.tsx          # Estado de autenticación y usuario actual
+├── pages/                       # Rutas Next.js (file-based routing)
+│   ├── _app.tsx                 # Tema MUI, AuthContext provider
+│   ├── index.tsx                # Redirect a /dashboard o /login
+│   ├── auth.tsx                 # Página combinada login/registro
+│   ├── login.tsx                # Página de login
+│   ├── register.tsx             # Página de registro
+│   ├── profile.tsx              # Perfil del usuario
+│   ├── dashboard.tsx            # Panel principal con resumen de proyectos
+│   ├── datasets/
+│   │   ├── index.tsx            # Lista de todos los datasets
+│   │   ├── [id].tsx             # Detalle de dataset (profiling, versiones, evaluaciones)
+│   │   ├── compare.tsx          # Comparación entre dos datasets
+│   │   └── upload.tsx           # Formulario de carga de dataset
+│   ├── projects/
+│   │   ├── index.tsx            # Lista de proyectos
+│   │   ├── new.tsx              # Crear nuevo proyecto
+│   │   ├── [id].tsx             # Detalle de proyecto (runs, métricas, quality gate)
+│   │   ├── edit/[id].tsx        # Editar proyecto
+│   │   └── [id]/runs/[runId].tsx  # Detalle de un AnalysisRun específico
+│   ├── evaluations/
+│   │   ├── index.tsx            # Lista de evaluaciones (sistema legacy)
+│   │   └── [id].tsx             # Detalle de una evaluación legacy
+│   ├── metrics/
+│   │   └── configure/[id].tsx   # Configurar métricas de un proyecto
+│   └── settings/
+│       └── templates.tsx        # Gestión de plantillas de métricas
+├── services/
+│   └── api.ts                   # Todos los clientes de API (authAPI, projectsAPI, etc.)
+├── types/
+│   └── index.ts                 # Tipos TypeScript compartidos (Dataset, Project, AnalysisRun, etc.)
+└── utils/                       # Helpers y utilidades
 ```
+
+---
 
 ## Configuración
 
-### Archivos de Configuración
+### Variables de entorno (`.env.local`)
 
-- **next.config.js**: Configuración de Next.js
-- **.env.local**: Variables de entorno locales
-- **tsconfig.json**: Configuración de TypeScript
+| Variable | Descripción |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | URL base del backend (`http://localhost:5000` en dev) |
+| `NEXT_PUBLIC_APP_ENV` | Entorno: `development` / `production` |
+| `CHOKIDAR_USEPOLLING` | `true` en Windows para hot-reload dentro de Docker |
+| `WATCHPACK_POLLING` | `true` en Windows para hot-reload dentro de Docker |
 
-### Variables de Entorno Principales
+### Tema y Estilos (MUI)
 
-- `NEXT_PUBLIC_API_URL`: URL base de la API del backend
-- `NEXT_PUBLIC_APP_ENV`: Entorno de la aplicación (development, production)
+Definido en `pages/_app.tsx`:
 
-### Tema y Estilos
+| Token | Valor |
+|---|---|
+| Color primario | `#00B37E` (verde) |
+| Color secundario | `#FFB800` (amarillo) |
+| Color de error | `#E5484D` (rojo) |
+| Fondo | `#F8F9FA` (gris claro) |
 
-El tema de la aplicación está definido en `src/pages/_app.tsx` utilizando la API de temas de Material-UI. Los colores principales son:
+### Next.js rewrites
 
-- **Color primario**: #00B37E (verde)
-- **Color secundario**: #FFB800 (amarillo)
-- **Color de error**: #E5484D (rojo)
-- **Fondo**: #F8F9FA (gris claro)
-- **Texto primario**: #1A1A1A (casi negro)
-- **Texto secundario**: #555555 (gris)
+En `next.config.js`, `/api/*` se redirige al backend. En desarrollo: `localhost:5000`; en Docker: `http://backend:5000`.
+
+---
 
 ## Sistema de Autenticación
 
-La autenticación se gestiona a través del contexto `AuthContext` que proporciona funcionalidades para:
+Gestionado por `AuthContext`. Almacena el token JWT en `localStorage`.
 
-- **Login**: Autenticación de usuarios existentes
-- **Registro**: Creación de nuevas cuentas
-- **Logout**: Cierre de sesión
-- **Actualización de perfil**: Modificación de datos del usuario
-- **Verificación de autenticación**: Comprobación del estado de autenticación
+### Flujo
+1. Usuario introduce credenciales → `authAPI.login()`
+2. JWT almacenado en localStorage
+3. `AuthContext` actualiza el estado de usuario
+4. Redirección a `/dashboard`
 
-### Flujo de Autenticación
+### Protección de rutas
+Cada página protegida llama `useAuth()` y redirige a `/login` si no hay sesión activa.
 
-1. El usuario introduce credenciales en el formulario de login
-2. Se envían las credenciales a la API mediante `authAPI.login()`
-3. Si la autenticación es exitosa, se almacena el token JWT en localStorage
-4. Se actualiza el estado de autenticación en `AuthContext`
-5. Se redirige al usuario al dashboard
-
-### Protección de Rutas
-
-Las rutas protegidas verifican el estado de autenticación a través del hook `useAuth()` y redirigen a la página de login si el usuario no está autenticado.
-
-## Componentes Principales
-
-### Componentes de Layout
-
-- **Layout**: Estructura base para todas las páginas autenticadas
-- **Navbar**: Barra de navegación superior
-- **Sidebar**: Menú lateral con navegación principal
-
-### Componentes de Métricas
-
-- **MetricCard**: Tarjeta para mostrar una métrica individual
-- **MetricConfigDialog**: Diálogo para configurar parámetros de métricas
-- **MetricTemplateSelector**: Selector de plantillas de métricas
-
-### Componentes de Formularios
-
-- **ProjectForm**: Formulario para crear/editar proyectos
-- **DatasetUploadForm**: Formulario para cargar datasets
-- **MetricConfigForm**: Formulario para configurar métricas
-
-### Componentes de Visualización
-
-- **DataPreview**: Vista previa de datos de un dataset
-- **QualityScoreChart**: Gráfico de puntuación de calidad
-- **IssuesList**: Lista de problemas detectados en evaluaciones
+---
 
 ## Páginas
 
 ### Autenticación
-
-- **/login**: Página de inicio de sesión
-- **/register**: Página de registro de nuevos usuarios
+- `/login`, `/register`, `/auth` — login y registro
 
 ### Dashboard
-
-- **/dashboard**: Panel principal con resumen de proyectos y actividad reciente
+- `/dashboard` — resumen de proyectos, actividad reciente, quality gate status
 
 ### Proyectos
-
-- **/projects**: Lista de proyectos
-- **/projects/new**: Creación de nuevo proyecto
-- **/projects/[id]**: Detalles de un proyecto específico
+- `/projects` — lista de proyectos del usuario
+- `/projects/new` — crear proyecto
+- `/projects/[id]` — detalle: métricas configuradas, historial de AnalysisRuns, quality gate
+- `/projects/edit/[id]` — editar proyecto
+- `/projects/[id]/runs/[runId]` — detalle completo de un AnalysisRun: score, gate, issues nuevos/resueltos
 
 ### Datasets
-
-- **/datasets**: Lista de todos los datasets
-- **/datasets/[id]**: Detalles de un dataset específico
-- **/projects/[id]/datasets**: Datasets de un proyecto específico
+- `/datasets` — lista global de datasets
+- `/datasets/[id]` — detalle: profiling (EDA), versiones, evaluaciones, columnas sensibles
+- `/datasets/upload` — carga de nuevo dataset
+- `/datasets/compare` — comparación lado a lado de dos datasets
 
 ### Métricas
+- `/metrics/configure/[id]` — configurar métricas activas y umbrales de un proyecto
+- `/settings/templates` — gestión de plantillas de métricas
 
-- **/metrics/configure/[id]**: Configuración de métricas para un proyecto
-- **/metrics/templates**: Gestión de plantillas de métricas
+### Evaluaciones (legacy)
+- `/evaluations` — lista de evaluaciones
+- `/evaluations/[id]` — detalle de una evaluación legacy
 
-### Evaluaciones
+---
 
-- **/evaluations/[id]**: Resultados de una evaluación específica
+## Componentes Principales
+
+### Sonar-Lite / AnalysisRun
+
+| Componente | Descripción |
+|---|---|
+| `AnalysisDashboardPanel` | Panel de resumen: score actual, badge de gate, tendencia |
+| `AnalysisHistory` | Tabla de runs con score, gate status, nuevos/resueltos issues |
+| `QualityGateBadge` | Chip visual PASSED (verde) / WARNING (amarillo) / FAILED (rojo) |
+| `QualityGateSettings` | Formulario de umbrales (min_score, max_critical_issues, max_new_issues) |
+| `QualityTrendChart` | Gráfico de línea: evolución del quality_score a lo largo de runs |
+| `IssuesList` | Lista filtrable de DataQualityIssue con indicador is_new |
+
+### Dataset y Versioning
+
+| Componente | Descripción |
+|---|---|
+| `DataProfilingTab` | Pestaña de EDA completa: estadísticas, histogramas, correlaciones (~85KB) |
+| `DatasetLineageCanvas` | Árbol SVG interactivo que muestra el linaje de versiones de un dataset |
+| `DatasetVersionHistory` | Lista de versiones con metadatos (version_tag, fecha, tamaño) |
+| `DatasetSelector` | Selector de dataset en el contexto de un proyecto |
+| `DatasetStatusSnapshot` | Resumen del estado del dataset en un AnalysisRun concreto |
+| `VersionEvolutionChart` | Gráfico comparativo de métricas entre versiones del mismo dataset |
+
+### UI General
+
+| Componente | Descripción |
+|---|---|
+| `ConfirmDialog` | Diálogo de confirmación genérico para acciones destructivas |
+
+---
 
 ## Integración con API
 
-La comunicación con la API del backend se realiza a través de servicios definidos en `src/services/api.ts`:
+Todos los clientes están en `services/api.ts`:
 
-### Servicios Principales
+| Cliente | Endpoints cubiertos |
+|---|---|
+| `authAPI` | login, register, refresh, me |
+| `projectsAPI` | CRUD proyectos, metrics config, quality gate |
+| `datasetsAPI` | CRUD datasets, versioning, profiling, sensitive columns |
+| `metricsAPI` | Métricas disponibles, plantillas |
+| `evaluationsAPI` | Evaluaciones legacy |
+| `analysisRunsAPI` | AnalysisRuns: crear, listar, detalle, issues |
+| `dashboardAPI` | Resumen global |
 
-- **authAPI**: Autenticación y gestión de usuarios
-- **projectsAPI**: Gestión de proyectos
-- **datasetsAPI**: Gestión de datasets
-- **metricsAPI**: Configuración de métricas y plantillas
-- **evaluationsAPI**: Ejecución y consulta de evaluaciones
+### Características
 
-### Características de la Integración
+- **Interceptores Axios**: Inyección automática del token JWT en cabeceras `Authorization`
+- **Manejo de errores**: Centralizado — 401 redirige a login, resto a notificaciones de error
+- **SWR**: Usado en páginas de lectura frecuente para caché automática y revalidación
 
-- **Interceptores**: Para manejo de tokens de autenticación y errores comunes
-- **Deduplicación de solicitudes**: Evita solicitudes duplicadas en corto tiempo
-- **Timeouts**: Previene solicitudes que nunca se resuelven
-- **Manejo de errores**: Procesamiento centralizado de errores de API
-- **Caché**: Almacenamiento en caché de respuestas frecuentes para mejorar rendimiento
-
-## Gestión de Estado
-
-### Contextos
-
-- **AuthContext**: Estado de autenticación y usuario actual
-- **Otros contextos específicos**: Para gestión de estado global en áreas específicas
-
-### Estado Local
-
-- Uso de hooks de React (`useState`, `useReducer`) para estado local de componentes
-- Uso de `SWR` para estado derivado de la API con caché y revalidación automática
-
-## Manejo de Errores
-
-### Estrategias Implementadas
-
-- **Captura centralizada**: Manejo de errores a nivel de servicio API
-- **Fallbacks**: Valores por defecto cuando fallan las solicitudes
-- **Reintentos**: Mecanismos de reintento con backoff exponencial
-- **Timeouts**: Límites de tiempo para evitar solicitudes infinitas
-- **Feedback visual**: Notificaciones y mensajes de error claros para el usuario
-
-### Patrones de Manejo de Errores
-
-- Uso de bloques try/catch para capturar errores
-- Manejo de errores específicos de la API
-- Logging detallado para facilitar depuración
-- Estados de carga y error en componentes
-
-## Optimizaciones
-
-### Rendimiento
-
-- **Memoización**: Uso de `React.memo`, `useMemo` y `useCallback` para evitar renderizados innecesarios
-- **Code splitting**: División del código por rutas para reducir el tamaño inicial de carga
-- **Lazy loading**: Carga diferida de componentes y recursos
-- **Caché**: Almacenamiento en caché de respuestas de API frecuentes
-
-### Experiencia de Usuario
-
-- **Estados de carga**: Indicadores visuales durante operaciones asíncronas
-- **Feedback inmediato**: Respuesta inmediata a acciones del usuario
-- **Validación de formularios**: Validación en tiempo real para evitar envíos incorrectos
-- **Navegación optimizada**: Transiciones suaves entre páginas
+---
 
 ## Guía de Desarrollo
 
 ### Requisitos
 
-- Node.js 14+
-- npm o yarn
+- Node.js 18+
+- pnpm (recomendado) o npm
 
 ### Instalación
 
-1. Clonar el repositorio
-2. Instalar dependencias: `npm install` o `yarn install`
-3. Configurar variables de entorno en `.env.local`
-4. Iniciar servidor de desarrollo: `npm run dev` o `yarn dev`
+```bash
+cd frontend
+pnpm install
+cp .env.local.example .env.local   # configurar variables
+pnpm dev   # servidor en localhost:3000
+```
 
-### Scripts Disponibles
+### Scripts
 
-- `npm run dev`: Inicia el servidor de desarrollo
-- `npm run build`: Construye la aplicación para producción
-- `npm run start`: Inicia la aplicación construida
-- `npm run lint`: Ejecuta el linter para verificar el código
+| Comando | Descripción |
+|---|---|
+| `pnpm dev` | Servidor de desarrollo |
+| `pnpm build` | Build para producción |
+| `pnpm lint` | ESLint |
 
-### Convenciones de Código
+### Convenciones de código
 
-- Usar componentes funcionales con hooks
-- Seguir principios de diseño atómico para componentes
-- Mantener componentes pequeños y enfocados en una sola responsabilidad
-- Utilizar tipos TypeScript para todas las props y estados
-- Documentar componentes complejos y funciones importantes
-
-### Flujo de Trabajo de Desarrollo
-
-1. Crear una rama para la nueva funcionalidad
-2. Implementar la funcionalidad
-3. Asegurar que pasa el linting y los tests
-4. Crear un pull request
-5. Revisar y mergear después de aprobación
+- Componentes funcionales con hooks
+- Props tipadas con TypeScript
+- Importar tipos desde `types/index.ts`
+- Llamadas API siempre a través de `services/api.ts`, nunca `fetch` directo

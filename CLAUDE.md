@@ -26,9 +26,10 @@ flask db migrate -m "description"
 flask db upgrade
 
 # Tests
-pytest                          # Run all tests
-pytest tests/test_dataset_versioning.py   # Single test file
-pytest --cov=. tests/          # With coverage
+pytest                                          # Run all tests
+pytest tests/test_dataset_versioning.py        # Single test file
+pytest tests/test_quality_gate.py              # Quality gate tests
+pytest --cov=. tests/                          # With coverage
 ```
 
 ### Frontend (Next.js)
@@ -62,10 +63,11 @@ Authentication is JWT-based; tokens are passed via `Authorization` headers.
 ### Backend Structure (`backend/`)
 Flask app with blueprint-based modular architecture:
 - `api/auth/` — JWT auth, registration, login, token refresh
-- `api/projects/` — Project CRUD
+- `api/projects/` — Project CRUD + metrics config
 - `api/datasets/` — Dataset upload, versioning, profiling
 - `api/metrics/` — Quality metric definitions and templates
-- `api/evaluations/` — Run and retrieve quality evaluations
+- `api/evaluations/` — Run and retrieve legacy quality evaluations
+- `api/dashboard/` — Dashboard summary endpoint (analysis runs, trends)
 - `api/admin/` — Admin utilities
 - `models/` — SQLAlchemy ORM models
 - `tasks/` — Celery async tasks (evaluation execution)
@@ -73,33 +75,59 @@ Flask app with blueprint-based modular architecture:
 - `middleware/` — Error handlers, request logging, evaluation watchdog
 
 ### Frontend Structure (`frontend/src/`)
-- `pages/` — Next.js file-based routing (datasets, projects, metrics, evaluations, auth)
-- `components/` — Reusable UI components; `DataProfilingTab.tsx` is the main EDA/profiling UI (large, ~85KB)
+- `pages/` — Next.js file-based routing
+- `components/` — Reusable UI components (see `frontend_info.md` for full list)
 - `services/` — API client functions
 - `contexts/` — React contexts (AuthContext for auth state)
 - `types/index.ts` — Shared TypeScript types for all entities
 
+### Key Models
+- `User` → owns `Projects`
+- `Project` → has `Datasets`, `Metrics` (metrics_config as JSONB), and one `QualityGate`
+- `Dataset` → has versioning fields (`parent_dataset_id`, `version`, `version_tag`, `is_latest`), `sensitive_columns` (JSONB), links to MinIO file
+- `Metric` → quality rule definition with thresholds
+- `Evaluation` / `EvaluationRun` → legacy evaluation system
+- `AnalysisRun` — **Sonar-Lite** snapshot per project run; immutable, comparable to a baseline run
+- `QualityGate` — per-project pass/fail thresholds (min_score, max_critical_issues, max_new_issues)
+- `DataQualityIssue` — individual issue linked to an `AnalysisRun`; has `fingerprint` for tracking across runs
+
+### Sonar-Lite Architecture
+`AnalysisRun` is the core model. Each run:
+1. Executes configured metrics against a dataset
+2. Stores results + issues as an immutable snapshot
+3. Compares against a `baseline_analysis_id` to compute `new_issues_count` / `fixed_issues_count`
+4. Evaluates `QualityGate` thresholds → sets `quality_gate_status` (PASSED / WARNING / FAILED)
+
+### Dataset Versioning
+Datasets support parent–child versioning via `parent_dataset_id`. Each version has a `version` integer, optional `version_tag`, and `is_latest` flag. The lineage canvas in the frontend renders the full version tree.
+
 ### Data Flow for Evaluations
 1. User uploads dataset → stored in MinIO, metadata in PostgreSQL
 2. User configures metrics on a project
-3. Evaluation triggered → Celery task runs asynchronously
+3. Evaluation/AnalysisRun triggered → Celery task runs asynchronously
 4. Results stored in PostgreSQL, viewable in dashboard
-
-### Key Models
-- `User` → owns `Projects`
-- `Project` → has `Datasets` and `Metrics` (metrics_config stored as JSONB)
-- `Dataset` → has versions, schema info, `sensitive_columns` (JSONB), links to MinIO file
-- `Metric` → quality rule definition with thresholds
-- `Evaluation` / `EvaluationRun` → results of running metrics against a dataset
 
 ## Environment
 Backend `.env` (at `backend/.env`) — not committed, configure from these keys:
 - `DATABASE_URL`, `JWT_SECRET_KEY`, `SECRET_KEY`
-- `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`
+- `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`
 - `REDIS_URL`, `CORS_ORIGINS`
+- `FLASK_ENV`, `FLASK_APP`
+- `JWT_ACCESS_TOKEN_EXPIRES`, `JWT_REFRESH_TOKEN_EXPIRES`
+
+Frontend `.env.local`:
+- `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_ENV`
 
 ## Tests
-Tests live in `backend/tests/`. The main test files cover dataset versioning and quality gates. Run with `pytest` from the `backend/` directory.
+Tests live in `backend/tests/`. Run with `pytest` from the `backend/` directory.
 
-## Current Feature Branch
-`plantillas_ocultacion_privacidad` — Adding privacy/data obfuscation templates: sensitive column tracking on datasets and metric templates for privacy rules.
+| Test file | What it covers |
+|---|---|
+| `test_auth.py` | Registration, login, token refresh |
+| `test_dataset_versioning.py` | Dataset version creation and lineage |
+| `test_dataset_versioning_api.py` | API endpoints for versioning |
+| `test_projects_api.py` | Project CRUD |
+| `test_quality_gate.py` | Quality gate thresholds and verdict logic |
+
+## Health Check
+`GET /health` — returns `{"status": "ok"}` (note: no `/api/` prefix)
