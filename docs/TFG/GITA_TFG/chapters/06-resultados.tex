@@ -36,8 +36,9 @@ magnitudes del sistema implementado.
     Servicios Docker orquestados                    & 8     \\
     Rutas / páginas del \emph{frontend}             & 20    \\
     Componentes React reutilizables                 & 40+   \\
-    Módulos de \ac{API} (\emph{blueprints})         & 6     \\
-    Tablas en base de datos                         & $\sim$9 \\
+    Módulos funcionales de \ac{API} (\emph{blueprints} principales) & 6 \\
+    \emph{Blueprints} Flask totales (incl.\ sub-rutas REST)        & 9 \\
+    Tablas en base de datos                         & 10    \\
     Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
     Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
     Migraciones de base de datos                    & 8+    \\
@@ -199,41 +200,53 @@ limitaciones:
 \label{sec:comparacion-final}
 %% =========================================================================
 
-El Cuadro~\ref{tab:comparacion-final} presenta una comparación actualizada
-de \dataqual con las principales herramientas analizadas en el
-capítulo~\ref{chap:antecedentes}, incorporando los resultados de la
-implementación.
+El Cuadro~\ref{tab:comparacion-final} retoma la comparación del
+capítulo~\ref{chap:antecedentes} enriquecida con perspectiva de
+implementación: no solo si la funcionalidad existe, sino qué implicó
+reproducirla o superarla en la práctica.
 
 \begin{table}[htbp]
   \centering
-  \caption{Comparación de \dataqual con las herramientas existentes}
+  \caption{Comparación de \dataqual con herramientas existentes (perspectiva post-implementación)}
   \label{tab:comparacion-final}
   \begin{tabularx}{\textwidth}{X c c c c}
     \toprule
     \textbf{Criterio} & \textbf{\dataqual} &
       \textbf{Great Exp.} & \textbf{Deequ} & \textbf{DQOps} \\
     \midrule
-    \ac{UI} integrada       & Sí & No  & No  & Sí \\
-    Requiere código         & No & Sí  & Sí  & Parcial \\
-    \emph{Quality Gates}    & Sí & No  & No  & Sí \\
-    \emph{Fingerprinting}   & Sí & No  & No  & Parcial \\
-    Diff entre ejecuciones   & Sí & No  & Parcial & Sí \\
-    Métricas para \ac{ML}   & Sí & No  & Parcial & No \\
-    Enmascaramiento \ac{PII} & Sí & No & No  & No \\
-    Versionado de datasets   & Sí & No  & No  & No \\
-    Autoalojado              & Sí & Sí  & Sí  & Sí \\
-    Madurez                  & Prototipo & Producción & Producción
-      & Producción \\
+    \ac{UI} integrada          & Sí  & No       & No         & Sí \\
+    Requiere código            & No  & Sí       & Sí         & Parcial \\
+    \emph{Quality Gates}       & Sí  & No       & No         & Sí \\
+    \emph{Fingerprinting}      & Sí  & No       & No         & Parcial \\
+    Diff entre ejecuciones     & Sí  & No       & Parcial    & Sí \\
+    Métricas para \ac{ML}      & Sí  & No       & Parcial    & No \\
+    Enmascaramiento \ac{PII}   & Sí  & No       & No         & No \\
+    Versionado de datasets     & Sí  & No       & No         & No \\
+    Autoalojado                & Sí  & Sí       & Sí         & Sí \\
+    Parseo robusto de archivos & Sí  & Parcial  & No         & No \\
+    Madurez                    & Prototipo & Producción & Producción & Producción \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-\dataqual no pretende competir directamente con herramientas maduras de
-producción como Great Expectations~\cite{greatexpectations} en escala o
-ecosistema, pero ofrece una combinación única de interfaz web completa,
-métricas específicas para \ac{ML}, \emph{fingerprinting}, \emph{Quality
-Gates} y protección nativa de \ac{PII}, todo ello en un paquete autoalojado
-y sin necesidad de programar.
+La implementación aportó perspectivas que no eran evidentes en el análisis
+previo del estado del arte.  El \textbf{parseo robusto de archivos} resultó
+ser un diferenciador real: en las pruebas con conjuntos de datos reales, una
+fracción significativa de los ficheros \ac{CSV} presentó combinaciones de
+codificación y delimitador no estándar que ninguna herramienta \emph{code-first}
+gestiona automáticamente sin configuración explícita.  El
+\textbf{enmascaramiento nativo de \ac{PII}} supuso un coste de implementación
+considerable~\textemdash todas las clases de métricas deben respetar la lista
+de columnas sensibles~\textemdash pero su valor es especialmente alto en
+contextos regulados por el \ac{RGPD}, donde ninguna de las alternativas
+analizadas lo ofrece de forma integrada.
+
+\dataqual no pretende competir con herramientas maduras de producción como
+Great Expectations~\cite{greatexpectations} en escala o número de métricas
+predefinidas, pero ocupa un nicho diferenciado al combinar interfaz web
+completa, métricas específicas para \ac{ML}, \emph{fingerprinting} determinista,
+\emph{Quality Gates} y protección nativa de \ac{PII} en un paquete autoalojado
+que no requiere escribir código.
 
 
 % Local Variables:
