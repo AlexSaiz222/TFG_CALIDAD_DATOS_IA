@@ -167,7 +167,7 @@ const ProfilePage = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Email"
+                  label="Correo electrónico"
                   name="email"
                   type="email"
                   value={formData.email}

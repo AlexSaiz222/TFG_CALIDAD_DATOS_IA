@@ -259,7 +259,7 @@ const DatasetDetail = () => {
         setLoading(false);
       } catch (error: any) {
         console.error('Error fetching dataset data:', error);
-        setError(error.response?.data?.message || 'Failed to load dataset data. Please try again.');
+        setError(error.response?.data?.message || 'Error al cargar los datos del dataset. Inténtalo de nuevo.');
         setLoading(false);
       }
     };
@@ -452,7 +452,7 @@ const DatasetDetail = () => {
           })
           .catch(error => {
             console.error('Error fetching issues:', error);
-            setError('Failed to fetch issues for this evaluation.');
+            setError('Error al cargar los problemas de esta evaluación.');
           });
       }
     }
@@ -477,7 +477,7 @@ const DatasetDetail = () => {
       router.push(`/projects/${dataset.project_id}`);
     } catch (error) {
       console.error('Error deleting dataset:', error);
-      setError('Failed to delete dataset. Please try again later.');
+      setError('Error al eliminar el dataset. Inténtalo de nuevo más tarde.');
       setDeleteLoading(false);
       setDeleteDialogOpen(false);
     }
@@ -674,7 +674,7 @@ const DatasetDetail = () => {
               />
               {dataset.is_latest && (
                 <Chip
-                  label="Latest"
+                  label="Última"
                   size="small"
                   sx={{
                     backgroundColor: 'rgba(0, 179, 126, 0.1)',

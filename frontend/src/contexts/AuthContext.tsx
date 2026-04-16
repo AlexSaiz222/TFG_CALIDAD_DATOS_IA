@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           isAuthenticated: false,
           user: null,
           loading: false,
-          error: 'Session expired. Please login again.',
+          error: 'Sesión expirada. Por favor, inicia sesión de nuevo.',
         });
         
         // Redirigir a login si no estamos ya en la página de login
@@ -199,7 +199,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthState(prev => ({
         ...prev,
         loading: false,
-        error: error.response?.data?.message || 'Login failed. Please check your credentials.',
+        error: error.response?.data?.message || 'Error al iniciar sesión. Comprueba tus credenciales.',
       }));
     }
   };
@@ -235,7 +235,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthState(prev => ({
         ...prev,
         loading: false,
-        error: error.response?.data?.message || 'Registration failed. Please try again.',
+        error: error.response?.data?.message || 'Error al registrarse. Inténtalo de nuevo.',
       }));
     }
   };
@@ -307,7 +307,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthState(prev => ({
         ...prev,
         loading: false,
-        error: error.response?.data?.message || 'Failed to update profile',
+        error: error.response?.data?.message || 'Error al actualizar el perfil',
       }));
       throw error;
     }

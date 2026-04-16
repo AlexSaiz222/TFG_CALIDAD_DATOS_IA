@@ -459,7 +459,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
                             }}
                           />
                           {v.is_latest && (
-                            <Chip label="Latest" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
+                            <Chip label="Última" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
                           )}
                           {isCurrentDataset && (
                             <Chip label="Actual" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: `${gateColor}20`, color: gateColor, fontWeight: 600 }} />
@@ -529,9 +529,9 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
       {/* Legend */}
       <Box sx={{ display: 'flex', gap: 2, px: 2, py: 1, borderTop: '1px solid #F0F0F0', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
         {[
-          { label: 'Passed', color: '#00B37E' },
-          { label: 'Warning', color: '#FFB800' },
-          { label: 'Failed', color: '#E5484D' },
+          { label: 'Aprobado', color: '#00B37E' },
+          { label: 'Advertencia', color: '#FFB800' },
+          { label: 'Fallido', color: '#E5484D' },
           { label: 'Sin análisis', color: '#BDBDBD' },
         ].map(({ label, color }) => (
           <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

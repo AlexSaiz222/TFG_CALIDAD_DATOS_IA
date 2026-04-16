@@ -71,12 +71,12 @@ const DatasetUpload = () => {
         } else {
           // Handle unexpected response format
           setProjects([]);
-          setError('Invalid response format from server');
+          setError('Formato de respuesta inválido del servidor');
         }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setError('Failed to load projects. Please try again later.');
+        setError('Error al cargar los proyectos. Inténtalo de nuevo más tarde.');
         setLoading(false);
       }
     };
@@ -122,7 +122,7 @@ const DatasetUpload = () => {
     if (!selectedFile.name.endsWith('.csv')) {
       setErrors(prev => ({
         ...prev,
-        file: 'Only CSV files are supported'
+        file: 'Solo se admiten archivos CSV'
       }));
       return;
     }
@@ -131,7 +131,7 @@ const DatasetUpload = () => {
     if (selectedFile.size > 10 * 1024 * 1024) {
       setErrors(prev => ({
         ...prev,
-        file: 'File size exceeds 10MB limit'
+        file: 'El archivo supera el límite de 10MB'
       }));
       return;
     }
@@ -211,15 +211,15 @@ const DatasetUpload = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.projectId) {
-      newErrors.projectId = 'Please select a project';
+      newErrors.projectId = 'Por favor, selecciona un proyecto';
     }
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Dataset name is required';
+      newErrors.name = 'El nombre del dataset es obligatorio';
     }
 
     if (!file) {
-      newErrors.file = 'Please upload a CSV file';
+      newErrors.file = 'Por favor, sube un archivo CSV';
     }
 
     setErrors(newErrors);
@@ -238,7 +238,7 @@ const DatasetUpload = () => {
     if (activeStep === 1 && !file) {
       setErrors(prev => ({
         ...prev,
-        file: 'Please upload a CSV file'
+        file: 'Por favor, sube un archivo CSV'
       }));
       return;
     }
@@ -321,7 +321,7 @@ const DatasetUpload = () => {
       router.replace(`/datasets/${datasetId}`);
     } catch (error: any) {
       console.error('Error uploading dataset:', error);
-      setError(error.response?.data?.message || 'Failed to upload dataset. Please try again.');
+      setError(error.response?.data?.message || 'Error al subir el dataset. Inténtalo de nuevo.');
       setUploading(false);
     }
   };
@@ -446,24 +446,24 @@ const DatasetUpload = () => {
                   </Box>
                 ) : (
                   <FormControl fullWidth error={!!errors.projectId}>
-                    <InputLabel id="project-select-label">Project</InputLabel>
+                    <InputLabel id="project-select-label">Proyecto</InputLabel>
                     <Select
                       labelId="project-select-label"
                       id="projectId"
                       name="projectId"
                       value={formData.projectId || ''}
-                      label="Project"
+                      label="Proyecto"
                       onChange={handleChange}
                     >
                       <MenuItem value={0} disabled>
-                        Select a project
+                        Selecciona un proyecto
                       </MenuItem>
                       {projects && projects.length > 0 ? projects.map((project) => (
                         <MenuItem key={project.id} value={project.id}>
                           {project.name}
                         </MenuItem>
                       )) : (
-                        <MenuItem disabled>No projects available</MenuItem>
+                        <MenuItem disabled>No hay proyectos disponibles</MenuItem>
                       )}
                     </Select>
                     {errors.projectId && (
@@ -516,10 +516,10 @@ const DatasetUpload = () => {
                   ) : (
                     <Box>
                       <Typography variant="body1" sx={{ fontWeight: 500, mb: 1 }}>
-                        {isDragActive ? 'Drop the CSV file here' : 'Drag & drop a CSV file here, or click to select'}
+                        {isDragActive ? 'Suelta el archivo CSV aquí' : 'Arrastra y suelta un archivo CSV aquí, o haz clic para seleccionar'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Only CSV files are supported (max 10MB)
+                        Solo se admiten archivos CSV (máx. 10MB)
                       </Typography>
                     </Box>
                   )}
@@ -535,7 +535,7 @@ const DatasetUpload = () => {
 
                 <TextField
                   fullWidth
-                  label="Dataset Name"
+                  label="Nombre del dataset"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
@@ -547,14 +547,14 @@ const DatasetUpload = () => {
 
                 <TextField
                   fullWidth
-                  label="Description"
+                  label="Descripción"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   multiline
                   rows={3}
                   sx={{ mb: 3 }}
-                  placeholder="Enter a description for your dataset (optional)"
+                  placeholder="Introduce una descripción para el dataset (opcional)"
                 />
 
                 {isNewVersion && (

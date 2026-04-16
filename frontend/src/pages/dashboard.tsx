@@ -261,17 +261,17 @@ function Dashboard() {
                       <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                         {agg!.gate_distribution.passed > 0 && (
                           <Typography variant="caption" sx={{ color: GREEN, fontWeight: 600 }}>
-                            {agg!.gate_distribution.passed} passed
+                            {agg!.gate_distribution.passed} aprobados
                           </Typography>
                         )}
                         {agg!.gate_distribution.warning > 0 && (
                           <Typography variant="caption" sx={{ color: ORANGE, fontWeight: 600 }}>
-                            {agg!.gate_distribution.warning} warning
+                            {agg!.gate_distribution.warning} advertencia
                           </Typography>
                         )}
                         {agg!.gate_distribution.failed > 0 && (
                           <Typography variant="caption" sx={{ color: RED, fontWeight: 600 }}>
-                            {agg!.gate_distribution.failed} failed
+                            {agg!.gate_distribution.failed} fallidos
                           </Typography>
                         )}
                       </Box>
