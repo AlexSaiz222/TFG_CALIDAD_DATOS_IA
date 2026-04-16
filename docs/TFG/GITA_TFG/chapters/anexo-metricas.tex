@@ -65,6 +65,12 @@ enmascaradas si contienen \ac{PII}) y columna de identificador no única.
 \label{sec:met-outliers}
 %% =========================================================================
 
+\textbf{Nota.}  Esta clase \textbf{no es una métrica evaluable}: no produce
+puntuación ni contribuye al \emph{Quality Score}.  Se invoca exclusivamente
+desde el módulo de perfilado de datos (\emph{EDA}), en línea con la
+recomendación de \ac{ISO}/IEC~5259~\cite{iso5259} de no tratar los
+\emph{outliers} como una dimensión de calidad per~se.
+
 \textbf{Fundamento.}  Detecta valores que se desvían significativamente del
 resto del conjunto de datos.
 
@@ -77,8 +83,9 @@ resto del conjunto de datos.
     $|z| = |(x - \mu) / \sigma| > f$.
 \end{itemize}
 
-La puntuación penaliza con factor~3$\times$:
-$s_{\mathrm{col}} = \max(0,\; 1 - r_{\mathrm{outliers}} \times 3)$.
+El resultado tiene \texttt{score = None}: la clase genera \emph{issues}
+informativos (uno por columna con valores atípicos), pero no computa
+ninguna puntuación.
 
 \textbf{Parámetros:}
 \begin{definitionlist}
@@ -86,7 +93,6 @@ $s_{\mathrm{col}} = \max(0,\; 1 - r_{\mathrm{outliers}} \times 3)$.
     \texttt{"zscore"} (por defecto, \texttt{"iqr"}).
   \item[\texttt{factor}]  Factor del método (por defecto, 1,5).
   \item[\texttt{columns}]  Columnas numéricas a evaluar (por defecto, todas).
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
 \end{definitionlist}
 
 
