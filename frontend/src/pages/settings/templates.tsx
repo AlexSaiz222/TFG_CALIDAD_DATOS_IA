@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -42,6 +43,7 @@ import { MetricTemplate, Metric } from '../../types';
 import { getMetricMeta, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
 const TemplatesSettings = () => {
+  const { t } = useTranslation();
   const [templates, setTemplates] = useState<MetricTemplate[]>([]);
   const [allMetrics, setAllMetrics] = useState<Metric[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +108,7 @@ const TemplatesSettings = () => {
         .filter((m: any) => m?.name?.toLowerCase() !== 'outliers');
       setAllMetrics(metricsData);
     } catch (err: any) {
-      setError('Error al cargar las plantillas. Por favor, inténtalo de nuevo.');
+      setError(t('templates.loadError'));
     } finally {
       setLoading(false);
     }
@@ -163,7 +165,7 @@ const TemplatesSettings = () => {
     // If in JSON mode, parse and apply first
     if (dialogViewMode === 'json') {
       if (!dialogEditJsonValid) {
-        setError('El JSON tiene errores. Corrígelos antes de guardar.');
+        setError(t('templates.jsonError'));
         return;
       }
       const text = dialogEditEditorRef.current?.getValue() ?? dialogEditJson;
@@ -181,11 +183,11 @@ const TemplatesSettings = () => {
         }
         // Validate name after applying
         if (!data.name?.trim()) {
-          setError('El nombre de la plantilla es obligatorio');
+          setError(t('templates.templateNameRequired'));
           return;
         }
         if (!Array.isArray(data.metrics) || data.metrics.length === 0) {
-          setError('Debes incluir al menos una métrica');
+          setError(t('templates.atLeastOneMetric'));
           return;
         }
         // Build payload directly from JSON data
@@ -200,29 +202,23 @@ const TemplatesSettings = () => {
         try {
           if (editingTemplate) {
             await metricsAPI.updateMetricTemplate(editingTemplate.id, payload);
-            setSuccess('Plantilla actualizada correctamente');
+            setSuccess(t('templates.templateUpdated'));
           } else {
             await metricsAPI.createMetricTemplate(payload);
-            setSuccess('Plantilla creada correctamente');
+            setSuccess(t('templates.templateCreated'));
           }
           handleCloseDialog();
           fetchData();
         } catch (err: any) {
-          setError(err.response?.data?.message || 'Error al guardar la plantilla');
+          setError(err.response?.data?.message || t('templates.saveError'));
         }
         return;
       } catch {
-        setError('El JSON tiene errores. Corrígelos antes de guardar.');
-        return;
-      }
-    }
-
-    if (!templateName.trim()) {
-      setError('El nombre de la plantilla es obligatorio');
+      setError(t('templates.templateNameRequired'));
       return;
     }
     if (Object.keys(selectedMetricsConfig).length === 0) {
-      setError('Debes seleccionar al menos una métrica');
+      setError(t('templates.atLeastOneMetric'));
       return;
     }
 
@@ -245,18 +241,18 @@ const TemplatesSettings = () => {
         metrics: metricsConfig,
       };
 
-      if (editingTemplate) {
+      if (editingTemplate?.id) {
         await metricsAPI.updateMetricTemplate(editingTemplate.id, payload);
-        setSuccess('Plantilla actualizada correctamente');
+        setSuccess(t('templates.templateUpdated'));
       } else {
         await metricsAPI.createMetricTemplate(payload);
-        setSuccess('Plantilla creada correctamente');
+        setSuccess(t('templates.templateCreated'));
       }
 
       handleCloseDialog();
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar la plantilla');
+      setError(err.response?.data?.message || t('templates.saveError'));
     }
   };
 
@@ -264,12 +260,12 @@ const TemplatesSettings = () => {
     if (!templateToDelete) return;
     try {
       await metricsAPI.deleteMetricTemplate(templateToDelete.id);
-      setSuccess('Plantilla eliminada correctamente');
+      setSuccess(t('templates.templateDeleted'));
       setDeleteDialogOpen(false);
       setTemplateToDelete(null);
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al eliminar la plantilla');
+      setError(err.response?.data?.message || t('templates.deleteError'));
     }
   };
 
@@ -324,7 +320,7 @@ const TemplatesSettings = () => {
         setDialogEditJsonError(null);
         setDialogViewMode('visual');
       } catch {
-        setDialogEditJsonError('El JSON tiene errores y no se puede convertir a vista visual. Corrígelos o sigue editando en JSON.');
+        setDialogEditJsonError(t('templates.jsonVisualError'));
       }
     }
   };
@@ -339,7 +335,7 @@ const TemplatesSettings = () => {
       setDialogEditJsonError(null);
     } catch (e: any) {
       setDialogEditJsonValid(false);
-      setDialogEditJsonError(e.message || 'JSON inválido');
+      setDialogEditJsonError(e.message || t('templates.invalidJson'));
     }
   }, []);
 
@@ -381,7 +377,7 @@ const TemplatesSettings = () => {
         JSON.parse(text); // validate
         openJsonDialog(text);
       } catch {
-        setError('Error al leer el fichero JSON. Asegúrate de que es un JSON válido.');
+        setError(t('templates.fileReadError'));
       }
     };
     reader.readAsText(file);
@@ -399,14 +395,14 @@ const TemplatesSettings = () => {
       const parsed = JSON.parse(text);
       if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
         setJsonDialogValid(false);
-        setJsonDialogError('El JSON debe ser un objeto { }');
+        setJsonDialogError(t('templates.jsonObjectError'));
         return;
       }
       setJsonDialogValid(true);
       setJsonDialogError(null);
     } catch (e: any) {
       setJsonDialogValid(false);
-      setJsonDialogError(e.message || 'JSON inválido');
+      setJsonDialogError(e.message || t('templates.invalidJson'));
     }
   }, []);
 
@@ -445,7 +441,7 @@ const TemplatesSettings = () => {
     try {
       const data = JSON.parse(text);
       if (!data.name || !Array.isArray(data.metrics)) {
-        setJsonDialogError('El JSON debe incluir "name" y "metrics" (array).');
+        setJsonDialogError(t('templates.jsonStructureError'));
         return;
       }
 
@@ -468,10 +464,10 @@ const TemplatesSettings = () => {
       setDialogOpen(true);
 
       if (notFound.length > 0) {
-        setError(`Métricas no reconocidas y omitidas: ${notFound.join(', ')}`);
+        setError(t('templates.unrecognizedMetrics', { metrics: notFound.join(', ') }));
       }
     } catch {
-      setJsonDialogError('JSON inválido.');
+      setJsonDialogError(t('templates.invalidJson'));
     }
   };
 
@@ -492,10 +488,10 @@ const TemplatesSettings = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
             <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 0.5 }}>
-              Plantillas de métricas
+              {t('templates.pageTitle')}
             </Typography>
             <Typography variant="body2" sx={{ color: '#666' }}>
-              Crea y gestiona plantillas personalizadas para aplicar en tus proyectos
+              {t('templates.pageSubtitle')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -509,7 +505,7 @@ const TemplatesSettings = () => {
                 '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
               }}
             >
-              Importar JSON
+              {t('templates.importJson')}
             </Button>
             <Button
               variant="contained"
@@ -521,7 +517,7 @@ const TemplatesSettings = () => {
                 '&:hover': { backgroundColor: GREEN_HOVER },
               }}
             >
-              Nueva plantilla
+              {t('templates.newTemplate')}
             </Button>
           </Box>
         </Box>
@@ -549,10 +545,10 @@ const TemplatesSettings = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: '#999', mb: 1 }}>
-              No tienes plantillas aún
+              {t('templates.noTemplatesYet')}
             </Typography>
             <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
-              Crea tu primera plantilla para reutilizar configuraciones de métricas en múltiples proyectos
+              {t('templates.createFirstTemplate')}
             </Typography>
             <Button
               variant="outlined"
@@ -564,7 +560,7 @@ const TemplatesSettings = () => {
                 '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
               }}
             >
-              Crear plantilla
+              {t('templates.createTemplate')}
             </Button>
           </Paper>
         ) : (
@@ -599,7 +595,7 @@ const TemplatesSettings = () => {
         <DialogTitle sx={{ pb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" fontWeight={600}>
-              {editingTemplate ? 'Editar plantilla' : 'Nueva plantilla'}
+              {editingTemplate ? t('templates.editTemplate') : t('templates.newTemplate')}
             </Typography>
             <ToggleButtonGroup
               value={dialogViewMode}
@@ -612,7 +608,7 @@ const TemplatesSettings = () => {
               }}
             >
               <ToggleButton value="visual">
-                <TuneIcon sx={{ fontSize: 16 }} /> Visual
+                <TuneIcon sx={{ fontSize: 16 }} /> {t('templates.visual')}
               </ToggleButton>
               <ToggleButton value="json">
                 <CodeIcon sx={{ fontSize: 16 }} /> JSON
@@ -628,7 +624,7 @@ const TemplatesSettings = () => {
             <>
               <TextField
                 fullWidth
-                label="Nombre de la plantilla"
+                label={t('templates.templateName')}
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 sx={{ mt: 2, mb: 2 }}
@@ -636,7 +632,7 @@ const TemplatesSettings = () => {
               />
               <TextField
                 fullWidth
-                label="Descripción (opcional)"
+                label={t('templates.templateDescriptionOptional')}
                 value={templateDescription}
                 onChange={(e) => setTemplateDescription(e.target.value)}
                 multiline
@@ -645,10 +641,10 @@ const TemplatesSettings = () => {
               />
 
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                Selecciona las métricas
+                {t('templates.selectMetrics')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                {Object.keys(selectedMetricsConfig).length} métrica{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''} seleccionada{Object.keys(selectedMetricsConfig).length !== 1 ? 's' : ''}
+                {Object.keys(selectedMetricsConfig).length} {t('templates.metricCount', { count: Object.keys(selectedMetricsConfig).length })}
               </Typography>
             </>
           )}
@@ -661,10 +657,10 @@ const TemplatesSettings = () => {
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>JSON</Typography>
-                <Chip label="plantilla completa" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+                <Chip label={t('templates.completeTemplate')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
               </Box>
               <Box sx={{ display: 'flex', gap: 0.25 }}>
-                <Tooltip title="Formatear JSON" arrow>
+                <Tooltip title={t('templates.formatJson')} arrow>
                   <IconButton size="small" onClick={() => {
                     if (dialogEditEditorRef.current) {
                       try {
@@ -713,7 +709,7 @@ const TemplatesSettings = () => {
                               {meta.label}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
-                              {metric.description || 'Sin descripción'}
+                              {metric.description || t('templates.noDescription')}
                             </Typography>
                             <Chip
                               label={meta.category}
@@ -737,7 +733,7 @@ const TemplatesSettings = () => {
                           <Button
                             size="small"
                             variant="outlined"
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               setCurrentMetricToConfig(metric);
                               setConfigDialogOpen(true);
@@ -754,7 +750,7 @@ const TemplatesSettings = () => {
                               }
                             }}
                           >
-                            Configurar
+                            {t('templates.configure')}
                           </Button>
                         </Box>
                       )}
@@ -805,7 +801,7 @@ const TemplatesSettings = () => {
         <Divider />
         <DialogActions sx={{ px: 3, py: 1.5 }}>
           <Button onClick={handleCloseDialog} sx={{ color: '#666' }}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSaveTemplate}
@@ -818,23 +814,23 @@ const TemplatesSettings = () => {
               '&.Mui-disabled': { bgcolor: '#E0E0E0' },
             }}
           >
-            {editingTemplate ? 'Guardar cambios' : 'Crear plantilla'}
+            {editingTemplate ? t('templates.saveChanges') : t('templates.createTemplate')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Eliminar plantilla</DialogTitle>
+        <DialogTitle>{t('templates.deleteTemplate')}</DialogTitle>
         <DialogContent>
           <Typography>
-            ¿Estás seguro de que quieres eliminar la plantilla &quot;{templateToDelete?.name}&quot;?
-            Esta acción no se puede deshacer.
+            {t('templates.deleteConfirm', { name: templateToDelete?.name })}
+            {t('templates.deleteWarning')}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDeleteDialogOpen(false)} sx={{ color: '#666' }}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleDeleteTemplate}
@@ -845,7 +841,7 @@ const TemplatesSettings = () => {
               '&:hover': { backgroundColor: '#D32F2F' },
             }}
           >
-            Eliminar
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -859,10 +855,10 @@ const TemplatesSettings = () => {
         PaperProps={{ sx: { borderRadius: 2, height: '80vh', maxHeight: '85vh' } }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, flexShrink: 0 }}>
-          <Typography variant="h6" fontWeight={600}>Ver / Editar JSON de plantilla</Typography>
+          <Typography variant="h6" fontWeight={600}>{t('templates.viewEditJson')}</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {!jsonDialogValid && jsonDialogText.trim() !== '' && (
-              <Chip label="JSON inválido" size="small" color="error" variant="outlined" sx={{ height: 24, fontSize: '0.7rem' }} />
+              <Chip label={t('templates.invalidJson')} size="small" color="error" variant="outlined" sx={{ height: 24, fontSize: '0.7rem' }} />
             )}
             <IconButton size="small" onClick={() => setJsonDialogOpen(false)}>
               <CloseIcon fontSize="small" />
@@ -877,16 +873,16 @@ const TemplatesSettings = () => {
           px: 1.5, py: 0.75, bgcolor: '#FAFAFA', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0,
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>JSON</Typography>
-            <Chip label="plantilla completa" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>{t('templates.json')}</Typography>
+            <Chip label={t('templates.completeTemplate')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
           </Box>
           <Box sx={{ display: 'flex', gap: 0.25 }}>
-            <Tooltip title="Formatear JSON" arrow>
+            <Tooltip title={t('templates.formatJson')} arrow>
               <IconButton size="small" onClick={handleJsonFormat}>
                 <FormatIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title={jsonCopied ? '¡Copiado!' : 'Copiar al portapapeles'} arrow>
+            <Tooltip title={jsonCopied ? t('jsonEditor.copied') : t('jsonEditor.copyToClipboard')} arrow>
               <IconButton size="small" onClick={handleJsonCopy}>
                 {jsonCopied ? <CheckIcon fontSize="small" sx={{ color: GREEN }} /> : <CopyIcon fontSize="small" />}
               </IconButton>
@@ -897,7 +893,7 @@ const TemplatesSettings = () => {
         {/* Schema hint */}
         <Box sx={{ px: 1.5, py: 0.75, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
           <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
-            Estructura: <code>{`{ "name": "...", "description": "...", "metrics": [{ "name": "completeness", "parameters": {...} }, ...] }`}</code>
+            {t('templates.structureHint')}
           </Typography>
         </Box>
 
@@ -950,9 +946,9 @@ const TemplatesSettings = () => {
             onClick={() => fileInputRef.current?.click()}
             sx={{ borderColor: '#CCC', color: '#555', mr: 'auto', '&:hover': { borderColor: '#999' } }}
           >
-            Cargar archivo
+            {t('templates.loadFile')}
           </Button>
-          <Button onClick={() => setJsonDialogOpen(false)} color="inherit">Cerrar</Button>
+          <Button onClick={() => setJsonDialogOpen(false)} color="inherit">{t('common.close')}</Button>
           <Button
             variant="outlined"
             startIcon={<FileDownloadIcon />}
@@ -960,7 +956,7 @@ const TemplatesSettings = () => {
             disabled={!jsonDialogValid || jsonDialogText.trim() === ''}
             sx={{ borderColor: GREEN, color: GREEN, '&:hover': { borderColor: GREEN_HOVER } }}
           >
-            Descargar JSON
+            {t('templates.downloadJson')}
           </Button>
           <Button
             variant="contained"
@@ -968,7 +964,7 @@ const TemplatesSettings = () => {
             disabled={!jsonDialogValid || jsonDialogText.trim() === ''}
             sx={{ bgcolor: GREEN, color: '#fff', '&:hover': { bgcolor: GREEN_HOVER }, '&.Mui-disabled': { bgcolor: '#E0E0E0' } }}
           >
-            Importar como nueva plantilla
+            {t('templates.importAsNewTemplate')}
           </Button>
         </DialogActions>
       </Dialog>

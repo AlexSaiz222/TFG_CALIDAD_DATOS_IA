@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -43,6 +43,7 @@ import {
   Close as CloseIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import AnalysisHistory from '../../components/AnalysisHistory';
 import DatasetSelector from '../../components/DatasetSelector';
@@ -75,44 +76,10 @@ function TabPanel(props: TabPanelProps) {
 }
 
 interface ParamHelp { label: string; description: string; unit?: string; }
-const PARAM_HELP: Record<string, Record<string, ParamHelp>> = {
-  completeness: {
-    threshold:    { label: 'Umbral mínimo',      unit: '0 – 1',  description: 'Proporción mínima de valores no nulos exigida. Si la completitud real es inferior, se genera un issue.' },
-    columns:      { label: 'Columnas',                           description: 'Columnas a evaluar. Vacío = todas las columnas del dataset.' },
-  },
-  uniqueness: {
-    threshold:    { label: 'Umbral de unicidad', unit: '0 – 1',  description: 'Proporción mínima de filas únicas exigida. 1.0 = ningún duplicado permitido.' },
-    columns:      { label: 'Columnas clave',                     description: 'Columnas cuya combinación debe ser única (p.ej. identificadores). Vacío = filas completas.' },
-  },
-  outliers: {
-    method:       { label: 'Método de detección',               description: 'IQR es robusto ante distribuciones asimétricas. Z-Score asume distribución normal y es más sensible a extremos.' },
-    factor:       { label: 'Factor de sensibilidad', unit: '> 0', description: 'Multiplicador de tolerancia. Más bajo = más estricto (más outliers detectados). 1.5 es el estándar; 3.0 es permisivo.' },
-    columns:      { label: 'Columnas numéricas',                 description: 'Columnas numéricas a analizar. Vacío = todas las columnas numéricas detectadas.' },
-  },
-  syntactic_accuracy: {
-    auto_detect_types: { label: 'Detección automática',         description: 'Detecta formatos comunes (email, teléfono, fecha…) sin configuración manual. Si está desactivado, solo se evalúan las reglas de "columns".' },
-    threshold:         { label: 'Umbral de conformidad', unit: '0 – 1', description: 'Porcentaje mínimo de valores que deben cumplir el formato en cada columna analizada.' },
-    columns:           { label: 'Reglas de formato',            description: 'Lista de columnas con su tipo esperado (email, phone_es, date_iso, dni_es, url…). Complementa o reemplaza la detección automática.' },
-  },
-  class_balance: {
-    auto_detect:               { label: 'Detección automática',       description: 'Detecta automáticamente columnas categóricas según el umbral de cardinalidad.' },
-    columns:                   { label: 'Columnas a analizar',         description: 'Columnas categóricas específicas. Vacío = todas las detectadas automáticamente.' },
-    max_cardinality:           { label: 'Cardinalidad máxima', unit: 'entero', description: 'Nº máximo de valores únicos para considerar una columna como categórica. Columnas con más valores serán ignoradas.' },
-    imbalance_threshold_high:  { label: 'Umbral de dominancia', unit: '0 – 1', description: 'Porcentaje máximo que puede ocupar una clase. Superarlo genera un issue de desequilibrio.' },
-    imbalance_threshold_low:   { label: 'Umbral de minoría',   unit: '0 – 1', description: 'Porcentaje mínimo que debe tener cualquier clase. Por debajo = infrarepresentada.' },
-  },
-  currentness: {
-    auto_detect:              { label: 'Detección automática',           description: 'Detecta automáticamente columnas de tipo fecha, timestamp o datetime.' },
-    columns:                  { label: 'Columnas de fecha',              description: 'Columnas de fecha específicas. Vacío = todas las detectadas automáticamente.' },
-    staleness_threshold_days: { label: 'Umbral de obsolescencia', unit: 'días', description: 'Días sin actualización a partir de los cuales un registro se considera desactualizado.' },
-  },
-  logical_consistency: {
-    rules:  { label: 'Reglas de negocio', description: 'Lista de reglas que los datos deben cumplir. "violation": expresión que selecciona filas inválidas. "if_then": si se cumple la condición, la aserción debe ser verdadera.' },
-  },
-};
 
 const ProjectDetail = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = router.query;
   const projectId = typeof id === 'string' ? parseInt(id, 10) : undefined;
 
@@ -132,6 +99,19 @@ const ProjectDetail = () => {
   const [qualityGateThreshold, setQualityGateThreshold] = useState<number>(70);
   const fetchedRef = useRef(false);
 
+  const paramHelpMap = useMemo((): Record<string, Record<string, ParamHelp>> => {
+    const ph = (key: string) => (t as any)(`projects.paramHelp.${key}`, { returnObjects: true }) as any;
+    return {
+      completeness: { threshold: ph('completeness.threshold'), columns: ph('completeness.columns') },
+      uniqueness: { threshold: ph('uniqueness.threshold'), columns: ph('uniqueness.columns') },
+      outliers: { method: ph('outliers.method'), factor: ph('outliers.factor'), columns: ph('outliers.columns') },
+      syntactic_accuracy: { auto_detect_types: ph('syntactic_accuracy.auto_detect_types'), threshold: ph('syntactic_accuracy.threshold'), columns: ph('syntactic_accuracy.columns') },
+      class_balance: { auto_detect: ph('class_balance.auto_detect'), columns: ph('class_balance.columns'), max_cardinality: ph('class_balance.max_cardinality'), imbalance_threshold_high: ph('class_balance.imbalance_threshold_high'), imbalance_threshold_low: ph('class_balance.imbalance_threshold_low') },
+      currentness: { auto_detect: ph('currentness.auto_detect'), columns: ph('currentness.columns'), staleness_threshold_days: ph('currentness.staleness_threshold_days') },
+      logical_consistency: { rules: ph('logical_consistency.rules') },
+    };
+  }, [t]);
+
   // Cargar datos del proyecto
   useEffect(() => {
     const fetchProjectData = async () => {
@@ -139,7 +119,7 @@ const ProjectDetail = () => {
       if (projectId === undefined || isNaN(projectId)) {
         console.error('ID de proyecto inválido:', projectId);
         setLoading(false);
-        setError('ID de proyecto inválido o no especificado.');
+        setError(t('projects.invalidId'));
         return;
       }
 
@@ -161,7 +141,7 @@ const ProjectDetail = () => {
         // Verificar respuesta válida
         if (!projectResponse?.data) {
           console.error('No se recibieron datos para el proyecto:', projectId);
-          setError('No se pudo cargar la información del proyecto.');
+          setError(t('projects.loadInfoError'));
           setLoading(false);
           return;
         }
@@ -406,7 +386,7 @@ const ProjectDetail = () => {
         setAnalysisLoading(false);
       } catch (error: any) {
         console.error('Error al cargar datos del proyecto:', error);
-        setError(error.response?.data?.message || 'Error al cargar datos del proyecto. Inténtelo de nuevo.');
+        setError(error.response?.data?.message || t('projects.loadDataError'));
         setLoading(false);
       }
     };
@@ -417,7 +397,7 @@ const ProjectDetail = () => {
     } else if (router.isReady && (projectId === undefined || isNaN(projectId))) {
       // Si el router está listo pero el ID no es válido, mostrar error
       setLoading(false);
-      setError('ID de proyecto inválido o no especificado.');
+      setError(t('projects.invalidId'));
     }
   }, [projectId, router.isReady]);
 
@@ -447,7 +427,7 @@ const ProjectDetail = () => {
       router.push('/projects');
     } catch (error: any) {
       console.error('Error al eliminar el proyecto:', error);
-      setError(error.response?.data?.message || 'Error al eliminar el proyecto. Inténtelo de nuevo.');
+      setError(error.response?.data?.message || t('projects.deleteError'));
       setDeleteLoading(false);
       setDeleteDialogOpen(false);
     }
@@ -487,10 +467,10 @@ const ProjectDetail = () => {
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Proyecto no encontrado
+              {t('projects.detail.notFound')}
             </Typography>
           </Box>
-          <Alert severity="error">{error || 'Proyecto no encontrado'}</Alert>
+          <Alert severity="error">{error || t('projects.detail.notFound')}</Alert>
           <Button
             variant="contained"
             onClick={() => router.push('/projects')}
@@ -503,7 +483,7 @@ const ProjectDetail = () => {
               },
             }}
           >
-            Volver a Proyectos
+            {t('projects.detail.backToProjects')}
           </Button>
         </Box>
       </MainLayout>
@@ -544,7 +524,7 @@ const ProjectDetail = () => {
                 },
               }}
             >
-              Eliminar
+              {t('common.delete')}
             </Button>
           </Box>
         </Box>
@@ -561,12 +541,12 @@ const ProjectDetail = () => {
           }}
         >
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 500, color: '#1A1A1A' }}>
-            Información del proyecto
+            {t('projects.detail.info')}
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Fecha de creación
+                {t('projects.detail.createdAt')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {project.created_at ? new Date(project.created_at).toLocaleDateString() : '—'}
@@ -574,7 +554,7 @@ const ProjectDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Última actualización
+                {t('projects.detail.lastUpdated')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {project.updated_at ? new Date(project.updated_at).toLocaleDateString() : '—'}
@@ -582,7 +562,7 @@ const ProjectDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Datasets
+                {t('projects.detail.tabs.datasets')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {datasets.length}
@@ -590,7 +570,7 @@ const ProjectDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Métricas aplicadas
+                {t('projects.detail.appliedMetrics')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {metrics.length}
@@ -620,11 +600,11 @@ const ProjectDetail = () => {
               },
             }}
           >
-            <Tab label="Datasets" id="project-tab-0" aria-controls="project-tabpanel-0" />
+            <Tab label={t('projects.detail.tabs.datasets')} id="project-tab-0" aria-controls="project-tabpanel-0" />
             <Tab
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  Métricas
+                  {t('projects.detail.tabs.metrics')}
                   {metrics.length > 0 && (
                     <Box component="span" sx={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -641,8 +621,8 @@ const ProjectDetail = () => {
               }
               id="project-tab-1" aria-controls="project-tabpanel-1"
             />
-            <Tab label="Historial de análisis" id="project-tab-2" aria-controls="project-tabpanel-2" />
-            <Tab label="Quality Gate" id="project-tab-3" aria-controls="project-tabpanel-3" />
+            <Tab label={t('analysisHistory.title')} id="project-tab-2" aria-controls="project-tabpanel-2" />
+            <Tab label={t('projects.detail.tabs.qualityGate')} id="project-tab-3" aria-controls="project-tabpanel-3" />
           </Tabs>
         </Box>
 
@@ -650,7 +630,7 @@ const ProjectDetail = () => {
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 500 }}>
-              Datasets del proyecto
+              {t('projects.detail.projectDatasets')}
             </Typography>
             <Button
               variant="contained"
@@ -664,7 +644,7 @@ const ProjectDetail = () => {
                 },
               }}
             >
-              Añadir dataset
+              {t('projects.detail.addDataset')}
             </Button>
           </Box>
 
@@ -673,12 +653,12 @@ const ProjectDetail = () => {
               <Table aria-label="datasets table">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Versión</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Filas</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Columnas</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Fecha de creación</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('projects.detail.tableColumns.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('projects.detail.tableColumns.version')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('projects.detail.tableColumns.rows')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('projects.detail.tableColumns.cols')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('projects.detail.tableColumns.created')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('projects.detail.tableColumns.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -694,7 +674,7 @@ const ProjectDetail = () => {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={`v${dataset.version || 1}`}
+                          label={`${t('projects.detail.tableColumns.versionPrefix')}${dataset.version || 1}`}
                           size="small"
                           sx={{
                             backgroundColor: 'rgba(0, 179, 126, 0.1)',
@@ -721,7 +701,7 @@ const ProjectDetail = () => {
                             },
                           }}
                         >
-                          Ver detalles
+                          {t('projects.detail.viewDetails')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -751,10 +731,10 @@ const ProjectDetail = () => {
                 <DatasetIcon sx={{ fontSize: 40, color: GREEN }} />
               </Box>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#1A1A1A' }}>
-                Aún no hay datasets
+                {t('projects.detail.noDatasetsTitle')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#666666' }}>
-                Comienza añadiendo tu primer dataset
+                {t('projects.detail.noDatasetsDesc')}
               </Typography>
             </Box>
           )}
@@ -764,7 +744,7 @@ const ProjectDetail = () => {
         <TabPanel value={tabValue} index={1}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 500 }}>
-              Métricas configuradas
+              {t('projects.detail.configuredMetrics')}
             </Typography>
             <Button
               variant="contained"
@@ -778,7 +758,7 @@ const ProjectDetail = () => {
                 },
               }}
             >
-              Configurar métricas
+              {t('projects.detail.configureMetrics')}
             </Button>
           </Box>
 
@@ -847,7 +827,7 @@ const ProjectDetail = () => {
                             display: '-webkit-box', WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical', overflow: 'hidden',
                           }}>
-                            {metric.description || 'Sin descripción'}
+                            {metric.description || t('projects.detail.noDescAvailable')}
                           </Typography>
                         </CardContent>
                       </Card>
@@ -873,7 +853,7 @@ const ProjectDetail = () => {
                   const meta = getMetricMeta(drawerMetric.name);
                   const IconComponent = meta.icon;
                   const params = drawerMetric.parameters ? Object.entries(drawerMetric.parameters) : [];
-                  const paramHelp = PARAM_HELP[metricKey] ?? {};
+                  const paramHelp = paramHelpMap[metricKey] ?? {};
 
                   return (
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -922,10 +902,10 @@ const ProjectDetail = () => {
                           fontWeight: 700, color: '#999', textTransform: 'uppercase',
                           letterSpacing: '0.07em', display: 'block', mb: 1,
                         }}>
-                          ¿Qué mide?
+                          {t('projects.detail.whatMeasures')}
                         </Typography>
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', lineHeight: 1.65, color: '#444', mb: 3 }}>
-                          {meta.description || drawerMetric.description || 'Sin descripción disponible.'}
+                          {meta.description || drawerMetric.description || t('projects.detail.noDescAvailable')}
                         </Typography>
 
                         {/* Parámetros */}
@@ -935,7 +915,7 @@ const ProjectDetail = () => {
                               fontWeight: 700, color: '#999', textTransform: 'uppercase',
                               letterSpacing: '0.07em', display: 'block', mb: 1.5,
                             }}>
-                              Parámetros configurados
+                              {t('projects.detail.configuredParams')}
                             </Typography>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                               {params.map(([key, value]) => {
@@ -989,7 +969,7 @@ const ProjectDetail = () => {
                         ) : (
                           <Box sx={{ p: 2, borderRadius: 2, backgroundColor: '#F8F9FA', border: '1px solid #EEEEEE' }}>
                             <Typography variant="body2" sx={{ fontSize: '0.82rem', color: '#888' }}>
-                              No hay parámetros configurados. Se usarán los valores por defecto.
+                              {t('projects.detail.noParams')}
                             </Typography>
                           </Box>
                         )}
@@ -1011,10 +991,10 @@ const ProjectDetail = () => {
                 <DEFAULT_METRIC_META.icon size={40} color={GREEN} strokeWidth={1.5} />
               </Box>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#1A1A1A' }}>
-                No hay métricas configuradas
+                {t('projects.detail.noMetricsTitle')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#666666' }}>
-                Configura métricas para evaluar la calidad de tus datasets.
+                {t('projects.detail.noMetricsDesc')}
               </Typography>
             </Box>
           )}
@@ -1088,24 +1068,24 @@ const ProjectDetail = () => {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          {"¿Eliminar Proyecto?"}
+          {t('projects.detail.deleteTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            ¿Estás seguro de que deseas eliminar el proyecto "{project.name}"? Esta acción no se puede deshacer y eliminará todos los datasets y evaluaciones asociados.
+            {t('projects.detail.deleteMessage', { name: project.name })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             autoFocus
             disabled={deleteLoading}
           >
-            {deleteLoading ? <CircularProgress size={24} /> : 'Eliminar'}
+            {deleteLoading ? <CircularProgress size={24} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

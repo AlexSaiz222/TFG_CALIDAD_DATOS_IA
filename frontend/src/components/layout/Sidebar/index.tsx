@@ -26,11 +26,14 @@ import {
   PostAdd as PostAddIcon,
   List as ListIcon,
   Logout as LogoutIcon,
+  Language as LanguageIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import SidebarItemComponent from './SidebarItem';
 import RecentItems from './RecentItems';
 import { SidebarItem } from './types';
 import { useSidebar } from '../../../contexts/SidebarContext';
+import { useLanguage, type Language } from '../../../contexts/LanguageContext';
 import { projectsAPI } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import { safeNavigate } from '../../../utils/routeTransition';
@@ -68,6 +71,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const isMobile   = useMediaQuery(theme.breakpoints.down('md'));
   const { isCollapsed, toggleCollapsed, setCollapsed } = useSidebar();
   const { isAuthenticated, user, logout } = useAuth();
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
@@ -92,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const projectChildren: SidebarItem[] = [
     {
       id: 'projects-all',
-      text: 'Ver todos',
+      text: t('nav.items.allProjects'),
       icon: <ListIcon />,
       path: '/projects',
       isControl: true,
@@ -107,35 +112,35 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     },
     {
       id: 'projects-new',
-      text: 'Nuevo proyecto',
+      text: t('nav.items.newProject'),
       icon: <AddIcon />,
       path: '/projects/new',
     },
   ];
 
   const datasetChildren: SidebarItem[] = [
-    { id: 'datasets-all',    text: 'Todos los datasets', icon: <ListIcon />,       path: '/datasets',        isControl: true },
-    { id: 'datasets-upload', text: 'Subir dataset',      icon: <FileUploadIcon />, path: '/datasets/upload' },
+    { id: 'datasets-all',    text: t('nav.items.allDatasets'),   icon: <ListIcon />,       path: '/datasets',        isControl: true },
+    { id: 'datasets-upload', text: t('nav.items.uploadDataset'), icon: <FileUploadIcon />, path: '/datasets/upload' },
   ];
 
   const mainItems: SidebarItem[] = [
-    { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { id: 'projects',  text: 'Proyectos', icon: <FolderIcon />,    children: projectChildren },
-    { id: 'datasets',  text: 'Datasets',  icon: <StorageIcon />,   children: datasetChildren },
+    { id: 'dashboard', text: t('nav.items.dashboard'), icon: <DashboardIcon />, path: '/dashboard' },
+    { id: 'projects',  text: t('nav.items.projects'),  icon: <FolderIcon />,    children: projectChildren },
+    { id: 'datasets',  text: t('nav.items.datasets'),  icon: <StorageIcon />,   children: datasetChildren },
     {
-      id: 'analysis', text: 'Análisis', icon: <AssessmentIcon />,
+      id: 'analysis', text: t('nav.items.analysis'), icon: <AssessmentIcon />,
       children: [{
-        id: 'analysis-history', text: 'Historial', icon: <HistoryIcon />, path: '/evaluations',
+        id: 'analysis-history', text: t('nav.items.history'), icon: <HistoryIcon />, path: '/evaluations',
       }],
     },
   ];
 
   const systemItems: SidebarItem[] = [
     {
-      id: 'settings', text: 'Configuración', icon: <SettingsIcon />,
+      id: 'settings', text: t('nav.items.settings'), icon: <SettingsIcon />,
       children: [
-        { id: 'settings-profile',   text: 'Perfil',     icon: <PersonIcon />,  path: '/profile' },
-        { id: 'settings-templates', text: 'Plantillas', icon: <PostAddIcon />, path: '/settings/templates' },
+        { id: 'settings-profile',   text: t('nav.items.profile'),   icon: <PersonIcon />,  path: '/profile' },
+        { id: 'settings-templates', text: t('nav.items.templates'), icon: <PostAddIcon />, path: '/settings/templates' },
       ],
     },
   ];
@@ -150,6 +155,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
+  const LANGS: { code: Language; label: string }[] = [
+    { code: 'es', label: 'ES' },
+    { code: 'en', label: 'EN' },
+  ];
 
   return (
     <Drawer
@@ -181,7 +191,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         borderBottom: '1px solid #E8E8E8',
         flexShrink: 0,
       }}>
-        <Tooltip title={isCollapsed ? 'Expandir panel' : 'Colapsar panel'} placement="right">
+        <Tooltip title={isCollapsed ? t('nav.expandPanel') : t('nav.collapsePanel')} placement="right">
           <IconButton
             onClick={toggleCollapsed}
             size="small"
@@ -207,12 +217,70 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         </List>
 
         {/* Separator + system items */}
-        <SectionLabel label="Sistema" collapsed={isCollapsed} />
+        <SectionLabel label={t('nav.sections.system')} collapsed={isCollapsed} />
         <List component="nav" disablePadding>
           {systemItems.map(item => (
             <SidebarItemComponent key={item.id} item={item} isCollapsed={isCollapsed} />
           ))}
         </List>
+
+        {/* ── Language selector ── */}
+        {!isCollapsed ? (
+          <Box sx={{ px: 2.5, pt: 1.5, pb: 0.5 }}>
+            <Typography sx={{
+              fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase',
+              letterSpacing: '0.09em', color: '#BBBBBB', mb: 0.75,
+            }}>
+              {t('language.label')}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.75 }}>
+              {LANGS.map(({ code, label }) => (
+                <Box
+                  key={code}
+                  onClick={() => setLanguage(code)}
+                  sx={{
+                    px: 1.5, py: 0.4,
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: language === code ? 700 : 400,
+                    cursor: 'pointer',
+                    backgroundColor: language === code ? '#00B37E' : 'transparent',
+                    color: language === code ? '#FFFFFF' : '#888888',
+                    border: `1px solid ${language === code ? '#00B37E' : '#DDDDDD'}`,
+                    transition: 'all 0.15s ease',
+                    userSelect: 'none',
+                    '&:hover': {
+                      backgroundColor: language === code ? '#00B37E' : 'rgba(0,179,126,0.08)',
+                      borderColor: '#00B37E',
+                      color: language === code ? '#FFFFFF' : '#00B37E',
+                    },
+                  }}
+                >
+                  {label}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ py: 0.5, display: 'flex', justifyContent: 'center' }}>
+            <Tooltip
+              title={language === 'es' ? t('language.spanish') : t('language.english')}
+              placement="right"
+            >
+              <IconButton
+                size="small"
+                onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+                sx={{
+                  borderRadius: '7px', width: 30, height: 30,
+                  color: '#AAAAAA',
+                  '&:hover': { backgroundColor: 'rgba(0,179,126,0.08)', color: '#00B37E' },
+                }}
+              >
+                <LanguageIcon sx={{ fontSize: '1.1rem' }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
 
         {/* Recent items */}
         <RecentItems isCollapsed={isCollapsed} />
@@ -265,7 +333,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
               </Typography>
             )}
           </Box>
-          <Tooltip title="Cerrar sesión">
+          <Tooltip title={t('nav.logout')}>
             <IconButton
               size="small"
               onClick={logout}

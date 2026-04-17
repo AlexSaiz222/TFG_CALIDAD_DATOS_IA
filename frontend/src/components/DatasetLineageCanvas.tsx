@@ -25,6 +25,7 @@ import {
 import { useRouter } from 'next/router';
 import { datasetsAPI } from '../services/api';
 import { Dataset } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface VersionWithAnalysis extends Dataset {
   latestAnalysis?: {
@@ -120,6 +121,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
   currentDatasetId,
 }) => {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [versions, setVersions] = useState<VersionWithAnalysis[]>([]);
@@ -151,7 +153,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
       setVersions(data.versions || []);
       setError(null);
     } catch {
-      setError('No se pudieron cargar las versiones');
+      setError(t('datasets.lineage.loadError'));
     } finally {
       setLoading(false);
     }
@@ -245,7 +247,7 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}><CircularProgress size={32} /></Box>;
   if (error) return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
-  if (versions.length === 0) return <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="text.secondary">No hay versiones para mostrar</Typography></Box>;
+  if (versions.length === 0) return <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="text.secondary">{t('datasets.lineage.noVersions')}</Typography></Box>;
 
   const isDragging = dragRef.current !== null;
   const isPanning = panRef.current.active;
@@ -256,21 +258,21 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1, borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Chip
-            label={versions.length === 1 ? '1 versión' : `${versions.length} versiones`}
+            label={t('datasets.lineage.versionCount', { count: versions.length })}
             size="small"
             sx={{ height: 22, fontSize: '0.73rem', backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500 }}
           />
           <Typography variant="caption" color="text.secondary" sx={{ ml: 1, fontSize: '0.75rem', opacity: 0.7 }}>
-            Arrastra el fondo para desplazar · rueda para zoom · arrastra nodos para reorganizar
+            {t('datasets.lineage.dragHint')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums', minWidth: 36, textAlign: 'right' }}>
             {Math.round(scale * 100)}%
           </Typography>
-          <Tooltip title="Zoom in"><IconButton size="small" onClick={() => setScale(s => Math.min(2.5, s * 1.15))}><ZoomInIcon fontSize="small" /></IconButton></Tooltip>
-          <Tooltip title="Zoom out"><IconButton size="small" onClick={() => setScale(s => Math.max(0.3, s / 1.15))}><ZoomOutIcon fontSize="small" /></IconButton></Tooltip>
-          <Tooltip title="Resetear posiciones y zoom">
+          <Tooltip title={t('datasets.lineage.zoomIn')}><IconButton size="small" onClick={() => setScale(s => Math.min(2.5, s * 1.15))}><ZoomInIcon fontSize="small" /></IconButton></Tooltip>
+          <Tooltip title={t('datasets.lineage.zoomOut')}><IconButton size="small" onClick={() => setScale(s => Math.max(0.3, s / 1.15))}><ZoomOutIcon fontSize="small" /></IconButton></Tooltip>
+          <Tooltip title={t('datasets.lineage.resetView')}>
             <IconButton size="small" onClick={handleReset}><ResetIcon fontSize="small" /></IconButton>
           </Tooltip>
         </Box>
@@ -459,16 +461,16 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
                             }}
                           />
                           {v.is_latest && (
-                            <Chip label="Última" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
+                            <Chip label={t('datasets.lineage.latest')} size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }} />
                           )}
                           {isCurrentDataset && (
-                            <Chip label="Actual" size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: `${gateColor}20`, color: gateColor, fontWeight: 600 }} />
+                            <Chip label={t('datasets.lineage.current')} size="small" sx={{ height: 20, fontSize: '0.65rem', backgroundColor: `${gateColor}20`, color: gateColor, fontWeight: 600 }} />
                           )}
                         </>
                       )}
                     </Box>
                     {!isEditing && (
-                      <Tooltip title="Editar etiqueta">
+                      <Tooltip title={t('datasets.lineage.editLabel')}>
                         <IconButton
                           size="small"
                           onClick={e => { e.stopPropagation(); startEdit(v); }}
@@ -497,16 +499,16 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
                   {/* Stats row */}
                   <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.68 * scale}rem` }}>
-                      {v.row_count?.toLocaleString() ?? '—'} filas
+                      {t('datasets.lineage.rows', { count: v.row_count?.toLocaleString() ?? '—' })}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.68 * scale}rem` }}>
-                      {v.column_count ?? '—'} cols
+                      {t('datasets.lineage.cols', { count: v.column_count ?? '—' })}
                     </Typography>
                   </Box>
 
                   {/* Date */}
                   <Typography variant="caption" color="text.secondary" sx={{ fontSize: `${0.63 * scale}rem`, mt: 0.75, display: 'block', opacity: 0.7 }}>
-                    {v.created_at ? new Date(v.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                    {v.created_at ? new Date(v.created_at).toLocaleDateString(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
                   </Typography>
 
                   {/* Description */}
@@ -528,19 +530,19 @@ const DatasetLineageCanvas: React.FC<DatasetLineageCanvasProps> = ({
 
       {/* Legend */}
       <Box sx={{ display: 'flex', gap: 2, px: 2, py: 1, borderTop: '1px solid #F0F0F0', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
-        {[
-          { label: 'Aprobado', color: '#00B37E' },
-          { label: 'Advertencia', color: '#FFB800' },
-          { label: 'Fallido', color: '#E5484D' },
-          { label: 'Sin análisis', color: '#BDBDBD' },
-        ].map(({ label, color }) => (
-          <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        {([
+          { key: 'passed', color: '#00B37E' },
+          { key: 'warning', color: '#FFB800' },
+          { key: 'failed', color: '#E5484D' },
+          { key: 'noAnalysis', color: '#BDBDBD' },
+        ] as { key: 'passed' | 'warning' | 'failed' | 'noAnalysis'; color: string }[]).map(({ key, color }) => (
+          <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box sx={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: color }} />
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem' }}>{label}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem' }}>{t(`datasets.lineage.legend.${key}`)}</Typography>
           </Box>
         ))}
         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', opacity: 0.55, fontSize: '0.7rem' }}>
-          Click en nodo para navegar · ✏️ editar etiqueta · etiqueta en flecha = cambio de calidad
+          {t('datasets.lineage.navHint')}
         </Typography>
       </Box>
     </Box>

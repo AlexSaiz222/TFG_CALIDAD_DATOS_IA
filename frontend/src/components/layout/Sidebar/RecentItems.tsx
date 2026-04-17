@@ -14,6 +14,7 @@ import {
   Storage as StorageIcon,
   History as HistoryIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { safeNavigate } from '../../../utils/routeTransition';
 import { projectsAPI } from '../../../services/api';
 import { useRouter } from 'next/router';
@@ -35,6 +36,7 @@ const RecentItems: React.FC<RecentItemsProps> = ({ isCollapsed = false }) => {
   const [items, setItems]   = useState<RecentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     projectsAPI.getProjects()
@@ -60,7 +62,7 @@ const RecentItems: React.FC<RecentItemsProps> = ({ isCollapsed = false }) => {
   if (isCollapsed) {
     return (
       <Box sx={{ py: 0.5, mt: 0.5, borderTop: '1px solid #E8E8E8' }}>
-        <Tooltip title="Proyectos recientes" placement="right">
+        <Tooltip title={t('nav.recentProjects')} placement="right">
           <IconButton size="small" sx={{ display: 'flex', mx: 'auto', color: '#BBBBBB', borderRadius: '7px' }}>
             <HistoryIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -79,7 +81,7 @@ const RecentItems: React.FC<RecentItemsProps> = ({ isCollapsed = false }) => {
           fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase',
           letterSpacing: '0.09em', color: '#BBBBBB',
         }}>
-          Recientes
+          {t('nav.sections.recent')}
         </Typography>
       </Box>
 

@@ -25,6 +25,7 @@ import {
   Close as CloseIcon,
   AccountTree as RuleIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 export interface LogicalRule {
   name: string;
@@ -65,14 +66,14 @@ const ruleToForm = (r: LogicalRule): RuleFormState => ({
   assertion: r.assertion ?? '',
 });
 
-const validateForm = (f: RuleFormState): Record<string, string> => {
+const validateForm = (f: RuleFormState, t: (key: string) => string): Record<string, string> => {
   const errs: Record<string, string> = {};
-  if (!f.name.trim()) errs.name = 'El nombre es obligatorio';
+  if (!f.name.trim()) errs.name = t('logicalConsistency.ruleEditor.errors.nameRequired');
   if (f.type === 'violation') {
-    if (!f.expression.trim()) errs.expression = 'La expresión es obligatoria';
+    if (!f.expression.trim()) errs.expression = t('logicalConsistency.ruleEditor.errors.expressionRequired');
   } else {
-    if (!f.condition.trim()) errs.condition = 'La condición es obligatoria';
-    if (!f.assertion.trim()) errs.assertion = 'La aserción es obligatoria';
+    if (!f.condition.trim()) errs.condition = t('logicalConsistency.ruleEditor.errors.conditionRequired');
+    if (!f.assertion.trim()) errs.assertion = t('logicalConsistency.ruleEditor.errors.assertionRequired');
   }
   return errs;
 };
@@ -83,6 +84,7 @@ interface Props {
 }
 
 const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [form, setForm] = useState<RuleFormState>(emptyForm());
@@ -121,7 +123,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
   };
 
   const handleSaveForm = () => {
-    const errs = validateForm(form);
+    const errs = validateForm(form, t);
     if (Object.keys(errs).length > 0) {
       setFormErrors(errs);
       return;
@@ -147,7 +149,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
         <Typography variant="subtitle2" color="text.secondary">
-          Reglas de consistencia ({rules.length})
+          {t('logicalConsistency.ruleEditor.ruleName')} ({rules.length})
         </Typography>
         {!formOpen && (
           <Button
@@ -157,7 +159,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
             variant="outlined"
             sx={{ borderColor: '#00B37E', color: '#00B37E', '&:hover': { borderColor: '#00A070', backgroundColor: '#F0F9F6' } }}
           >
-            Agregar regla
+            {t('logicalConsistency.ruleEditor.addRule')}
           </Button>
         )}
       </Box>
@@ -176,7 +178,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
         >
           <RuleIcon sx={{ mb: 1, opacity: 0.4, fontSize: 32 }} />
           <Typography variant="body2">
-            Sin reglas configuradas. Agrega una regla para evaluar consistencia lógica.
+            {t('logicalConsistency.ruleEditor.noRules')}
           </Typography>
         </Box>
       )}
@@ -192,7 +194,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
                       {rule.name}
                     </Typography>
                     <Chip
-                      label={rule.type === 'violation' ? 'Violación' : 'SI…ENTONCES'}
+                      label={rule.type === 'violation' ? t('logicalConsistency.ruleEditor.violationType') : t('logicalConsistency.ruleEditor.ifThenType')}
                       size="small"
                       sx={{
                         fontSize: '0.65rem',
@@ -209,21 +211,21 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
                   ) : (
                     <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }} noWrap>
-                        <strong>SI</strong> {rule.condition}
+                        <strong>{t('logicalConsistency.ruleEditor.ifLabel')}</strong> {rule.condition}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }} noWrap>
-                        <strong>ENTONCES</strong> {rule.assertion}
+                        <strong>{t('logicalConsistency.ruleEditor.thenLabel')}</strong> {rule.assertion}
                       </Typography>
                     </Box>
                   )}
                 </Box>
                 <Box display="flex" alignItems="center" ml={1}>
-                  <Tooltip title="Editar">
+                  <Tooltip title={t('common.edit')}>
                     <IconButton size="small" onClick={() => openEditForm(index)} disabled={formOpen}>
                       <EditIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Eliminar">
+                  <Tooltip title={t('logicalConsistency.ruleEditor.deleteRule')}>
                     <IconButton size="small" onClick={() => handleDelete(index)} color="error">
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -243,65 +245,60 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
         >
           <CardContent sx={{ pb: '12px !important' }}>
             <Typography variant="subtitle2" gutterBottom>
-              {editingIndex !== null ? 'Editar regla' : 'Nueva regla'}
+              {editingIndex !== null ? t('common.edit') : t('logicalConsistency.ruleEditor.addRule')}
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             <Box display="flex" flexDirection="column" gap={2}>
               {/* Name */}
               <TextField
-                label="Nombre de la regla"
+                label={t('logicalConsistency.ruleEditor.ruleName')}
                 size="small"
                 fullWidth
                 value={form.name}
                 onChange={(e) => handleFormChange('name', e.target.value)}
                 error={!!formErrors.name}
-                helperText={formErrors.name || 'Identificador legible para esta regla'}
+                helperText={formErrors.name}
                 placeholder="Ej: precio_no_negativo"
               />
 
               {/* Type */}
               <FormControl size="small" fullWidth>
-                <InputLabel>Tipo de regla</InputLabel>
+                <InputLabel>{t('logicalConsistency.ruleEditor.ruleName')}</InputLabel>
                 <Select
-                  label="Tipo de regla"
+                  label={t('logicalConsistency.ruleEditor.ruleName')}
                   value={form.type}
                   onChange={(e) => handleFormChange('type', e.target.value as 'violation' | 'if_then')}
                 >
                   <MenuItem value="violation">
                     <Box>
-                      <Typography variant="body2">Violación directa</Typography>
+                      <Typography variant="body2">{t('logicalConsistency.ruleEditor.violationType')}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Expresión que selecciona filas inválidas
+                        {t('logicalConsistency.ruleEditor.expression')}
                       </Typography>
                     </Box>
                   </MenuItem>
                   <MenuItem value="if_then">
                     <Box>
-                      <Typography variant="body2">SI… ENTONCES</Typography>
+                      <Typography variant="body2">{t('logicalConsistency.ruleEditor.ifThenType')}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Condición que implica una aserción
+                        {t('logicalConsistency.ruleEditor.condition')}
                       </Typography>
                     </Box>
                   </MenuItem>
                 </Select>
-                <FormHelperText>
-                  {form.type === 'violation'
-                    ? 'Usa expresiones de pandas (ej: precio < 0)'
-                    : 'Violación = filas donde condición es verdadera pero aserción es falsa'}
-                </FormHelperText>
               </FormControl>
 
               {/* Violation: expression */}
               {form.type === 'violation' && (
                 <TextField
-                  label="Expresión"
+                  label={t('logicalConsistency.ruleEditor.expression')}
                   size="small"
                   fullWidth
                   value={form.expression}
                   onChange={(e) => handleFormChange('expression', e.target.value)}
                   error={!!formErrors.expression}
-                  helperText={formErrors.expression || 'Expresión pandas que devuelve filas inválidas'}
+                  helperText={formErrors.expression}
                   placeholder="Ej: precio < 0"
                   InputProps={{ sx: { fontFamily: 'monospace' } }}
                 />
@@ -311,24 +308,24 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
               {form.type === 'if_then' && (
                 <>
                   <TextField
-                    label="Condición (SI)"
+                    label={t('logicalConsistency.ruleEditor.condition')}
                     size="small"
                     fullWidth
                     value={form.condition}
                     onChange={(e) => handleFormChange('condition', e.target.value)}
                     error={!!formErrors.condition}
-                    helperText={formErrors.condition || 'Expresión que activa la regla'}
+                    helperText={formErrors.condition}
                     placeholder="Ej: estado == 'Fallecido'"
                     InputProps={{ sx: { fontFamily: 'monospace' } }}
                   />
                   <TextField
-                    label="Aserción (ENTONCES)"
+                    label={t('logicalConsistency.ruleEditor.assertion')}
                     size="small"
                     fullWidth
                     value={form.assertion}
                     onChange={(e) => handleFormChange('assertion', e.target.value)}
                     error={!!formErrors.assertion}
-                    helperText={formErrors.assertion || 'Lo que debe cumplirse si la condición es verdadera'}
+                    helperText={formErrors.assertion}
                     placeholder="Ej: proxima_cita.isna()"
                     InputProps={{ sx: { fontFamily: 'monospace' } }}
                   />
@@ -338,7 +335,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
 
             <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
               <Button size="small" startIcon={<CloseIcon />} onClick={cancelForm}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 size="small"
@@ -351,7 +348,7 @@ const LogicalConsistencyRuleEditor: React.FC<Props> = ({ rules, onChange }) => {
                   '&:hover': { backgroundColor: '#00A070' },
                 }}
               >
-                {editingIndex !== null ? 'Guardar cambios' : 'Añadir regla'}
+                {editingIndex !== null ? t('common.saveChanges') : t('logicalConsistency.ruleEditor.addRule')}
               </Button>
             </Box>
           </CardContent>

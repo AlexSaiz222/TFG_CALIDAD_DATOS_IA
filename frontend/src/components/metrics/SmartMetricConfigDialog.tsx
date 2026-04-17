@@ -23,6 +23,7 @@ import {
   Code as CodeIcon,
   Tune as TuneIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
 import { getIconMeta } from './MetricIcon';
 import JsonParameterEditor from './JsonParameterEditor';
@@ -41,6 +42,7 @@ interface SectionBannerProps {
   autoDetect?: boolean;
 }
 const SectionBanner: React.FC<SectionBannerProps> = ({ metricName, title, description, autoDetect }) => {
+  const { t } = useTranslation();
   const meta = getIconMeta(metricName);
   const IconComp = meta.icon;
   return (
@@ -61,7 +63,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({ metricName, title, descri
           sx={{ px: 1.5, py: 0.5, bgcolor: GREEN_LIGHT, borderRadius: 1, width: 'fit-content' }}>
           <AutoIcon sx={{ fontSize: 16, color: GREEN }} />
           <Typography variant="caption" fontWeight={500} color={GREEN}>
-            Funciona automáticamente sin configuración adicional
+            {t('metricConfig.smartDialog.autoWorks')}
           </Typography>
         </Box>
       )}
@@ -118,6 +120,7 @@ const ThresholdSlider: React.FC<ThresholdSliderProps> = ({
 
 interface AdvancedSectionProps { children: React.ReactNode; }
 const AdvancedSection: React.FC<AdvancedSectionProps> = ({ children }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     // @ts-ignore — TS2590: MUI Box type inference too complex when lucide-react types are in scope
@@ -130,7 +133,7 @@ const AdvancedSection: React.FC<AdvancedSectionProps> = ({ children }) => {
           onClick={() => setOpen(!open)}
           sx={{ color: 'text.secondary', textTransform: 'none', px: 0 }}
         >
-          Opciones avanzadas
+          {t('metricConfig.smartDialog.advancedOptions')}
         </Button>
         <Collapse in={open}>
           <Box mt={1.5}>{children}</Box>
@@ -148,16 +151,17 @@ interface ColumnTagInputProps {
   helpText?: string;
 }
 const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange, helpText }) => {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const add = () => {
     const v = input.trim();
     if (v && !value.includes(v)) onChange([...value, v]);
     setInput('');
   };
-  
+
   // Ensure value is always an array of strings (filter out any objects that might come from JSON sync)
   const safeValue = (value || []).filter((v: any) => typeof v === 'string') as string[];
-  
+
   return (
     <Box>
       <Typography variant="subtitle2" gutterBottom>{label}</Typography>
@@ -165,12 +169,12 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
         <TextField
           size="small" fullWidth
           value={input}
-          placeholder="Nombre de columna…"
+          placeholder={t('metricConfig.smartDialog.columnPlaceholder')}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
         />
         <Button size="small" variant="outlined" onClick={add}
-          sx={{ borderColor: GREEN, color: GREEN, minWidth: 48 }}>+</Button>
+          sx={{ borderColor: GREEN, color: GREEN, minWidth: 48 }}>{t('metricConfig.smartDialog.addButton')}</Button>
       </Box>
       <Box display="flex" flexWrap="wrap" gap={0.5}>
         {safeValue.map(col => (
@@ -178,7 +182,7 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
         ))}
         {safeValue.length === 0 && (
           <Typography variant="caption" color="text.disabled">
-            {helpText || 'Vacío = se comprueban todas las columnas automáticamente'}
+            {helpText || t('metricConfig.smartDialog.emptyColumns')}
           </Typography>
         )}
       </Box>
@@ -192,34 +196,35 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
 
 // ---------- COMPLETENESS ----------
 const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+  const { t } = useTranslation();
   const threshold = params.threshold ?? 0.95;
   const columns: string[] = params.columns ?? [];
-  
+
   React.useEffect(() => {
     const needsUpdate = params.threshold === undefined || params.columns === undefined;
     if (needsUpdate) {
       onChange({ threshold: params.threshold ?? 0.95, columns: params.columns ?? [], ...params });
     }
   }, []);
-  
+
   return (
     <Box>
       <SectionBanner
         metricName="completeness"
-        title="Completitud"
-        description="Detecta columnas con valores nulos o faltantes. Analiza todas las columnas del dataset y alerta cuando la proporción de datos faltantes supera el umbral configurado."
+        title={t('metricConfig.smartDialog.completeness.title')}
+        description={t('metricConfig.smartDialog.completeness.description')}
         autoDetect
       />
       <ThresholdSlider
-        label="Mínimo de valores presentes requerido"
+        label={t('metricConfig.smartDialog.completeness.thresholdLabel')}
         value={threshold}
         onChange={v => onChange({ ...params, threshold: v })}
         presets={[0.80, 0.90, 0.95, 0.99]}
-        helpText="Se emitirá una alerta si la completitud global cae por debajo de este umbral."
+        helpText={t('metricConfig.smartDialog.completeness.thresholdHelp')}
       />
       <AdvancedSection>
         <ColumnTagInput
-          label="Revisar solo estas columnas (opcional)"
+          label={t('metricConfig.smartDialog.completeness.columnsLabel')}
           value={columns}
           onChange={v => onChange({ ...params, columns: v })}
         />
@@ -230,37 +235,38 @@ const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
 
 // ---------- UNIQUENESS ----------
 const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+  const { t } = useTranslation();
   const threshold = params.threshold ?? 1.0;
   const columns: string[] = params.columns ?? [];
-  
+
   React.useEffect(() => {
     const needsUpdate = params.threshold === undefined || params.columns === undefined;
     if (needsUpdate) {
       onChange({ threshold: params.threshold ?? 1.0, columns: params.columns ?? [], ...params });
     }
   }, []);
-  
+
   return (
     <Box>
       <SectionBanner
         metricName="uniqueness"
-        title="Unicidad"
-        description="Detecta filas completamente duplicadas en el dataset. También identifica columnas con poca variabilidad (ej: una columna que siempre tiene el mismo valor)."
+        title={t('metricConfig.smartDialog.uniqueness.title')}
+        description={t('metricConfig.smartDialog.uniqueness.description')}
         autoDetect
       />
       <ThresholdSlider
-        label="Proporción mínima de unicidad requerida"
+        label={t('metricConfig.smartDialog.uniqueness.thresholdLabel')}
         value={threshold}
         onChange={v => onChange({ ...params, threshold: v })}
         presets={[0.90, 0.95, 0.99, 1.0]}
-        helpText="1.0 = no se permite ningún duplicado. 0.95 = permite hasta un 5% de duplicados."
+        helpText={t('metricConfig.smartDialog.uniqueness.thresholdHelp')}
       />
       <AdvancedSection>
         <ColumnTagInput
-          label="Columnas que deben ser completamente únicas (ej: IDs)"
+          label={t('metricConfig.smartDialog.uniqueness.columnsLabel')}
           value={columns}
           onChange={v => onChange({ ...params, columns: v })}
-          helpText="Vacío = se aplica la detección global al dataset completo"
+          helpText={t('metricConfig.smartDialog.uniqueness.columnsEmpty')}
         />
       </AdvancedSection>
     </Box>
@@ -268,28 +274,19 @@ const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
 };
 
 // ---------- SYNTACTIC ACCURACY ----------
-const FORMAT_OPTIONS = [
-  { value: 'email', label: 'Correo electrónico' },
-  { value: 'phone_es', label: 'Teléfono (España)' },
-  { value: 'phone_intl', label: 'Teléfono internacional' },
-  { value: 'date_iso', label: 'Fecha ISO (YYYY-MM-DD)' },
-  { value: 'date_eu', label: 'Fecha europea (DD/MM/YYYY)' },
-  { value: 'dni_es', label: 'DNI / NIE (España)' },
-  { value: 'postal_code_es', label: 'Código postal (España)' },
-  { value: 'integer', label: 'Número entero' },
-  { value: 'decimal', label: 'Número decimal' },
-  { value: 'url', label: 'URL' },
-  { value: 'uuid', label: 'UUID' },
-  { value: 'ip_v4', label: 'Dirección IP (v4)' },
-  { value: 'credit_card', label: 'Tarjeta de crédito' },
+const FORMAT_OPTION_KEYS = [
+  'email', 'phone_es', 'phone_intl', 'date_iso', 'date_eu',
+  'dni_es', 'postal_code_es', 'integer', 'decimal', 'url', 'uuid', 'ip_v4', 'credit_card',
 ];
+
 const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+  const { t } = useTranslation();
   const autoDetect = params.auto_detect_types !== false;
   const threshold = params.threshold ?? 0.95;
   const columnRules: Array<{ column: string; expected_type: string }> = params.columns ?? [];
   const [newCol, setNewCol] = useState('');
   const [newType, setNewType] = useState('email');
-  
+
   React.useEffect(() => {
     const needsUpdate = params.auto_detect_types === undefined || params.threshold === undefined || params.columns === undefined;
     if (needsUpdate) {
@@ -306,12 +303,15 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
     onChange({ ...params, columns: columnRules.filter((_, idx) => idx !== i) });
   };
 
+  const formatLabel = (key: string) =>
+    t(`metricConfig.smartDialog.syntacticAccuracy.formatOptions.${key}`, { defaultValue: key });
+
   return (
     <Box>
       <SectionBanner
         metricName="syntactic_accuracy"
-        title="Precisión sintáctica"
-        description="Verifica que los valores de las columnas cumplan un formato esperado: emails válidos, números de teléfono, fechas, DNIs, códigos postales, etc."
+        title={t('metricConfig.smartDialog.syntacticAccuracy.title')}
+        description={t('metricConfig.smartDialog.syntacticAccuracy.description')}
         autoDetect
       />
 
@@ -326,9 +326,9 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
           }
           label={
             <Box>
-              <Typography variant="body2" fontWeight={600}>Detectar formatos automáticamente</Typography>
+              <Typography variant="body2" fontWeight={600}>{t('metricConfig.smartDialog.syntacticAccuracy.autoDetectLabel')}</Typography>
               <Typography variant="caption" color="text.secondary">
-                Analiza el contenido de cada columna e identifica automáticamente emails, teléfonos, fechas, IDs y más.
+                {t('metricConfig.smartDialog.syntacticAccuracy.autoDetectCaption')}
               </Typography>
             </Box>
           }
@@ -336,33 +336,35 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
       </Paper>
 
       <ThresholdSlider
-        label="Conformidad mínima requerida por columna"
+        label={t('metricConfig.smartDialog.syntacticAccuracy.thresholdLabel')}
         value={threshold}
         onChange={v => onChange({ ...params, threshold: v })}
         presets={[0.80, 0.90, 0.95, 1.0]}
-        helpText="Si menos del X% de los valores de una columna cumplen el formato esperado, se genera una alerta."
+        helpText={t('metricConfig.smartDialog.syntacticAccuracy.thresholdHelp')}
       />
 
       <AdvancedSection>
-        <Typography variant="subtitle2" gutterBottom>Reglas de formato adicionales (opcional)</Typography>
+        <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.syntacticAccuracy.advancedTitle')}</Typography>
         <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-          Especifica el formato esperado para columnas concretas, complementando la detección automática.
+          {t('metricConfig.smartDialog.syntacticAccuracy.advancedCaption')}
         </Typography>
         <Box display="flex" gap={1} mb={1.5} alignItems="flex-start">
-          <TextField size="small" label="Columna" value={newCol}
+          <TextField size="small" label={t('metricConfig.smartDialog.syntacticAccuracy.columnField')} value={newCol}
             onChange={e => setNewCol(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addRule()}
             sx={{ flex: 1 }} />
           <FormControl size="small" sx={{ minWidth: 180 }}>
-            <TextField select size="small" label="Formato esperado" value={newType}
+            <TextField select size="small" label={t('metricConfig.smartDialog.syntacticAccuracy.formatField')} value={newType}
               onChange={e => setNewType(e.target.value)}
               SelectProps={{ native: true }}>
-              {FORMAT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              {FORMAT_OPTION_KEYS.map(key => (
+                <option key={key} value={key}>{formatLabel(key)}</option>
+              ))}
             </TextField>
           </FormControl>
           <Button size="small" variant="outlined" onClick={addRule}
             sx={{ borderColor: GREEN, color: GREEN, whiteSpace: 'nowrap', height: 40 }}>
-            Añadir
+            {t('metricConfig.smartDialog.addButton')}
           </Button>
         </Box>
         {columnRules.length > 0 && (
@@ -370,7 +372,7 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
             {columnRules.map((r, i) => (
               <ListItem key={i} disableGutters sx={{ py: 0.5 }}>
                 <ListItemText
-                  primary={<Typography variant="body2"><strong>{r.column}</strong> → {FORMAT_OPTIONS.find(o => o.value === r.expected_type)?.label ?? r.expected_type}</Typography>}
+                  primary={<Typography variant="body2"><strong>{r.column}</strong> → {formatLabel(r.expected_type)}</Typography>}
                 />
                 <ListItemSecondaryAction>
                   <IconButton size="small" edge="end" onClick={() => removeRule(i)}>
@@ -388,19 +390,20 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
 
 // ---------- CLASS BALANCE ----------
 const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+  const { t } = useTranslation();
   const autoDetect = params.auto_detect !== false;
   const thresholdHigh = params.imbalance_threshold_high ?? 0.90;
   const thresholdLow = params.imbalance_threshold_low ?? 0.05;
   const columns: string[] = params.columns ?? [];
-  
+
   React.useEffect(() => {
-    const needsUpdate = 
+    const needsUpdate =
       params.auto_detect === undefined ||
       params.imbalance_threshold_high === undefined ||
       params.imbalance_threshold_low === undefined ||
       params.max_cardinality === undefined ||
       params.columns === undefined;
-    
+
     if (needsUpdate) {
       onChange({
         auto_detect: params.auto_detect !== false,
@@ -412,13 +415,13 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
       });
     }
   }, []);
-  
+
   return (
     <Box>
       <SectionBanner
         metricName="class_balance"
-        title="Equilibrio de clases"
-        description="Detecta cuando una categoría domina los datos de forma desproporcionada. Por ejemplo: un campo 'Estado' donde el 98% de los registros son 'Activo' puede indicar un problema de calidad."
+        title={t('metricConfig.smartDialog.classBalance.title')}
+        description={t('metricConfig.smartDialog.classBalance.description')}
         autoDetect
       />
 
@@ -433,9 +436,9 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
           }
           label={
             <Box>
-              <Typography variant="body2" fontWeight={600}>Detectar columnas categóricas automáticamente</Typography>
+              <Typography variant="body2" fontWeight={600}>{t('metricConfig.smartDialog.classBalance.autoDetectLabel')}</Typography>
               <Typography variant="caption" color="text.secondary">
-                Analiza todas las columnas con pocos valores únicos (textos, booleanos, códigos).
+                {t('metricConfig.smartDialog.classBalance.autoDetectCaption')}
               </Typography>
             </Box>
           }
@@ -443,36 +446,36 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
       </Paper>
 
       <ThresholdSlider
-        label="Alerta si una clase supera el % de los datos"
+        label={t('metricConfig.smartDialog.classBalance.thresholdHighLabel')}
         value={thresholdHigh}
         onChange={v => onChange({ ...params, imbalance_threshold_high: v })}
         presets={[0.70, 0.80, 0.90, 0.95]}
-        helpText="Una clase que representa más del X% del total se considera dominante."
+        helpText={t('metricConfig.smartDialog.classBalance.thresholdHighHelp')}
       />
       <ThresholdSlider
-        label="Alerta si una clase representa menos del % de los datos"
+        label={t('metricConfig.smartDialog.classBalance.thresholdLowLabel')}
         value={thresholdLow}
         onChange={v => onChange({ ...params, imbalance_threshold_low: v })}
         presets={[0.01, 0.05, 0.10, 0.20]}
-        helpText="Una clase con presencia inferior al X% se considera infrarrepresentada."
+        helpText={t('metricConfig.smartDialog.classBalance.thresholdLowHelp')}
       />
 
       <AdvancedSection>
         <Box mb={2}>
-          <Typography variant="subtitle2" gutterBottom>Máximo de valores únicos para considerar categórico</Typography>
+          <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.classBalance.maxCardinalityTitle')}</Typography>
           <ToggleButtonGroup exclusive size="small"
             value={String(params.max_cardinality ?? 50)}
             onChange={(_, v) => { if (v) onChange({ ...params, max_cardinality: Number(v) }); }}
             sx={{ flexWrap: 'wrap' }}>
             {[10, 20, 50, 100].map(n => (
               <ToggleButton key={n} value={String(n)} sx={{ fontSize: '0.8rem', '&.Mui-selected': { bgcolor: GREEN_LIGHT, color: GREEN, fontWeight: 600 } }}>
-                {n} valores
+                {t('metricConfig.smartDialog.classBalance.valuesLabel', { count: n })}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
         </Box>
         <ColumnTagInput
-          label="Analizar solo estas columnas (opcional)"
+          label={t('metricConfig.smartDialog.classBalance.columnsLabel')}
           value={columns}
           onChange={v => onChange({ ...params, columns: v })}
         />
@@ -482,26 +485,23 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
 };
 
 // ---------- currentness ----------
-const STALENESS_PRESETS = [
-  { label: '7 días', days: 7 },
-  { label: '30 días', days: 30 },
-  { label: '90 días', days: 90 },
-  { label: '6 meses', days: 180 },
-  { label: '1 año', days: 365 },
-];
+const STALENESS_PRESET_DAYS = [7, 30, 90, 180, 365];
+const STALENESS_PRESET_KEYS = ['days7', 'days30', 'days90', 'months6', 'year1'];
+
 const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+  const { t } = useTranslation();
   const autoDetect = params.auto_detect !== false;
   const staleness = params.staleness_threshold_days ?? 30;
   const columns: string[] = params.columns ?? [];
-  const isCustom = !STALENESS_PRESETS.some(p => p.days === staleness);
-  
+  const isCustom = !STALENESS_PRESET_DAYS.includes(staleness);
+
   // Ensure all default parameters are set (fix for default values not appearing in JSON)
   React.useEffect(() => {
-    const needsUpdate = 
+    const needsUpdate =
       params.staleness_threshold_days === undefined ||
       params.auto_detect === undefined ||
       params.columns === undefined;
-    
+
     if (needsUpdate) {
       onChange({
         auto_detect: params.auto_detect !== false,
@@ -511,12 +511,13 @@ const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> =
       });
     }
   }, []);
+
   return (
     <Box>
       <SectionBanner
         metricName="currentness"
-        title="Actualidad de datos (Currentness)"
-        description="Detecta si las columnas de fecha contienen datos desactualizados. Por ejemplo: si la última fecha registrada es más antigua de lo esperado, puede indicar que los datos no se están actualizando correctamente."
+        title={t('metricConfig.smartDialog.currentness.title')}
+        description={t('metricConfig.smartDialog.currentness.description')}
         autoDetect
       />
 
@@ -530,29 +531,30 @@ const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> =
           }
           label={
             <Box>
-              <Typography variant="body2" fontWeight={600}>Detectar columnas de fecha automáticamente</Typography>
+              <Typography variant="body2" fontWeight={600}>{t('metricConfig.smartDialog.currentness.autoDetectLabel')}</Typography>
               <Typography variant="caption" color="text.secondary">
-                Identifica columnas con fechas (timestamp, date, datetime) sin necesidad de indicarlas manualmente.
+                {t('metricConfig.smartDialog.currentness.autoDetectCaption')}
               </Typography>
             </Box>
           }
         />
       </Paper>
 
-      <Typography variant="subtitle2" gutterBottom>Considerar datos desactualizados después de</Typography>
+      <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.currentness.stalenessTitle')}</Typography>
       <Box display="flex" gap={1} flexWrap="wrap" mb={1}>
-        {STALENESS_PRESETS.map(p => (
+        {STALENESS_PRESET_DAYS.map((days, idx) => (
           <Chip
-            key={p.days} label={p.label}
-            onClick={() => onChange({ ...params, staleness_threshold_days: p.days })}
-            variant={staleness === p.days ? 'filled' : 'outlined'}
-            sx={staleness === p.days
+            key={days}
+            label={t(`metricConfig.smartDialog.currentness.presets.${STALENESS_PRESET_KEYS[idx]}`)}
+            onClick={() => onChange({ ...params, staleness_threshold_days: days })}
+            variant={staleness === days ? 'filled' : 'outlined'}
+            sx={staleness === days
               ? { bgcolor: GREEN, color: '#fff', fontWeight: 600, cursor: 'pointer' }
               : { cursor: 'pointer' }}
           />
         ))}
         <Chip
-          label="Personalizado"
+          label={t('metricConfig.smartDialog.currentness.customPreset')}
           variant={isCustom ? 'filled' : 'outlined'}
           sx={isCustom ? { bgcolor: GREEN, color: '#fff', fontWeight: 600 } : {}}
         />
@@ -560,25 +562,25 @@ const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> =
       {isCustom && (
         <Box display="flex" alignItems="center" gap={1} mt={1}>
           <TextField
-            size="small" type="number" label="Días"
+            size="small" type="number" label={t('metricConfig.smartDialog.currentness.daysLabel')}
             value={staleness}
             onChange={e => onChange({ ...params, staleness_threshold_days: Math.max(1, parseInt(e.target.value) || 30) })}
             sx={{ width: 120 }}
             inputProps={{ min: 1 }}
           />
-          <Typography variant="body2" color="text.secondary">días sin actualización = alerta</Typography>
+          <Typography variant="body2" color="text.secondary">{t('metricConfig.smartDialog.currentness.daysAlertSuffix')}</Typography>
         </Box>
       )}
       <Typography variant="caption" color="text.secondary" mt={1} display="block">
-        Si el valor más reciente de una columna de fecha tiene más de este tiempo, se generará una alerta.
+        {t('metricConfig.smartDialog.currentness.stalenessCaption')}
       </Typography>
 
       <AdvancedSection>
         <ColumnTagInput
-          label="Revisar solo estas columnas de fecha (opcional)"
+          label={t('metricConfig.smartDialog.currentness.columnsLabel')}
           value={columns}
           onChange={v => onChange({ ...params, columns: v })}
-          helpText="Vacío = se detectan y comprueban todas las columnas de fecha automáticamente"
+          helpText={t('metricConfig.smartDialog.currentness.columnsEmpty')}
         />
       </AdvancedSection>
     </Box>
@@ -586,39 +588,42 @@ const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> =
 };
 
 // ---------- LOGICAL CONSISTENCY ----------
-const RULE_TEMPLATES = [
+// Static rule template data (expressions/conditions don't change with language)
+const RULE_TEMPLATES_DATA = [
   {
-    category: 'Valores',
+    categoryKey: 'values',
     rules: [
-      { name: 'Sin valores negativos', type: 'violation' as const, expression: 'mi_columna < 0', hint: 'Detecta valores menores que cero. Reemplaza "mi_columna" con el nombre de tu columna.' },
-      { name: 'Campo obligatorio', type: 'violation' as const, expression: 'mi_columna != mi_columna', hint: 'Detecta registros donde el campo está vacío (NaN != NaN es true). Reemplaza "mi_columna" con el nombre de tu columna.' },
-      { name: 'Rango de valores', type: 'violation' as const, expression: 'mi_columna < 0 or mi_columna > 1000', hint: 'Detecta valores fuera de un rango esperado. Ajusta los límites y el nombre de la columna.' },
+      { nameKey: 'noNegative', hintKey: 'noNegativeHint', type: 'violation' as const, expression: 'mi_columna < 0' },
+      { nameKey: 'required', hintKey: 'requiredHint', type: 'violation' as const, expression: 'mi_columna != mi_columna' },
+      { nameKey: 'range', hintKey: 'rangeHint', type: 'violation' as const, expression: 'mi_columna < 0 or mi_columna > 1000' },
     ],
   },
   {
-    category: 'Fechas',
+    categoryKey: 'dates',
     rules: [
-      { name: 'Fecha fin posterior a inicio', type: 'violation' as const, expression: 'fecha_fin < fecha_inicio', hint: 'La fecha de fin debe ser posterior a la de inicio.' },
+      { nameKey: 'dateOrder', hintKey: 'dateOrderHint', type: 'violation' as const, expression: 'fecha_fin < fecha_inicio' },
     ],
   },
   {
-    category: 'Reglas SI…ENTONCES',
+    categoryKey: 'ifThen',
     rules: [
-      { name: 'Si activo, campo requerido', type: 'if_then' as const, condition: 'estado == "activo"', assertion: 'campo_requerido == campo_requerido', hint: 'Si el estado es "activo", el campo indicado debe estar relleno (campo == campo es false para NaN).' },
-      { name: 'Si cantidad > 0, precio > 0', type: 'if_then' as const, condition: 'cantidad > 0', assertion: 'precio > 0', hint: 'Si hay una cantidad, debe existir un precio.' },
-      { name: 'Si pagado, importe positivo', type: 'if_then' as const, condition: 'estado == "pagado"', assertion: 'importe > 0', hint: 'Si el estado es "pagado", el importe debe ser mayor que cero.' },
+      { nameKey: 'activeRequired', hintKey: 'activeRequiredHint', type: 'if_then' as const, condition: 'estado == "activo"', assertion: 'campo_requerido == campo_requerido' },
+      { nameKey: 'qtyPrice', hintKey: 'qtyPriceHint', type: 'if_then' as const, condition: 'cantidad > 0', assertion: 'precio > 0' },
+      { nameKey: 'paidAmount', hintKey: 'paidAmountHint', type: 'if_then' as const, condition: 'estado == "pagado"', assertion: 'importe > 0' },
     ],
   },
 ];
 
 const LogicalConsistencyConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+  const { t } = useTranslation();
   const rules: LogicalRule[] = params.rules ?? [];
   const [templateOpen, setTemplateOpen] = useState(false);
 
-  const addTemplateRule = (template: typeof RULE_TEMPLATES[0]['rules'][0]) => {
-    const newRule: LogicalRule = template.type === 'violation'
-      ? { name: template.name, type: 'violation', expression: template.expression }
-      : { name: template.name, type: 'if_then', condition: (template as any).condition, assertion: (template as any).assertion };
+  const addTemplateRule = (ruleData: typeof RULE_TEMPLATES_DATA[0]['rules'][0]) => {
+    const name = t(`metricConfig.smartDialog.logicalConsistency.ruleTemplates.${ruleData.nameKey}`);
+    const newRule: LogicalRule = ruleData.type === 'violation'
+      ? { name, type: 'violation', expression: (ruleData as any).expression }
+      : { name, type: 'if_then', condition: (ruleData as any).condition, assertion: (ruleData as any).assertion };
     onChange({ ...params, rules: [...rules, newRule] });
   };
 
@@ -626,31 +631,31 @@ const LogicalConsistencyConfig: React.FC<{ params: any; onChange: (p: any) => vo
     <Box>
       <SectionBanner
         metricName="logical_consistency"
-        title="Consistencia lógica"
-        description="Verifica que los datos cumplan reglas de negocio definidas por ti. Puedes detectar contradicciones como &quot;fecha de fin antes que fecha de inicio&quot;, &quot;campo obligatorio vacío si está activo&quot;, o cualquier condición específica de tu dominio."
+        title={t('metricConfig.smartDialog.logicalConsistency.title')}
+        description={t('metricConfig.smartDialog.logicalConsistency.description')}
       />
 
       {/* Rule templates (SonarQube-style) */}
       <Box mb={2}>
         <Box display="flex" alignItems="center" gap={1} mb={1}>
           <BoltIcon sx={{ fontSize: 18, color: '#FFB800' }} />
-          <Typography variant="subtitle2">Plantillas de reglas rápidas</Typography>
-          <Tooltip title="Añade reglas predefinidas con un clic y personalízalas a continuación" arrow>
+          <Typography variant="subtitle2">{t('metricConfig.smartDialog.logicalConsistency.templatesTitle')}</Typography>
+          <Tooltip title={t('metricConfig.smartDialog.logicalConsistency.templatesHint')} arrow>
             <InfoIcon sx={{ fontSize: 16, color: 'text.disabled', cursor: 'help' }} />
           </Tooltip>
         </Box>
 
-        {RULE_TEMPLATES.map(group => (
-          <Box key={group.category} mb={1.5}>
+        {RULE_TEMPLATES_DATA.map(group => (
+          <Box key={group.categoryKey} mb={1.5}>
             <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" mb={0.5}>
-              {group.category}
+              {t(`metricConfig.smartDialog.logicalConsistency.ruleTemplates.${group.categoryKey}`)}
             </Typography>
             <Box display="flex" flexWrap="wrap" gap={0.75}>
               {group.rules.map(rule => (
-                <Tooltip key={rule.name} title={rule.hint} arrow placement="top">
+                <Tooltip key={rule.nameKey} title={t(`metricConfig.smartDialog.logicalConsistency.ruleTemplates.${rule.hintKey}`)} arrow placement="top">
                   <Chip
                     icon={<AddRuleIcon />}
-                    label={rule.name}
+                    label={t(`metricConfig.smartDialog.logicalConsistency.ruleTemplates.${rule.nameKey}`)}
                     size="small"
                     onClick={() => addTemplateRule(rule)}
                     variant="outlined"
@@ -667,7 +672,7 @@ const LogicalConsistencyConfig: React.FC<{ params: any; onChange: (p: any) => vo
 
       {/* Rule editor */}
       <Typography variant="subtitle2" gutterBottom>
-        Reglas configuradas
+        {t('metricConfig.smartDialog.logicalConsistency.rulesConfigured')}
         {rules.length > 0 && (
           <Chip label={rules.length} size="small" sx={{ ml: 1, height: 18, fontSize: '0.7rem', bgcolor: GREEN_LIGHT, color: GREEN }} />
         )}
@@ -675,7 +680,7 @@ const LogicalConsistencyConfig: React.FC<{ params: any; onChange: (p: any) => vo
 
       {rules.length === 0 && (
         <Alert severity="info" sx={{ mb: 2, fontSize: '0.85rem' }}>
-          Aún no hay reglas. Usa las plantillas de arriba para añadir reglas rápidamente, o crea una personalizada con "Agregar regla".
+          {t('metricConfig.smartDialog.logicalConsistency.noRulesAlert')}
         </Alert>
       )}
 
@@ -701,6 +706,7 @@ interface SmartMetricConfigDialogProps {
 const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
   open, onClose, metric, onSave,
 }) => {
+  const { t } = useTranslation();
   const [params, setParams] = useState<Record<string, any>>({});
   const [jsonValid, setJsonValid] = useState(true);
   const [mobileTab, setMobileTab] = useState(0); // 0 = visual, 1 = JSON
@@ -742,7 +748,7 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
       default:
         return (
           <Alert severity="info">
-            Esta métrica no requiere configuración adicional.
+            {t('metricConfig.smartDialog.noConfigNeeded')}
           </Alert>
         );
     }
@@ -762,11 +768,11 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth
       PaperProps={{ sx: { borderRadius: 2, height: isSmall ? '85vh' : '80vh', maxHeight: '85vh' } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, flexShrink: 0 }}>
-        <Typography variant="h6" fontWeight={600}>Configurar métrica</Typography>
+        <Typography variant="h6" fontWeight={600}>{t('metricConfig.smartDialog.title')}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {!jsonValid && (
             <Chip
-              label="JSON inválido"
+              label={t('metricConfig.smartDialog.invalidJson')}
               size="small"
               color="error"
               variant="outlined"
@@ -792,8 +798,8 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
             '& .MuiTabs-indicator': { bgcolor: GREEN },
           }}
         >
-          <Tab icon={<TuneIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Visual" />
-          <Tab icon={<CodeIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="JSON" />
+          <Tab icon={<TuneIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('metricConfig.smartDialog.visual')} />
+          <Tab icon={<CodeIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('metricConfig.smartDialog.json')} />
         </Tabs>
       )}
 
@@ -833,10 +839,10 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
 
       <Divider />
       <DialogActions sx={{ px: 3, py: 2, flexShrink: 0 }}>
-        <Button onClick={onClose} color="inherit">Cancelar</Button>
+        <Button onClick={onClose} color="inherit">{t('metricConfig.smartDialog.cancel')}</Button>
         <Button onClick={handleSave} variant="contained" disabled={!jsonValid}
           sx={{ bgcolor: GREEN, color: '#FFFFFF', '&:hover': { bgcolor: '#00A070' }, '&.Mui-disabled': { bgcolor: '#E0E0E0' } }}>
-          Guardar configuración
+          {t('metricConfig.smartDialog.save')}
         </Button>
       </DialogActions>
     </Dialog>

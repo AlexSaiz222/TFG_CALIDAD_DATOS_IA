@@ -9,6 +9,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import type { QualityGateStatus } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface QualityGateBadgeProps {
   status?: QualityGateStatus | null;
@@ -19,30 +20,27 @@ interface QualityGateBadgeProps {
   showIssuesCounts?: boolean;
 }
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG_BASE = {
   PASSED: {
     color: '#00B37E',
     bgColor: 'rgba(0, 179, 126, 0.1)',
     borderColor: 'rgba(0, 179, 126, 0.3)',
     icon: CheckCircleIcon,
-    label: 'Passed',
-    labelEs: 'Aprobado',
+    labelKey: 'qualityGate.passed',
   },
   FAILED: {
     color: '#E5484D',
     bgColor: 'rgba(229, 72, 77, 0.1)',
     borderColor: 'rgba(229, 72, 77, 0.3)',
     icon: CancelIcon,
-    label: 'Failed',
-    labelEs: 'Fallido',
+    labelKey: 'qualityGate.failed',
   },
   WARNING: {
     color: '#FFB800',
     bgColor: 'rgba(255, 184, 0, 0.1)',
     borderColor: 'rgba(255, 184, 0, 0.3)',
     icon: WarningIcon,
-    label: 'Warning',
-    labelEs: 'Advertencia',
+    labelKey: 'qualityGate.warning',
   },
 };
 
@@ -54,11 +52,13 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
   showLabel = true,
   showIssuesCounts = true,
 }) => {
+  const { t } = useTranslation();
+
   // Si no hay status, mostrar estado "sin análisis"
   if (!status) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Tooltip title="No hay análisis ejecutados">
+        <Tooltip title={t('qualityGate.noAnalysisTooltip')}>
           <Box
             sx={{
               display: 'flex',
@@ -82,7 +82,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
                 variant={size === 'small' ? 'caption' : 'body2'}
                 sx={{ color: '#888888', fontWeight: 500 }}
               >
-                Sin análisis
+                {t('qualityGate.noAnalysis')}
               </Typography>
             )}
           </Box>
@@ -91,8 +91,9 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
     );
   }
 
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG_BASE[status];
   const IconComponent = config.icon;
+  const label = t(config.labelKey);
 
   const iconSize = size === 'small' ? 16 : size === 'large' ? 32 : 24;
   const fontSize = size === 'small' ? 'caption' : size === 'large' ? 'body1' : 'body2';
@@ -100,7 +101,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
       {/* Quality Gate Status Badge */}
-      <Tooltip title={`Quality Gate: ${config.labelEs}`}>
+      <Tooltip title={t('qualityGate.tooltip', { status: label })}>
         <Box
           sx={{
             display: 'flex',
@@ -133,7 +134,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
                 letterSpacing: '0.5px',
               }}
             >
-              {config.labelEs}
+              {label}
             </Typography>
           )}
         </Box>
@@ -144,7 +145,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {/* New Issues */}
           {newIssuesCount > 0 && (
-            <Tooltip title={`${newIssuesCount} nuevos issues detectados`}>
+            <Tooltip title={t('qualityGate.badge.newIssues', { count: newIssuesCount })}>
               <Chip
                 icon={<TrendingUpIcon sx={{ fontSize: 14 }} />}
                 label={`+${newIssuesCount}`}
@@ -165,7 +166,7 @@ const QualityGateBadge: React.FC<QualityGateBadgeProps> = ({
 
           {/* Fixed Issues */}
           {fixedIssuesCount > 0 && (
-            <Tooltip title={`${fixedIssuesCount} issues corregidos`}>
+            <Tooltip title={t('qualityGate.badge.fixedIssues', { count: fixedIssuesCount })}>
               <Chip
                 icon={<TrendingDownIcon sx={{ fontSize: 14 }} />}
                 label={`-${fixedIssuesCount}`}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -74,6 +75,7 @@ function TabPanel(props: TabPanelProps) {
 
 const MetricsConfigurationPage = () => {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // ======== Router readiness / ID recovery logic (se mantiene) ========
   const [routerReady, setRouterReady] = useState(false);
@@ -209,7 +211,7 @@ const MetricsConfigurationPage = () => {
       if (!projectIdNum && !useDevFallback) {
         if (isMounted) {
           setLoading(false);
-          setError(`El ID de proyecto "${projectIdFromUrl}" no es válido. Debe ser un número entero.`);
+          setError(t('metrics.configure.invalidProjectId', { id: projectIdFromUrl }));
         }
         return;
       }
@@ -242,16 +244,16 @@ const MetricsConfigurationPage = () => {
                   if (cachedProject) {
                     setProject(cachedProject);
                   } else {
-                    const errorMsg = `No se pudo cargar el proyecto con ID ${projectIdNum}. El proyecto no existe en caché.`;
+                    const errorMsg = t('metrics.configure.loadProjectError', { id: projectIdNum });
                     console.error(errorMsg);
                     setError(errorMsg);
                   }
                 } catch (parseError: unknown) {
                   console.error('Error al parsear proyectos de localStorage:', parseError);
-                  setError(`Error al recuperar datos de caché: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
+                  setError(t('metrics.configure.cacheError', { error: parseError instanceof Error ? parseError.message : 'Error desconocido' }));
                 }
               } else {
-                const errorMsg = `No se pudo cargar el proyecto con ID ${projectIdNum}. No hay datos en caché.`;
+                const errorMsg = t('metrics.configure.noCacheData', { id: projectIdNum });
                 console.error(errorMsg);
                 setError(errorMsg);
               }
@@ -286,7 +288,7 @@ const MetricsConfigurationPage = () => {
           // No interrumpimos el flujo por un error en métricas, solo lo registramos
           // y continuamos con un array vacío
           if (isMounted) {
-            setError((prevError) => prevError || 'Error al cargar métricas. Algunas funcionalidades pueden no estar disponibles.');
+            setError((prevError) => prevError || t('metrics.configure.loadMetricsError'));
           }
         }
 
@@ -297,7 +299,7 @@ const MetricsConfigurationPage = () => {
         const normalizedMetrics = (metricsData || []).map((metric: any) => ({
           id: metric.id,
           name: metric.name,
-          description: metric.description || 'Sin descripción',
+          description: metric.description || t('metrics.configure.noDescription'),
           category: metric.category || 'general',
           parameters: metric.parameters || {},
           created_at: metric.created_at || new Date().toISOString(),
@@ -424,7 +426,7 @@ const MetricsConfigurationPage = () => {
       // Usa un fallback seguro para el ID al guardar
       const pid = project?.id ?? projectIdNum;
       if (!pid) {
-        setError('No se pudo determinar el ID de proyecto para guardar la configuración.');
+        setError(t('metrics.configure.projectIdError'));
         setSaving(false);
         return;
       }
@@ -433,7 +435,7 @@ const MetricsConfigurationPage = () => {
       await metricsAPI.saveProjectMetricConfigs(pid, configToSave);
       // Actualización optimista del proyecto local
       setProject((prev: any) => prev ? { ...prev, metrics_config: configToSave.metrics_config } : prev);
-      setSuccess('Configuración guardada correctamente');
+      setSuccess(t('metrics.configure.saveSuccess'));
 
       setTimeout(() => {
         setSuccess(null);
@@ -443,9 +445,9 @@ const MetricsConfigurationPage = () => {
       // Mejorar el mensaje de error para incluir más detalles
       const errorMessage = err.response?.status === 404
         ? `Error 404: Endpoint no encontrado. Verifica la ruta /api/projects/${project?.id ?? projectIdNum}/metrics/config`
-        : err.response?.data?.message || err.message || 'Error al guardar la configuración de métricas';
+        : err.response?.data?.message || err.message || t('metrics.configure.saveConfigError');
 
-      setError(errorMessage);
+      setError(errorMessage || t('metrics.configure.saveError'));
     } finally {
       setSaving(false);
     }
@@ -553,7 +555,7 @@ const MetricsConfigurationPage = () => {
 
     setSelectedMetrics(templateMetrics);
     setTemplateDialogOpen(false);
-    setSuccess(`Plantilla "${selectedTemplate.name}" aplicada correctamente`);
+    setSuccess(t('metrics.configure.appliedTemplate', { name: selectedTemplate.name }));
     setTimeout(() => setSuccess(null), 3000);
   };
 
@@ -583,14 +585,14 @@ const MetricsConfigurationPage = () => {
         else if (tData.templates && Array.isArray(tData.templates)) arr = tData.templates;
         setTemplates(arr);
       } catch (_) { /* ignore refresh error */ }
-      setSuccess('Plantilla guardada correctamente');
+      setSuccess(t('metrics.configure.templateSaved'));
       setSaveTemplateDialogOpen(false);
       setNewTemplateName('');
       setNewTemplateDescription('');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       console.error('Error saving template:', err);
-      setError(err.response?.data?.message || 'Error al guardar la plantilla');
+      setError(err.response?.data?.message || t('metrics.configure.templateSaveError'));
     } finally {
       setSavingTemplate(false);
     }
@@ -606,7 +608,7 @@ const MetricsConfigurationPage = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Configuración de métricas
+              {t('metrics.configure.title')}
             </Typography>
           </Box>
           <Alert
@@ -617,7 +619,6 @@ const MetricsConfigurationPage = () => {
                 color="inherit"
                 size="small"
                 onClick={() => {
-                  // Intentar recuperar el ID del localStorage
                   const storedId = localStorage.getItem('currentProjectId');
                   if (storedId) {
                     router.push(`/metrics/configure/${storedId}`);
@@ -626,7 +627,7 @@ const MetricsConfigurationPage = () => {
                   }
                 }}
               >
-                Reintentar
+                {t('metrics.configure.retry')}
               </Button>
             }
           >
@@ -642,12 +643,11 @@ const MetricsConfigurationPage = () => {
                 '&:hover': { backgroundColor: GREEN_HOVER },
               }}
             >
-              Volver a proyectos
+              {t('metrics.configure.backToProjects')}
             </Button>
             <Button
               variant="outlined"
               onClick={() => {
-                // Limpiar el error y recargar la página
                 setError(null);
                 window.location.reload();
               }}
@@ -657,7 +657,7 @@ const MetricsConfigurationPage = () => {
                 '&:hover': { borderColor: GREEN_HOVER, color: GREEN_HOVER },
               }}
             >
-              Recargar página
+              {t('metrics.configure.reloadPage')}
             </Button>
           </Box>
         </Box>
@@ -676,7 +676,7 @@ const MetricsConfigurationPage = () => {
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Configuración de métricas
+              {t('metrics.configure.title')}
             </Typography>
             {project && (
               <Typography variant="body1" sx={{ color: '#555555', mt: 1 }}>
@@ -695,7 +695,7 @@ const MetricsConfigurationPage = () => {
               '&:hover': { backgroundColor: GREEN_HOVER },
             }}
           >
-            {saving ? 'Guardando...' : 'Guardar configuración'}
+            {saving ? t('metrics.configure.saving') : t('metrics.configure.saveConfig')}
           </Button>
         </Box>
 
@@ -709,7 +709,6 @@ const MetricsConfigurationPage = () => {
                 color="inherit"
                 size="small"
                 onClick={() => {
-                  // Intentar recuperar el ID del localStorage
                   const storedId = localStorage.getItem('currentProjectId');
                   if (storedId) {
                     router.push(`/metrics/configure/${storedId}`);
@@ -718,7 +717,7 @@ const MetricsConfigurationPage = () => {
                   }
                 }}
               >
-                Reintentar
+                {t('metrics.configure.retry')}
               </Button>
             }
           >
@@ -751,9 +750,9 @@ const MetricsConfigurationPage = () => {
                   '& .Mui-selected': { color: GREEN },
                 }}
               >
-                <Tab label="Métricas disponibles" />
-                <Tab label="Métricas seleccionadas" />
-                <Tab label="Plantillas" />
+                <Tab label={t('metrics.configure.tabs.available')} />
+                <Tab label={t('metrics.configure.tabs.selected')} />
+                <Tab label={t('metrics.configure.tabs.templates')} />
               </Tabs>
             </Box>
 
@@ -774,7 +773,7 @@ const MetricsConfigurationPage = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      placeholder="Buscar métricas..."
+                      placeholder={t('metrics.configure.searchPlaceholder')}
                       value={searchQuery}
                       onChange={handleSearchChange}
                       InputProps={{
@@ -788,13 +787,13 @@ const MetricsConfigurationPage = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel>Categoría</InputLabel>
-                      <Select value={categoryFilter} label="Categoría" onChange={handleCategoryChange}>
-                        <MenuItem value="all">Todas las categorías</MenuItem>
-                        <MenuItem value="data_quality">Calidad de datos</MenuItem>
-                        <MenuItem value="statistical">Estadísticas</MenuItem>
-                        <MenuItem value="ml_specific">Específicas de ML</MenuItem>
-                        <MenuItem value="general">General</MenuItem>
+                      <InputLabel>{t('metrics.configure.category')}</InputLabel>
+                      <Select value={categoryFilter} label={t('metrics.configure.category')} onChange={handleCategoryChange}>
+                        <MenuItem value="all">{t('metrics.configure.allCategories')}</MenuItem>
+                        <MenuItem value="data_quality">{t('metrics.configure.dataQuality')}</MenuItem>
+                        <MenuItem value="statistical">{t('metrics.configure.statistical')}</MenuItem>
+                        <MenuItem value="ml_specific">{t('metrics.configure.mlSpecific')}</MenuItem>
+                        <MenuItem value="general">{t('metrics.configure.general')}</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -802,7 +801,7 @@ const MetricsConfigurationPage = () => {
               </Paper>
 
               <Typography variant="h6" sx={{ fontWeight: 500, color: '#555555', mb: 2 }}>
-                {filteredMetrics.length} {filteredMetrics.length === 1 ? 'métrica' : 'métricas'}
+                {filteredMetrics.length} {filteredMetrics.length === 1 ? t('metrics.configure.metric') : t('metrics.configure.metrics')}
               </Typography>
 
               <Grid container spacing={3}>
@@ -825,10 +824,10 @@ const MetricsConfigurationPage = () => {
                     >
                       <AssessmentIcon sx={{ fontSize: 60, color: ORANGE, opacity: 0.7, mb: 2 }} />
                       <Typography variant="h5" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
-                        No se encontraron métricas
+                        {t('metrics.configure.noMetricsFound')}
                       </Typography>
                       <Typography variant="body1" sx={{ color: '#555555', maxWidth: '520px' }}>
-                        Ajusta los filtros o la búsqueda para ver otras métricas disponibles.
+                        {t('metrics.configure.adjustFilters')}
                       </Typography>
                     </Paper>
                   </Grid>
@@ -920,7 +919,7 @@ const MetricsConfigurationPage = () => {
                                 '&:hover': { borderColor: '#D03B40', backgroundColor: 'rgba(229,72,77,0.04)' },
                               }}
                             >
-                              Quitar
+                              {t('metrics.configure.remove')}
                             </Button>
                           ) : (
                             <Button
@@ -933,7 +932,7 @@ const MetricsConfigurationPage = () => {
                                 '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
                               }}
                             >
-                              Añadir
+                              {t('metrics.configure.add')}
                             </Button>
                           )}
                         </CardActions>
@@ -949,7 +948,7 @@ const MetricsConfigurationPage = () => {
             <TabPanel value={tabValue} index={1}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
-                  Métricas seleccionadas
+                  {t('metrics.configure.selectedMetrics')}
                 </Typography>
                 {selectedMetrics.length > 0 && (
                   <Button
@@ -964,14 +963,14 @@ const MetricsConfigurationPage = () => {
                       '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0, 179, 126, 0.04)' },
                     }}
                   >
-                    Guardar como plantilla
+                    {t('metrics.configure.saveAsTemplate')}
                   </Button>
                 )}
               </Box>
 
               {selectedMetrics.length === 0 ? (
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  No has seleccionado ninguna métrica. Añade métricas desde la pestaña "Métricas disponibles".
+                  {t('metrics.configure.noMetricsSelected')}
                 </Alert>
               ) : (
                 <Grid container spacing={2}>
@@ -1034,7 +1033,7 @@ const MetricsConfigurationPage = () => {
                               '&:hover': { borderColor: meta.color, backgroundColor: meta.bg },
                             }}
                           >
-                            Configurar
+                            {t('metrics.configure.configure')}
                           </Button>
                           <Button
                             size="small" variant="outlined"
@@ -1046,7 +1045,7 @@ const MetricsConfigurationPage = () => {
                               '&:hover': { borderColor: '#D03B40', backgroundColor: 'rgba(229,72,77,0.04)' },
                             }}
                           >
-                            Eliminar
+                            {t('common.delete')}
                           </Button>
                         </CardActions>
                       </Card>
@@ -1066,10 +1065,10 @@ const MetricsConfigurationPage = () => {
               ) : (
                 <>
                   <Typography variant="h6" sx={{ mb: 1, fontWeight: 500, color: '#555555' }}>
-                    Plantillas de configuración
+                    {t('metrics.configure.configurationTemplates')}
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 3, color: '#666' }}>
-                    Aplica una configuración predefinida de métricas para acelerar la puesta en marcha.
+                    {t('metrics.configure.templateDescription')}
                   </Typography>
 
                   {!templates || !Array.isArray(templates) || templates.length === 0 ? (
@@ -1090,10 +1089,10 @@ const MetricsConfigurationPage = () => {
                     >
                       <FileUploadIcon sx={{ fontSize: 60, color: GREEN, opacity: 0.7, mb: 2 }} />
                       <Typography variant="h6" sx={{ mb: 1, fontWeight: 500, color: '#1A1A1A' }}>
-                        No hay plantillas disponibles
+                        {t('metrics.configure.noTemplatesAvailable')}
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#666', maxWidth: '420px', mb: 2 }}>
-                        Crea plantillas desde Configuración &gt; Plantillas para reutilizar configuraciones de métricas.
+                        {t('metrics.configure.createTemplatesHint')}
                       </Typography>
                       <Button
                         variant="outlined"
@@ -1106,7 +1105,7 @@ const MetricsConfigurationPage = () => {
                           '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
                         }}
                       >
-                        Ir a plantillas
+                        {t('metrics.configure.goToTemplates')}
                       </Button>
                     </Paper>
                   ) : (
@@ -1152,10 +1151,10 @@ const MetricsConfigurationPage = () => {
                               variant="body2"
                               sx={{ fontWeight: 600, color: '#BDBDBD', transition: 'color 0.2s' }}
                             >
-                              Nueva plantilla
+                              {t('metrics.configure.newTemplate')}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
-                              Ir a configuración
+                              {t('metrics.configure.goToConfiguration')}
                             </Typography>
                           </Box>
                         </Card>
@@ -1178,15 +1177,15 @@ const MetricsConfigurationPage = () => {
 
         {/* Diálogo de plantilla */}
         <Dialog open={templateDialogOpen} onClose={() => setTemplateDialogOpen(false)} maxWidth="sm">
-          <DialogTitle>Aplicar plantilla</DialogTitle>
+          <DialogTitle>{t('metrics.configure.applyTemplate')}</DialogTitle>
           <DialogContent>
             <DialogContentText sx={{ mb: 2 }}>
-              ¿Deseas aplicar la plantilla <strong>"{selectedTemplate?.name}"</strong>?
+              {t('metrics.configure.applyTemplateConfirm', { name: selectedTemplate?.name })}
             </DialogContentText>
             {selectedTemplate && (
               <Box sx={{ p: 2, backgroundColor: '#F5F5F5', borderRadius: 1, mb: 2 }}>
                 <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
-                  Esta plantilla incluye {selectedTemplate.metrics?.length || 0} métricas que se añadirán a tu configuración actual.
+                  {t('metrics.configure.templateIncludesMetrics', { count: selectedTemplate.metrics?.length || 0 })}
                 </Typography>
                 {selectedTemplate.description && (
                   <Typography variant="caption" sx={{ color: '#999' }}>
@@ -1196,12 +1195,12 @@ const MetricsConfigurationPage = () => {
               </Box>
             )}
             <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
-              Las métricas de la plantilla se añadirán a tu selección actual. Puedes modificarlas después.
+              {t('metrics.configure.templateMetricsInfo')}
             </Alert>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
             <Button onClick={() => setTemplateDialogOpen(false)} sx={{ color: '#666' }}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleApplyTemplate}
@@ -1212,21 +1211,21 @@ const MetricsConfigurationPage = () => {
                 '&:hover': { backgroundColor: GREEN_HOVER }
               }}
             >
-              Aplicar plantilla
+              {t('metrics.configure.applyTemplate')}
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* Diálogo guardar como plantilla */}
         <Dialog open={saveTemplateDialogOpen} onClose={() => setSaveTemplateDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Guardar como plantilla</DialogTitle>
+          <DialogTitle>{t('metrics.configure.saveAsTemplate')}</DialogTitle>
           <DialogContent>
             <DialogContentText sx={{ mb: 2 }}>
-              Guarda la configuración actual ({selectedMetrics.length} métricas) como una plantilla reutilizable.
+              {t('metrics.configure.saveTemplateDescription', { count: selectedMetrics.length })}
             </DialogContentText>
             <TextField
               fullWidth
-              label="Nombre de la plantilla"
+              label={t('metrics.configure.templateName')}
               value={newTemplateName}
               onChange={(e) => setNewTemplateName(e.target.value)}
               sx={{ mb: 2 }}
@@ -1235,7 +1234,7 @@ const MetricsConfigurationPage = () => {
             />
             <TextField
               fullWidth
-              label="Descripción (opcional)"
+              label={t('metrics.configure.templateDescriptionOptional')}
               value={newTemplateDescription}
               onChange={(e) => setNewTemplateDescription(e.target.value)}
               multiline
@@ -1245,7 +1244,7 @@ const MetricsConfigurationPage = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setSaveTemplateDialogOpen(false)} color="inherit">
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleSaveAsTemplate}
@@ -1253,7 +1252,7 @@ const MetricsConfigurationPage = () => {
               disabled={savingTemplate || !newTemplateName.trim()}
               sx={{ bgcolor: GREEN, color: '#fff', '&:hover': { bgcolor: GREEN_HOVER } }}
             >
-              {savingTemplate ? 'Guardando...' : 'Guardar plantilla'}
+              {savingTemplate ? t('metrics.configure.saving') : t('metrics.configure.saveTemplate')}
             </Button>
           </DialogActions>
         </Dialog>

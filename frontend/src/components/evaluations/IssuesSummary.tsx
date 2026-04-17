@@ -7,6 +7,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { Issue } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface IssuesSummaryProps {
   issues: Issue[];
@@ -63,6 +64,8 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   selectedMetric,
   getMetricName,
 }) => {
+  const { t } = useTranslation();
+
   const criticalCount = issues.filter((i) => i.severity === 'critical').length;
   const highCount = issues.filter((i) => i.severity === 'high').length;
   const mediumCount = issues.filter((i) => i.severity === 'medium').length;
@@ -71,7 +74,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
   const severityConfig: SeverityConfig[] = [
     {
       key: 'critical',
-      label: 'Crítica',
+      label: t('issuesSummary.severity.critical'),
       count: criticalCount,
       color: '#8B0000',
       bgColor: 'rgba(139, 0, 0, 0.1)',
@@ -79,7 +82,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
     },
     {
       key: 'high',
-      label: 'Alta',
+      label: t('issuesSummary.severity.high'),
       count: highCount,
       color: '#E5484D',
       bgColor: 'rgba(229, 72, 77, 0.1)',
@@ -87,7 +90,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
     },
     {
       key: 'medium',
-      label: 'Media',
+      label: t('issuesSummary.severity.medium'),
       count: mediumCount,
       color: '#FFB800',
       bgColor: 'rgba(255, 184, 0, 0.1)',
@@ -95,7 +98,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
     },
     {
       key: 'low',
-      label: 'Baja',
+      label: t('issuesSummary.severity.low'),
       count: lowCount,
       color: '#00B37E',
       bgColor: 'rgba(0, 179, 126, 0.1)',
@@ -130,7 +133,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
       {/* Severity filters */}
       <Box sx={{ mb: metricConfig.length > 0 ? 2 : 0 }}>
         <Typography variant="caption" sx={{ color: '#888', fontWeight: 600, mb: 1, display: 'block' }}>
-          Filtrar por severidad:
+          {t('issuesList.filterSeverity')}:
         </Typography>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {severityConfig.map((config) => (
@@ -149,7 +152,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
       {metricConfig.length > 0 && onMetricFilterChange && (
         <Box>
           <Typography variant="caption" sx={{ color: '#888', fontWeight: 600, mb: 1, display: 'block' }}>
-            Filtrar por métrica:
+            {t('issuesList.filterType')}:
           </Typography>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {metricConfig.map((config) => (
@@ -177,7 +180,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({
       {(selectedSeverity || selectedMetric) && (
         <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #EEEEEE' }}>
           <Chip
-            label="Limpiar todos los filtros"
+            label={t('issuesSummary.clearFilter')}
             variant="outlined"
             size="small"
             onClick={() => {

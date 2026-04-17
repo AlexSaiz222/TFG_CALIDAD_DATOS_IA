@@ -18,27 +18,39 @@ import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'react-i18next';
 import { MetricTemplate } from '../../types';
 import { getMetricMeta, formatParamValue, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
-/** Human-readable labels for common parameter keys */
-const PARAM_LABELS: Record<string, string> = {
-  threshold: 'Umbral',
-  columns: 'Columnas',
-  method: 'Método',
-  factor: 'Factor',
-  auto_detect: 'Auto-detección',
-  auto_detect_types: 'Auto-detección de tipos',
-  staleness_threshold_days: 'Días de obsolescencia',
-  max_cardinality: 'Cardinalidad máxima',
-  imbalance_threshold_high: 'Umbral alto',
-  imbalance_threshold_low: 'Umbral bajo',
-  rules: 'Reglas',
+/** Mapping from parameter key to i18n path suffix for projects.paramHelp */
+const PARAM_LABEL_KEYS: Record<string, string> = {
+  threshold: 'threshold',
+  columns: 'columns',
+  method: 'method',
+  factor: 'factor',
+  auto_detect: 'auto_detect',
+  auto_detect_types: 'auto_detect_types',
+  staleness_threshold_days: 'staleness_threshold_days',
+  max_cardinality: 'max_cardinality',
+  imbalance_threshold_high: 'imbalance_threshold_high',
+  imbalance_threshold_low: 'imbalance_threshold_low',
+  rules: 'rules',
 };
 
-function paramLabel(key: string): string {
-  return PARAM_LABELS[key] ?? key;
-}
+/** Fallback labels used when no i18n translation key is available */
+const PARAM_LABELS_FALLBACK: Record<string, string> = {
+  threshold: 'Threshold',
+  columns: 'Columns',
+  method: 'Method',
+  factor: 'Factor',
+  auto_detect: 'Auto-detection',
+  auto_detect_types: 'Auto-detection of types',
+  staleness_threshold_days: 'Staleness days',
+  max_cardinality: 'Max cardinality',
+  imbalance_threshold_high: 'High threshold',
+  imbalance_threshold_low: 'Low threshold',
+  rules: 'Rules',
+};
 
 interface TemplateDetailsDialogProps {
   open: boolean;
@@ -52,6 +64,7 @@ export default function TemplateDetailsDialog({
   template,
 }: TemplateDetailsDialogProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   if (!template) return null;
 
@@ -62,7 +75,7 @@ export default function TemplateDetailsDialog({
           <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
             {template.name}
           </Typography>
-          <IconButton edge="end" color="inherit" onClick={onClose} aria-label="cerrar">
+          <IconButton edge="end" color="inherit" onClick={onClose} aria-label={t('metrics.templates.detailsDialog.closeAriaLabel')}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -79,7 +92,7 @@ export default function TemplateDetailsDialog({
           variant="caption"
           sx={{ color: '#999', textTransform: 'uppercase', fontWeight: 600, mb: 1.5, display: 'block' }}
         >
-          Métricas incluidas ({template.metrics?.length || 0})
+          {t('metrics.templates.detailsDialog.metricsTitle')} ({template.metrics?.length || 0})
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -138,7 +151,7 @@ export default function TemplateDetailsDialog({
                     {paramEntries.map(([key, value]) => (
                       <Box key={key} sx={{ minWidth: 0 }}>
                         <Typography variant="caption" sx={{ color: '#888', fontWeight: 500, display: 'block', lineHeight: 1.3 }}>
-                          {paramLabel(key)}
+                          {PARAM_LABELS_FALLBACK[key] ?? key}
                         </Typography>
                         <Tooltip title={typeof value === 'object' ? JSON.stringify(value, null, 2) : ''} arrow
                           disableHoverListener={typeof value !== 'object'}>
@@ -169,7 +182,7 @@ export default function TemplateDetailsDialog({
 
           {(!template.metrics || template.metrics.length === 0) && (
             <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              Esta plantilla no incluye ninguna métrica.
+              {t('metrics.templates.detailsDialog.noMetrics')}
             </Typography>
           )}
         </Box>
@@ -183,7 +196,7 @@ export default function TemplateDetailsDialog({
           onClick={() => { onClose(); router.push('/settings/templates'); }}
           sx={{ color: '#666', textTransform: 'none', '&:hover': { color: GREEN } }}
         >
-          Gestionar plantillas
+          {t('metrics.templates.title')}
         </Button>
         <Button
           onClick={onClose}
@@ -195,7 +208,7 @@ export default function TemplateDetailsDialog({
             '&:hover': { backgroundColor: GREEN_HOVER },
           }}
         >
-          Cerrar
+          {t('metrics.templates.detailsDialog.cancelButton')}
         </Button>
       </DialogActions>
     </Dialog>

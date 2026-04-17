@@ -3,10 +3,13 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { I18nextProvider } from 'react-i18next';
 import { AuthProvider } from '../contexts/AuthContext';
 import { SidebarProvider } from '../contexts/SidebarContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
+import { LanguageProvider } from '../contexts/LanguageContext';
 import { initRouteChangeHandlers } from '../utils/routeTransition';
+import i18n from '../i18n';
 
 // Create a theme instance
 const theme = createTheme({
@@ -93,16 +96,20 @@ function MyApp({ Component, pageProps }: AppProps) {
           rel="stylesheet"
         />
       </Head>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AuthProvider>
-          <SidebarProvider>
-            <NotificationProvider>
-              <Component {...pageProps} />
-            </NotificationProvider>
-          </SidebarProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <I18nextProvider i18n={i18n}>
+        <LanguageProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AuthProvider>
+              <SidebarProvider>
+                <NotificationProvider>
+                  <Component {...pageProps} />
+                </NotificationProvider>
+              </SidebarProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+      </I18nextProvider>
     </>
   );
 }

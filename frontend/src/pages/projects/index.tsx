@@ -31,6 +31,7 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import QualityGateBadge from '../../components/QualityGateBadge';
 import { useAuth } from '../../contexts/AuthContext';
@@ -52,6 +53,7 @@ const Projects = () => {
   
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Leer el parámetro status de la URL
   useEffect(() => {
@@ -101,7 +103,7 @@ const Projects = () => {
         setProjectAnalysis(analysisMap);
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setError('Error al cargar los proyectos. Por favor, inténtalo de nuevo.');
+        setError(t('projects.loadError'));
         setLoading(false);
       }
     };
@@ -211,7 +213,7 @@ const Projects = () => {
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Proyectos
+            {t('projects.title')}
           </Typography>
           <Button
             variant="contained"
@@ -225,14 +227,14 @@ const Projects = () => {
               },
             }}
           >
-            Nuevo proyecto
+            {t('projects.newProject')}
           </Button>
         </Box>
 
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Buscar proyectos..."
+          placeholder={t('projects.searchPlaceholder')}
           value={searchTerm}
           onChange={handleSearchChange}
           sx={{ mb: 2 }}
@@ -249,7 +251,7 @@ const Projects = () => {
         {statusFilter && (
           <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" sx={{ color: '#555555' }}>
-              Filtrado por:
+              {t('projects.filteredBy')}
             </Typography>
             <Chip
               label={statusFilter}
@@ -273,7 +275,7 @@ const Projects = () => {
               }}
             />
             <Typography variant="body2" sx={{ color: '#888' }}>
-              ({filteredProjects.length} proyecto{filteredProjects.length !== 1 ? 's' : ''})
+              {t('projects.projectCount', { count: filteredProjects.length })}
             </Typography>
           </Box>
         )}
@@ -341,7 +343,7 @@ const Projects = () => {
                         WebkitBoxOrient: 'vertical',
                       }}
                     >
-                      {project.description || 'Sin descripción'}
+                      {project.description || t('projects.noDescription')}
                     </Typography>
                     
                     {/* Quality Gate + Score */}
@@ -408,7 +410,7 @@ const Projects = () => {
         ) : (
           <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
             <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
-              {searchTerm ? 'No se encontraron proyectos con ese criterio de búsqueda.' : 'Aún no tienes ningún proyecto.'}
+              {searchTerm ? t('projects.noProjectsSearch') : t('projects.noProjects')}
             </Typography>
             {!searchTerm && (
               <Button
@@ -423,7 +425,7 @@ const Projects = () => {
                   },
                 }}
               >
-                Crear tu primer proyecto
+                {t('projects.createFirst')}
               </Button>
             )}
           </Box>
@@ -450,13 +452,13 @@ const Projects = () => {
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          Editar
+          {t('common.edit')}
         </MenuItem>
         <MenuItem onClick={handleDeleteClick}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" sx={{ color: '#E5484D' }} />
           </ListItemIcon>
-          <Typography color="error">Eliminar</Typography>
+          <Typography color="error">{t('common.delete')}</Typography>
         </MenuItem>
       </Menu>
 
@@ -468,24 +470,24 @@ const Projects = () => {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          ¿Eliminar proyecto?
+          {t('projects.delete.title')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            ¿Estás seguro de que quieres eliminar el proyecto "{selectedProject?.name}"? Esta acción no se puede deshacer y eliminará todos los datasets y análisis asociados.
+            {t('projects.delete.message', { name: selectedProject?.name })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             autoFocus
             disabled={deleteLoading}
           >
-            {deleteLoading ? <CircularProgress size={24} /> : 'Eliminar'}
+            {deleteLoading ? <CircularProgress size={24} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

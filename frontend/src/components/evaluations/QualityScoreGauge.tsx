@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface QualityScoreGaugeProps {
   score: number;
@@ -8,13 +9,14 @@ interface QualityScoreGaugeProps {
   showLabel?: boolean;
 }
 
-const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({ 
-  score, 
+const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
+  score,
   size = 'medium',
-  showLabel = true 
+  showLabel = true
 }) => {
+  const { t } = useTranslation();
   const normalizedScore = Math.min(100, Math.max(0, score));
-  
+
   const getColor = (value: number): string => {
     if (value >= 80) return '#00B37E';
     if (value >= 60) return '#FFB800';
@@ -22,11 +24,11 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
   };
 
   const getVerdict = (value: number): { label: string; description: string } => {
-    if (value >= 90) return { label: 'Excelente', description: 'Dataset de alta calidad, listo para uso.' };
-    if (value >= 80) return { label: 'Bueno', description: 'Calidad aceptable con mejoras menores posibles.' };
-    if (value >= 60) return { label: 'Aceptable', description: 'Requiere atención en algunas métricas.' };
-    if (value >= 40) return { label: 'Deficiente', description: 'Problemas significativos que corregir.' };
-    return { label: 'Crítico', description: 'Calidad insuficiente, revisión urgente necesaria.' };
+    if (value >= 90) return { label: t('qualityScoreGauge.verdict.excellent'), description: t('qualityScoreGauge.verdict.excellentDesc') };
+    if (value >= 80) return { label: t('qualityScoreGauge.verdict.good'), description: t('qualityScoreGauge.verdict.goodDesc') };
+    if (value >= 60) return { label: t('qualityScoreGauge.verdict.acceptable'), description: t('qualityScoreGauge.verdict.acceptableDesc') };
+    if (value >= 40) return { label: t('qualityScoreGauge.verdict.poor'), description: t('qualityScoreGauge.verdict.poorDesc') };
+    return { label: t('qualityScoreGauge.verdict.critical'), description: t('qualityScoreGauge.verdict.criticalDesc') };
   };
 
   const getSize = (): { width: number; thickness: number; fontSize: string } => {
@@ -113,7 +115,7 @@ const QualityScoreGauge: React.FC<QualityScoreGaugeProps> = ({
               fontWeight: 500,
             }}
           >
-            Quality Score
+            {t('qualityScoreGauge.label')}
           </Typography>
           <Typography
             variant="subtitle2"

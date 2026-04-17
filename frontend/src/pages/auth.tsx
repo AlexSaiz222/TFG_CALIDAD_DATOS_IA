@@ -63,6 +63,7 @@ import {
 
 } from '@mui/icons-material';
 
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 import type { RegisterUserData } from '../types/auth';
@@ -182,6 +183,7 @@ const AuthPage = () => {
   const router = useRouter();
 
   const { login, register, loading, error } = useAuth();
+  const { t } = useTranslation();
 
 
 
@@ -259,13 +261,13 @@ const AuthPage = () => {
 
     if (!value.trim()) {
 
-      return name === 'username' ? 'El usuario es requerido' : 'La contraseña es requerida';
+      return name === 'username' ? t('auth.validation.usernameRequired') : t('auth.validation.passwordRequired');
 
     }
 
     if (name === 'password' && value.length < 6) {
 
-      return 'La contraseña debe tener al menos 6 caracteres';
+      return t('auth.validation.passwordMinLength');
 
     }
 
@@ -353,11 +355,11 @@ const AuthPage = () => {
 
     if (!registerData.username.trim()) {
 
-      errors.username = 'El nombre de usuario es requerido';
+      errors.username = t('auth.validation.usernameRequired2');
 
     } else if (registerData.username.length < 3) {
 
-      errors.username = 'El nombre de usuario debe tener al menos 3 caracteres';
+      errors.username = t('auth.validation.usernameMinLength');
 
     }
 
@@ -365,11 +367,11 @@ const AuthPage = () => {
 
     if (!registerData.email.trim()) {
 
-      errors.email = 'El email es requerido';
+      errors.email = t('auth.validation.emailRequired');
 
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(registerData.email)) {
 
-      errors.email = 'El email no es válido';
+      errors.email = t('auth.validation.emailInvalid');
 
     }
 
@@ -377,11 +379,11 @@ const AuthPage = () => {
 
     if (!registerData.password) {
 
-      errors.password = 'La contraseña es requerida';
+      errors.password = t('auth.validation.passwordRequired');
 
     } else if (registerData.password.length < 6) {
 
-      errors.password = 'La contraseña debe tener al menos 6 caracteres';
+      errors.password = t('auth.validation.passwordMinLength');
 
     }
 
@@ -389,11 +391,11 @@ const AuthPage = () => {
 
     if (!registerData.confirmPassword) {
 
-      errors.confirmPassword = 'Confirma tu contraseña';
+      errors.confirmPassword = t('auth.validation.confirmRequired');
 
     } else if (registerData.password !== registerData.confirmPassword) {
 
-      errors.confirmPassword = 'Las contraseñas no coinciden';
+      errors.confirmPassword = t('auth.validation.passwordsNoMatch');
 
     }
 
@@ -616,7 +618,7 @@ const AuthPage = () => {
 
           >
 
-            Impulsa tus
+            {t('auth.hero1')}
 
           </Typography>
 
@@ -646,7 +648,7 @@ const AuthPage = () => {
 
           >
 
-            datos en IA
+            {t('auth.hero2')}
 
           </Typography>
 
@@ -676,7 +678,7 @@ const AuthPage = () => {
 
           >
 
-            Analiza y valida la calidad de datos usados en proyectos de IA
+            {t('auth.tagline')}
 
           </Typography>
 
@@ -840,7 +842,7 @@ const AuthPage = () => {
 
           >
 
-            Iniciar sesión
+            {t('auth.login.tabLogin')}
 
           </Button>
 
@@ -882,7 +884,7 @@ const AuthPage = () => {
 
           >
 
-            Registrarse
+            {t('auth.login.tabRegister')}
 
           </Button>
 
@@ -956,7 +958,7 @@ const AuthPage = () => {
 
             >
 
-              {isLogin ? 'Bienvenido de nuevo' : 'Crear cuenta'}
+              {isLogin ? t('auth.login.title') : t('auth.register.title')}
 
             </Typography>
 
@@ -976,11 +978,7 @@ const AuthPage = () => {
 
             >
 
-              {isLogin
-
-                ? 'Accede a tu cuenta para gestionar tus proyectos'
-
-                : 'Únete a DataQual'}
+              {isLogin ? t('auth.login.subtitle') : t('auth.register.subtitle')}
 
             </Typography>
 
@@ -1020,9 +1018,9 @@ const AuthPage = () => {
 
                 name="username"
 
-                label="Usuario o correo"
+                label={t('auth.login.usernameOrEmail')}
 
-                placeholder="usuario@ejemplo.com…"
+                placeholder={t('auth.login.usernamePlaceholder')}
 
                 autoComplete="username"
 
@@ -1070,7 +1068,7 @@ const AuthPage = () => {
 
                 name="password"
 
-                label="Contraseña"
+                label={t('auth.login.password')}
 
                 type={showLoginPassword ? 'text' : 'password'}
 
@@ -1100,11 +1098,11 @@ const AuthPage = () => {
 
                     <InputAdornment position="end">
 
-                      <Tooltip title={showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                      <Tooltip title={showLoginPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}>
 
                         <IconButton
 
-                          aria-label={showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                          aria-label={showLoginPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
 
                           onClick={() => setShowLoginPassword(!showLoginPassword)}
 
@@ -1180,7 +1178,7 @@ const AuthPage = () => {
 
                     >
 
-                      Recordarme
+                      {t('auth.login.rememberMe')}
 
                     </Typography>
 
@@ -1220,7 +1218,7 @@ const AuthPage = () => {
 
                 >
 
-                  ¿Olvidaste tu contraseña?
+                  {t('auth.login.forgotPassword')}
 
                 </Typography>
 
@@ -1290,13 +1288,13 @@ const AuthPage = () => {
 
                     <CircularProgress size={20} color="inherit" />
 
-                    <span>Iniciando sesión…</span>
+                    <span>{t('auth.login.loading')}</span>
 
                   </Box>
 
                 ) : (
 
-                  'Iniciar sesión'
+                  t('auth.login.submit')
 
                 )}
 
@@ -1322,7 +1320,7 @@ const AuthPage = () => {
 
                 >
 
-                  ¿No tienes cuenta?{' '}
+                  {t('auth.login.noAccount')}{' '}
 
                   <Typography
 
@@ -1350,7 +1348,7 @@ const AuthPage = () => {
 
                       transition: 'color 0.2s ease',
 
-                      '&:hover': { 
+                      '&:hover': {
 
                         color: '#009966',
 
@@ -1362,7 +1360,7 @@ const AuthPage = () => {
 
                   >
 
-                    Crear cuenta
+                    {t('auth.login.createAccount')}
 
                   </Typography>
 
@@ -1392,9 +1390,9 @@ const AuthPage = () => {
 
                     name="username"
 
-                    label="Nombre de usuario"
+                    label={t('auth.register.username')}
 
-                    placeholder="tu_usuario…"
+                    placeholder={t('auth.register.usernamePlaceholder')}
 
                     autoComplete="username"
 
@@ -1444,9 +1442,9 @@ const AuthPage = () => {
 
                     type="email"
 
-                    label="Correo electrónico"
+                    label={t('auth.register.email')}
 
-                    placeholder="correo@ejemplo.com…"
+                    placeholder={t('auth.register.emailPlaceholder')}
 
                     autoComplete="email"
 
@@ -1492,7 +1490,7 @@ const AuthPage = () => {
 
                     name="password"
 
-                    label="Contraseña"
+                    label={t('auth.register.password')}
 
                     type={showRegisterPassword ? 'text' : 'password'}
 
@@ -1524,7 +1522,7 @@ const AuthPage = () => {
 
                           <IconButton
 
-                            aria-label={showRegisterPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                            aria-label={showRegisterPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
 
                             onClick={() => setShowRegisterPassword(!showRegisterPassword)}
 
@@ -1562,7 +1560,7 @@ const AuthPage = () => {
 
                     name="confirmPassword"
 
-                    label="Confirmar contraseña"
+                    label={t('auth.register.confirmPassword')}
 
                     type={showConfirmPassword ? 'text' : 'password'}
 
@@ -1592,7 +1590,7 @@ const AuthPage = () => {
 
                           <IconButton
 
-                            aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                            aria-label={showConfirmPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
 
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 
@@ -1628,7 +1626,7 @@ const AuthPage = () => {
 
                     name="first_name"
 
-                    label="Nombre"
+                    label={t('auth.register.firstName')}
 
                     autoComplete="given-name"
 
@@ -1666,7 +1664,7 @@ const AuthPage = () => {
 
                     name="last_name"
 
-                    label="Apellidos"
+                    label={t('auth.register.lastName')}
 
                     autoComplete="family-name"
 
@@ -1704,7 +1702,7 @@ const AuthPage = () => {
 
                     name="organization"
 
-                    label="Organización (opcional)"
+                    label={t('auth.register.organization')}
 
                     autoComplete="organization"
 
@@ -1798,13 +1796,13 @@ const AuthPage = () => {
 
                     <CircularProgress size={20} color="inherit" />
 
-                    <span>Creando cuenta…</span>
+                    <span>{t('auth.register.loading')}</span>
 
                   </Box>
 
                 ) : (
 
-                  'Crear cuenta'
+                  t('auth.register.submit')
 
                 )}
 
@@ -1830,7 +1828,7 @@ const AuthPage = () => {
 
                 >
 
-                  ¿Ya tienes cuenta?{' '}
+                  {t('auth.register.hasAccount')}{' '}
 
                   <Typography
 
@@ -1858,7 +1856,7 @@ const AuthPage = () => {
 
                       transition: 'color 0.2s ease',
 
-                      '&:hover': { 
+                      '&:hover': {
 
                         color: '#009966',
 
@@ -1870,7 +1868,7 @@ const AuthPage = () => {
 
                   >
 
-                    Iniciar sesión
+                    {t('auth.register.loginLink')}
 
                   </Typography>
 

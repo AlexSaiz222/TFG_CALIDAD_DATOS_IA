@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Box, Typography, Tooltip, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { useRouter } from 'next/router';
 import type { DashboardProject, DashboardRunHistory } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const GREEN = '#00B37E';
 const RED = '#E5484D';
@@ -18,12 +19,6 @@ const GATE_PRIORITY: Record<string, number> = {
   FAILED: 3,
   WARNING: 2,
   PASSED: 1,
-};
-
-const GATE_LABELS: Record<string, string> = {
-  PASSED: 'Aprobado',
-  WARNING: 'Advertencia',
-  FAILED: 'Fallido',
 };
 
 export type TimeRange = '30d' | '90d' | 'all';
@@ -46,7 +41,6 @@ function getDateKey(dateStr: string): string {
 
 function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot[] {
   const now = new Date();
-  // Work entirely in UTC to match the UTC-based date keys returned by getDateKey()
   const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
   let startUTC: Date;
@@ -67,7 +61,6 @@ function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot
     startUTC = new Date(todayUTC.getTime() - days * 24 * 60 * 60 * 1000);
   }
 
-  // Build a map of date -> worst run + count
   const runsByDate: Record<string, DashboardRunHistory> = {};
   const countByDate: Record<string, number> = {};
   for (const run of runs) {
@@ -85,7 +78,6 @@ function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot
     }
   }
 
-  // Generate one slot per UTC day from startUTC to todayUTC (inclusive)
   const slots: TimeSlot[] = [];
   const current = new Date(startUTC);
 
@@ -100,16 +92,6 @@ function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot
   }
 
   return slots;
-}
-
-function relativeTime(dateStr: string | null): string {
-  if (!dateStr) return '–';
-  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  if (days === 0) return 'Hoy';
-  if (days === 1) return 'Ayer';
-  if (days < 7) return `Hace ${days} d.`;
-  if (days < 30) return `Hace ${Math.floor(days / 7)} sem.`;
-  return `Hace ${Math.floor(days / 30)} mes.`;
 }
 
 function scoreColor(score: number | null): string {
@@ -128,8 +110,24 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
   onTimeRangeChange,
 }) => {
   const router = useRouter();
+  const { t } = useTranslation();
 
-  // Only show projects that have at least one run OR show all if few projects
+  const relativeTime = (dateStr: string | null): string => {
+    if (!dateStr) return '–';
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+    if (days === 0) return t('time.today');
+    if (days === 1) return t('time.yesterday');
+    if (days < 7) return t('time.daysAgoShort', { count: days });
+    if (days < 30) return t('time.weeksAgoShort', { count: Math.floor(days / 7) });
+    return t('time.monthsAgoShort', { count: Math.floor(days / 30) });
+  };
+
+  const GATE_LABELS: Record<string, string> = {
+    PASSED: t('projectHealthTimeline.legend.passed'),
+    WARNING: t('projectHealthTimeline.legend.warning'),
+    FAILED: t('projectHealthTimeline.legend.failed'),
+  };
+
   const projectsToShow = useMemo(() => {
     if (projects.length <= 8) return projects;
     const withRuns = projects.filter(p => p.runs_history.length > 0);
@@ -143,7 +141,6 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
     }));
   }, [projectsToShow, timeRange]);
 
-  // Get date labels for axis
   const dateLabels = useMemo(() => {
     if (projectSlots.length === 0) return [];
     const slots = projectSlots[0].slots;
@@ -160,7 +157,7 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
         <Typography variant="body2" sx={{ color: '#888' }}>
-          No hay proyectos para mostrar
+          {t('projectHealthTimeline.noAnalysis')}
         </Typography>
       </Box>
     );
@@ -191,9 +188,9 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
             },
           }}
         >
-          <ToggleButton value="30d">30 dias</ToggleButton>
-          <ToggleButton value="90d">90 dias</ToggleButton>
-          <ToggleButton value="all">Todo</ToggleButton>
+          <ToggleButton value="30d">{t('projectHealthTimeline.days30')}</ToggleButton>
+          <ToggleButton value="90d">{t('projectHealthTimeline.days90')}</ToggleButton>
+          <ToggleButton value="all">{t('projectHealthTimeline.all')}</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
@@ -256,11 +253,11 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
                 ? GATE_LABELS[slot.run.quality_gate_status] || slot.run.quality_gate_status
                 : 'N/A';
               const multiInfo = slot.runCount > 1
-                ? ` · ${slot.runCount} evaluaciones (se muestra la más desfavorable)`
+                ? ` · ${t('projectHealthTimeline.multipleEvals', { count: slot.runCount })}`
                 : '';
               const tooltipContent = hasRun
-                ? `${formatDate(slot.date)} · Score: ${slot.run!.quality_score?.toFixed(1) ?? 'N/A'}% · ${gateLabel} · ${slot.run!.total_issues_count} problemas${multiInfo}`
-                : `${formatDate(slot.date)} · Sin evaluación`;
+                ? `${formatDate(slot.date)} · Score: ${slot.run!.quality_score?.toFixed(1) ?? 'N/A'}% · ${gateLabel} · ${slot.run!.total_issues_count} issues${multiInfo}`
+                : `${formatDate(slot.date)} · ${t('projectHealthTimeline.noEvaluation')}`;
 
               return (
                 <Tooltip key={i} title={tooltipContent} arrow placement="top">
@@ -301,14 +298,14 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
                   </Typography>
                 </Box>
                 <Typography sx={{ fontSize: '0.67rem', color: '#AAA' }}>
-                  Última: {relativeTime(project.latest_analysis.completed_at)}
+                  {t('projectHealthTimeline.lastAnalysis', { time: relativeTime(project.latest_analysis.completed_at) })}
                 </Typography>
                 <Typography sx={{ fontSize: '0.67rem', color: '#AAA' }}>
-                  {project.runs_history.length} eval. en el periodo
+                  {t('projectHealthTimeline.evalCount', { count: project.runs_history.length })}
                 </Typography>
               </>
             ) : (
-              <Typography sx={{ fontSize: '0.67rem', color: '#CCC' }}>Sin análisis</Typography>
+              <Typography sx={{ fontSize: '0.67rem', color: '#CCC' }}>{t('projectHealthTimeline.noAnalysis')}</Typography>
             )}
           </Box>
         </Box>
@@ -332,15 +329,15 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
       {/* Legend */}
       <Box sx={{ display: 'flex', gap: 2, mt: 1.5, ml: '132px' }}>
         {[
-          { label: 'Aprobado', color: GREEN },
-          { label: 'Advertencia', color: ORANGE },
-          { label: 'Fallido', color: RED },
-          { label: 'Sin evaluación', color: GRAY_EMPTY },
+          { key: 'passed', color: GREEN },
+          { key: 'warning', color: ORANGE },
+          { key: 'failed', color: RED },
+          { key: 'noEvaluation', color: GRAY_EMPTY },
         ].map(item => (
-          <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box key={item.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box sx={{ width: 10, height: 10, borderRadius: '2px', backgroundColor: item.color }} />
             <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>
-              {item.label}
+              {t(`projectHealthTimeline.legend.${item.key}`)}
             </Typography>
           </Box>
         ))}

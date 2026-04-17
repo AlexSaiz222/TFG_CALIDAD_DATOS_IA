@@ -27,6 +27,7 @@ import {
   Visibility as VisibilityIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import QualityGateBadge from '../../components/QualityGateBadge';
 import { projectsAPI, analysisAPI, datasetsAPI } from '../../services/api';
@@ -52,6 +53,7 @@ interface Dataset {
 
 const EvaluationsIndex = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [allRuns, setAllRuns] = useState<AnalysisRun[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -173,7 +175,7 @@ const EvaluationsIndex = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(undefined, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -185,13 +187,13 @@ const EvaluationsIndex = () => {
   const getStatusChip = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return <Chip label="Completado" size="small" sx={{ backgroundColor: 'rgba(0, 179, 126, 0.1)', color: GREEN }} />;
+        return <Chip label={t('evaluations.status.completed')} size="small" sx={{ backgroundColor: 'rgba(0, 179, 126, 0.1)', color: GREEN }} />;
       case 'RUNNING':
-        return <Chip label="En progreso" size="small" sx={{ backgroundColor: 'rgba(255, 184, 0, 0.1)', color: ORANGE }} />;
+        return <Chip label={t('evaluations.status.running')} size="small" sx={{ backgroundColor: 'rgba(255, 184, 0, 0.1)', color: ORANGE }} />;
       case 'FAILED':
-        return <Chip label="Fallido" size="small" sx={{ backgroundColor: 'rgba(229, 72, 77, 0.1)', color: RED }} />;
+        return <Chip label={t('evaluations.status.failed')} size="small" sx={{ backgroundColor: 'rgba(229, 72, 77, 0.1)', color: RED }} />;
       case 'PENDING':
-        return <Chip label="Pendiente" size="small" sx={{ backgroundColor: 'rgba(136, 136, 136, 0.1)', color: GRAY }} />;
+        return <Chip label={t('evaluations.status.pending')} size="small" sx={{ backgroundColor: 'rgba(136, 136, 136, 0.1)', color: GRAY }} />;
       default:
         return <Chip label={status} size="small" />;
     }
@@ -222,11 +224,11 @@ const EvaluationsIndex = () => {
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Historial de análisis
+            {t('evaluations.history')}
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#666666' }}>
-          Vista global de todos los análisis de calidad ejecutados en la plataforma
+          {t('evaluations.subtitle')}
         </Typography>
       </Box>
 
@@ -235,19 +237,19 @@ const EvaluationsIndex = () => {
         <Grid item xs={6} sm={3}>
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #E5E5E5', borderRadius: 2, textAlign: 'center' }}>
             <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>{stats.total}</Typography>
-            <Typography variant="body2" sx={{ color: GRAY }}>Total análisis</Typography>
+            <Typography variant="body2" sx={{ color: GRAY }}>{t('evaluations.stats.total')}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #E5E5E5', borderRadius: 2, textAlign: 'center' }}>
             <Typography variant="h4" sx={{ fontWeight: 600, color: GREEN }}>{stats.passed}</Typography>
-            <Typography variant="body2" sx={{ color: GRAY }}>Aprobados</Typography>
+            <Typography variant="body2" sx={{ color: GRAY }}>{t('evaluations.stats.passed')}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #E5E5E5', borderRadius: 2, textAlign: 'center' }}>
             <Typography variant="h4" sx={{ fontWeight: 600, color: RED }}>{stats.failed}</Typography>
-            <Typography variant="body2" sx={{ color: GRAY }}>Fallidos</Typography>
+            <Typography variant="body2" sx={{ color: GRAY }}>{t('evaluations.stats.failed')}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={3}>
@@ -255,7 +257,7 @@ const EvaluationsIndex = () => {
             <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
               {stats.avgScore !== null ? `${stats.avgScore}%` : '—'}
             </Typography>
-            <Typography variant="body2" sx={{ color: GRAY }}>Score promedio</Typography>
+            <Typography variant="body2" sx={{ color: GRAY }}>{t('evaluations.stats.avgScore')}</Typography>
           </Paper>
         </Grid>
       </Grid>
@@ -267,7 +269,7 @@ const EvaluationsIndex = () => {
             <TextField
               fullWidth
               size="small"
-              placeholder="Buscar por proyecto o dataset..."
+              placeholder={t('evaluations.filter.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
@@ -281,13 +283,13 @@ const EvaluationsIndex = () => {
           </Grid>
           <Grid item xs={12} sm={4}>
             <FormControl fullWidth size="small">
-              <InputLabel>Proyecto</InputLabel>
+              <InputLabel>{t('common.project')}</InputLabel>
               <Select
                 value={selectedProject}
-                label="Proyecto"
+                label={t('common.project')}
                 onChange={(e) => setSelectedProject(e.target.value as number | '')}
               >
-                <MenuItem value="">Todos los proyectos</MenuItem>
+                <MenuItem value="">{t('evaluations.filter.allProjects')}</MenuItem>
                 {projects.map(project => (
                   <MenuItem key={project.id} value={project.id}>{project.name}</MenuItem>
                 ))}
@@ -296,17 +298,17 @@ const EvaluationsIndex = () => {
           </Grid>
           <Grid item xs={12} sm={4}>
             <FormControl fullWidth size="small">
-              <InputLabel>Estado</InputLabel>
+              <InputLabel>{t('common.status')}</InputLabel>
               <Select
                 value={selectedStatus}
-                label="Estado"
+                label={t('common.status')}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="COMPLETED">Completado</MenuItem>
-                <MenuItem value="RUNNING">En progreso</MenuItem>
-                <MenuItem value="FAILED">Fallido</MenuItem>
-                <MenuItem value="PENDING">Pendiente</MenuItem>
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                <MenuItem value="COMPLETED">{t('evaluations.status.completed')}</MenuItem>
+                <MenuItem value="RUNNING">{t('evaluations.status.running')}</MenuItem>
+                <MenuItem value="FAILED">{t('evaluations.status.failed')}</MenuItem>
+                <MenuItem value="PENDING">{t('evaluations.status.pending')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -321,13 +323,13 @@ const EvaluationsIndex = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#F5F5F5' }}>
-                <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Proyecto</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Dataset</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('common.date')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('common.project')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('common.dataset')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('common.status')}</TableCell>
                 <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Quality Gate</TableCell>
-                <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Score</TableCell>
-                <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Issues</TableCell>
+                <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>{t('evaluations.columns.score')}</TableCell>
+                <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>{t('evaluations.columns.issues')}</TableCell>
                 <TableCell sx={{ fontWeight: 600, width: 60 }}></TableCell>
               </TableRow>
             </TableHead>
@@ -336,7 +338,7 @@ const EvaluationsIndex = () => {
                 <TableRow>
                   <TableCell colSpan={8} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" sx={{ color: GRAY }}>
-                      {loading ? 'Cargando análisis...' : 'No se encontraron análisis'}
+                      {loading ? t('evaluations.loading') : t('evaluations.notFound')}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -415,7 +417,7 @@ const EvaluationsIndex = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Tooltip title="Ver detalles">
+                      <Tooltip title={t('evaluations.viewDetails')}>
                         <IconButton
                           size="small"
                           onClick={(e) => {
@@ -445,8 +447,8 @@ const EvaluationsIndex = () => {
             setPage(0);
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
-          labelRowsPerPage="Filas por página:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+          labelRowsPerPage={t('common.rowsPerPage')}
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('common.of')} ${count}`}
         />
       </Paper>
     </MainLayout>

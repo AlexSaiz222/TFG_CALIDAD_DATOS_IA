@@ -1,0 +1,1717 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "noData": "No data",
+    "search": "Search",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "name": "Name",
+    "description": "Description",
+    "all": "All",
+    "actions": "Actions",
+    "status": "Status",
+    "create": "Create",
+    "update": "Update",
+    "upload": "Upload",
+    "download": "Download",
+    "export": "Export",
+    "import": "Import",
+    "add": "Add",
+    "remove": "Remove",
+    "view": "View",
+    "details": "Details",
+    "type": "Type",
+    "date": "Date",
+    "version": "Version",
+    "project": "Project",
+    "dataset": "Dataset",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "optional": "optional",
+    "required": "required",
+    "unknown": "Unknown",
+    "none": "None",
+    "new": "New",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "rowsPerPage": "Rows per page:",
+    "of": "of",
+    "noResults": "No results",
+    "saveChanges": "Save changes",
+    "clearFilters": "Clear filters",
+    "applyFilters": "Apply filters",
+    "showFilters": "Show filters",
+    "hideFilters": "Hide filters",
+    "copy": "Copy",
+    "duplicate": "Duplicate",
+    "configure": "Configure",
+    "reset": "Reset",
+    "clear": "Clear"
+  },
+  "time": {
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "monthsAgo_one": "{{count}} month ago",
+    "monthsAgo_other": "{{count}} months ago",
+    "never": "Never",
+    "justNow": "Just now",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgoShort": "{{count}} d. ago",
+    "weeksAgoShort": "{{count}} wk. ago",
+    "monthsAgoShort": "{{count}} mo. ago",
+    "jan": "Jan",
+    "feb": "Feb",
+    "mar": "Mar",
+    "apr": "Apr",
+    "may": "May",
+    "jun": "Jun",
+    "jul": "Jul",
+    "aug": "Aug",
+    "sep": "Sep",
+    "oct": "Oct",
+    "nov": "Nov",
+    "dec": "Dec"
+  },
+  "language": {
+    "label": "Language",
+    "spanish": "Español",
+    "english": "English",
+    "changed": "Language changed"
+  },
+  "nav": {
+    "sections": {
+      "main": "Main",
+      "system": "System",
+      "recent": "Recent"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "projects": "Projects",
+      "allProjects": "View all",
+      "newProject": "New project",
+      "datasets": "Datasets",
+      "allDatasets": "All datasets",
+      "uploadDataset": "Upload dataset",
+      "analysis": "Analysis",
+      "history": "History",
+      "settings": "Settings",
+      "profile": "Profile",
+      "templates": "Templates",
+      "language": "Language"
+    },
+    "expandPanel": "Expand panel",
+    "collapsePanel": "Collapse panel",
+    "logout": "Sign out",
+    "recentProjects": "Recent projects",
+    "accountSettings": "Account settings"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to manage your projects",
+      "usernameOrEmail": "Username or email",
+      "usernamePlaceholder": "user@example.com…",
+      "password": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Sign in",
+      "loading": "Signing in…",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create account",
+      "tabLogin": "Sign in",
+      "tabRegister": "Register"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join DataQual",
+      "username": "Username",
+      "usernamePlaceholder": "your_user…",
+      "email": "Email",
+      "emailPlaceholder": "email@example.com…",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "organization": "Organization (optional)",
+      "submit": "Create account",
+      "loading": "Creating account…",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    },
+    "validation": {
+      "usernameRequired": "Username is required",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "usernameMinLength": "Username must be at least 3 characters",
+      "usernameRequired2": "Username is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Email is not valid",
+      "passwordsNoMatch": "Passwords do not match",
+      "confirmRequired": "Please confirm your password"
+    },
+    "tagline": "Analyze and validate the data quality used in AI projects",
+    "hero1": "Boost your",
+    "hero2": "AI data"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}",
+    "refresh": "Refresh data",
+    "error": "Failed to load dashboard.",
+    "kpi": {
+      "projects": "Projects",
+      "datasets": "Datasets",
+      "avgQuality": "Average quality",
+      "active": "Active",
+      "inUse": "In use",
+      "score": "Score",
+      "new": "New",
+      "upload": "Upload",
+      "noEvaluations": "No evaluations",
+      "viewProjects": "View projects",
+      "viewDatasets": "View datasets",
+      "viewAnalysis": "View analysis"
+    },
+    "distribution": {
+      "title": "Quality distribution",
+      "subtitle": "Latest completed analysis per project",
+      "passed": "Passed",
+      "passedDesc": "Score ≥ threshold",
+      "warning": "Warning",
+      "warningDesc": "Score near threshold",
+      "failed": "Failed",
+      "failedDesc": "Score < threshold",
+      "noAnalysis": "No analysis",
+      "noAnalysisDesc": "Not yet evaluated"
+    },
+    "issuesPerProject": "Quality issues per project",
+    "healthHistory": "Project health history",
+    "healthHistoryDesc": "Each bar represents a day. If multiple evaluations exist on a day, the worst one is shown.",
+    "requiresAttention": "Requires attention",
+    "requiresAttentionDesc": "Projects with failed Quality Gate, warning, or score below 70%",
+    "empty": {
+      "title": "Start by creating your first project",
+      "subtitle": "Upload datasets, configure quality metrics and run evaluations.",
+      "createProject": "Create project"
+    },
+    "gateDistribution": {
+      "passed": "{{count}} passed",
+      "warning": "{{count}} warning",
+      "failed": "{{count}} failed"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "newProject": "New project",
+    "searchPlaceholder": "Search projects...",
+    "filteredBy": "Filtered by:",
+    "projectCount_one": "({{count}} project)",
+    "projectCount_other": "({{count}} projects)",
+    "noDescription": "No description",
+    "noProjects": "You don't have any projects yet.",
+    "noProjectsSearch": "No projects found matching the search criteria.",
+    "createFirst": "Create your first project",
+    "loadError": "Failed to load projects. Please try again.",
+    "deleteError": "Failed to delete project. Please try again.",
+    "invalidId": "Invalid project ID or not specified.",
+    "loadInfoError": "Could not load project information.",
+    "loadDataError": "Error loading project data. Please try again.",
+    "createError": "Error creating project. Please try again.",
+    "loadProjectError": "Error loading project. Please try again.",
+    "updateError": "Error updating project. Please try again.",
+    "delete": {
+      "title": "Delete project?",
+      "message": "Are you sure you want to delete the project \"{{name}}\"? This action cannot be undone and will delete all associated datasets and analyses."
+    },
+    "new": {
+      "title": "New project",
+      "steps": {
+        "basicInfo": "Basic information",
+        "templateMetrics": "Template & metrics",
+        "summary": "Summary & confirmation"
+      },
+      "projectInfo": "Project information",
+      "projectName": "Project name",
+      "descriptionPlaceholder": "Briefly describe the purpose of the project (optional)",
+      "chooseTemplate": "Choose a template",
+      "templateSubtitle": "Select a predefined template or customize metrics manually.",
+      "custom": "Custom",
+      "customSubtitle": "Select metrics manually without starting from a template.",
+      "activeMetrics": "Active metrics",
+      "activeMetricsSubtitle": "Enable or disable individual metrics. You can configure detailed parameters from the project.",
+      "projectSummary": "Project summary",
+      "summarySubtitle": "Review the information before creating the project. You can modify it later from settings.",
+      "basicInfoLabel": "Basic information",
+      "templateLabel": "Template",
+      "customTemplate": "Custom template",
+      "noTemplate": "Custom (no template)",
+      "selectedMetrics": "Selected metrics ({{count}})",
+      "afterCreate": "Once the project is created, you can upload datasets and configure data quality evaluations.",
+      "nameRequired": "Project name is required",
+      "createSuccess": "Project created successfully",
+      "createError": "Failed to create project",
+      "createButton": "Create project",
+      "metricsConfig": "Metrics configuration",
+      "notFound": "Project not found",
+      "backToProjects": "Back to projects"
+    },
+    "edit": {
+      "title": "Edit project",
+      "loadError": "Failed to load project. Please try again.",
+      "updateError": "Failed to update project. Please try again.",
+      "nameRequired": "Project name is required"
+    },
+    "detail": {
+      "tabs": {
+        "overview": "Overview",
+        "datasets": "Datasets",
+        "metrics": "Metrics",
+        "analysis": "Analysis",
+        "qualityGate": "Quality Gate"
+      },
+      "runAnalysis": "Run analysis",
+      "configureMetrics": "Configure metrics",
+      "noDatasets": "No datasets in this project",
+      "uploadFirst": "Upload your first dataset",
+      "noAnalysis": "No analyses run",
+      "runFirst": "Run your first analysis",
+      "info": "Project information",
+      "createdAt": "Creation date",
+      "lastUpdated": "Last updated",
+      "appliedMetrics": "Applied metrics",
+      "projectDatasets": "Project datasets",
+      "addDataset": "Add dataset",
+      "tableColumns": {
+        "name": "Name",
+        "version": "Version",
+        "rows": "Rows",
+        "cols": "Columns",
+        "created": "Creation date",
+        "actions": "Actions"
+      },
+      "viewDetails": "View details",
+      "noDatasetsTitle": "No datasets yet",
+      "noDatasetsDesc": "Start by adding your first dataset",
+      "configuredMetrics": "Configured metrics",
+      "noDescAvailable": "No description available.",
+      "whatMeasures": "What does it measure?",
+      "configuredParams": "Configured parameters",
+      "noParams": "No parameters configured. Default values will be used.",
+      "noMetricsTitle": "No metrics configured",
+      "noMetricsDesc": "Configure metrics to evaluate the quality of your datasets.",
+      "deleteTitle": "Delete Project?",
+      "deleteMessage": "Are you sure you want to delete the project \"{{name}}\"? This action cannot be undone and will delete all associated datasets and evaluations.",
+      "notFound": "Project not found",
+      "backToProjects": "Back to projects"
+    },
+    "paramHelp": {
+      "completeness": {
+        "threshold": { "label": "Minimum threshold", "unit": "0 – 1", "description": "Minimum proportion of non-null values required. If actual completeness is lower, an issue is generated." },
+        "columns": { "label": "Columns", "description": "Columns to evaluate. Empty = all dataset columns." }
+      },
+      "uniqueness": {
+        "threshold": { "label": "Uniqueness threshold", "unit": "0 – 1", "description": "Minimum proportion of unique rows required. 1.0 = no duplicates allowed." },
+        "columns": { "label": "Key columns", "description": "Columns whose combination must be unique (e.g., identifiers). Empty = full rows." }
+      },
+      "outliers": {
+        "method": { "label": "Detection method", "description": "IQR is robust against asymmetric distributions. Z-Score assumes normal distribution and is more sensitive to extremes." },
+        "factor": { "label": "Sensitivity factor", "unit": "> 0", "description": "Tolerance multiplier. Lower = stricter (more outliers detected). 1.5 is standard; 3.0 is permissive." },
+        "columns": { "label": "Numeric columns", "description": "Numeric columns to analyze. Empty = all detected numeric columns." }
+      },
+      "syntactic_accuracy": {
+        "auto_detect_types": { "label": "Auto-detection", "description": "Detects common formats (email, phone, date…) without manual configuration. If disabled, only 'columns' rules are evaluated." },
+        "threshold": { "label": "Conformance threshold", "unit": "0 – 1", "description": "Minimum percentage of values that must comply with the format in each analyzed column." },
+        "columns": { "label": "Format rules", "description": "List of columns with their expected type (email, phone_es, date_iso, dni_es, url…). Complements or replaces auto-detection." }
+      },
+      "class_balance": {
+        "auto_detect": { "label": "Auto-detection", "description": "Automatically detects categorical columns based on the cardinality threshold." },
+        "columns": { "label": "Columns to analyze", "description": "Specific categorical columns. Empty = all auto-detected." },
+        "max_cardinality": { "label": "Maximum cardinality", "unit": "integer", "description": "Maximum number of unique values to consider a column as categorical. Columns with more values will be ignored." },
+        "imbalance_threshold_high": { "label": "Dominance threshold", "unit": "0 – 1", "description": "Maximum percentage a class can occupy. Exceeding it generates an imbalance issue." },
+        "imbalance_threshold_low": { "label": "Minority threshold", "unit": "0 – 1", "description": "Minimum percentage any class must have. Below this = underrepresented." }
+      },
+      "currentness": {
+        "auto_detect": { "label": "Auto-detection", "description": "Automatically detects date, timestamp, or datetime type columns." },
+        "columns": { "label": "Date columns", "description": "Specific date columns. Empty = all auto-detected." },
+        "staleness_threshold_days": { "label": "Staleness threshold", "unit": "days", "description": "Days without update after which a record is considered outdated." }
+      },
+      "logical_consistency": {
+        "rules": { "label": "Business rules", "description": "List of rules that data must comply with. 'violation': expression selecting invalid rows. 'if_then': if condition is met, assertion must be true." }
+      }
+    },
+    "qualityGate": {
+      "title": "Quality Gate",
+      "strictness": {
+        "strict": "Strict",
+        "moderate": "Moderate",
+        "permissive": "Permissive"
+      },
+      "thresholds": {
+        "minScore": "Minimum score",
+        "maxCritical": "Max critical issues",
+        "maxNew": "Max new issues"
+      },
+      "saveChanges": "Save changes",
+      "resetDefaults": "Restore defaults",
+      "saveSuccess": "Quality Gate saved successfully",
+      "saveError": "Failed to save Quality Gate"
+    }
+  },
+  "datasets": {
+    "title": "Datasets",
+    "notFound": "Dataset not found",
+    "backToProjects": "Back to projects",
+    "invalidId": "Invalid or unspecified dataset ID.",
+    "noName": "Dataset without name",
+    "noDataLoaded": "Could not load dataset information.",
+    "previewUnavailable": "Could not load the dataset preview.",
+    "previewNoData": "No preview data available.",
+    "sensitiveTooltip": "Sensitive column – values obfuscated",
+    "tabs": {
+      "preview": "Preview",
+      "profiling": "Data Profiling",
+      "evaluations": "Evaluations",
+      "issues": "Issues",
+      "versions": "Versions"
+    },
+    "info": {
+      "project": "Project",
+      "rows": "Rows",
+      "columns": "Columns",
+      "uploaded": "Uploaded"
+    },
+    "actions": {
+      "newVersion": "New version",
+      "delete": "Delete",
+      "runEvaluation": "Run evaluation",
+      "running": "Running…",
+      "processing": "Processing…",
+      "viewDetails": "View details"
+    },
+    "evaluationsTab": {
+      "noEvaluations": "No evaluations run for this dataset",
+      "columns": {
+        "id": "ID",
+        "date": "Date",
+        "duration": "Duration",
+        "qualityGate": "Quality Gate",
+        "score": "Score",
+        "issues": "Issues",
+        "actions": "Actions"
+      },
+      "pending": "Queued",
+      "running": "Running {{progress}}%",
+      "onGoing": "In progress…"
+    },
+    "issuesTab": {
+      "noIssues": "No issues found in the latest evaluation",
+      "runFirst": "Run an evaluation to identify data quality problems",
+      "runEvaluation": "Run an evaluation",
+      "columns": {
+        "severity": "Severity",
+        "type": "Type",
+        "columns": "Columns",
+        "description": "Description"
+      }
+    },
+    "deleteDialog": {
+      "title": "Delete dataset?",
+      "message": "Are you sure you want to delete the dataset \"{name}\"? This action cannot be undone and will delete all associated evaluations and issues."
+    },
+    "lineageTitle": "Visual version tree",
+    "noMetricsConfigured": "This project has no metrics configured. Go to the project settings to add metrics before running an evaluation.",
+    "evalLaunchError": "Failed to launch the evaluation. Please try again.",
+    "previewCsvError": "The CSV file may be empty or have an incorrect format. Verify it has valid headers and content.",
+    "severityLabels": {
+      "critical": "Critical",
+      "high": "High",
+      "major": "Major",
+      "medium": "Medium",
+      "minor": "Minor",
+      "low": "Low",
+      "info": "Info"
+    },
+    "issueTypeLabels": {
+      "completeness": "Completeness",
+      "low_variability": "Low variability",
+      "high_variability": "High variability",
+      "outlier": "Outlier",
+      "outliers": "Outliers",
+      "duplicate": "Duplicate",
+      "duplicates": "Duplicates",
+      "uniqueness": "Uniqueness",
+      "consistency": "Consistency",
+      "validity": "Validity",
+      "accuracy": "Accuracy",
+      "timeliness": "Timeliness",
+      "currentness": "Currentness",
+      "class_balance": "Class balance",
+      "distribution": "Distribution",
+      "correlation": "Correlation",
+      "format": "Format",
+      "schema": "Schema",
+      "null_rate": "Null rate",
+      "range": "Range",
+      "pattern": "Pattern"
+    },
+    "searchPlaceholder": "Search by name, description or project...",
+    "uploadDataset": "Upload dataset",
+    "noDatasets": "No datasets yet. Upload the first one.",
+    "noResults": "No datasets match the search.",
+    "loadError": "Could not load datasets. Check the server connection.",
+    "loadDatasetsError": "Could not load datasets. Check the server connection.",
+    "noData": "No data available for this dataset.",
+    "datasetCount_one": "{{count}} dataset",
+    "datasetCount_other": "{{count}} datasets",
+    "totalVersions": "· {{count}} total versions",
+    "stats": {
+      "rows": "rows",
+      "cols": "cols"
+    },
+    "columns": {
+      "name": "Name",
+      "project": "Project",
+      "version": "Version",
+      "sizeRowsCols": "Size · Rows · Cols",
+      "updated": "Updated",
+      "actions": "Actions"
+    },
+    "latest": "Latest",
+    "versionsAvailable": "{{count}} versions available",
+    "viewDataset": "View dataset",
+    "viewVersion": "View this version",
+    "upload": {
+      "title": "Upload dataset",
+      "newVersion": "Upload new version",
+      "steps": {
+        "selectProject": "Select a project",
+        "addFile": "Add a file",
+        "review": "Review & confirm"
+      },
+      "project": "Project",
+      "selectProjectLabel": "Select a project",
+      "noProjectsAvailable": "No projects available",
+      "uploadFile": "Upload file",
+      "dragActive": "Drop the CSV file here",
+      "dragInactive": "Drag & drop a CSV file here, or click to select",
+      "csvOnly": "Only CSV files are supported (max 10MB)",
+      "datasetName": "Dataset name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter a description for your dataset (optional)",
+      "versionTag": "Version tag (optional)",
+      "summary": "Summary & anonymization",
+      "datasetSummary": "Dataset Summary",
+      "dataPrivacy": "Data Privacy",
+      "sensitiveColumns": "Sensitive column selection",
+      "sensitiveColumnsDesc": "It is crucial to protect personal information. Please select below any columns containing confidential data. Their values will be automatically masked/anonymized.",
+      "protectedColumns": "{{count}} protected column(s).",
+      "newVersionOf": "New version of {{name}}",
+      "versionTagPlaceholder": "E.g. v2.0, corrected, final, etc.",
+      "versionTagHelper": "A descriptive label to identify this version",
+      "errors": {
+        "selectProject": "Please select a project",
+        "nameRequired": "Dataset name is required",
+        "uploadFile": "Please upload a CSV file",
+        "csvOnly": "Only CSV files are supported",
+        "sizeLimit": "File size exceeds 10MB limit",
+        "loadProjects": "Failed to load projects. Please try again later.",
+        "invalidResponse": "Invalid response format from server",
+        "uploadFailed": "Failed to upload dataset. Please try again.",
+        "noDatasetId": "Upload complete, but could not retrieve the dataset ID from the server."
+      }
+    },
+    "detail": {
+      "loadError": "Failed to load dataset data. Please try again.",
+      "deleteError": "Failed to delete dataset. Please try again later.",
+      "issuesError": "Failed to fetch issues for this evaluation.",
+      "delete": {
+        "title": "Delete dataset?",
+        "message": "Are you sure you want to delete this dataset? This action cannot be undone."
+      }
+    },
+    "compare": {
+      "title": "Compare versions",
+      "previousVersion": "Previous version",
+      "currentVersion": "Current version",
+      "qualityScoreLabel": "Quality Score",
+      "viewVersion": "View {{version}}",
+      "deltaTooltip": {
+        "noData": "No data",
+        "improved": "Improved {{value}}%",
+        "worsened": "Worsened {{value}}%",
+        "noChange": "No change",
+        "noIssueChange": "No issue changes",
+        "newIssues": "{{count}} new issues appeared",
+        "resolvedIssues": "{{count}} issues resolved",
+        "sameRows": "Same rows",
+        "addedRows_one": "{{count}} row added",
+        "addedRows_other": "{{count}} rows added",
+        "removedRows_one": "{{count}} row removed",
+        "removedRows_other": "{{count}} rows removed",
+        "sameColumns": "Same columns",
+        "addedColumns_one": "{{count}} column added",
+        "addedColumns_other": "{{count}} columns added",
+        "removedColumns_one": "{{count}} column removed",
+        "removedColumns_other": "{{count}} columns removed"
+      },
+      "issuesDeltaMore": "+{{count}} more",
+      "issuesDeltaLess": "{{count}} fewer",
+      "previousValue": "Previous version: {{value}}",
+      "previousAffected": "Previous version: {{count}} affected rows",
+      "rowsDelta": "{{sign}}{{count}} rows",
+      "quality": "Quality",
+      "qualityScore": "Quality score",
+      "issues": "Detected issues",
+      "rows": "Rows",
+      "columns": "Columns",
+      "records": "Records",
+      "fields": "Fields",
+      "addedColumns_one": "{{count}} column added",
+      "addedColumns_other": "{{count}} columns added",
+      "removedColumns_one": "{{count}} column removed",
+      "removedColumns_other": "{{count}} columns removed",
+      "resolvedIssues": "Resolved issues",
+      "noResolvedIssues": "No resolved issues",
+      "newIssues": "New issues",
+      "noNewIssues": "No new issues",
+      "persistentIssues": "Persistent issues",
+      "noPersistentIssues": "No persistent issues",
+      "loadError": "Could not load version comparison",
+      "noData": "No comparison data found"
+    },
+    "versionHistory": {
+      "loadError": "Could not load dataset versions",
+      "version": "Version",
+      "versionPrefix": "v",
+      "versionHistory": "Version history",
+      "noHistory": "No version history available",
+      "branched": "Branched",
+      "viewTree": "View visual tree",
+      "compareWith": "Select another version to compare with",
+      "rowsCols": "{{rows}} rows · {{cols}} cols",
+      "viewDataset": "View dataset",
+      "compare": "Compare",
+      "cancelCompare": "Cancel comparison",
+      "latest": "Latest",
+      "current": "Current",
+      "branch": "branch",
+      "editLabel": "Edit label",
+      "versionCount_one": "1 version",
+      "versionCount_other": "{{count}} versions"
+    },
+    "lineage": {
+      "loadError": "Could not load versions",
+      "noVersions": "No versions to display",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Reset positions and zoom",
+      "latest": "Latest",
+      "current": "Current",
+      "editLabel": "Edit label",
+      "rows": "{{count}} rows",
+      "cols": "{{count}} cols",
+      "clickHint": "Click a node to select it · Drag it to reposition",
+      "dragHint": "Drag the background to pan · scroll to zoom · drag nodes to rearrange",
+      "navHint": "Click node to navigate · ✏️ edit label · arrow label = quality change",
+      "versionCount_one": "1 version",
+      "versionCount_other": "{{count}} versions",
+      "legend": {
+        "passed": "Passed",
+        "warning": "Warning",
+        "failed": "Failed",
+        "noAnalysis": "No analysis"
+      }
+    },
+    "statusSnapshot": {
+      "noDatasets": "No datasets in this project",
+      "noDatasetsSub": "Add datasets to see their quality status.",
+      "header": "Current dataset status",
+      "count": "{{count}} datasets · Click to view evolution",
+      "issues": "{{count}} issues",
+      "notAnalyzed": "Not analyzed"
+    }
+  },
+  "evaluations": {
+    "title": "Analysis",
+    "history": "Analysis history",
+    "subtitle": "Global view of all quality analyses run on the platform",
+    "noAnalysis": "No analysis",
+    "loading": "Loading analyses...",
+    "notFound": "No analyses found",
+    "stats": {
+      "total": "Total analyses",
+      "passed": "Passed",
+      "failed": "Failed",
+      "avgScore": "Average score"
+    },
+    "filter": {
+      "searchPlaceholder": "Search by project or dataset...",
+      "allProjects": "All projects"
+    },
+    "viewDetails": "View details",
+    "columns": {
+      "date": "Date",
+      "score": "Score",
+      "issues": "Issues"
+    },
+    "status": {
+      "completed": "Completed",
+      "running": "Running",
+      "failed": "Failed",
+      "pending": "Pending",
+      "inProgress": "In progress"
+    },
+    "severity": {
+      "critical": "Critical",
+      "major": "Major",
+      "minor": "Minor",
+      "info": "Info",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "gateStatus": {
+      "passed": "Passed",
+      "warning": "Warning",
+      "failed": "Failed",
+      "noData": "No data",
+      "noAnalysis": "No analysis"
+    },
+    "issues": {
+      "title": "Issues ({{count}})",
+      "noIssues": "No issues detected",
+      "noIssuesDesc": "The analysis found no data quality problems.",
+      "noResults": "No issues found with the applied filters",
+      "clearFilters": "Clear filters",
+      "newBadge": "NEW",
+      "recurring": "Recurring",
+      "filterSeverity": "Severity",
+      "filterStatus": "Status",
+      "filterType": "Type",
+      "allSeverities": "All",
+      "allStatuses": "All",
+      "allTypes": "All",
+      "isNew": "New",
+      "isRecurring": "Recurring",
+      "columns": {
+        "severity": "Severity",
+        "status": "Status",
+        "type": "Type",
+        "metric": "Metric",
+        "description": "Description",
+        "affectedColumns": "Affected Columns",
+        "rows": "Rows"
+      },
+      "rule": "Rule: {{key}}"
+    },
+    "detail": {
+      "qualityGateResult": "Quality Gate result",
+      "score": "Quality score",
+      "totalIssues": "Total issues",
+      "criticalIssues": "Critical issues",
+      "newIssues": "New issues",
+      "fixedIssues": "Fixed issues",
+      "comparedTo": "Compared to baseline analysis",
+      "invalidId": "Invalid analysis ID.",
+      "loadError": "Failed to load analysis.",
+      "notFound": "Analysis not found",
+      "backToHistory": "Back to history",
+      "analysisNumber": "Analysis #{{id}}",
+      "badge": {
+        "excellent": "Excellent",
+        "needsAttention": "Needs attention",
+        "critical": "Critical",
+        "acceptable": "Acceptable"
+      },
+      "scoreVerdict": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "acceptable": "Acceptable",
+        "poor": "Poor",
+        "critical": "Critical"
+      },
+      "gate": {
+        "passedTitle": "Passes Quality Gate",
+        "warningTitle": "Quality Gate with warnings",
+        "failedTitle": "Does not pass Quality Gate",
+        "passedDesc": "The analysis meets the quality standards defined for this project.",
+        "warningDesc": "The analysis has warnings that require attention.",
+        "failedDesc": "The obtained score ({{score}}/100) does not meet the minimum required threshold for this project.",
+        "failedDescThreshold": "The obtained score ({{score}}/100) does not meet the minimum required threshold: {{threshold}}/100."
+      },
+      "sections": {
+        "metricSummary": "Metrics summary",
+        "detectedIssues": "Detected issues ({{count}})",
+        "metricDetails": "Metric details",
+        "scoreCalculation": "Score calculation",
+        "columnMetrics": "Column Metrics ({{count}} columns)"
+      },
+      "metricsEvaluated_one": "{{count}} metric evaluated",
+      "metricsEvaluated_other": "{{count}} metrics evaluated",
+      "issuesCount_one": "{{count}} issue detected",
+      "issuesCount_other": "{{count}} issues detected",
+      "noIssues": "No issues",
+      "severityLabel": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "metricName": {
+        "completeness": "Completeness",
+        "uniqueness": "Uniqueness",
+        "outliers": "Outliers",
+        "syntacticAccuracy": "Syntactic accuracy",
+        "classBalance": "Class balance",
+        "currentness": "Currentness",
+        "logicalConsistency": "Logical consistency",
+        "general": "General"
+      },
+      "insight": {
+        "completeness": {
+          "partial_one": "{{count}} of {{total}} column has null values",
+          "partial_other": "{{count}} of {{total}} columns have null values",
+          "allComplete": "All columns are complete"
+        },
+        "uniqueness": {
+          "duplicates_one": "{{count}} fully duplicated row",
+          "duplicates_other": "{{count}} fully duplicated rows",
+          "noDuplicates": "No duplicate rows detected"
+        },
+        "outliers": {
+          "none": "No outliers detected",
+          "oneCol": "{{count}} column affected ({{col}}, {{pct}}%)",
+          "multiCol": "{{count}} columns affected ({{pct}}% of total)"
+        },
+        "syntacticAccuracy": {
+          "columns_one": "{{count}} column analyzed",
+          "columns_other": "{{count}} columns analyzed",
+          "none": "No columns analyzed"
+        },
+        "logicalConsistency": {
+          "noViolations_one": "{{count}} rule without violations",
+          "noViolations_other": "{{count}} rules without violations",
+          "violations_one": "{{count}} of {{total}} rule with violations",
+          "violations_other": "{{count}} of {{total}} rules with violations"
+        },
+        "classBalance": {
+          "noAlerts": "No imbalances detected",
+          "alerts_one": "{{count}} column with imbalance",
+          "alerts_other": "{{count}} columns with imbalance"
+        },
+        "currentness": {
+          "upToDate_one": "{{count}} column up to date",
+          "upToDate_other": "{{count}} columns up to date",
+          "stale_one": "{{count}} of {{total}} column out of date",
+          "stale_other": "{{count}} of {{total}} columns out of date"
+        }
+      },
+      "scoreCalc": {
+        "description": "The Quality Score starts at 100% and deducts a penalty based on detected issues, normalized by the number of dataset columns.",
+        "step1Title": "1. Issue penalty",
+        "step1Desc": "Each issue deducts points based on its severity. The maximum penalty is −97%.",
+        "noIssues": "No issues — raw penalty = 0%",
+        "rawPenalty": "Raw penalty = −{{value}}%",
+        "step2Title": "2. Dimensionality normalization",
+        "step2Desc": "Wider datasets generate more issues. The penalty is divided by √(columns / 10).",
+        "capped": "(capped at maximum −97%)",
+        "step3Title": "3. Final score",
+        "diagnosticTitle": "Dimension diagnostics",
+        "diagnosticDesc": "Percentage of valid values per metric. Reference for locating the source of issues.",
+        "diagnosticAvg": "Weighted diagnostic average: {{value}}%"
+      },
+      "noIssuesDetected": "No problems detected. Your data quality is excellent!",
+      "scoreCalculationDescription": "The Quality Score starts at 100% and deducts a penalty based on detected issues, normalized by the number of dataset columns. Dimension scores are complementary diagnostics.",
+      "finalScore": "Final score",
+      "metricDetails": "Metric Details",
+      "columnMetrics": "Metrics by Column ({{count}} columns)",
+      "scoreCalculationSteps": {
+        "penaltyByIssues": "1. Penalty by issues",
+        "penaltyDescription": "Each issue deducts based on its severity. Maximum penalty is −97%.",
+        "noIssuesPenalty": "No issues — raw penalty = 0%",
+        "rawPenalty": "Raw penalty = −{{value}}%",
+        "normalization": "2. Normalization by dimensionality",
+        "normalizationDescription": "Wider datasets generate more issues. Penalty is divided by √(columns / 10).",
+        "capped": "(capped at maximum −97%)",
+        "diagnosticByDimension": "Diagnostic by dimension",
+        "diagnosticDescription": "Percentage of valid values per metric. Reference for locating the source of issues.",
+        "weightedAverage": "Weighted diagnostic average: {{value}}%"
+      }
+    }
+  },
+  "metrics": {
+    "configure": {
+      "title": "Metrics configuration",
+      "subtitle": "Configure each metric's parameters for the project",
+      "saveConfig": "Save configuration",
+      "saveSuccess": "Configuration saved successfully",
+      "saveError": "Failed to save configuration",
+      "resetDefaults": "Restore defaults",
+      "threshold": "Minimum threshold",
+      "weight": "Weight",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "parameters": "Parameters",
+      "saveParameters": "Save parameters",
+      "saving": "Saving...",
+      "tabs": {
+        "available": "Available metrics",
+        "selected": "Selected metrics",
+        "templates": "Templates"
+      },
+      "searchPlaceholder": "Search metrics...",
+      "categoryLabel": "Category",
+      "allCategories": "All categories",
+      "categories": {
+        "data_quality": "Data quality",
+        "statistical": "Statistics",
+        "ml_specific": "ML-specific",
+        "general": "General"
+      },
+      "metricCount_one": "{{count}} metric",
+      "metricCount_other": "{{count}} metrics",
+      "noMetricsFound": "No metrics found",
+      "noMetricsFoundDesc": "Adjust the filters or search to see other available metrics.",
+      "add": "Add",
+      "remove": "Remove",
+      "configure": "Configure",
+      "noSelectedInfo": "No metrics selected. Add metrics from the \"Available metrics\" tab.",
+      "saveAsTemplate": "Save as template",
+      "templatesSubtitle": "Configuration templates",
+      "templatesDesc": "Apply a predefined metric configuration to speed up setup.",
+      "noTemplates": "No templates available",
+      "noTemplatesDesc": "Create templates from Settings > Templates to reuse metric configurations.",
+      "goToTemplates": "Go to templates",
+      "newTemplateCard": "New template",
+      "newTemplateCardSub": "Go to settings",
+      "applyTemplateDialog": {
+        "title": "Apply template",
+        "confirm": "Do you want to apply the template <strong>\"{{name}}\"</strong>?",
+        "metricsInfo": "This template includes {{count}} metrics that will be added to your current configuration.",
+        "addInfo": "The template metrics will be added to your current selection. You can modify them afterwards.",
+        "cancel": "Cancel",
+        "apply": "Apply template"
+      },
+      "saveAsTemplateDialog": {
+        "title": "Save as template",
+        "desc": "Save the current configuration ({{count}} metrics) as a reusable template.",
+        "nameLabel": "Template name",
+        "descLabel": "Description (optional)",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "save": "Save template"
+      },
+      "appliedTemplate": "Template \"{{name}}\" applied successfully",
+      "templateSaved": "Template saved successfully",
+      "templateSaveError": "Failed to save template",
+      "reloadPage": "Reload page",
+      "backToProjects": "Back to projects",
+      "retry": "Retry",
+      "noDescription": "No description",
+      "projectIdError": "Could not determine project ID to save configuration.",
+      "invalidProjectId": "The project ID \"{{id}}\" is not valid. It must be an integer.",
+      "loadProjectError": "Could not load project with ID {{id}}. The project does not exist in cache.",
+      "cacheError": "Error retrieving cache data: {{error}}",
+      "noCacheData": "Could not load project with ID {{id}}. No data in cache.",
+      "loadMetricsError": "Error loading metrics. Some features may not be available.",
+      "saveConfigError": "Error saving metrics configuration.",
+      "noMetricsSelected": "No metrics selected. Add metrics from the \"Available metrics\" tab.",
+      "configurationTemplates": "Configuration templates",
+      "templateDescription": "Apply a predefined metric configuration to speed up setup.",
+      "noTemplatesAvailable": "No templates available",
+      "createTemplatesHint": "Create templates from Settings > Templates to reuse metric configurations.",
+      "newTemplate": "New template",
+      "goToConfiguration": "Go to settings",
+      "applyTemplateConfirm": "Do you want to apply the template <strong>\"{{name}}\"</strong>?",
+      "templateIncludesMetrics": "This template includes {{count}} metrics that will be added to your current configuration.",
+      "templateMetricsInfo": "The template metrics will be added to your current selection. You can modify them afterwards.",
+      "saveTemplateDescription": "Save the current configuration ({{count}} metrics) as a reusable template."
+    },
+    "names": {
+      "completeness": "Completeness",
+      "uniqueness": "Uniqueness",
+      "syntacticAccuracy": "Syntactic accuracy",
+      "logicalConsistency": "Logical consistency",
+      "classBalance": "Class balance",
+      "currentness": "Currentness",
+      "outlierDetection": "Outlier detection"
+    },
+    "configure": {
+      "title": "Configure metrics",
+      "subtitle": "Configure each metric's parameters for the project",
+      "saveConfig": "Save configuration",
+      "saveSuccess": "Configuration saved successfully",
+      "saveError": "Failed to save configuration",
+      "resetDefaults": "Restore defaults",
+      "threshold": "Minimum threshold",
+      "weight": "Weight",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "parameters": "Parameters",
+      "saveParameters": "Save parameters"
+    },
+    "templates": {
+      "title": "Metric templates",
+      "subtitle": "Create and manage custom metric templates for your projects.",
+      "pageSubtitle": "Create and manage custom templates to apply in your projects",
+      "importJson": "Import JSON",
+      "newTemplate": "New template",
+      "noTemplates": "No templates yet",
+      "noTemplatesDesc": "Create your first template to reuse metric configurations across multiple projects",
+      "createFirst": "Create template",
+      "editTemplate": "Edit template",
+      "deleteTemplate": "Delete template",
+      "loadError": "Failed to load templates. Please try again.",
+      "createSuccess": "Template created successfully",
+      "updateSuccess": "Template updated successfully",
+      "deleteSuccess": "Template deleted successfully",
+      "deleteConfirm": "Delete template",
+      "deleteMessage": "Are you sure you want to delete the template \"{{name}}\"? This action cannot be undone.",
+      "dialog": {
+        "editTitle": "Edit template",
+        "newTitle": "New template",
+        "nameLabel": "Template name",
+        "descLabel": "Description (optional)",
+        "selectMetrics": "Select metrics",
+        "metricsSelected_one": "{{count}} metric selected",
+        "metricsSelected_other": "{{count}} metrics selected",
+        "saveChanges": "Save changes",
+        "create": "Create template",
+        "cancel": "Cancel",
+        "configure": "Configure",
+        "jsonInvalid": "The JSON has errors. Fix them before saving.",
+        "jsonNoMetrics": "You must include at least one metric",
+        "noMetricsSelected": "You must select at least one metric",
+        "nameRequired": "Template name is required"
+      },
+      "jsonDialog": {
+        "title": "View / Edit template JSON",
+        "invalid": "Invalid JSON",
+        "loadFile": "Load file",
+        "close": "Close",
+        "download": "Download JSON",
+        "import": "Import as new template",
+        "jsonInvalidFmt": "The JSON has errors and cannot be converted to visual view. Fix them or continue editing in JSON.",
+        "mustInclude": "The JSON must include \"name\" and \"metrics\" (array).",
+        "readError": "Failed to read the JSON file. Make sure it is valid JSON.",
+        "unrecognizedMetrics": "Unrecognized metrics omitted: {{list}}",
+        "chip": "complete template"
+      },
+      "pageTitle": "Metric templates",
+      "noTemplatesYet": "No templates yet",
+      "createFirstTemplate": "Create your first template to reuse metric configurations across multiple projects",
+      "createTemplate": "Create template",
+      "selectMetrics": "Select metrics",
+      "metricCount_one": "{{count}} metric selected",
+      "metricCount_other": "{{count}} metrics selected",
+      "completeTemplate": "complete template",
+      "noDescription": "No description",
+      "configure": "Configure",
+      "saveChanges": "Save changes",
+      "deleteConfirm": "Are you sure you want to delete the template \"{{name}}\"?",
+      "deleteWarning": "This action cannot be undone.",
+      "viewEditJson": "View / Edit template JSON",
+      "json": "JSON",
+      "formatJson": "Format JSON",
+      "structureHint": "Structure: {\"name\": \"...\", \"description\": \"...\", \"metrics\": [{\"name\": \"completeness\", \"parameters\": {...}}, ...]}",
+      "loadFile": "Load file",
+      "downloadJson": "Download JSON",
+      "importAsNewTemplate": "Import as new template",
+      "visual": "Visual",
+      "jsonError": "The JSON has errors. Fix them before saving.",
+      "templateNameRequired": "Template name is required",
+      "atLeastOneMetric": "You must select at least one metric",
+      "templateUpdated": "Template updated successfully",
+      "templateCreated": "Template created successfully",
+      "saveError": "Failed to save template",
+      "templateDeleted": "Template deleted successfully",
+      "deleteError": "Failed to delete template",
+      "jsonVisualError": "The JSON has errors and cannot be converted to visual view. Fix them or continue editing in JSON.",
+      "invalidJson": "Invalid JSON",
+      "fileReadError": "Failed to read the JSON file. Make sure it is valid JSON.",
+      "jsonObjectError": "The JSON must be an object { }",
+      "jsonStructureError": "The JSON must include \"name\" and \"metrics\" (array).",
+      "unrecognizedMetrics": "Unrecognized metrics omitted: {{metrics}}",
+      "newTemplate": "New template",
+      "importJson": "Import JSON",
+      "noTemplates": "No templates yet",
+      "noTemplatesDesc": "Create your first template to reuse it across multiple projects.",
+      "createFirst": "Create template",
+      "duplicateTemplate": "Duplicate template",
+      "exportJson": "Export JSON",
+      "templateDesc": "Description",
+      "card": {
+        "applyTemplate": "Apply template",
+        "metricsLabel": "Metrics ({{count}})",
+        "editTooltip": "Edit template",
+        "deleteTooltip": "Delete template",
+        "duplicateTooltip": "Duplicate template",
+        "exportTooltip": "Export JSON"
+      },
+      "detailsDialog": {
+        "closeAriaLabel": "close",
+        "metricsTitle": "Included metrics",
+        "noMetrics": "This template has no metrics.",
+        "applyButton": "Apply template",
+        "cancelButton": "Cancel"
+      }
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal information",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "username": "Username",
+    "usernameHelper": "Username cannot be changed",
+    "saveChanges": "Save changes",
+    "success": "Profile updated successfully",
+    "error": "Failed to update profile"
+  },
+  "qualityGate": {
+    "passed": "Passed",
+    "warning": "Warning",
+    "failed": "Failed",
+    "noAnalysis": "No analysis",
+    "noAnalysisTooltip": "No analyses run",
+    "tooltip": "Quality Gate: {{status}}",
+    "badge": {
+      "newIssues_one": "{{count}} new issue",
+      "newIssues_other": "{{count}} new issues",
+      "fixedIssues_one": "{{count}} issue fixed",
+      "fixedIssues_other": "{{count}} issues fixed"
+    },
+    "settings": {
+      "subtitle": "Minimum conditions an analysis must meet to be marked as PASSED",
+      "passIf": "PASSES IF",
+      "and": "AND",
+      "scoreCondition": "score ≥ {{value}}",
+      "criticalCondition": "critical issues ≤ {{value}}",
+      "newIssuesCondition": "new issues ≤ {{value}}",
+      "scoreLabel": "Minimum score",
+      "scoreDesc": "The analysis must achieve at least this score to pass the gate.",
+      "criticalLabel": "Max critical issues",
+      "criticalDesc": "Maximum number of critical issues allowed (0 = none).",
+      "newIssuesLabel": "Max new issues",
+      "newIssuesDesc": "Maximum number of new issues allowed compared to the baseline analysis.",
+      "strict": "Strict",
+      "moderate": "Moderate",
+      "permissive": "Permissive",
+      "saveSuccess": "Quality Gate saved successfully",
+      "saveError": "Failed to save Quality Gate",
+      "saveButton": "Save changes",
+      "resetButton": "Restore defaults"
+    }
+  },
+  "analysisHistory": {
+    "title": "Analysis history",
+    "latestBadge": "Latest",
+    "baseline": "Baseline analysis",
+    "setBaseline": "Set as baseline",
+    "noHistory": "No analysis history",
+    "noHistoryDesc": "Run an analysis to see the history here.",
+    "mostRecent": "Most recent first",
+    "loadMore": "View {{count}} more of {{remaining}} remaining",
+    "columns": {
+      "date": "Date",
+      "score": "Score",
+      "gate": "Gate",
+      "issues": "Issues",
+      "newIssues": "New",
+      "fixedIssues": "Fixed",
+      "delta": "Δ",
+      "dataset": "Dataset",
+      "duration": "Dur."
+    },
+    "noRuns": "No analyses run",
+    "gateStatus": {
+      "passed": "Passed",
+      "warning": "Warning",
+      "failed": "Failed"
+    },
+    "viewAnalysis": "View analysis"
+  },
+  "versionEvolution": {
+    "noData": "No version data to display",
+    "defaultTitle": "Quality evolution",
+    "improving": "Improving",
+    "worsening": "Worsening",
+    "stable": "Stable",
+    "tooltipNoAnalysis": "No analysis",
+    "tooltipPassed": "✓ Passed",
+    "tooltipFailed": "✗ Failed",
+    "tooltipScore": "Score: {{value}}%  —  {{gate}}",
+    "tooltipScoreNoAnalysis": "Score: No analysis",
+    "tooltipIssues": "Issues: {{count}}"
+  },
+  "analysisDashboard": {
+    "currentScore": "Current score",
+    "global": "(global)",
+    "vsPrev": "vs. previous",
+    "analysisCount": "Analyses",
+    "currentIssues": "Current issues",
+    "criticalIssues": "{{count}} critical",
+    "evolutionTitle": "Evolution · all datasets",
+    "runCount": "{{count}} analyses",
+    "byTime": "By time",
+    "byVersion": "By version"
+  },
+  "attentionTable": {
+    "allGood": "All projects are in good shape",
+    "columns": {
+      "project": "Project",
+      "score": "Score",
+      "status": "Status",
+      "issues": "Issues",
+      "lastAnalysis": "Last analysis"
+    }
+  },
+  "dashboardCharts": {
+    "noEnoughData": "Not enough data",
+    "noData": "No data",
+    "chartLabels": {
+      "passed": "Passed",
+      "warning": "Warning",
+      "failed": "Failed",
+      "noAnalysis": "No analysis"
+    },
+    "approved": "passed"
+  },
+  "issueSeverityChart": {
+    "noIssues": "No issues detected",
+    "severity": {
+      "critical": "Critical",
+      "major": "High",
+      "minor": "Medium",
+      "info": "Low"
+    }
+  },
+  "projectHealthTimeline": {
+    "days30": "30 days",
+    "days90": "90 days",
+    "all": "All",
+    "noAnalysis": "No analysis",
+    "lastAnalysis": "Last: {{time}}",
+    "evalCount": "{{count}} eval. in period",
+    "multipleEvals": "{{count}} evaluations (worst shown)",
+    "noEvaluation": "No evaluation",
+    "legend": {
+      "passed": "Passed",
+      "warning": "Warning",
+      "failed": "Failed",
+      "noEvaluation": "No evaluation"
+    }
+  },
+  "profiling": {
+    "subTypes": {
+      "continuous": "Continuous",
+      "discrete": "Discrete",
+      "binary": "Binary",
+      "nominal": "Nominal",
+      "text": "Text"
+    },
+    "qualityBadge": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "acceptable": "Acceptable",
+      "attention": "Needs attention",
+      "critical": "Critical"
+    },
+    "outlierBadge": {
+      "none": "No outliers",
+      "veryFew": "Very few",
+      "some": "Some",
+      "moderate": "Moderate",
+      "frequent": "Frequent"
+    },
+    "histogram": {
+      "noHistogram": "No histogram",
+      "title": "Histogram",
+      "modalTitle": "Histogram - {{name}}",
+      "range": "Range: {{start}} - {{end}}",
+      "frequency": "Frequency: {{count}} values",
+      "percentage": "Percentage: {{pct}}%"
+    },
+    "boxplot": {
+      "noBoxplot": "No boxplot",
+      "title": "Boxplot",
+      "modalTitle": "Boxplot - {{name}}",
+      "belowAreOutliers": "Values below are outliers",
+      "aboveAreOutliers": "Values above are outliers",
+      "iqrDesc": "Contains the central 50% of data",
+      "medianDesc": "Central value of the distribution",
+      "outlierLabel": "Outlier value",
+      "outsideRange": "Outside normal range"
+    },
+    "allSameValue": "All values are the same",
+    "barChart": {
+      "noData": "No distribution data",
+      "title": "Distribution - {{name}}",
+      "topCategories": "Top {{count}} categories",
+      "category": "Category: {{label}}",
+      "records": "Frequency: {{count}} records",
+      "total": "Total: {{total}} records"
+    },
+    "viewDetail": "View detail →",
+    "overview": {
+      "title": "Dataset summary",
+      "rows": "Rows",
+      "columns": "Columns",
+      "cells": "Cells",
+      "size": "Size",
+      "numeric": "Numeric",
+      "categorical": "Categorical"
+    },
+    "metrics": {
+      "nullValues": "Null values",
+      "duplicates": "Duplicate records",
+      "outliers": "Detected outliers"
+    },
+    "scope": {
+      "title": "Analysis scope",
+      "quickSelect": "Quick selection:",
+      "all": "All",
+      "none": "None",
+      "onlyNumeric": "Only numeric ({{n}})",
+      "onlyCategorical": "Only categorical ({{n}})"
+    },
+    "iqrTooltip": "Configure outlier detection (Current IQR factor: {{factor}})",
+    "iqrDialog": {
+      "title": "Configure outlier detection",
+      "info": "Adjust the IQR factor to control the sensitivity of outlier detection. Higher values detect fewer outliers (more permissive).",
+      "factor": "IQR Factor",
+      "standard": "Standard",
+      "cancel": "Cancel",
+      "apply": "Apply and recalculate"
+    },
+    "uniqueValues": "unique",
+    "pearsonDesc": "Pearson: Measures linear relationships between variables. Sensitive to outliers and assumes normal distribution.",
+    "spearmanDesc": "Spearman: Measures monotonic relationships (not necessarily linear). More robust to outliers and does not assume normality.",
+    "sensitiveColumn": "Sensitive column",
+    "sensitiveColumnTooltip": "Column marked as sensitive – values obfuscated",
+    "sensitiveColumnObfuscated": "Sample values are obfuscated for privacy",
+    "sensitiveChipLabel": "Sensitive",
+    "completenessTooltip": "{{pct}}% complete · {{nulls}} nulls",
+    "mode": "Mode (most frequent)",
+    "skewness": "Skewness",
+    "kurtosis": "Kurtosis",
+    "correlationMatrix": "Correlation matrix",
+    "numericVars": "numeric variables",
+    "correlationMethod": "Correlation method",
+    "correlationSelf": "Perfect self-correlation",
+    "correlationWeak": "Weak correlation",
+    "correlationModerate": "Moderate correlation",
+    "correlationStrong": "Strong correlation",
+    "correlationPositive": "positive",
+    "correlationNegative": "negative",
+    "correlationLegend": "Correlation legend",
+    "clickForScatter": "Click to view scatter plot",
+    "scatter": "Scatter",
+    "axisX": "X Axis",
+    "axisY": "Y Axis",
+    "scatterHint": "Select two different numeric variables",
+    "scatterHint2": "Use the selectors above to choose the variables",
+    "dataPoint": "Data point"
+  },
+  "completenessDetail": {
+    "allComplete": "All columns are complete",
+    "insight": "{{nullCols}} of {{totalCols}} columns have null values ({{worstPct}}% in '{{worst}}')",
+    "tableTitle": "Detail by column",
+    "columns": {
+      "column": "Column",
+      "nullCount": "Nulls",
+      "nullPct": "% nulls",
+      "completeness": "Completeness"
+    },
+    "footer": "{{count}} columns fully filled (100%)"
+  },
+  "currentnessDetail": {
+    "noDateCols": "No date columns detected",
+    "scoreLabel": "Overall currentness",
+    "insight": "{{stale}} of {{total}} date columns contain outdated data (threshold: {{days}} days)",
+    "staleAlert": "Outdated column",
+    "tableColumns": {
+      "column": "Column",
+      "maxDate": "Latest date",
+      "ageDays": "Age (days)",
+      "status": "Status"
+    },
+    "staleChip": "Outdated ({{days}} days)",
+    "currentChip": "Up to date",
+    "parseError": "Parse error",
+    "timestampFooter": "Evaluation timestamp: {{ts}}",
+    "rangeValues": {
+      "days7": "7 days",
+      "days30": "30 days",
+      "days90": "90 days",
+      "days180": "6 months",
+      "days365": "1 year"
+    }
+  },
+  "issuesSummary": {
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "filter": {
+      "all": "All",
+      "new": "New",
+      "recurring": "Recurring"
+    },
+    "clearFilter": "Clear"
+  },
+  "metricDetailsTabs": {
+    "tabs": {
+      "completeness": "Completeness",
+      "uniqueness": "Uniqueness",
+      "outliers": "Outliers",
+      "syntacticAccuracy": "Syntactic acc.",
+      "classBalance": "Class balance",
+      "currentness": "Currentness",
+      "logicalConsistency": "Logical consistency"
+    }
+  },
+  "outlierDetail": {
+    "allOutOfScale": "All {{count}} outliers are out of scale. Click \"Full view\" to visualize them.",
+    "partialOutOfScale_visible_one": "{{visible}} outlier visible in normal range. {{hidden}} collapsed out of scale (click \"Full view\").",
+    "partialOutOfScale_visible_other": "{{visible}} outliers visible in normal range. {{hidden}} collapsed out of scale (click \"Full view\").",
+    "iqrAboveLimit": "{{multiple}}× above limit {{direction}}",
+    "directionLow": "(low)",
+    "directionHigh": "(high)",
+    "density": {
+      "veryLow": "Very low",
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High",
+      "veryHigh": "Very high"
+    },
+    "chartHeader": "Distribution — {{column}}",
+    "zoomIn": "Zoom into outlier zone",
+    "zoomOut": "Full view",
+    "scaleLinear": "Linear",
+    "scaleLog": "Log",
+    "educationalTitle": "Outliers are not automatically indicators of poor quality",
+    "educationalBody": "Outliers can be legitimate depending on the variable's context. For example: executive salaries, large transactions, rare events, or extreme but valid measurements. Review each case individually before considering removal or correction.",
+    "stats": {
+      "mean": "Mean",
+      "median": "Median",
+      "stdDev": "Std. deviation",
+      "iqr": "IQR",
+      "lowerFence": "Lower fence",
+      "upperFence": "Upper fence",
+      "outlierCount": "Outliers detected"
+    },
+    "outlierClass": {
+      "extreme": "Extreme",
+      "moderate": "Moderate",
+      "mild": "Mild"
+    },
+    "tableColumns": {
+      "column": "Column",
+      "outlierCount": "Outliers",
+      "pct": "% of total",
+      "density": "Density",
+      "bounds": "Bounds"
+    },
+    "countOfTotal": "{{count}} of {{total}} records · {{percentage}}% of values",
+    "densityLabel": "Density: {{density}}"
+  },
+  "qualityScoreGauge": {
+    "label": "Quality Score",
+    "verdict": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "acceptable": "Acceptable",
+      "poor": "Poor",
+      "critical": "Critical",
+      "excellentDesc": "Data meets quality standards.",
+      "goodDesc": "Quality is good with room for improvement.",
+      "acceptableDesc": "Acceptable quality but with areas to improve.",
+      "poorDesc": "Quality is insufficient. Review the issues.",
+      "criticalDesc": "Critical quality. Immediate action required."
+    }
+  },
+  "uniquenessDetail": {
+    "allUnique": "All rows are unique",
+    "duplicatesFound": "{{count}} duplicate rows found",
+    "alertTitle": "Duplicate rows detected",
+    "loadButton": "Load duplicate rows",
+    "hideButton": "Hide duplicates",
+    "showButton": "Show {{count}} duplicates",
+    "tableTitle": "Duplicate rows ({{count}})",
+    "statusChip": {
+      "original": "Original",
+      "duplicate": "Duplicate"
+    },
+    "columns": {
+      "index": "#",
+      "status": "Status"
+    }
+  },
+  "issuesList": {
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "info": "Info"
+    },
+    "noIssues": "No issues detected",
+    "noIssuesDesc": "The analysis found no data quality problems.",
+    "noResults": "No issues found with the applied filters",
+    "clearFilters": "Clear filters",
+    "newBadge": "NEW",
+    "recurring": "Recurring",
+    "activeFilters": "Active filters",
+    "filterSeverity": "Severity",
+    "filterStatus": "Status",
+    "filterType": "Type",
+    "allSeverities": "All severities",
+    "allStatuses": "All statuses",
+    "allTypes": "All types",
+    "isNew": "New",
+    "isRecurring": "Recurring",
+    "viewTooltip": "View issue",
+    "columns": {
+      "severity": "Severity",
+      "status": "Status",
+      "type": "Type",
+      "metric": "Metric",
+      "description": "Description",
+      "affectedColumns": "Affected Columns",
+      "rows": "Rows"
+    },
+    "pagination": {
+      "rowsPerPage": "Rows per page:",
+      "of": "of"
+    }
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "routes": {
+      "dashboard": "Dashboard",
+      "projects": "Projects",
+      "newProject": "New project",
+      "datasets": "Datasets",
+      "uploadDataset": "Upload dataset",
+      "evaluations": "Analysis",
+      "profile": "Profile",
+      "settings": "Settings"
+    }
+  },
+  "jsonEditor": {
+    "loadExample": "Load example",
+    "paramHints": {
+      "completeness": "threshold: minimum completeness (0–1). columns: empty = all.",
+      "uniqueness": "threshold: minimum row uniqueness (1.0 = no duplicates). columns: columns that must be unique.",
+      "syntactic_accuracy": "auto_detect_types: detect formats automatically. columns: column→format rules. Types: email, phone_es, phone_intl, date_iso, date_eu, dni_es, postal_code_es, integer, decimal, url, uuid, ip_v4, credit_card.",
+      "class_balance": "auto_detect: detect categorical columns. max_cardinality: max unique values to consider categorical. imbalance_threshold_high/low: imbalance thresholds.",
+      "currentness": "auto_detect: detect date columns. staleness_threshold_days: days without update = alert.",
+      "logical_consistency": "rules: list of rules. Type \"if_then\": condition + assertion. Type \"violation\": expression (rows that violate the rule)."
+    },
+    "formatJson": "Format JSON",
+    "copied": "Copied!",
+    "copyToClipboard": "Copy to clipboard",
+    "validationErrors": {
+      "invalidJson": "Invalid JSON",
+      "mustBeObject": "JSON must be an object",
+      "thresholdRange": "threshold must be between 0 and 1",
+      "factorPositive": "factor must be greater than 0",
+      "columnsMustBeArray": "columns must be an array"
+    },
+    "json": "JSON",
+    "parameters": "parameters"
+  },
+  "logicalConsistency": {
+    "ruleEditor": {
+      "violationType": "Violation",
+      "ifThenType": "If…Then",
+      "ruleName": "Rule name",
+      "expression": "Expression (pandas query)",
+      "condition": "Condition",
+      "assertion": "Assertion",
+      "addRule": "Add rule",
+      "noRules": "No rules configured",
+      "deleteRule": "Delete rule",
+      "ifLabel": "IF",
+      "thenLabel": "THEN",
+      "errors": {
+        "nameRequired": "Rule name is required",
+        "expressionRequired": "Expression is required",
+        "conditionRequired": "Condition is required",
+        "assertionRequired": "Assertion is required"
+      }
+    }
+  },
+  "metricConfig": {
+    "paramDialog": {
+      "title": "Configure parameters: {{name}}",
+      "noDescription": "No description available",
+      "cancel": "Cancel",
+      "save": "Save parameters"
+    },
+    "smartDialog": {
+      "title": "Configure metric",
+      "invalidJson": "Invalid JSON",
+      "visual": "Visual",
+      "json": "JSON",
+      "cancel": "Cancel",
+      "save": "Save configuration",
+      "noConfigNeeded": "This metric requires no additional configuration.",
+      "advancedOptions": "Advanced options",
+      "autoWorks": "Works automatically without additional configuration",
+      "columnPlaceholder": "Column name…",
+      "emptyColumns": "Empty = all columns are checked automatically",
+      "addButton": "Add",
+      "completeness": {
+        "title": "Completeness",
+        "description": "Detects columns with null or missing values. Analyzes all dataset columns and alerts when the proportion of missing data exceeds the configured threshold.",
+        "thresholdLabel": "Minimum required present values",
+        "thresholdHelp": "An alert will be issued if overall completeness falls below this threshold.",
+        "columnsLabel": "Check only these columns (optional)"
+      },
+      "uniqueness": {
+        "title": "Uniqueness",
+        "description": "Detects fully duplicated rows in the dataset. Also identifies columns with low variability (e.g., a column that always has the same value).",
+        "thresholdLabel": "Minimum required uniqueness ratio",
+        "thresholdHelp": "1.0 = no duplicates allowed. 0.95 = allows up to 5% duplicates.",
+        "columnsLabel": "Columns that must be fully unique (e.g., IDs)",
+        "columnsEmpty": "Empty = global detection applied to the full dataset"
+      },
+      "syntacticAccuracy": {
+        "title": "Syntactic accuracy",
+        "description": "Verifies that column values comply with an expected format: valid emails, phone numbers, dates, IDs, postal codes, etc.",
+        "autoDetectLabel": "Detect formats automatically",
+        "autoDetectCaption": "Analyzes each column's content and automatically identifies emails, phones, dates, IDs and more.",
+        "thresholdLabel": "Minimum required conformance per column",
+        "thresholdHelp": "If less than X% of a column's values comply with the expected format, an alert is generated.",
+        "advancedTitle": "Additional format rules (optional)",
+        "advancedCaption": "Specify the expected format for specific columns, complementing auto-detection.",
+        "columnField": "Column",
+        "formatField": "Expected format",
+        "formatOptions": {
+          "email": "Email",
+          "phone_es": "Phone (Spain)",
+          "phone_intl": "International phone",
+          "date_iso": "ISO date (YYYY-MM-DD)",
+          "date_eu": "European date (DD/MM/YYYY)",
+          "dni_es": "DNI / NIE (Spain)",
+          "postal_code_es": "Postal code (Spain)",
+          "integer": "Integer",
+          "decimal": "Decimal number",
+          "url": "URL",
+          "uuid": "UUID",
+          "ip_v4": "IP address (v4)",
+          "credit_card": "Credit card"
+        }
+      },
+      "classBalance": {
+        "title": "Class balance",
+        "description": "Detects when a category dominates data disproportionately. For example: a 'Status' field where 98% of records are 'Active' may indicate a quality problem.",
+        "autoDetectLabel": "Detect categorical columns automatically",
+        "autoDetectCaption": "Analyzes all columns with few unique values (text, boolean, codes).",
+        "thresholdHighLabel": "Alert if a class exceeds % of data",
+        "thresholdHighHelp": "A class representing more than X% of the total is considered dominant.",
+        "thresholdLowLabel": "Alert if a class represents less than % of data",
+        "thresholdLowHelp": "A class with less than X% presence is considered underrepresented.",
+        "maxCardinalityTitle": "Maximum unique values to consider categorical",
+        "valuesLabel": "{{count}} values",
+        "columnsLabel": "Analyze only these columns (optional)"
+      },
+      "currentness": {
+        "title": "Data currentness",
+        "description": "Detects if date columns contain outdated data. For example: if the latest recorded date is older than expected, it may indicate data is not being updated correctly.",
+        "autoDetectLabel": "Detect date columns automatically",
+        "autoDetectCaption": "Identifies columns with dates (timestamp, date, datetime) without manual specification.",
+        "stalenessTitle": "Consider data outdated after",
+        "customPreset": "Custom",
+        "daysLabel": "Days",
+        "daysAlertSuffix": "days without update = alert",
+        "stalenessCaption": "If the most recent value of a date column is older than this time, an alert will be generated.",
+        "columnsLabel": "Check only these date columns (optional)",
+        "columnsEmpty": "Empty = all date columns are detected and checked automatically",
+        "presets": {
+          "days7": "7 days",
+          "days30": "30 days",
+          "days90": "90 days",
+          "months6": "6 months",
+          "year1": "1 year"
+        }
+      },
+      "logicalConsistency": {
+        "title": "Logical consistency",
+        "description": "Verifies that data complies with business rules you define. You can detect contradictions such as \"end date before start date\", \"required field empty when active\", or any domain-specific condition.",
+        "templatesTitle": "Quick rule templates",
+        "templatesHint": "Add predefined rules with one click and customize them below",
+        "rulesConfigured": "Configured rules",
+        "noRulesAlert": "No rules yet. Use the templates above to add rules quickly, or create a custom one with \"Add rule\".",
+        "ruleTemplates": {
+          "values": "Values",
+          "dates": "Dates",
+          "ifThen": "IF…THEN rules",
+          "noNegative": "No negative values",
+          "noNegativeHint": "Detects values less than zero. Replace \"my_column\" with your column name.",
+          "required": "Required field",
+          "requiredHint": "Detects records where the field is empty (NaN != NaN is true). Replace \"my_column\" with your column name.",
+          "range": "Value range",
+          "rangeHint": "Detects values outside an expected range. Adjust the limits and column name.",
+          "dateOrder": "End date after start date",
+          "dateOrderHint": "The end date must be after the start date.",
+          "activeRequired": "If active, field required",
+          "activeRequiredHint": "If status is \"active\", the indicated field must be filled (field == field is false for NaN).",
+          "qtyPrice": "If quantity > 0, price > 0",
+          "qtyPriceHint": "If there is a quantity, a price must exist.",
+          "paidAmount": "If paid, amount positive",
+          "paidAmountHint": "If status is \"paid\", the amount must be greater than zero."
+        }
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Language",
+      "subtitle": "Select the interface language"
+    }
+  },
+  "qualityTrendChart": {
+    "threshold": "Threshold",
+    "recurring": "Recurring",
+    "new": "new",
+    "fixed": "fixed",
+    "noCompleted": "No completed analyses",
+    "forThisDataset": "for this dataset",
+    "stats": {
+      "last": "Last",
+      "trend": "Trend",
+      "range": "Range",
+      "passed": "Passed"
+    }
+  },
+  "errors": {
+    "sessionExpired": "Session expired. Please sign in again.",
+    "loginFailed": "Sign in failed. Please check your credentials.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "updateProfileFailed": "Failed to update profile",
+    "generic": "An error occurred. Please try again."
+  }
+}

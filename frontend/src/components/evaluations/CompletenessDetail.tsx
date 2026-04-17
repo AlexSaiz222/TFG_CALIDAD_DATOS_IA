@@ -9,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -17,6 +16,7 @@ import {
   Error as ErrorIcon,
 } from '@mui/icons-material';
 import { ColumnMetrics } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface CompletenessDetailProps {
   overallCompleteness: number;
@@ -29,6 +29,8 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
   columnMetrics,
   threshold = 0.95,
 }) => {
+  const { t } = useTranslation();
+
   const columns = Object.entries(columnMetrics)
     .map(([name, metrics]) => ({
       name,
@@ -44,34 +46,36 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
   const totalCells = columns.reduce((sum, c) => sum + c.total, 0);
   const columnsBelow = columns.filter(c => c.completeness < threshold);
   const columnsWithNulls = columns.filter(c => c.nNulls > 0);
-  const pct = ((1 - overallCompleteness) * 100).toFixed(1); // % de valores nulos
+  const pct = ((1 - overallCompleteness) * 100).toFixed(1);
 
   const getColor = (val: number): string => {
-    if (val >= 0.98) return '#00B37E';  // Excelente
-    if (val >= 0.95) return '#34D399';  // Bueno
-    if (val >= 0.90) return '#FBB024';  // Aceptable
-    if (val >= 0.80) return '#FB923C';  // Requiere atención
-    return '#EF4444';                   // Crítico
+    if (val >= 0.98) return '#00B37E';
+    if (val >= 0.95) return '#34D399';
+    if (val >= 0.90) return '#FBB024';
+    if (val >= 0.80) return '#FB923C';
+    return '#EF4444';
   };
 
   return (
     <Box>
-      {/* ─── Score global + insight ─── */}
+      {/* Global score + insight */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
         <Typography variant="h3" sx={{ fontWeight: 700, color: getColor(overallCompleteness), lineHeight: 1 }}>
           {pct}%
         </Typography>
         <Box>
           <Typography variant="body2" sx={{ color: '#555' }}>
-            {(totalCells - totalNulls).toLocaleString()} de {totalCells.toLocaleString()} celdas tienen valor.
-            {totalNulls > 0
-              ? ` Faltan ${totalNulls.toLocaleString()} valores.`
-              : ' Todas las celdas tienen valor.'}
+            {(totalCells - totalNulls).toLocaleString()} {t('completenessDetail.insight', {
+              nullCols: columnsWithNulls.length,
+              totalCols: columns.length,
+              worstPct: columnsBelow.length > 0 ? (100 - columnsBelow[0].completeness * 100).toFixed(1) : 0,
+              worst: columnsBelow.length > 0 ? columnsBelow[0].name : '',
+            })}
           </Typography>
         </Box>
       </Box>
 
-      {/* ─── Barra global mostrando % de valores nulos ─── */}
+      {/* Global bar showing % null values */}
       <Box sx={{ position: 'relative', mb: 3 }}>
         <LinearProgress
           variant="determinate"
@@ -88,31 +92,20 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
         />
       </Box>
 
-      {/* ─── Insight contextual ─── */}
-      {columnsBelow.length > 0 && (
-        <Box sx={{ p: 1.5, backgroundColor: 'rgba(255, 184, 0, 0.05)', border: '1px solid rgba(255, 184, 0, 0.2)', borderRadius: 2, mb: 2.5 }}>
-          <Typography variant="body2" sx={{ color: '#555', fontSize: '0.8rem' }}>
-            <strong>Insight:</strong> La columna <code style={{ backgroundColor: '#F0F0F0', padding: '1px 4px', borderRadius: 3 }}>{columnsBelow[0].name}</code> tiene
-            el mayor porcentaje de valores faltantes ({(100 - columnsBelow[0].completeness * 100).toFixed(1)}%).
-            {columnsBelow.length > 1 && ` Otras ${columnsBelow.length - 1} columna${columnsBelow.length - 1 > 1 ? 's' : ''} también requieren atención.`}
-          </Typography>
-        </Box>
-      )}
-
-      {/* ─── Tabla única con mini-barras integradas (todas las columnas) ─── */}
+      {/* Table */}
       <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#333' }}>
-        Completitud por columna ({columns.length})
+        {t('completenessDetail.tableTitle')} ({columns.length})
       </Typography>
       <TableContainer sx={{ mb: 1 }}>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: '#F5F5F5' }}>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Columna</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Tipo</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', minWidth: 140 }}>Completitud</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Nulls</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{t('completenessDetail.columns.column')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{t('common.type')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', minWidth: 140 }}>{t('completenessDetail.columns.completeness')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{t('completenessDetail.columns.nullCount')}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Total</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Estado</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{t('common.status')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -130,7 +123,6 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
                     {col.type}
                   </Typography>
                 </TableCell>
-                {/* Mini-barra integrada + porcentaje */}
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ flex: 1, minWidth: 60 }}>
@@ -180,10 +172,10 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
         </Table>
       </TableContainer>
 
-      {/* ─── Resumen pie de tabla ─── */}
+      {/* Footer */}
       {columnsWithNulls.length > 0 && (
         <Typography variant="caption" sx={{ color: '#999' }}>
-          {columnsWithNulls.length} de {columns.length} columnas tienen al menos un valor nulo.
+          {t('completenessDetail.footer', { count: columns.length - columnsWithNulls.length })}
         </Typography>
       )}
     </Box>

@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import type { DashboardProject } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const GREEN = '#00B37E';
 const RED = '#E5484D';
@@ -31,25 +32,6 @@ function getGateColor(status: string | null | undefined): string {
   if (status === 'WARNING') return ORANGE;
   if (status === 'FAILED') return RED;
   return '#CCCCCC';
-}
-
-function getGateLabel(status: string | null | undefined): string {
-  if (status === 'PASSED') return 'Aprobado';
-  if (status === 'WARNING') return 'Advertencia';
-  if (status === 'FAILED') return 'Fallido';
-  return 'Sin datos';
-}
-
-function timeAgo(dateStr: string | null | undefined): string {
-  if (!dateStr) return 'Nunca';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) return `hace ${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `hace ${days}d`;
-  return `hace ${Math.floor(days / 30)} mes(es)`;
 }
 
 const thSx = {
@@ -74,6 +56,26 @@ const tdSx = {
 
 const AttentionTable: React.FC<AttentionTableProps> = ({ projects }) => {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const getGateLabel = (status: string | null | undefined): string => {
+    if (status === 'PASSED') return t('evaluations.gateStatus.passed');
+    if (status === 'WARNING') return t('evaluations.gateStatus.warning');
+    if (status === 'FAILED') return t('evaluations.gateStatus.failed');
+    return t('evaluations.gateStatus.noData');
+  };
+
+  const timeAgo = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return t('time.never');
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 60) return t('time.minutesAgo', { count: minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return t('time.hoursAgo', { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 30) return t('time.daysAgo', { count: days });
+    return t('time.monthsAgo', { count: Math.floor(days / 30) });
+  };
 
   // Filter projects that need attention: FAILED, WARNING, or score < 70
   const attentionProjects = projects
@@ -106,7 +108,7 @@ const AttentionTable: React.FC<AttentionTableProps> = ({ projects }) => {
       >
         <CheckCircleIcon sx={{ color: GREEN, fontSize: 20 }} />
         <Typography variant="body2" sx={{ color: GREEN, fontWeight: 500 }}>
-          Todos los proyectos en buen estado
+          {t('attentionTable.allGood')}
         </Typography>
       </Box>
     );
@@ -117,11 +119,11 @@ const AttentionTable: React.FC<AttentionTableProps> = ({ projects }) => {
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell sx={thSx}>Proyecto</TableCell>
-            <TableCell sx={thSx} align="center">Score</TableCell>
-            <TableCell sx={thSx} align="center">Estado</TableCell>
-            <TableCell sx={thSx} align="center">Problemas</TableCell>
-            <TableCell sx={thSx} align="right">Último análisis</TableCell>
+            <TableCell sx={thSx}>{t('attentionTable.columns.project')}</TableCell>
+            <TableCell sx={thSx} align="center">{t('attentionTable.columns.score')}</TableCell>
+            <TableCell sx={thSx} align="center">{t('attentionTable.columns.status')}</TableCell>
+            <TableCell sx={thSx} align="center">{t('attentionTable.columns.issues')}</TableCell>
+            <TableCell sx={thSx} align="right">{t('attentionTable.columns.lastAnalysis')}</TableCell>
             <TableCell sx={{ ...thSx, width: 40 }} />
           </TableRow>
         </TableHead>
