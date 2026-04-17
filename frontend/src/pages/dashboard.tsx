@@ -21,6 +21,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../components/layout/MainLayout';
 import { StatusDonut } from '../components/dashboard/DashboardCharts';
 import KpiCard from '../components/dashboard/KpiCard';
@@ -42,6 +43,7 @@ function Dashboard() {
   const [timeRange, setTimeRange] = useState<TimeRange>('90d');
   const router = useRouter();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -135,13 +137,13 @@ function Dashboard() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
         <Box>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 0.5 }}>
-            Dashboard
+            {t('dashboard.title')}
           </Typography>
           <Typography variant="body1" sx={{ color: '#555555' }}>
-            Bienvenido de nuevo, {user?.first_name || user?.username}
+            {t('dashboard.welcome', { name: user?.first_name || user?.username })}
           </Typography>
         </Box>
-        <Tooltip title="Actualizar datos">
+        <Tooltip title={t('dashboard.refresh')}>
           <IconButton onClick={fetchDashboard} disabled={loading} sx={{ color: '#888' }}>
             <RefreshIcon />
           </IconButton>
@@ -167,7 +169,7 @@ function Dashboard() {
       {error && (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="body1" sx={{ color: RED, mb: 2 }}>{error}</Typography>
-          <Button variant="outlined" onClick={fetchDashboard}>Reintentar</Button>
+          <Button variant="outlined" onClick={fetchDashboard}>{t('common.retry')}</Button>
         </Box>
       )}
 
@@ -178,9 +180,9 @@ function Dashboard() {
           <Grid container spacing={3} sx={{ mb: 4, mt: 1 }}>
             <Grid item xs={12} sm={6} md={4}>
               <KpiCard
-                title="Proyectos"
+                title={t('dashboard.kpi.projects')}
                 value={agg!.total_projects}
-                chipLabel="Activos"
+                chipLabel={t('dashboard.kpi.active')}
                 chipColor={GREEN}
                 icon={<FolderIcon sx={{ fontSize: 26 }} />}
                 iconBgColor={GREEN}
@@ -200,9 +202,9 @@ function Dashboard() {
                         '&:hover': { backgroundColor: '#00A070' },
                       }}
                     >
-                      Nuevo
+                      {t('common.new')}
                     </Button>
-                    <Tooltip title="Ver proyectos">
+                    <Tooltip title={t('dashboard.kpi.viewProjects')}>
                       <IconButton size="small" onClick={() => router.push('/projects')} sx={{ color: '#AAA' }}>
                         <ArrowForwardIcon sx={{ fontSize: 18 }} />
                       </IconButton>
@@ -213,9 +215,9 @@ function Dashboard() {
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
               <KpiCard
-                title="Datasets"
+                title={t('dashboard.kpi.datasets')}
                 value={agg!.total_datasets}
-                chipLabel="En uso"
+                chipLabel={t('dashboard.kpi.inUse')}
                 chipColor={GREEN}
                 icon={<StorageIcon sx={{ fontSize: 26 }} />}
                 iconBgColor={GREEN}
@@ -236,9 +238,9 @@ function Dashboard() {
                         '&:hover': { backgroundColor: '#00A070' },
                       }}
                     >
-                      Subir
+                      {t('common.upload')}
                     </Button>
-                    <Tooltip title="Ver datasets">
+                    <Tooltip title={t('dashboard.kpi.viewDatasets')}>
                       <IconButton size="small" onClick={() => router.push('/datasets')} sx={{ color: '#AAA' }}>
                         <ArrowForwardIcon sx={{ fontSize: 18 }} />
                       </IconButton>
@@ -249,9 +251,9 @@ function Dashboard() {
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
               <KpiCard
-                title="Calidad media"
+                title={t('dashboard.kpi.avgQuality')}
                 value={agg!.avg_quality_score !== null ? `${agg!.avg_quality_score}%` : '-'}
-                chipLabel="Puntuación"
+                chipLabel={t('dashboard.kpi.score')}
                 chipColor={GREEN}
                 icon={<AssessmentIcon sx={{ fontSize: 26 }} />}
                 iconBgColor={GREEN}
@@ -261,24 +263,24 @@ function Dashboard() {
                       <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                         {agg!.gate_distribution.passed > 0 && (
                           <Typography variant="caption" sx={{ color: GREEN, fontWeight: 600 }}>
-                            {agg!.gate_distribution.passed} aprobados
+                            {t('dashboard.gateDistribution.passed', { count: agg!.gate_distribution.passed })}
                           </Typography>
                         )}
                         {agg!.gate_distribution.warning > 0 && (
                           <Typography variant="caption" sx={{ color: ORANGE, fontWeight: 600 }}>
-                            {agg!.gate_distribution.warning} advertencia
+                            {t('dashboard.gateDistribution.warning', { count: agg!.gate_distribution.warning })}
                           </Typography>
                         )}
                         {agg!.gate_distribution.failed > 0 && (
                           <Typography variant="caption" sx={{ color: RED, fontWeight: 600 }}>
-                            {agg!.gate_distribution.failed} fallidos
+                            {t('dashboard.gateDistribution.failed', { count: agg!.gate_distribution.failed })}
                           </Typography>
                         )}
                       </Box>
                     ) : (
-                      <Typography variant="caption" sx={{ color: '#888' }}>Sin evaluaciones</Typography>
+                      <Typography variant="caption" sx={{ color: '#888' }}>{t('dashboard.kpi.noEvaluations')}</Typography>
                     )}
-                    <Tooltip title="Ver análisis">
+                    <Tooltip title={t('dashboard.kpi.viewAnalysis')}>
                       <IconButton size="small" onClick={() => router.push('/evaluations')} sx={{ color: '#AAA' }}>
                         <ArrowForwardIcon sx={{ fontSize: 18 }} />
                       </IconButton>
@@ -296,10 +298,10 @@ function Dashboard() {
                 <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', height: '100%' }}>
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', fontSize: '1rem' }}>
-                      Distribución de calidad
+                      {t('dashboard.distribution.title')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#888' }}>
-                      Último análisis completado por proyecto
+                      {t('dashboard.distribution.subtitle')}
                     </Typography>
                   </Box>
                   <Grid container spacing={2} alignItems="center">
@@ -315,10 +317,10 @@ function Dashboard() {
                     <Grid item xs={7}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {[
-                          { label: 'Aprobado', desc: 'Score ≥ umbral', color: GREEN, count: agg!.gate_distribution.passed },
-                          { label: 'Advertencia', desc: 'Score en el límite', color: ORANGE, count: agg!.gate_distribution.warning },
-                          { label: 'Fallido', desc: 'Score < umbral', color: RED, count: agg!.gate_distribution.failed },
-                          { label: 'Sin análisis', desc: 'Aún no evaluado', color: '#CCCCCC', count: agg!.gate_distribution.no_analysis },
+                          { label: t('dashboard.distribution.passed'), desc: t('dashboard.distribution.passedDesc'), color: GREEN, count: agg!.gate_distribution.passed },
+                          { label: t('dashboard.distribution.warning'), desc: t('dashboard.distribution.warningDesc'), color: ORANGE, count: agg!.gate_distribution.warning },
+                          { label: t('dashboard.distribution.failed'), desc: t('dashboard.distribution.failedDesc'), color: RED, count: agg!.gate_distribution.failed },
+                          { label: t('dashboard.distribution.noAnalysis'), desc: t('dashboard.distribution.noAnalysisDesc'), color: '#CCCCCC', count: agg!.gate_distribution.no_analysis },
                         ].map(item => {
                           const pct = agg!.total_projects > 0
                             ? Math.round((item.count / agg!.total_projects) * 100)
@@ -361,10 +363,10 @@ function Dashboard() {
                 <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', height: '100%' }}>
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', fontSize: '1rem' }}>
-                      Problemas de calidad por proyecto
+                      {t('dashboard.issuesPerProject')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#888' }}>
-                      Último análisis completado por proyecto
+                      {t('dashboard.distribution.subtitle')}
                     </Typography>
                   </Box>
                   <IssueSeverityChart projects={issuesByProject} maxProjects={8} />
@@ -377,10 +379,10 @@ function Dashboard() {
           {data.projects.length > 0 && (
             <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 1, fontSize: '1rem' }}>
-                Historial de salud de proyectos
+                {t('dashboard.healthHistory')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#888', mb: 2, fontSize: '0.78rem' }}>
-                Cada barra es un día. Si hay varias evaluaciones en un día, se muestra la más desfavorable.
+                {t('dashboard.healthHistoryDesc')}
               </Typography>
               <ProjectHealthTimeline
                 projects={data.projects}
@@ -394,10 +396,10 @@ function Dashboard() {
           {data.projects.some(p => p.latest_analysis) && (
             <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #EEEEEE', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1A1A1A', fontSize: '1rem' }}>
-                Requiere atención
+                {t('dashboard.requiresAttention')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 2 }}>
-                Proyectos con Quality Gate fallido, en advertencia o score inferior al 70%
+                {t('dashboard.requiresAttentionDesc')}
               </Typography>
               <AttentionTable projects={data.projects} />
             </Card>
@@ -408,10 +410,10 @@ function Dashboard() {
             <Card sx={{ p: 6, borderRadius: 3, textAlign: 'center', border: '2px dashed #E0E0E0' }}>
               <FolderIcon sx={{ fontSize: 48, color: '#CCC', mb: 2 }} />
               <Typography variant="h6" sx={{ color: '#555', mb: 1 }}>
-                Comienza creando tu primer proyecto
+                {t('dashboard.empty.title')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#888', mb: 3 }}>
-                Sube datasets, configura metricas de calidad y ejecuta evaluaciones.
+                {t('dashboard.empty.subtitle')}
               </Typography>
               <Button
                 variant="contained"
@@ -426,7 +428,7 @@ function Dashboard() {
                   '&:hover': { backgroundColor: '#00A070' },
                 }}
               >
-                Crear proyecto
+                {t('dashboard.empty.createProject')}
               </Button>
             </Card>
           )}

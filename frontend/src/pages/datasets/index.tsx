@@ -29,6 +29,7 @@ import {
   AccountTree as AccountTreeIcon,
   Storage as StorageIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI, projectsAPI } from '../../services/api';
 import { Dataset, Project } from '../../types';
@@ -41,6 +42,7 @@ interface DatasetGroup {
 
 const DatasetsList = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [projects, setProjects] = useState<Record<number, Project>>({});
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ const DatasetsList = () => {
         );
         if (!cancelled) setProjects(projectsMap);
       } catch {
-        if (!cancelled) setError('No se pudieron cargar los datasets. Verifica la conexión con el servidor.');
+        if (!cancelled) setError(t('datasets.loadDatasetsError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -149,8 +151,8 @@ const DatasetsList = () => {
     const parts: string[] = [];
     const size = fmtSize(d.file_size);
     if (size) parts.push(size);
-    if (d.row_count) parts.push(`${d.row_count.toLocaleString('es-ES')} filas`);
-    if (d.column_count) parts.push(`${d.column_count} cols`);
+    if (d.row_count) parts.push(`${d.row_count.toLocaleString()} ${t('datasets.stats.rows')}`);
+    if (d.column_count) parts.push(`${d.column_count} ${t('datasets.stats.cols')}`);
     return parts.join(' · ') || '—';
   };
 
@@ -161,13 +163,13 @@ const DatasetsList = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Datasets
+              {t('datasets.title')}
             </Typography>
             {!loading && !error && (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {groupedDatasets.length} dataset{groupedDatasets.length !== 1 ? 's' : ''}
+                {t('datasets.datasetCount', { count: groupedDatasets.length })}
                 {datasets.length > groupedDatasets.length && (
-                  <> · {datasets.length} versiones totales</>
+                  <> {t('datasets.totalVersions', { count: datasets.length })}</>
                 )}
               </Typography>
             )}
@@ -178,7 +180,7 @@ const DatasetsList = () => {
             onClick={() => router.push('/datasets/upload')}
             sx={{ backgroundColor: '#00B37E', color: '#fff', '&:hover': { backgroundColor: '#00A070' }, textTransform: 'none' }}
           >
-            Subir dataset
+            {t('datasets.uploadDataset')}
           </Button>
         </Box>
 
@@ -188,7 +190,7 @@ const DatasetsList = () => {
             <TextField
               fullWidth
               size="small"
-              placeholder="Buscar por nombre, descripción o proyecto..."
+              placeholder={t('datasets.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               InputProps={{
@@ -219,8 +221,8 @@ const DatasetsList = () => {
               <StorageIcon sx={{ fontSize: 52, color: '#D0D0D0', mb: 2 }} />
               <Typography variant="body1" color="text.secondary" sx={{ mb: 2.5 }}>
                 {searchTerm
-                  ? 'No hay datasets que coincidan con la búsqueda.'
-                  : 'Aún no hay datasets. Sube el primero.'}
+                  ? t('datasets.noResults')
+                  : t('datasets.noDatasets')}
               </Typography>
               {!searchTerm && (
                 <Button
@@ -229,7 +231,7 @@ const DatasetsList = () => {
                   onClick={() => router.push('/datasets/upload')}
                   sx={{ backgroundColor: '#00B37E', color: '#fff', '&:hover': { backgroundColor: '#00A070' }, textTransform: 'none' }}
                 >
-                  Subir dataset
+                  {t('datasets.uploadDataset')}
                 </Button>
               )}
             </Box>
@@ -244,12 +246,12 @@ const DatasetsList = () => {
                     '& th': { fontWeight: 600, fontSize: '0.78rem', color: '#555', borderBottom: '2px solid #EEEEEE', py: 1.25 },
                   }}>
                     <TableCell sx={{ width: 36, px: 1 }} />
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>Proyecto</TableCell>
-                    <TableCell>Versión</TableCell>
-                    <TableCell>Tamaño · Filas · Cols</TableCell>
-                    <TableCell>Actualizado</TableCell>
-                    <TableCell align="right" sx={{ pr: 2 }}>Acciones</TableCell>
+                    <TableCell>{t('datasets.columns.name')}</TableCell>
+                    <TableCell>{t('datasets.columns.project')}</TableCell>
+                    <TableCell>{t('datasets.columns.version')}</TableCell>
+                    <TableCell>{t('datasets.columns.sizeRowsCols')}</TableCell>
+                    <TableCell>{t('datasets.columns.updated')}</TableCell>
+                    <TableCell align="right" sx={{ pr: 2 }}>{t('datasets.columns.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -291,7 +293,7 @@ const DatasetsList = () => {
                               <Typography variant="body2" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
                                 {d.name}
                               </Typography>
-                              <Chip label="Última" size="small" sx={{
+                              <Chip label={t('datasets.latest')} size="small" sx={{
                                 height: 18, fontSize: '0.62rem', fontWeight: 600,
                                 backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E',
                               }} />
@@ -329,7 +331,7 @@ const DatasetsList = () => {
                                 sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(0,0,0,0.06)', color: '#444' }}
                               />
                               {hasVersions && (
-                                <Tooltip title={`${allVersions.length} versiones disponibles`}>
+                                <Tooltip title={t('datasets.versionsAvailable', { count: allVersions.length })}>
                                   <Chip
                                     icon={<AccountTreeIcon sx={{ fontSize: '11px !important' }} />}
                                     label={allVersions.length}
@@ -362,7 +364,7 @@ const DatasetsList = () => {
 
                           {/* Actions */}
                           <TableCell align="right" sx={{ pr: 1.5 }}>
-                            <Tooltip title="Ver dataset">
+                            <Tooltip title={t('datasets.viewDataset')}>
                               <IconButton
                                 size="small"
                                 onClick={e => { e.stopPropagation(); router.push(`/datasets/${d.id}`); }}
@@ -431,7 +433,7 @@ const DatasetsList = () => {
                                         </Typography>
 
                                         {/* Action */}
-                                        <Tooltip title="Ver esta versión">
+                                        <Tooltip title={t('datasets.viewVersion')}>
                                           <IconButton
                                             size="small"
                                             onClick={e => { e.stopPropagation(); router.push(`/datasets/${v.id}`); }}

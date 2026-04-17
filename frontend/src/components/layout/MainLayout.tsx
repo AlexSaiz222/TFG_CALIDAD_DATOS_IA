@@ -25,6 +25,7 @@ import {
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
 import Sidebar, { DRAWER_WIDTH, COLLAPSED_WIDTH } from './Sidebar';
@@ -60,6 +61,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentPage, breadcru
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const { isOpen: open, isCollapsed, toggleOpen, setOpen } = useSidebar();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -195,7 +197,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentPage, breadcru
             </Box>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
-          <Tooltip title="Configuración de cuenta">
+          <Tooltip title={t('nav.accountSettings')}>
             <IconButton
               onClick={handleProfileMenuOpen}
               size="small"
@@ -245,14 +247,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentPage, breadcru
               <ListItemIcon>
                 <PersonIcon fontSize="small" sx={{ color: '#00B37E' }} />
               </ListItemIcon>
-              <Typography>Perfil</Typography>
+              <Typography>{t('nav.items.profile')}</Typography>
             </MenuItem>
             <Divider sx={{ my: 1 }} />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" sx={{ color: '#E5484D' }} />
               </ListItemIcon>
-              <Typography>Cerrar sesión</Typography>
+              <Typography>{t('nav.logout')}</Typography>
             </MenuItem>
           </Menu>
         </Toolbar>

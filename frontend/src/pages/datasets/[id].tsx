@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -74,6 +75,7 @@ function TabPanel(props: TabPanelProps) {
 
 const DatasetDetail = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = router.query;
   const datasetId = typeof id === 'string' ? parseInt(id, 10) : undefined;
 
@@ -104,7 +106,7 @@ const DatasetDetail = () => {
       // Check if datasetId is valid
       if (datasetId === undefined || isNaN(datasetId)) {
         console.error('Invalid dataset ID:', datasetId);
-        if (!cancelled) { setLoading(false); setError('ID de dataset inválido o no especificado.'); }
+        if (!cancelled) { setLoading(false); setError(t('datasets.invalidId')); }
         return;
       }
 
@@ -121,7 +123,7 @@ const DatasetDetail = () => {
         // Check if we got a valid response
         if (!datasetResponse?.data) {
           console.error('No data returned for dataset:', datasetId);
-          setError('No se pudo cargar la información del dataset.');
+          setError(t('datasets.noDataLoaded'));
           setLoading(false);
           return;
         }
@@ -130,7 +132,7 @@ const DatasetDetail = () => {
         const raw = datasetResponse?.data?.data ?? datasetResponse?.data ?? {};
         const normalized: Dataset = {
           id: raw.id,
-          name: raw.name || 'Dataset sin nombre',
+          name: raw.name || t('datasets.noName'),
           description: raw.description ?? '',
           project_id: raw.project_id ?? raw.projectId,
           file_path: raw.file_path ?? raw.filePath ?? '',
@@ -249,8 +251,7 @@ const DatasetDetail = () => {
           // Si es un error de CSV sin columnas o vacío, mostrar mensaje más amigable
           if (errorMessage.includes('No columns to parse') ||
             errorMessage.includes('Error reading CSV')) {
-            setPreviewError('El archivo CSV podría estar vacío o tener un formato incorrecto. ' +
-              'Verifica que tenga encabezados y contenido válido.');
+            setPreviewError(t('datasets.previewCsvError'));
           } else {
             setPreviewError(errorMessage);
           }
@@ -259,7 +260,7 @@ const DatasetDetail = () => {
         setLoading(false);
       } catch (error: any) {
         console.error('Error fetching dataset data:', error);
-        setError(error.response?.data?.message || 'Error al cargar los datos del dataset. Inténtalo de nuevo.');
+        setError(error.response?.data?.message || t('datasets.detail.loadError'));
         setLoading(false);
       }
     };
@@ -269,7 +270,7 @@ const DatasetDetail = () => {
       fetchDatasetData();
     } else if (router.isReady && (datasetId === undefined || isNaN(datasetId))) {
       setLoading(false);
-      setError('ID de dataset inválido o no especificado.');
+      setError(t('datasets.invalidId'));
     }
 
     return () => { cancelled = true; };
@@ -452,7 +453,7 @@ const DatasetDetail = () => {
           })
           .catch(error => {
             console.error('Error fetching issues:', error);
-            setError('Error al cargar los problemas de esta evaluación.');
+            setError(t('datasets.detail.issuesError'));
           });
       }
     }
@@ -477,7 +478,7 @@ const DatasetDetail = () => {
       router.push(`/projects/${dataset.project_id}`);
     } catch (error) {
       console.error('Error deleting dataset:', error);
-      setError('Error al eliminar el dataset. Inténtalo de nuevo más tarde.');
+      setError(t('datasets.detail.deleteError'));
       setDeleteLoading(false);
       setDeleteDialogOpen(false);
     }
@@ -487,7 +488,7 @@ const DatasetDetail = () => {
     if (!dataset) return;
 
     if (projectMetricsConfig.length === 0) {
-      setError('Este proyecto no tiene métricas configuradas. Ve a la configuración del proyecto para añadir métricas antes de ejecutar una evaluación.');
+      setError(t('datasets.noMetricsConfigured'));
       return;
     }
 
@@ -544,7 +545,7 @@ const DatasetDetail = () => {
       if (error.response?.data?.details) {
         console.error('Validation details:', JSON.stringify(error.response.data.details, null, 2));
       }
-      setEvalError(error.response?.data?.message || 'Error al lanzar la evaluación. Por favor, inténtalo de nuevo.');
+      setEvalError(error.response?.data?.message || t('datasets.evalLaunchError'));
       setRunningEvaluation(false);
     }
   };
@@ -575,37 +576,14 @@ const DatasetDetail = () => {
     }
   };
 
-  const SEVERITY_LABELS: Record<string, string> = {
-    critical: 'Crítico', high: 'Alto', major: 'Mayor',
-    medium: 'Medio', minor: 'Menor', low: 'Bajo', info: 'Info',
-  };
+  const getSeverityLabel = (severity: string): string =>
+    t(`datasets.severityLabels.${severity}`, { defaultValue: severity });
 
-  const ISSUE_TYPE_LABELS: Record<string, string> = {
-    completeness: 'Completitud',
-    low_variability: 'Baja variabilidad',
-    high_variability: 'Alta variabilidad',
-    outlier: 'Valor atípico',
-    outliers: 'Valores atípicos',
-    duplicate: 'Duplicado',
-    duplicates: 'Duplicados',
-    uniqueness: 'Unicidad',
-    consistency: 'Consistencia',
-    validity: 'Validez',
-    accuracy: 'Exactitud',
-    timeliness: 'Actualidad',
-    currentness: 'Actualidad',
-    class_balance: 'Balance de clases',
-    distribution: 'Distribución',
-    correlation: 'Correlación',
-    format: 'Formato',
-    schema: 'Esquema',
-    null_rate: 'Tasa de nulos',
-    range: 'Rango',
-    pattern: 'Patrón',
+  const formatIssueType = (type: string) => {
+    const key = `datasets.issueTypeLabels.${type}`;
+    const translated = t(key, { defaultValue: '' });
+    return translated || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
-
-  const formatIssueType = (type: string) =>
-    ISSUE_TYPE_LABELS[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
   if (loading) {
     return (
@@ -626,10 +604,10 @@ const DatasetDetail = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              Dataset no encontrado
+              {t('datasets.notFound')}
             </Typography>
           </Box>
-          <Alert severity="error">{error || 'Dataset no encontrado'}</Alert>
+          <Alert severity="error">{error || t('datasets.notFound')}</Alert>
           <Button
             variant="contained"
             onClick={() => router.push('/projects')}
@@ -642,7 +620,7 @@ const DatasetDetail = () => {
               },
             }}
           >
-            Volver a proyectos
+            {t('datasets.backToProjects')}
           </Button>
         </Box>
       </MainLayout>
@@ -674,7 +652,7 @@ const DatasetDetail = () => {
               />
               {dataset.is_latest && (
                 <Chip
-                  label="Última"
+                  label={t('datasets.latest')}
                   size="small"
                   sx={{
                     backgroundColor: 'rgba(0, 179, 126, 0.1)',
@@ -704,7 +682,7 @@ const DatasetDetail = () => {
                 },
               }}
             >
-              Nueva versión
+              {t('datasets.actions.newVersion')}
             </Button>
             <Button
               variant="outlined"
@@ -720,7 +698,7 @@ const DatasetDetail = () => {
                 },
               }}
             >
-              Delete
+              {t('datasets.actions.delete')}
             </Button>
             <Button
               variant="contained"
@@ -735,7 +713,7 @@ const DatasetDetail = () => {
                 },
               }}
             >
-              {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Ejecutar evaluación'}
+              {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : t('datasets.actions.runEvaluation')}
             </Button>
           </Box>
         </Box>
@@ -761,7 +739,7 @@ const DatasetDetail = () => {
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Project
+                {t('datasets.info.project')}
               </Typography>
               <Typography
                 variant="body1"
@@ -779,7 +757,7 @@ const DatasetDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Rows
+                {t('datasets.info.rows')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {typeof dataset.row_count === 'number' ? dataset.row_count.toLocaleString() : '—'}
@@ -787,7 +765,7 @@ const DatasetDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Columns
+                {t('datasets.info.columns')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {typeof dataset.column_count === 'number' ? dataset.column_count : '—'}
@@ -795,7 +773,7 @@ const DatasetDetail = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="body2" sx={{ color: '#555555' }}>
-                Uploaded
+                {t('datasets.info.uploaded')}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {dataset.created_at ? new Date(dataset.created_at).toLocaleDateString() : '—'}
@@ -825,11 +803,11 @@ const DatasetDetail = () => {
               },
             }}
           >
-            <Tab label="Preview" id="dataset-tab-0" aria-controls="dataset-tabpanel-0" />
-            <Tab label="Data Profiling" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
-            <Tab label="Evaluaciones" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
-            <Tab label="Issues" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
-            <Tab label="Versiones" id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
+            <Tab label={t('datasets.tabs.preview')} id="dataset-tab-0" aria-controls="dataset-tabpanel-0" />
+            <Tab label={t('datasets.tabs.profiling')} id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
+            <Tab label={t('datasets.tabs.evaluations')} id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
+            <Tab label={t('datasets.tabs.issues')} id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
+            <Tab label={t('datasets.tabs.versions')} id="dataset-tab-4" aria-controls="dataset-tabpanel-4" />
           </Tabs>
         </Box>
 
@@ -849,11 +827,11 @@ const DatasetDetail = () => {
                     {previewColumns.map((column, index) => {
                       const isSensitive = sensitiveColumns.includes(column);
                       return (
-                        <TableCell key={index} sx={{ fontWeight: 600, backgroundColor: isSensitive ? 'rgba(229,72,77,0.06)' : '#F5F5F5' }}>
+                        <TableCell sx={{ fontWeight: 600, backgroundColor: isSensitive ? 'rgba(229,72,77,0.06)' : '#F5F5F5' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             {column}
                             {isSensitive && (
-                              <Tooltip title="Columna sensible – valores ofuscados">
+                              <Tooltip title={t('datasets.sensitiveTooltip')}>
                                 <VisibilityOffIcon sx={{ fontSize: 14, color: '#E5484D' }} />
                               </Tooltip>
                             )}
@@ -883,7 +861,7 @@ const DatasetDetail = () => {
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ color: '#555555' }}>
-                {previewError ? 'No se pudo cargar la vista previa del dataset.' : 'No hay datos de vista previa disponibles.'}
+                {previewError ? t('datasets.previewUnavailable') : t('datasets.previewNoData')}
               </Typography>
             </Box>
           )}
@@ -901,13 +879,13 @@ const DatasetDetail = () => {
               <Table aria-label="analysis runs table">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Duraci&oacute;n</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Quality Gate</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Score</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Issues</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.date')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.duration')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.qualityGate')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.score')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.issues')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.evaluationsTab.columns.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -920,7 +898,7 @@ const DatasetDetail = () => {
                         const s = Math.floor((new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()) / 1000);
                         return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
                       }
-                      if (isRunning) return 'En curso…';
+                      if (isRunning) return t('datasets.evaluationsTab.onGoing');
                       return '—';
                     })();
                     const sc = run.quality_score;
@@ -935,7 +913,7 @@ const DatasetDetail = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <CircularProgress size={14} thickness={5} sx={{ color: isPending ? '#FFB800' : '#00B37E' }} />
                               <Typography variant="body2" sx={{ color: isPending ? '#FFB800' : '#00B37E', fontWeight: 600, fontSize: 12 }}>
-                                {isPending ? 'En cola' : `Ejecutando ${run.progress ?? 0}%`}
+                                {isPending ? t('datasets.evaluationsTab.pending') : t('datasets.evaluationsTab.running', { progress: run.progress ?? 0 })}
                               </Typography>
                             </Box>
                           ) : (
@@ -946,7 +924,7 @@ const DatasetDetail = () => {
                           {isActive ? (
                             <Box>
                               <Typography variant="body2" sx={{ color: '#888', fontSize: 11, fontStyle: 'italic' }}>
-                                {run.current_step ?? (isPending ? 'Esperando worker…' : 'Procesando…')}
+                                {run.current_step ?? (isPending ? t('datasets.evaluationsTab.pending') : t('datasets.actions.processing'))}
                               </Typography>
                               {isRunning && (
                                 <LinearProgress
@@ -971,7 +949,7 @@ const DatasetDetail = () => {
                             onClick={() => router.push(`/evaluations/${run.id}`)}
                             sx={{ backgroundColor: '#00B37E', color: '#FFFFFF', '&:hover': { backgroundColor: '#00A070' }, '&.Mui-disabled': { backgroundColor: '#CCCCCC', color: '#888' } }}
                           >
-                            {isActive ? 'Procesando…' : 'Ver detalles'}
+                            {isActive ? t('datasets.actions.processing') : t('datasets.actions.viewDetails')}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -983,7 +961,7 @@ const DatasetDetail = () => {
           ) : (
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ color: '#555555' }}>
-                No hay evaluaciones ejecutadas para este dataset
+                {t('datasets.evaluationsTab.noEvaluations')}
               </Typography>
             </Box>
           )}
@@ -996,10 +974,10 @@ const DatasetDetail = () => {
               <Table aria-label="issues table">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Severidad</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Columnas</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.issuesTab.columns.severity')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.issuesTab.columns.type')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.issuesTab.columns.columns')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t('datasets.issuesTab.columns.description')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1016,7 +994,7 @@ const DatasetDetail = () => {
                               fontWeight: 500,
                             }}
                           >
-                            {SEVERITY_LABELS[issue.severity] ?? issue.severity}
+                            {getSeverityLabel(issue.severity)}
                           </Typography>
                         </Box>
                       </TableCell>
@@ -1041,8 +1019,8 @@ const DatasetDetail = () => {
             <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed #CCCCCC' }}>
               <Typography variant="body1" sx={{ mb: 2, color: '#555555' }}>
                 {evaluations.length > 0
-                  ? 'No hay issues encontrados en la última evaluación'
-                  : 'Ejecuta una evaluación para identificar problemas de calidad de datos'}
+                  ? t('datasets.issuesTab.noIssues')
+                  : t('datasets.issuesTab.runFirst')}
               </Typography>
               {evaluations.length === 0 && (
                 <Button
@@ -1058,7 +1036,7 @@ const DatasetDetail = () => {
                     },
                   }}
                 >
-                  {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : 'Ejecuta una evaluación'}
+                  {runningEvaluation ? <CircularProgress size={24} color="inherit" /> : t('datasets.issuesTab.runEvaluation')}
                 </Button>
               )}
             </Box>
@@ -1088,7 +1066,7 @@ const DatasetDetail = () => {
       >
         <DialogTitle sx={{ m: 0, p: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F0F0F0' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            Árbol de versiones visual
+            {t('datasets.lineageTitle')}
           </Typography>
           <IconButton size="small" onClick={() => setLineageModalOpen(false)} sx={{ color: '#777' }}>
             <CloseIcon fontSize="small" />
@@ -1113,16 +1091,16 @@ const DatasetDetail = () => {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          {"Delete Dataset?"}
+          {t('datasets.detail.delete.title')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Estás seguro de que quieres eliminar el dataset "{dataset.name}"? Esta acción no se puede deshacer y eliminará todas las evaluaciones y problemas asociados.
+            {t('datasets.deleteDialog.message', { name: dataset.name })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleDeleteConfirm}
@@ -1130,7 +1108,7 @@ const DatasetDetail = () => {
             autoFocus
             disabled={deleteLoading}
           >
-            {deleteLoading ? <CircularProgress size={24} /> : 'Delete'}
+            {deleteLoading ? <CircularProgress size={24} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

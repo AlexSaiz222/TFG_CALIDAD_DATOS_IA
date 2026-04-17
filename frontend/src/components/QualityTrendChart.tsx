@@ -13,6 +13,7 @@ import {
 import { Line, Bar } from 'react-chartjs-2';
 import { Box, Typography } from '@mui/material';
 import type { AnalysisRun } from '../types';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement,
@@ -65,25 +66,6 @@ interface QualityTrendChartProps {
   datasets?: DatasetInfo[];
 }
 
-// ─── helpers ──────────────────────────────────────────────────────────────
-const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-
-const fmtDate = (s?: string) => {
-  if (!s) return '';
-  const d = new Date(s);
-  const hh = d.getHours().toString().padStart(2, '0');
-  const mm = d.getMinutes().toString().padStart(2, '0');
-  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${hh}:${mm}`;
-};
-
-const fmtDateFull = (s?: string) => {
-  if (!s) return '';
-  const d = new Date(s);
-  const hh = d.getHours().toString().padStart(2, '0');
-  const mm = d.getMinutes().toString().padStart(2, '0');
-  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
-};
-
 // ─── componente ────────────────────────────────────────────────────────────
 const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
   runs,
@@ -91,7 +73,30 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
   selectedDatasetId = null,
   datasets = [],
 }) => {
+  const { t } = useTranslation();
   const [view, setView] = React.useState<'score' | 'issues'>('score');
+
+  const MONTHS = [
+    t('time.jan'), t('time.feb'), t('time.mar'), t('time.apr'),
+    t('time.may'), t('time.jun'), t('time.jul'), t('time.aug'),
+    t('time.sep'), t('time.oct'), t('time.nov'), t('time.dec'),
+  ];
+
+  const fmtDate = (s?: string) => {
+    if (!s) return '';
+    const d = new Date(s);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    return `${d.getDate()} ${MONTHS[d.getMonth()]} ${hh}:${mm}`;
+  };
+
+  const fmtDateFull = (s?: string) => {
+    if (!s) return '';
+    const d = new Date(s);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
+  };
 
   // versión cadena filter
   const findRootId = useCallback(
@@ -200,7 +205,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         },
         // umbral (línea discontinua ámbar, círculo relleno en leyenda)
         {
-          label: `Umbral (${qualityGateThreshold}%)`,
+          label: `${t('qualityTrendChart.threshold')} (${qualityGateThreshold}%)`,
           data: Array(labels.length).fill(qualityGateThreshold),
           borderColor: 'rgba(255,184,0,0.65)',
           borderWidth: 1.5,
@@ -216,7 +221,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         },
       ],
     };
-  }, [sortedRuns, labels, qualityGateThreshold]);
+  }, [sortedRuns, labels, qualityGateThreshold, t]);
 
   // opciones score
   const scoreOptions = useMemo(
@@ -257,17 +262,21 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
               return fmtDateFull(run?.completed_at || run?.created_at);
             },
             label: (ctx: any) => {
-              if (ctx.dataset.label?.startsWith('Umbral')) return `Umbral: ${ctx.parsed.y}%`;
+              if (ctx.dataset.label?.startsWith(t('qualityTrendChart.threshold'))) {
+                return `${t('qualityTrendChart.threshold')}: ${ctx.parsed.y}%`;
+              }
               if (ctx.dataset.label?.startsWith('_')) return '';
               const run = sortedRuns[ctx.dataIndex];
               const ds = datasets.find(d => d.id === run?.dataset_id);
-              const gate = ctx.parsed.y >= qualityGateThreshold ? '✓ Aprobado' : '✗ Fallido';
+              const gate = ctx.parsed.y >= qualityGateThreshold
+                ? t('versionEvolution.tooltipPassed')
+                : t('versionEvolution.tooltipFailed');
               const lines: string[] = [];
               if (ds && !selectedDatasetId) {
                 lines.push(`Dataset: ${ds.name}${ds.version != null ? ` · v${ds.version}` : ''}`);
               }
               lines.push(`Score: ${ctx.parsed.y.toFixed(1)}%  —  ${gate}`);
-              lines.push(`Issues: ${run?.total_issues_count ?? 0}  (↑${run?.new_issues_count ?? 0} nuevos  ↓${run?.fixed_issues_count ?? 0} corregidos)`);
+              lines.push(`Issues: ${run?.total_issues_count ?? 0}  (↑${run?.new_issues_count ?? 0} ${t('qualityTrendChart.new')}  ↓${run?.fixed_issues_count ?? 0} ${t('qualityTrendChart.fixed')})`);
               return lines;
             },
           },
@@ -293,7 +302,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         },
       },
     }),
-    [sortedRuns, qualityGateThreshold, selectedDatasetId, datasets],
+    [sortedRuns, qualityGateThreshold, selectedDatasetId, datasets, t],
   );
 
   // ── datos issues (barras apiladas) ──────────────────────────────────
@@ -301,7 +310,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     labels,
     datasets: [
       {
-        label: 'Recurrentes',
+        label: t('qualityTrendChart.recurring'),
         data: sortedRuns.map(r =>
           Math.max(0, (r.total_issues_count ?? 0) - (r.new_issues_count ?? 0)),
         ),
@@ -310,21 +319,21 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         stack: 'total',
       },
       {
-        label: 'Nuevos',
+        label: t('qualityTrendChart.new'),
         data: sortedRuns.map(r => r.new_issues_count ?? 0),
         backgroundColor: 'rgba(229,72,77,0.70)',
         borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
         stack: 'total',
       },
       {
-        label: 'Corregidos',
+        label: t('qualityTrendChart.fixed'),
         data: sortedRuns.map(r => r.fixed_issues_count ?? 0),
         backgroundColor: 'rgba(0,179,126,0.65)',
         borderRadius: 4,
         stack: 'fixed',
       },
     ],
-  }), [sortedRuns, labels]);
+  }), [sortedRuns, labels, t]);
 
   const issuesOptions = useMemo(
     () => ({
@@ -387,7 +396,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         },
       },
     }),
-    [sortedRuns, selectedDatasetId, datasets],
+    [sortedRuns, selectedDatasetId, datasets, t],
   );
 
   const zonesPlugin = useMemo(
@@ -400,8 +409,8 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     return (
       <Box sx={{ py: 5, textAlign: 'center' }}>
         <Typography sx={{ color: '#AAAAAA', fontSize: '0.9rem' }}>
-          Sin análisis completados
-          {selectedDatasetId ? ' para este dataset' : ''}
+          {t('qualityTrendChart.noCompleted')}
+          {selectedDatasetId ? ` ${t('qualityTrendChart.forThisDataset')}` : ''}
         </Typography>
       </Box>
     );
@@ -474,29 +483,29 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
         }}>
           {[
             {
-              label: 'Último',
+              label: t('qualityTrendChart.stats.last'),
               value: `${stats.last.toFixed(1)}%`,
               color: stats.last >= qualityGateThreshold ? GREEN : RED,
             },
             {
-              label: 'Tendencia',
+              label: t('qualityTrendChart.stats.trend'),
               value: stats.trend == null
                 ? '—'
                 : `${stats.trend >= 0 ? '+' : ''}${stats.trend.toFixed(1)}%`,
               color: trendColor,
             },
             {
-              label: 'Rango',
+              label: t('qualityTrendChart.stats.range'),
               value: `${stats.min.toFixed(0)}% – ${stats.max.toFixed(0)}%`,
               color: '#555',
             },
             {
-              label: 'Umbral',
+              label: t('qualityTrendChart.threshold'),
               value: `${qualityGateThreshold}%`,
               color: ORANGE,
             },
             {
-              label: 'Superado',
+              label: t('qualityTrendChart.stats.passed'),
               value: `${stats.passing} / ${stats.total}`,
               color: stats.passing === stats.total ? GREEN : '#555',
             },

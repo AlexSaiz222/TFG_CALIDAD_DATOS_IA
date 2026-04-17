@@ -22,6 +22,7 @@ import {
   Chip,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { Metric, MetricConfig } from '../../types';
 import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
 
@@ -52,6 +53,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
   metricConfig,
   onSave,
 }) => {
+  const { t } = useTranslation();
   const [parameters, setParameters] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -91,7 +93,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
 
       // Required check
       if (currentValue === undefined || currentValue === null || currentValue === '') {
-        newErrors[paramName] = 'This field is required';
+        newErrors[paramName] = t('common.required');
         isValid = false;
         return;
       }
@@ -101,13 +103,13 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
         case 'integer':
         case 'float':
           if (typeof currentValue !== 'number' || isNaN(currentValue)) {
-            newErrors[paramName] = `Must be a valid ${paramType}`;
+            newErrors[paramName] = t('common.required');
             isValid = false;
           }
           break;
         case 'array':
           if (!Array.isArray(currentValue)) {
-            newErrors[paramName] = 'Must be an array';
+            newErrors[paramName] = t('jsonEditor.validationErrors.columnsMustBeArray');
             isValid = false;
           }
           break;
@@ -175,7 +177,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
               handleParameterChange(paramName, newValue);
             }}
             error={!!error}
-            helperText={error || `Enter a ${paramType} value`}
+            helperText={error || ''}
             InputProps={{
               inputProps: {
                 step: paramType === 'integer' ? 1 : 0.01
@@ -222,12 +224,12 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
                 // Handle JSON parse error
                 setErrors((prev) => ({
                   ...prev,
-                  [paramName]: 'Invalid JSON format',
+                  [paramName]: t('jsonEditor.validationErrors.invalidJson'),
                 }));
               }
             }}
             error={!!error}
-            helperText={error || 'Enter a valid JSON object'}
+            helperText={error || ''}
           />
         );
       default: // string
@@ -250,7 +252,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Configure {metric.name} Parameters</Typography>
+          <Typography variant="h6">{t('metricConfig.paramDialog.title', { name: metric.name })}</Typography>
           <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close">
             <CloseIcon />
           </IconButton>
@@ -260,7 +262,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
       <DialogContent>
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary">
-            {metric.description || 'No description available'}
+            {metric.description || t('metricConfig.paramDialog.noDescription')}
           </Typography>
           <Chip
             label={metric.category}
@@ -287,7 +289,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t('metricConfig.paramDialog.cancel')}</Button>
         <Button
           onClick={handleSave}
           variant="contained"
@@ -300,7 +302,7 @@ const MetricParameterDialog: React.FC<MetricParameterDialogProps> = ({
             },
           }}
         >
-          Guardar parámetros
+          {t('metricConfig.paramDialog.save')}
         </Button>
       </DialogActions>
     </Dialog>

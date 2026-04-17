@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -103,6 +104,7 @@ function buildPersistentDelta(
   prevActual: string | null | undefined,
   currActual: string | null | undefined,
   rowCountDelta: number | null | undefined,
+  t: (key: string, opts?: any) => string,
 ): { text: string; color: string } | null {
   const prev = parseNumericValue(prevActual);
   const curr = parseNumericValue(currActual);
@@ -113,14 +115,10 @@ function buildPersistentDelta(
     const sign  = delta > 0 ? '+' : '';
     const unit  = isPercent(prevActual) || isPercent(currActual) ? 'pp' : '';
     const text  = `${sign}${delta.toFixed(2)}${unit}`;
-    // Direction: for row-count-based issues, more rows = worse.
-    // For percentage metrics (completeness, etc.) higher is generally better.
-    // We use row_count_delta as the ground truth for color when available.
     let color: string;
     if (rowCountDelta != null) {
       color = rowCountDelta > 0 ? RED : rowCountDelta < 0 ? GREEN : GRAY;
     } else {
-      // Heuristic: for % values, higher = better (completeness, uniqueness…)
       color = isPercent(prevActual) || isPercent(currActual)
         ? (delta < 0 ? RED : GREEN)
         : GRAY;
@@ -132,7 +130,7 @@ function buildPersistentDelta(
   if (rowCountDelta != null && rowCountDelta !== 0) {
     const sign = rowCountDelta > 0 ? '+' : '';
     return {
-      text:  `${sign}${rowCountDelta} filas`,
+      text:  t('datasets.compare.rowsDelta', { sign, count: Math.abs(rowCountDelta) }),
       color: rowCountDelta > 0 ? RED : GREEN,
     };
   }
@@ -150,6 +148,7 @@ const VersionColumn: React.FC<{
   datasetId: string | string[] | undefined;
 }> = ({ ds, label, side, datasetId }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const score    = ds.latestAnalysis?.quality_score ?? null;
   const status   = ds.latestAnalysis?.quality_gate_status ?? null;
   const issues   = ds.latestAnalysis?.total_issues_count ?? null;
@@ -191,7 +190,7 @@ const VersionColumn: React.FC<{
             border: '1px solid rgba(25,118,210,0.2)',
           }}>
             <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#1976d2' }}>
-              LATEST
+              {t('datasets.latest')}
             </Typography>
           </Box>
         )}
@@ -214,7 +213,7 @@ const VersionColumn: React.FC<{
         </Typography>
       </Box>
       <Typography sx={{ fontSize: '0.72rem', color: GRAY, mb: 2.5 }}>
-        Quality Score
+        {t('datasets.compare.qualityScore')}
         {status && (
           <Box component="span" sx={{
             ml: 1, px: 0.75, py: 0.1,
@@ -232,10 +231,10 @@ const VersionColumn: React.FC<{
         display: 'flex', gap: 2.5,
         pt: 2, borderTop: '1px solid #F5F5F5',
       }}>
-        <Stat label="Filas"     value={(ds.row_count ?? 0).toLocaleString()} />
-        <Stat label="Columnas"  value={String(ds.column_count ?? '—')} />
+        <Stat label={t('datasets.compare.rows')}     value={(ds.row_count ?? 0).toLocaleString()} />
+        <Stat label={t('datasets.compare.columns')}  value={String(ds.column_count ?? '—')} />
         {issues !== null && (
-          <Stat label="Issues" value={String(issues)} valueColor={issues > 0 ? RED : GREEN} />
+          <Stat label={t('datasets.compare.issues')} value={String(issues)} valueColor={issues > 0 ? RED : GREEN} />
         )}
       </Box>
 
@@ -251,7 +250,7 @@ const VersionColumn: React.FC<{
             '&:hover': { borderColor: '#BBBBBB', backgroundColor: '#FAFAFA' },
           }}
         >
-          Ver {vLabel}
+          {t('datasets.compare.viewVersion', { version: vLabel })}
         </Button>
       </Box>
     </Box>
@@ -278,42 +277,55 @@ const DeltaColumn: React.FC<{
   rowsDiff: number;
   colsDiff: number;
 }> = ({ scoreDiff, issuesDiff, rowsDiff, colsDiff }) => {
+  const { t } = useTranslation();
   const deltaItems = [
     {
-      label: 'Calidad',
-      sublabel: 'Score de calidad',
+      label: t('datasets.compare.quality'),
+      sublabel: t('datasets.compare.qualityScore'),
       value: fmtDiff(scoreDiff, '%'),
       color: diffColor(scoreDiff),
-      tooltip: scoreDiff === null ? 'Sin datos' : scoreDiff > 0
-        ? `Mejoró ${scoreDiff}%`
+      tooltip: scoreDiff === null
+        ? t('datasets.compare.deltaTooltip.noData')
+        : scoreDiff > 0
+        ? t('datasets.compare.deltaTooltip.improved', { value: scoreDiff })
         : scoreDiff < 0
-        ? `Empeoró ${Math.abs(scoreDiff)}%`
-        : 'Sin cambios',
+        ? t('datasets.compare.deltaTooltip.worsened', { value: Math.abs(scoreDiff) })
+        : t('datasets.compare.deltaTooltip.noChange'),
     },
     {
-      label: 'Issues',
-      sublabel: 'Problemas detectados',
-      value: issuesDiff === 0 ? '0' : issuesDiff > 0 ? `+${issuesDiff} más` : `${Math.abs(issuesDiff)} menos`,
+      label: t('datasets.compare.issues'),
+      sublabel: t('datasets.compare.issues'),
+      value: issuesDiff === 0 ? '0' : issuesDiff > 0
+        ? t('datasets.compare.issuesDeltaMore', { count: issuesDiff })
+        : t('datasets.compare.issuesDeltaLess', { count: Math.abs(issuesDiff) }),
       color: diffColor(issuesDiff, true),
       tooltip: issuesDiff === 0
-        ? 'Sin cambios en issues'
+        ? t('datasets.compare.deltaTooltip.noIssueChange')
         : issuesDiff > 0
-        ? `Aparecieron ${issuesDiff} issues nuevos`
-        : `Se resolvieron ${Math.abs(issuesDiff)} issues`,
+        ? t('datasets.compare.deltaTooltip.newIssues', { count: issuesDiff })
+        : t('datasets.compare.deltaTooltip.resolvedIssues', { count: Math.abs(issuesDiff) }),
     },
     {
-      label: 'Filas',
-      sublabel: 'Registros',
+      label: t('datasets.compare.rows'),
+      sublabel: t('datasets.compare.records'),
       value: rowsDiff === 0 ? '0' : rowsDiff > 0 ? `+${rowsDiff}` : `${rowsDiff}`,
       color: '#AAAAAA',
-      tooltip: rowsDiff === 0 ? 'Mismas filas' : rowsDiff > 0 ? `${rowsDiff} filas añadidas` : `${Math.abs(rowsDiff)} filas eliminadas`,
+      tooltip: rowsDiff === 0
+        ? t('datasets.compare.deltaTooltip.sameRows')
+        : rowsDiff > 0
+        ? t('datasets.compare.deltaTooltip.addedRows', { count: rowsDiff })
+        : t('datasets.compare.deltaTooltip.removedRows', { count: Math.abs(rowsDiff) }),
     },
     {
-      label: 'Columnas',
-      sublabel: 'Campos',
+      label: t('datasets.compare.columns'),
+      sublabel: t('datasets.compare.fields'),
       value: colsDiff === 0 ? '0' : colsDiff > 0 ? `+${colsDiff}` : `${colsDiff}`,
       color: '#AAAAAA',
-      tooltip: colsDiff === 0 ? 'Mismas columnas' : colsDiff > 0 ? `${colsDiff} columnas añadidas` : `${Math.abs(colsDiff)} columnas eliminadas`,
+      tooltip: colsDiff === 0
+        ? t('datasets.compare.deltaTooltip.sameColumns')
+        : colsDiff > 0
+        ? t('datasets.compare.deltaTooltip.addedColumns', { count: colsDiff })
+        : t('datasets.compare.deltaTooltip.removedColumns', { count: Math.abs(colsDiff) }),
     },
   ];
 
@@ -387,16 +399,18 @@ const IssueRow: React.FC<{ issue: any; resolved?: boolean }> = ({ issue, resolve
 
 /** Fila de issue persistente con chip de delta entre versiones */
 const PersistentIssueRow: React.FC<{ issue: any }> = ({ issue }) => {
+  const { t } = useTranslation();
   const color = severityColor(issue.severity);
   const delta = buildPersistentDelta(
     issue.previous_actual_value,
     issue.actual_value,
     issue.row_count_delta,
+    t,
   );
   const tooltipTitle = issue.previous_actual_value
-    ? `Versión anterior: ${issue.previous_actual_value}`
+    ? t('datasets.compare.previousValue', { value: issue.previous_actual_value })
     : issue.previous_affected_row_count != null
-    ? `Versión anterior: ${issue.previous_affected_row_count} filas afectadas`
+    ? t('datasets.compare.previousAffected', { count: issue.previous_affected_row_count })
     : '';
 
   return (
@@ -447,6 +461,7 @@ const PersistentIssueRow: React.FC<{ issue: any }> = ({ issue }) => {
 // ─── página principal ─────────────────────────────────────────────────────
 const DatasetCompare = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const { a, b, projectId } = router.query;
 
   const [loading, setLoading]               = useState(true);
@@ -462,7 +477,7 @@ const DatasetCompare = () => {
         setData(res?.data?.data || res?.data || null);
         setError(null);
       })
-      .catch(() => setError('No se pudo cargar la comparación de versiones'))
+      .catch(() => setError(t('datasets.compare.loadError')))
       .finally(() => setLoading(false));
   }, [a, b, projectId]);
 
@@ -481,11 +496,11 @@ const DatasetCompare = () => {
       <MainLayout>
         <Box sx={{ p: 3, maxWidth: 480 }}>
           <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-            {error || 'No se encontraron datos de comparación'}
+            {error || t('datasets.compare.noData')}
           </Alert>
           <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()}
             sx={{ textTransform: 'none', color: GRAY }}>
-            Volver
+            {t('common.back')}
           </Button>
         </Box>
       </MainLayout>
@@ -513,14 +528,14 @@ const DatasetCompare = () => {
           backgroundColor: '#fff',
           mb: 3,
         }}>
-          <VersionColumn ds={dataset_a} label="Versión anterior" side="left"  datasetId={a} />
+          <VersionColumn ds={dataset_a} label={t('datasets.compare.previousVersion')} side="left"  datasetId={a} />
           <DeltaColumn
             scoreDiff={comparison.quality_score_diff}
             issuesDiff={comparison.issues_diff}
             rowsDiff={comparison.rows_diff}
             colsDiff={comparison.columns_diff}
           />
-          <VersionColumn ds={dataset_b} label="Versión actual"   side="right" datasetId={b} />
+          <VersionColumn ds={dataset_b} label={t('datasets.compare.currentVersion')}   side="right" datasetId={b} />
         </Box>
 
         {/* ── Column diff (if any) ── */}
@@ -537,7 +552,7 @@ const DatasetCompare = () => {
                   fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.07em', color: GREEN, mb: 1.25,
                 }}>
-                  + {comparison.added_columns.length} columna{comparison.added_columns.length !== 1 ? 's' : ''} añadida{comparison.added_columns.length !== 1 ? 's' : ''}
+                  + {t('datasets.compare.addedColumns', { count: comparison.added_columns.length })}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                   {comparison.added_columns.map(col => (
@@ -564,7 +579,7 @@ const DatasetCompare = () => {
                   fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.07em', color: RED, mb: 1.25,
                 }}>
-                  − {comparison.removed_columns.length} columna{comparison.removed_columns.length !== 1 ? 's' : ''} eliminada{comparison.removed_columns.length !== 1 ? 's' : ''}
+                  − {t('datasets.compare.removedColumns', { count: comparison.removed_columns.length })}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                   {comparison.removed_columns.map(col => (
@@ -607,7 +622,7 @@ const DatasetCompare = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CheckCircleIcon sx={{ fontSize: 16, color: resolvedCount > 0 ? GREEN : '#CCC' }} />
                 <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
-                  Issues resueltos
+                  {t('datasets.compare.resolvedIssues')}
                 </Typography>
               </Box>
               <Box sx={{
@@ -628,7 +643,7 @@ const DatasetCompare = () => {
                 ))
               ) : (
                 <Typography sx={{ textAlign: 'center', color: '#CCCCCC', fontSize: '0.82rem' }}>
-                  Sin issues resueltos
+                  {t('datasets.compare.noResolvedIssues')}
                 </Typography>
               )}
             </Box>
@@ -650,7 +665,7 @@ const DatasetCompare = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <ErrorIcon sx={{ fontSize: 16, color: newCount > 0 ? RED : '#CCC' }} />
                 <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
-                  Issues nuevos
+                  {t('datasets.compare.newIssues')}
                 </Typography>
               </Box>
               <Box sx={{
@@ -671,7 +686,7 @@ const DatasetCompare = () => {
                 ))
               ) : (
                 <Typography sx={{ textAlign: 'center', color: '#CCCCCC', fontSize: '0.82rem' }}>
-                  Sin issues nuevos
+                  {t('datasets.compare.noNewIssues')}
                 </Typography>
               )}
             </Box>
@@ -695,7 +710,7 @@ const DatasetCompare = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <WarningAmberIcon sx={{ fontSize: 16, color: commonCount > 0 ? ORANGE : '#CCC' }} />
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1A1A1A' }}>
-                Issues persistentes
+                {t('datasets.compare.persistentIssues')}
               </Typography>
             </Box>
             <Box sx={{
@@ -715,7 +730,7 @@ const DatasetCompare = () => {
               ))
             ) : (
               <Typography sx={{ textAlign: 'center', color: '#CCCCCC', fontSize: '0.82rem' }}>
-                Sin issues persistentes
+                {t('datasets.compare.noPersistentIssues')}
               </Typography>
             )}
           </Box>

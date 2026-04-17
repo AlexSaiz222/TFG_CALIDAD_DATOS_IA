@@ -34,6 +34,7 @@ import {
   Speed as SpeedIcon,
   GridView as GridViewIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import { ColumnMetricsTable, IssuesSummary, MetricDetailsTabs, ExecutiveMetricCard } from '../../components/evaluations';
 import QualityGateBadge from '../../components/QualityGateBadge';
@@ -42,6 +43,7 @@ import type { AnalysisRun, DataQualityIssue, Issue, Dataset, ColumnMetrics } fro
 
 const EvaluationDetail = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = router.query;
   const runId = typeof id === 'string' ? parseInt(id, 10) : undefined;
 
@@ -62,7 +64,7 @@ const EvaluationDetail = () => {
     const fetchData = async () => {
       if (runId === undefined || isNaN(runId)) {
         setLoading(false);
-        setError('ID de análisis inválido.');
+        setError(t('evaluations.detail.invalidId'));
         return;
       }
 
@@ -111,7 +113,7 @@ const EvaluationDetail = () => {
         setIssuesLoading(false);
       } catch (err: any) {
         console.error('Error fetching analysis run:', err);
-        setError(err.response?.data?.message || 'Error al cargar el análisis.');
+        setError(err.response?.data?.message || t('evaluations.detail.loadError'));
         setLoading(false);
       }
     };
@@ -143,22 +145,22 @@ const EvaluationDetail = () => {
 
   const getMetricName = (issue: { issue_type?: string; description: string }): string => {
     const type = issue.issue_type || '';
-    if (type === 'completeness') return 'Completitud';
-    if (type === 'low_variability' || type === 'non_unique_identifier' || type === 'duplicate_rows') return 'Unicidad';
-    if (type === 'outliers') return 'Outliers';
-    if (type === 'syntactic_accuracy') return 'Exactitud sintáctica';
-    if (type === 'class_balance') return 'Equilibrio de clases';
-    if (type === 'currentness') return 'Actualidad';
-    if (type === 'logical_consistency') return 'Consistencia lógica';
+    if (type === 'completeness') return t('evaluations.detail.metricName.completeness');
+    if (type === 'low_variability' || type === 'non_unique_identifier' || type === 'duplicate_rows') return t('evaluations.detail.metricName.uniqueness');
+    if (type === 'outliers') return t('evaluations.detail.metricName.outliers');
+    if (type === 'syntactic_accuracy') return t('evaluations.detail.metricName.syntacticAccuracy');
+    if (type === 'class_balance') return t('evaluations.detail.metricName.classBalance');
+    if (type === 'currentness') return t('evaluations.detail.metricName.currentness');
+    if (type === 'logical_consistency') return t('evaluations.detail.metricName.logicalConsistency');
     const lower = (issue.description || '').toLowerCase();
-    if (lower.includes('completitud') || lower.includes('completeness') || lower.includes('null') || lower.includes('nulo')) return 'Completitud';
-    if (lower.includes('unicidad') || lower.includes('unique') || lower.includes('duplicad') || lower.includes('variabilidad')) return 'Unicidad';
-    if (lower.includes('atípico') || lower.includes('outlier')) return 'Outliers';
-    if (lower.includes('tipo esperado') || lower.includes('conformidad') || lower.includes('sintáct') || lower.includes('syntactic')) return 'Exactitud sintáctica';
-    if (lower.includes('clase') || lower.includes('desequilibr') || lower.includes('balance') || lower.includes('minoritaria')) return 'Equilibrio de clases';
-    if (lower.includes('desactualiz') || lower.includes('currentness') || lower.includes('obsolet') || lower.includes('frescura')) return 'Actualidad';
-    if (lower.includes('regla') || lower.includes('consistencia') || lower.includes('violó') || lower.includes('logical')) return 'Consistencia lógica';
-    return 'General';
+    if (lower.includes('completitud') || lower.includes('completeness') || lower.includes('null') || lower.includes('nulo')) return t('evaluations.detail.metricName.completeness');
+    if (lower.includes('unicidad') || lower.includes('unique') || lower.includes('duplicad') || lower.includes('variabilidad')) return t('evaluations.detail.metricName.uniqueness');
+    if (lower.includes('atípico') || lower.includes('outlier')) return t('evaluations.detail.metricName.outliers');
+    if (lower.includes('tipo esperado') || lower.includes('conformidad') || lower.includes('sintáct') || lower.includes('syntactic')) return t('evaluations.detail.metricName.syntacticAccuracy');
+    if (lower.includes('clase') || lower.includes('desequilibr') || lower.includes('balance') || lower.includes('minoritaria')) return t('evaluations.detail.metricName.classBalance');
+    if (lower.includes('desactualiz') || lower.includes('currentness') || lower.includes('obsolet') || lower.includes('frescura')) return t('evaluations.detail.metricName.currentness');
+    if (lower.includes('regla') || lower.includes('consistencia') || lower.includes('violó') || lower.includes('logical')) return t('evaluations.detail.metricName.logicalConsistency');
+    return t('evaluations.detail.metricName.general');
   };
 
   const filteredIssues = issues.filter((issue) => {
@@ -186,12 +188,12 @@ const EvaluationDetail = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-              Análisis no encontrado
+              {t('evaluations.detail.notFound')}
             </Typography>
           </Box>
-          <Alert severity="error">{error || 'Análisis no encontrado'}</Alert>
+          <Alert severity="error">{error || t('evaluations.detail.notFound')}</Alert>
           <Button variant="contained" onClick={() => router.push('/evaluations')} sx={{ mt: 3 }}>
-            Volver al historial
+            {t('evaluations.detail.backToHistory')}
           </Button>
         </Box>
       </MainLayout>
@@ -212,10 +214,10 @@ const EvaluationDetail = () => {
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-              {dataset?.name || `Análisis #${run.id}`}
+              {dataset?.name || t('evaluations.detail.analysisNumber', { id: run.id })}
             </Typography>
             <Typography variant="body2" sx={{ color: '#555555', mt: 0.5 }}>
-              {new Date(run.completed_at || run.created_at).toLocaleString('es-ES', {
+              {new Date(run.completed_at || run.created_at).toLocaleString(undefined, {
                 day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
               })}
             </Typography>
@@ -229,17 +231,22 @@ const EvaluationDetail = () => {
               // Build metric cards data and compute tab indices for click-to-tab navigation
               const metricCards: Array<{ title: string; value: string; badge: { label: string; bg: string; color: string }; insight: string; tabKey: string }> = [];
 
+              const badge = (v98: boolean, v90: boolean) =>
+                v98 ? { label: t('evaluations.detail.badge.excellent'), bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                    : v90 ? { label: t('evaluations.detail.badge.needsAttention'), bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                    : { label: t('evaluations.detail.badge.critical'), bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' };
+
               if (overallMetrics.completeness !== undefined) {
                 const v = overallMetrics.completeness;
                 const nullCols = Object.values(columnMetrics).filter((col: any) => (col.n_nulls || 0) > 0).length;
                 const totalCols = Object.keys(columnMetrics).length;
                 metricCards.push({
-                  title: 'Completitud',
+                  title: t('evaluations.detail.metricName.completeness'),
                   value: `${(v * 100).toFixed(1)}%`,
-                  badge: v >= 0.98 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : v >= 0.90 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
-                  insight: nullCols > 0 ? `${nullCols} de ${totalCols} columnas tienen valores nulos` : 'Todas las columnas están completas',
+                  badge: badge(v >= 0.98, v >= 0.90),
+                  insight: nullCols > 0
+                    ? t('evaluations.detail.insight.completeness.partial', { count: nullCols, total: totalCols })
+                    : t('evaluations.detail.insight.completeness.allComplete'),
                   tabKey: 'completeness',
                 });
               }
@@ -251,12 +258,12 @@ const EvaluationDetail = () => {
                   : 0;
                 const dupes = totalRows > 0 ? Math.round((1 - v) * totalRows) : 0;
                 metricCards.push({
-                  title: 'Unicidad',
+                  title: t('evaluations.detail.metricName.uniqueness'),
                   value: `${(v * 100).toFixed(1)}%`,
-                  badge: dupes === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : dupes <= 2 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
-                  insight: dupes > 0 ? `${dupes} fila${dupes !== 1 ? 's' : ''} completamente duplicada${dupes !== 1 ? 's' : ''}` : 'Sin filas duplicadas detectadas',
+                  badge: badge(dupes === 0, dupes <= 2),
+                  insight: dupes > 0
+                    ? t('evaluations.detail.insight.uniqueness.duplicates', { count: dupes })
+                    : t('evaluations.detail.insight.uniqueness.noDuplicates'),
                   tabKey: 'uniqueness',
                 });
               }
@@ -270,15 +277,16 @@ const EvaluationDetail = () => {
                   .filter(([_, c]: [string, any]) => c?.count > 0)
                   .sort(([_, a]: [string, any], [__, b]: [string, any]) => (b?.count || 0) - (a?.count || 0))[0];
                 metricCards.push({
-                  title: 'Outliers',
+                  title: t('evaluations.detail.metricName.outliers'),
                   value: `${totalOut}`,
-                  badge: prop >= 0.05 ? { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
-                       : prop >= 0.02 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : totalOut === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : { label: 'Aceptable', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' },
-                  insight: totalOut === 0 ? 'Sin valores atípicos detectados'
-                         : colsAffected === 1 && mostAffected ? `${colsAffected} columna afectada (${mostAffected[0]}, ${(prop * 100).toFixed(1)}%)`
-                         : `${colsAffected} columnas afectadas (${(prop * 100).toFixed(1)}% del total)`,
+                  badge: prop >= 0.05 ? { label: t('evaluations.detail.badge.critical'), bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' }
+                       : prop >= 0.02 ? { label: t('evaluations.detail.badge.needsAttention'), bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
+                       : totalOut === 0 ? { label: t('evaluations.detail.badge.excellent'), bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
+                       : { label: t('evaluations.detail.badge.acceptable'), bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' },
+                  insight: totalOut === 0 ? t('evaluations.detail.insight.outliers.none')
+                         : colsAffected === 1 && mostAffected
+                           ? t('evaluations.detail.insight.outliers.oneCol', { count: colsAffected, col: mostAffected[0], pct: (prop * 100).toFixed(1) })
+                           : t('evaluations.detail.insight.outliers.multiCol', { count: colsAffected, pct: (prop * 100).toFixed(1) }),
                   tabKey: 'outliers',
                 });
               }
@@ -287,12 +295,12 @@ const EvaluationDetail = () => {
                 const sa = overallMetrics.syntactic_accuracy;
                 const v = sa.overall_conformance ?? 0;
                 metricCards.push({
-                  title: 'Exactitud sintáctica',
+                  title: t('evaluations.detail.metricName.syntacticAccuracy'),
                   value: `${(v * 100).toFixed(1)}%`,
-                  badge: v >= 0.95 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : v >= 0.80 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
-                  insight: sa.columns_checked ? `${sa.columns_checked} columna${sa.columns_checked !== 1 ? 's' : ''} analizadas` : 'Sin columnas analizadas',
+                  badge: badge(v >= 0.95, v >= 0.80),
+                  insight: sa.columns_checked
+                    ? t('evaluations.detail.insight.syntacticAccuracy.columns', { count: sa.columns_checked })
+                    : t('evaluations.detail.insight.syntacticAccuracy.none'),
                   tabKey: 'syntactic_accuracy',
                 });
               }
@@ -303,12 +311,12 @@ const EvaluationDetail = () => {
                 const withViol = lc.rules_with_violations ?? 0;
                 const total = lc.rules_evaluated ?? (lc.rules?.length ?? 0);
                 metricCards.push({
-                  title: 'Consistencia lógica',
+                  title: t('evaluations.detail.metricName.logicalConsistency'),
                   value: `${(v * 100).toFixed(1)}%`,
-                  badge: withViol === 0 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : withViol <= 1 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
-                  insight: withViol === 0 ? `${total} regla${total !== 1 ? 's' : ''} sin violaciones` : `${withViol} de ${total} regla${total !== 1 ? 's' : ''} con violaciones`,
+                  badge: badge(withViol === 0, withViol <= 1),
+                  insight: withViol === 0
+                    ? t('evaluations.detail.insight.logicalConsistency.noViolations', { count: total })
+                    : t('evaluations.detail.insight.logicalConsistency.violations', { count: withViol, total }),
                   tabKey: 'logical_consistency',
                 });
               }
@@ -318,12 +326,12 @@ const EvaluationDetail = () => {
                 const v = cb.overall_balance_index ?? 0;
                 const alerts = cb.columns_with_alerts ?? 0;
                 metricCards.push({
-                  title: 'Equilibrio de clases',
+                  title: t('evaluations.detail.metricName.classBalance'),
                   value: `${v.toFixed(1)}%`,
-                  badge: v >= 80 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : v >= 60 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
-                  insight: alerts === 0 ? 'Sin desequilibrios detectados' : `${alerts} columna${alerts !== 1 ? 's' : ''} con desequilibrio`,
+                  badge: badge(v >= 80, v >= 60),
+                  insight: alerts === 0
+                    ? t('evaluations.detail.insight.classBalance.noAlerts')
+                    : t('evaluations.detail.insight.classBalance.alerts', { count: alerts }),
                   tabKey: 'class_balance',
                 });
               }
@@ -334,12 +342,12 @@ const EvaluationDetail = () => {
                 const stale = tl.columns_stale ?? 0;
                 const analyzed = tl.columns_analyzed ?? 0;
                 metricCards.push({
-                  title: 'Actualidad',
+                  title: t('evaluations.detail.metricName.currentness'),
                   value: `${(v * 100).toFixed(1)}%`,
-                  badge: v >= 0.90 ? { label: 'Excelente', bg: 'rgba(0, 179, 126, 0.1)', color: '#00B37E' }
-                       : v >= 0.70 ? { label: 'Requiere atención', bg: 'rgba(255, 184, 0, 0.1)', color: '#FFB800' }
-                       : { label: 'Crítico', bg: 'rgba(229, 72, 77, 0.1)', color: '#E5484D' },
-                  insight: stale === 0 ? `${analyzed} columna${analyzed !== 1 ? 's' : ''} actualizadas` : `${stale} de ${analyzed} columna${analyzed !== 1 ? 's' : ''} desactualizadas`,
+                  badge: badge(v >= 0.90, v >= 0.70),
+                  insight: stale === 0
+                    ? t('evaluations.detail.insight.currentness.upToDate', { count: analyzed })
+                    : t('evaluations.detail.insight.currentness.stale', { count: stale, total: analyzed }),
                   tabKey: 'currentness',
                 });
               }
@@ -374,7 +382,7 @@ const EvaluationDetail = () => {
               const score = run.quality_score || overallMetrics.quality_score || 0;
               const scoreColor = score >= 80 ? '#00B37E' : score >= 60 ? '#FFB800' : '#E5484D';
               const scoreColorBg = score >= 80 ? 'rgba(0, 179, 126, 0.1)' : score >= 60 ? 'rgba(255, 184, 0, 0.1)' : 'rgba(229, 72, 77, 0.1)';
-              const scoreVerdict = score >= 90 ? 'Excelente' : score >= 80 ? 'Bueno' : score >= 60 ? 'Aceptable' : score >= 40 ? 'Deficiente' : 'Crítico';
+              const scoreVerdict = score >= 90 ? t('evaluations.detail.scoreVerdict.excellent') : score >= 80 ? t('evaluations.detail.scoreVerdict.good') : score >= 60 ? t('evaluations.detail.scoreVerdict.acceptable') : score >= 40 ? t('evaluations.detail.scoreVerdict.poor') : t('evaluations.detail.scoreVerdict.critical');
               const metricsEvaluated = metricCards.length;
               const totalIssues = issues.length;
 
@@ -393,7 +401,7 @@ const EvaluationDetail = () => {
                     <Box sx={{ px: 3, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <SpeedIcon sx={{ color: '#888', fontSize: 20 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>Puntuación de calidad</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>{t('evaluations.detail.score')}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Chip
@@ -421,12 +429,14 @@ const EvaluationDetail = () => {
                           const gateBg = passed ? 'rgba(0,179,126,0.08)' : warned ? 'rgba(255,184,0,0.08)' : 'rgba(229,72,77,0.08)';
                           const gateBorder = passed ? 'rgba(0,179,126,0.25)' : warned ? 'rgba(255,184,0,0.25)' : 'rgba(229,72,77,0.25)';
                           const GateIcon = passed ? CheckCircleIcon : warned ? WarningIcon : CancelIcon;
-                          const gateTitle = passed ? 'Supera el Quality Gate' : warned ? 'Quality Gate con advertencias' : 'No supera el Quality Gate';
+                          const gateTitle = passed ? t('evaluations.detail.gate.passedTitle') : warned ? t('evaluations.detail.gate.warningTitle') : t('evaluations.detail.gate.failedTitle');
                           const gateDesc = passed
-                            ? 'El análisis cumple los estándares de calidad definidos para este proyecto.'
+                            ? t('evaluations.detail.gate.passedDesc')
                             : warned
-                            ? 'El análisis presenta advertencias que requieren atención.'
-                            : `El score obtenido (${Math.round(score)}/100) no alcanza el umbral mínimo${qgThreshold !== null ? ` requerido: ${qgThreshold}/100` : ' requerido para este proyecto'}.`;
+                            ? t('evaluations.detail.gate.warningDesc')
+                            : qgThreshold !== null
+                            ? t('evaluations.detail.gate.failedDescThreshold', { score: Math.round(score), threshold: qgThreshold })
+                            : t('evaluations.detail.gate.failedDesc', { score: Math.round(score) });
                           return (
                             <Box sx={{ mb: 3, p: 2, borderRadius: 2, backgroundColor: gateBg, border: `1px solid ${gateBorder}`, display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
                               <GateIcon sx={{ color: gateColor, fontSize: 28, mt: 0.25, flexShrink: 0 }} />
@@ -463,10 +473,10 @@ const EvaluationDetail = () => {
 
                         {/* Stats */}
                         <Typography variant="body2" sx={{ color: '#888' }}>
-                          {metricsEvaluated} métrica{metricsEvaluated !== 1 ? 's' : ''} evaluada{metricsEvaluated !== 1 ? 's' : ''}
+                          {t('evaluations.detail.metricsEvaluated', { count: metricsEvaluated })}
                           {' · '}
                           <Box component="span" sx={{ color: totalIssues > 0 ? '#E5484D' : '#00B37E', fontWeight: 600 }}>
-                            {totalIssues} issue{totalIssues !== 1 ? 's' : ''} detectado{totalIssues !== 1 ? 's' : ''}
+                            {t('evaluations.detail.issuesCount', { count: totalIssues })}
                           </Box>
                         </Typography>
                       </Box>
@@ -480,7 +490,7 @@ const EvaluationDetail = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <GridViewIcon sx={{ color: '#888', fontSize: 20 }} />
                           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            Resumen de métricas
+                            {t('evaluations.detail.sections.metricSummary')}
                           </Typography>
                         </Box>
                       </AccordionSummary>
@@ -525,7 +535,7 @@ const EvaluationDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <WarningIcon sx={{ color: '#888', fontSize: 20 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Issues detectados ({issuesLoading ? '…' : issues.length})
+                    {t('evaluations.detail.sections.detectedIssues', { count: issuesLoading ? '…' : issues.length })}
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -550,21 +560,16 @@ const EvaluationDetail = () => {
                     <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Severidad</TableCell>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Métrica</TableCell>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Descripción</TableCell>
-                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>Columnas Afectadas</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>{t('evaluations.issues.columns.severity')}</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>{t('evaluations.issues.columns.metric')}</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>{t('evaluations.issues.columns.description')}</TableCell>
+                          <TableCell sx={{ fontWeight: 600, backgroundColor: '#F5F5F5' }}>{t('evaluations.issues.columns.affectedColumns')}</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredIssues.map((issue) => {
-                          const getSeverityLabel = (severity: string): string => {
-                            if (severity === 'critical') return 'Crítica';
-                            if (severity === 'high') return 'Alta';
-                            if (severity === 'medium') return 'Media';
-                            if (severity === 'low') return 'Baja';
-                            return severity;
-                          };
+                          const getSeverityLabel = (severity: string): string =>
+                            t(`evaluations.detail.severityLabel.${severity}`, { defaultValue: severity });
 
                           return (
                             <TableRow key={issue.id} hover>
@@ -620,7 +625,7 @@ const EvaluationDetail = () => {
                 <Box sx={{ p: 4, textAlign: 'center', border: '1px dashed #CCCCCC', borderRadius: 2 }}>
                   <CheckCircleIcon sx={{ fontSize: 48, color: '#00B37E', mb: 1 }} />
                   <Typography variant="body1" sx={{ color: '#555555' }}>
-                    No se detectaron problemas. ¡La calidad de tus datos es excelente!
+                    {t('evaluations.detail.noIssuesDetected')}
                   </Typography>
                 </Box>
               )}
@@ -650,7 +655,7 @@ const EvaluationDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <AssessmentIcon sx={{ color: '#888', fontSize: 20 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Detalles de métricas
+                    {t('evaluations.detail.metricDetails')}
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -668,7 +673,7 @@ const EvaluationDetail = () => {
             {false && Object.keys(columnMetrics).length > 0 && (
               <Paper id="column-metrics" elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #EEEEEE', borderRadius: 2, scrollMarginTop: '80px' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Métricas por Columna ({Object.keys(columnMetrics).length} columnas)
+                  {t('evaluations.detail.columnMetrics', { count: Object.keys(columnMetrics).length })}
                 </Typography>
                 <ColumnMetricsTable columnMetrics={columnMetrics} />
               </Paper>
@@ -696,22 +701,22 @@ const EvaluationDetail = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <InfoIcon sx={{ color: '#888', fontSize: 20 }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Cálculo de puntuación
+                      {t('evaluations.detail.sections.scoreCalculation')}
                     </Typography>
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 3, pb: 3 }}>
                 <Typography variant="body2" sx={{ color: '#555555', mb: 3 }}>
-                  El Quality Score parte de 100% y deduce una penalización según los issues detectados, normalizada por el número de columnas del dataset. Los scores por dimensión son un diagnóstico complementario.
+                  {t('evaluations.detail.scoreCalculationDescription')}
                 </Typography>
 
                 {/* Step 1: Issue Penalty */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
-                    1. Penalización por issues
+                    {t('evaluations.detail.scoreCalculationSteps.penaltyByIssues')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
-                    Cada issue resta según su severidad. La penalización máxima es −97%.
+                    {t('evaluations.detail.scoreCalculationSteps.penaltyDescription')}
                   </Typography>
                   {(() => {
                     const ic = overallMetrics.score_breakdown.issue_counts || {};
@@ -727,7 +732,7 @@ const EvaluationDetail = () => {
                     const order = ['critical', 'high', 'medium', 'low'];
                     const total = order.reduce((acc, s) => acc + (ic[s] || 0), 0);
                     if (total === 0) {
-                      return <Typography variant="body2" sx={{ color: '#00B37E' }}>Sin issues — penalización bruta = 0%</Typography>;
+                      return <Typography variant="body2" sx={{ color: '#00B37E' }}>{t('evaluations.detail.scoreCalculationSteps.noIssuesPenalty')}</Typography>;
                     }
                     return (
                       <Box>
@@ -746,7 +751,7 @@ const EvaluationDetail = () => {
                           })}
                         </Box>
                         <Typography variant="body2" sx={{ color: '#888' }}>
-                          Penalización bruta = <strong>−{(rawPenalty * 100).toFixed(1)}%</strong>
+                          {t('evaluations.detail.scoreCalculationSteps.rawPenalty', { value: (rawPenalty * 100).toFixed(1) })}
                         </Typography>
                       </Box>
                     );
@@ -758,10 +763,10 @@ const EvaluationDetail = () => {
                 {/* Step 2: Dimensionality normalisation */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
-                    2. Normalización por dimensionalidad
+                    {t('evaluations.detail.scoreCalculationSteps.normalization')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
-                    Datasets más anchos generan más issues. Se divide la penalización por √(columnas / 10).
+                    {t('evaluations.detail.scoreCalculationSteps.normalizationDescription')}
                   </Typography>
                   {(() => {
                     const numCols = overallMetrics.score_breakdown.num_columns ?? 0;
@@ -774,7 +779,7 @@ const EvaluationDetail = () => {
                         <Box>√({numCols} cols / 10) = <strong>{scale.toFixed(3)}</strong></Box>
                         <Box sx={{ mt: 0.5 }}>
                           {(raw * 100).toFixed(1)}% / {scale.toFixed(3)} = <strong>{(adj * 100).toFixed(1)}%</strong>
-                          {capped && <Box component="span" sx={{ color: '#888', ml: 1 }}>(limitado al tope máximo −97%)</Box>}
+                          {capped && <Box component="span" sx={{ color: '#888', ml: 1 }}>{t('evaluations.detail.scoreCalculationSteps.capped')}</Box>}
                         </Box>
                       </Box>
                     );
@@ -797,7 +802,7 @@ const EvaluationDetail = () => {
                                    finalScore >= 0.5 ? 'rgba(255, 184, 0, 0.2)' : 'rgba(229, 72, 77, 0.2)',
                     }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#333' }}>
-                        3. Puntuación final
+                        3. {t('evaluations.detail.finalScore')}
                       </Typography>
                       <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
                         100% − {(penalty * 100).toFixed(1)}% ={' '}
@@ -817,10 +822,10 @@ const EvaluationDetail = () => {
                 {/* Diagnostic: metric scores */}
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#333' }}>
-                    Diagnóstico por dimensión
+                    {t('evaluations.detail.scoreCalculationSteps.diagnosticByDimension')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 1.5 }}>
-                    Porcentaje de valores válidos por métrica. Referencia para localizar el origen de los issues.
+                    {t('evaluations.detail.scoreCalculationSteps.diagnosticDescription')}
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     {Object.entries(overallMetrics.score_breakdown.metric_scores || {}).map(([metric, score]: [string, any]) => {
@@ -844,7 +849,7 @@ const EvaluationDetail = () => {
                   </Box>
                   {overallMetrics.score_breakdown.diagnostic_base_score !== undefined && (
                     <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#aaa' }}>
-                      Media ponderada de diagnóstico: {((overallMetrics.score_breakdown.diagnostic_base_score ?? 0) * 100).toFixed(1)}%
+                      {t('evaluations.detail.scoreCalculationSteps.weightedAverage', { value: ((overallMetrics.score_breakdown.diagnostic_base_score ?? 0) * 100).toFixed(1) })}
                     </Typography>
                   )}
                 </Box>

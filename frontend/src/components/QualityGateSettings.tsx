@@ -13,9 +13,9 @@ import {
   Save as SaveIcon,
   RestartAlt as RestartAltIcon,
   CheckCircle as CheckCircleIcon,
-  RadioButtonUnchecked as CircleIcon,
 } from '@mui/icons-material';
 import { projectsAPI } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 // ─── paleta ───────────────────────────────────────────────────────────────
 const GREEN  = '#00B37E';
@@ -40,23 +40,6 @@ const DEFAULT: QualityGateThresholds = {
   max_new_issues: 10,
 };
 
-// ─── strictness helpers ────────────────────────────────────────────────────
-function scoreStrictness(v: number): { label: string; color: string } {
-  if (v >= 85) return { label: 'Estricto',   color: RED    };
-  if (v >= 60) return { label: 'Moderado',   color: ORANGE };
-  return              { label: 'Permisivo',  color: GREEN  };
-}
-function criticalStrictness(v: number): { label: string; color: string } {
-  if (v === 0) return { label: 'Estricto',   color: RED    };
-  if (v <= 3)  return { label: 'Moderado',   color: ORANGE };
-  return              { label: 'Permisivo',  color: GREEN  };
-}
-function newIssuesStrictness(v: number): { label: string; color: string } {
-  if (v <= 3)  return { label: 'Estricto',   color: RED    };
-  if (v <= 15) return { label: 'Moderado',   color: ORANGE };
-  return              { label: 'Permisivo',  color: GREEN  };
-}
-
 // ─── rule card ────────────────────────────────────────────────────────────
 interface RuleCardProps {
   label: string;
@@ -66,7 +49,7 @@ interface RuleCardProps {
   max: number;
   step?: number;
   unit: string;
-  operator: string;           // e.g. "≥" or "≤"
+  operator: string;
   strictness: { label: string; color: string };
   disabled: boolean;
   onChange: (v: number) => void;
@@ -183,6 +166,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
   projectId,
   onThresholdsLoaded,
 }) => {
+  const { t } = useTranslation();
   const [thresholds, setThresholds]         = useState<QualityGateThresholds>(DEFAULT);
   const [original, setOriginal]             = useState<QualityGateThresholds>(DEFAULT);
   const [isActive, setIsActive]             = useState(true);
@@ -190,8 +174,23 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
   const [saving, setSaving]                 = useState(false);
   const [error, setError]                   = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const hasChanges = JSON.stringify(thresholds) !== JSON.stringify(original) ||
-                     isActive !== isActive; // re-eval on active toggle too
+
+  // ─── strictness helpers (inside component to close over t) ────────────
+  const scoreStrictness = (v: number): { label: string; color: string } => {
+    if (v >= 85) return { label: t('qualityGate.settings.strict'),    color: RED    };
+    if (v >= 60) return { label: t('qualityGate.settings.moderate'),  color: ORANGE };
+    return              { label: t('qualityGate.settings.permissive'), color: GREEN  };
+  };
+  const criticalStrictness = (v: number): { label: string; color: string } => {
+    if (v === 0) return { label: t('qualityGate.settings.strict'),    color: RED    };
+    if (v <= 3)  return { label: t('qualityGate.settings.moderate'),  color: ORANGE };
+    return              { label: t('qualityGate.settings.permissive'), color: GREEN  };
+  };
+  const newIssuesStrictness = (v: number): { label: string; color: string } => {
+    if (v <= 3)  return { label: t('qualityGate.settings.strict'),    color: RED    };
+    if (v <= 15) return { label: t('qualityGate.settings.moderate'),  color: ORANGE };
+    return              { label: t('qualityGate.settings.permissive'), color: GREEN  };
+  };
 
   // Load
   useEffect(() => {
@@ -208,7 +207,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
           onThresholdsLoaded?.(loaded);
         }
       } catch {
-        setError('No se pudo cargar la configuración del Quality Gate');
+        setError(t('qualityGate.settings.saveError'));
       } finally {
         setLoading(false);
       }
@@ -228,10 +227,10 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
     try {
       await projectsAPI.updateQualityGate(projectId, thresholds, { is_active: isActive });
       setOriginal({ ...thresholds });
-      setSuccessMessage('Quality Gate guardado');
+      setSuccessMessage(t('qualityGate.settings.saveSuccess'));
       onThresholdsLoaded?.(thresholds);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar');
+      setError(err.response?.data?.message || t('qualityGate.settings.saveError'));
     } finally {
       setSaving(false);
     }
@@ -260,7 +259,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
       }}>
         <Box>
           <Typography sx={{ fontSize: '0.78rem', color: GRAY, mt: 0.25 }}>
-            Condiciones mínimas que debe cumplir un análisis para marcarse como PASSED
+            {t('qualityGate.settings.subtitle')}
           </Typography>
         </Box>
 
@@ -287,7 +286,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
             fontSize: '0.75rem', fontWeight: 600,
             color: isActive ? GREEN : '#AAAAAA',
           }}>
-            {isActive ? 'Activo' : 'Inactivo'}
+            {isActive ? t('common.active') : t('common.inactive')}
           </Typography>
         </Box>
       </Box>
@@ -302,13 +301,13 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
         opacity: isActive ? 1 : 0.45,
       }}>
         <Typography sx={{ fontSize: '0.72rem', color: '#AAAAAA', mr: 0.5 }}>
-          PASA SI
+          {t('qualityGate.settings.passIf')}
         </Typography>
 
         {[
-          { text: `Score ≥ ${thresholds.min_score}%`,         color: s0.color },
-          { text: `Críticos ≤ ${thresholds.max_critical_issues}`, color: s1.color },
-          { text: `Nuevos ≤ ${thresholds.max_new_issues}`,    color: s2.color },
+          { text: t('qualityGate.settings.scoreCondition', { value: thresholds.min_score }),         color: s0.color },
+          { text: t('qualityGate.settings.criticalCondition', { value: thresholds.max_critical_issues }), color: s1.color },
+          { text: t('qualityGate.settings.newIssuesCondition', { value: thresholds.max_new_issues }),    color: s2.color },
         ].map(({ text, color }, i) => (
           <React.Fragment key={text}>
             <Box sx={{
@@ -323,7 +322,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
             </Box>
             {i < 2 && (
               <Typography sx={{ fontSize: '0.68rem', color: '#CCCCCC', fontWeight: 600 }}>
-                AND
+                {t('qualityGate.settings.and')}
               </Typography>
             )}
           </React.Fragment>
@@ -356,8 +355,8 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
         mb: 3,
       }}>
         <RuleCard
-          label="Score mínimo"
-          description="Puntuación mínima requerida para aprobar"
+          label={t('qualityGate.settings.scoreLabel')}
+          description={t('qualityGate.settings.scoreDesc')}
           value={thresholds.min_score}
           min={0} max={100}
           unit="%" operator="≥"
@@ -366,8 +365,8 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
           onChange={set('min_score')}
         />
         <RuleCard
-          label="Máx. issues críticos"
-          description="Issues críticos permitidos (0 = cero tolerancia)"
+          label={t('qualityGate.settings.criticalLabel')}
+          description={t('qualityGate.settings.criticalDesc')}
           value={thresholds.max_critical_issues}
           min={0} max={50}
           unit="" operator="≤"
@@ -376,8 +375,8 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
           onChange={set('max_critical_issues')}
         />
         <RuleCard
-          label="Máx. nuevos issues"
-          description="Nuevos issues permitidos por análisis"
+          label={t('qualityGate.settings.newIssuesLabel')}
+          description={t('qualityGate.settings.newIssuesDesc')}
           value={thresholds.max_new_issues}
           min={0} max={100}
           unit="" operator="≤"
@@ -402,7 +401,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
             '&:hover': { color: '#555', backgroundColor: '#F5F5F5' },
           }}
         >
-          Restaurar valores por defecto
+          {t('qualityGate.settings.resetButton')}
         </Button>
 
         <Button
@@ -427,7 +426,7 @@ const QualityGateSettings: React.FC<QualityGateSettingsProps> = ({
             '&.Mui-disabled': { backgroundColor: '#E8E8E8', color: '#AAAAAA' },
           }}
         >
-          {saving ? 'Guardando…' : 'Guardar cambios'}
+          {saving ? t('common.loading') : t('qualityGate.settings.saveButton')}
         </Button>
       </Box>
     </Box>

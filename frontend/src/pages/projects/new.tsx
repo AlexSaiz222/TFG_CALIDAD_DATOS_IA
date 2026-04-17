@@ -21,6 +21,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Assignment as TemplateIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import TemplateCard from '../../components/metrics/TemplateCard';
 import { projectsAPI, metricsAPI } from '../../services/api';
@@ -28,10 +29,15 @@ import { MetricTemplate } from '../../types';
 import { getMetricMeta, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 import { safeNavigate } from '../../utils/routeTransition';
 
-const steps = ['Información básica', 'Plantilla y métricas', 'Resumen y confirmación'];
-
 const NewProject = () => {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const steps = [
+    t('projects.new.steps.basicInfo'),
+    t('projects.new.steps.templateMetrics'),
+    t('projects.new.steps.summary'),
+  ];
 
   // Step state
   const [activeStep, setActiveStep] = useState(0);
@@ -104,7 +110,7 @@ const NewProject = () => {
   const validateStep = (step: number): boolean => {
     if (step === 0) {
       const newErrors: Record<string, string> = {};
-      if (!formData.name.trim()) newErrors.name = 'El nombre del proyecto es obligatorio';
+      if (!formData.name.trim()) newErrors.name = t('projects.new.nameRequired');
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     }
@@ -187,7 +193,7 @@ const NewProject = () => {
 
       safeNavigate(`/projects/${newProject.id || newProject.data?.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear el proyecto. Inténtelo de nuevo.');
+      setError(err.response?.data?.message || t('projects.createError'));
       setLoading(false);
     }
   };
@@ -202,7 +208,7 @@ const NewProject = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Nuevo proyecto
+            {t('projects.new.title')}
           </Typography>
         </Box>
 
@@ -270,19 +276,19 @@ const NewProject = () => {
           {activeStep === 0 && (
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Información del proyecto
+                {t('projects.new.projectInfo')}
               </Typography>
               <TextField
-                fullWidth label="Nombre del proyecto" name="name"
+                fullWidth label={t('projects.new.projectName')} name="name"
                 value={formData.name} onChange={handleChange}
                 error={!!errors.name} helperText={errors.name}
                 sx={{ mb: 2 }} required size="small"
               />
               <TextField
-                fullWidth label="Descripción" name="description"
+                fullWidth label={t('common.description')} name="description"
                 value={formData.description} onChange={handleChange}
                 multiline rows={4} sx={{ mb: 2 }}
-                placeholder="Describe brevemente el propósito del proyecto (opcional)"
+                placeholder={t('projects.new.descriptionPlaceholder')}
                 size="small"
               />
             </Box>
@@ -299,10 +305,10 @@ const NewProject = () => {
                 <>
                   {/* Template selection */}
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                    Elige una plantilla
+                    {t('projects.new.chooseTemplate')}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                    Selecciona una plantilla predefinida o personaliza las métricas manualmente.
+                    {t('projects.new.templateSubtitle')}
                   </Typography>
 
                   <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -325,11 +331,11 @@ const NewProject = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                             <TemplateIcon sx={{ color: selectedTemplateId === null ? GREEN : '#999', fontSize: 20 }} />
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                              Personalizada
+                              {t('projects.new.custom')}
                             </Typography>
                           </Box>
                           <Typography variant="body2" color="text.secondary">
-                            Selecciona métricas manualmente sin partir de una plantilla.
+                            {t('projects.new.customSubtitle')}
                           </Typography>
                           {selectedTemplateId === null && (
                             <CheckCircleIcon sx={{ position: 'absolute', top: 8, right: 8, color: GREEN, fontSize: 20 }} />
@@ -354,10 +360,10 @@ const NewProject = () => {
 
                   {/* Metrics selection */}
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                    Métricas activas
+                    {t('projects.new.activeMetrics')}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                    Activa o desactiva métricas individuales. Podrás configurar parámetros detallados desde el proyecto.
+                    {t('projects.new.activeMetricsSubtitle')}
                   </Typography>
 
                   <Grid container spacing={1}>
@@ -417,21 +423,21 @@ const NewProject = () => {
           {activeStep === 2 && (
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1A1A1A' }}>
-                Resumen del proyecto
+                {t('projects.new.projectSummary')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
-                Revisa la información antes de crear el proyecto. Podrás modificarla después desde la configuración.
+                {t('projects.new.summarySubtitle')}
               </Typography>
 
               {/* Project Info */}
               <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, border: '1px solid #E0E0E0', borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: GREEN }}>
-                  Información básica
+                  {t('projects.new.basicInfoLabel')}
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   <Box>
                     <Typography variant="caption" sx={{ color: '#999', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600 }}>
-                      Nombre
+                      {t('common.name')}
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
                       {formData.name}
@@ -440,7 +446,7 @@ const NewProject = () => {
                   {formData.description && (
                     <Box>
                       <Typography variant="caption" sx={{ color: '#999', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600 }}>
-                        Descripción
+                        {t('common.description')}
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#555' }}>
                         {formData.description}
@@ -453,22 +459,22 @@ const NewProject = () => {
               {/* Template & Metrics */}
               <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, border: '1px solid #E0E0E0', borderRadius: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: GREEN }}>
-                  Configuración de métricas
+                  {t('projects.new.metricsConfig')}
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   <Box>
                     <Typography variant="caption" sx={{ color: '#999', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600 }}>
-                      Plantilla
+                      {t('projects.new.templateLabel')}
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
                       {selectedTemplateId
-                        ? templates.find(t => t.id === selectedTemplateId)?.name || 'Plantilla personalizada'
-                        : 'Personalizada (sin plantilla)'}
+                        ? templates.find(tmpl => tmpl.id === selectedTemplateId)?.name || t('projects.new.customTemplate')
+                        : t('projects.new.noTemplate')}
                     </Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" sx={{ color: '#999', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600, mb: 1, display: 'block' }}>
-                      Métricas seleccionadas ({selectedMetricIds.size})
+                      {t('projects.new.selectedMetrics', { count: selectedMetricIds.size })}
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                       {Array.from(selectedMetricIds).map((metricId) => {
@@ -495,7 +501,7 @@ const NewProject = () => {
               </Paper>
 
               <Alert severity="info" sx={{ mt: 3 }}>
-                Al crear el proyecto, podrás subir datasets y configurar evaluaciones de calidad de datos.
+                {t('projects.new.afterCreate')}
               </Alert>
             </Box>
           )}
@@ -508,7 +514,7 @@ const NewProject = () => {
               disabled={loading}
               sx={{ borderColor: '#CCC', color: '#555', '&:hover': { borderColor: '#AAA', backgroundColor: 'rgba(0,0,0,0.04)' } }}
             >
-              {activeStep === 0 ? 'Cancelar' : 'Anterior'}
+              {activeStep === 0 ? t('common.cancel') : t('common.previous')}
             </Button>
 
             {activeStep < steps.length - 1 ? (
@@ -517,7 +523,7 @@ const NewProject = () => {
                 onClick={handleNext}
                 sx={{ backgroundColor: GREEN, color: '#fff', '&:hover': { backgroundColor: GREEN_HOVER } }}
               >
-                Siguiente
+                {t('common.next')}
               </Button>
             ) : (
               <Button
@@ -526,7 +532,7 @@ const NewProject = () => {
                 disabled={loading}
                 sx={{ backgroundColor: GREEN, color: '#fff', px: 4, '&:hover': { backgroundColor: GREEN_HOVER } }}
               >
-                {loading ? <CircularProgress size={20} color="inherit" /> : 'Crear proyecto'}
+                {loading ? <CircularProgress size={20} color="inherit" /> : t('projects.new.createButton')}
               </Button>
             )}
           </Box>

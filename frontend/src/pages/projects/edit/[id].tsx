@@ -11,12 +11,14 @@ import {
   IconButton,
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../../components/layout/MainLayout';
 import { projectsAPI } from '../../../services/api';
 import { safeNavigate } from '../../../utils/routeTransition';
 import { Project } from '../../../types';
 
 const EditProject = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -44,7 +46,7 @@ const EditProject = () => {
         });
       } catch (error: any) {
         console.error('Error fetching project:', error);
-        setError('Error al cargar el proyecto. Inténtalo de nuevo.');
+        setError(t('projects.loadProjectError'));
       } finally {
         setFetchLoading(false);
       }
@@ -75,7 +77,7 @@ const EditProject = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'El nombre del proyecto es obligatorio';
+      newErrors.name = t('projects.edit.nameRequired');
     }
 
     setErrors(newErrors);
@@ -104,7 +106,7 @@ const EditProject = () => {
       safeNavigate(`/projects/${id}`);
     } catch (error: any) {
       console.error('Error updating project:', error);
-      setError(error.response?.data?.message || 'Error al actualizar el proyecto. Inténtalo de nuevo.');
+      setError(error.response?.data?.message || t('projects.updateError'));
       setLoading(false);
     }
   };
@@ -123,9 +125,9 @@ const EditProject = () => {
     return (
       <MainLayout>
         <Box sx={{ p: 4, textAlign: 'center' }}>
-          <Alert severity="error">Project not found</Alert>
+          <Alert severity="error">{t('projects.new.notFound')}</Alert>
           <Button onClick={() => router.push('/projects')} sx={{ mt: 2 }}>
-            Back to Projects
+            {t('projects.new.backToProjects')}
           </Button>
         </Box>
       </MainLayout>
@@ -157,7 +159,7 @@ const EditProject = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Editar proyecto
+            {t('projects.edit.title')}
           </Typography>
         </Box>
 
@@ -181,7 +183,7 @@ const EditProject = () => {
           <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <TextField
               fullWidth
-              label="Project Name"
+              label={t('projects.new.projectName')}
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -195,14 +197,14 @@ const EditProject = () => {
 
             <TextField
               fullWidth
-              label="Description"
+              label={t('common.description')}
               name="description"
               value={formData.description}
               onChange={handleChange}
               multiline
               rows={4}
               sx={{ mb: 4 }}
-              placeholder="Enter a description for your project (optional)"
+              placeholder={t('projects.new.descriptionPlaceholder')}
               size="small"
               variant="outlined"
             />
@@ -228,7 +230,7 @@ const EditProject = () => {
                   },
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -244,7 +246,7 @@ const EditProject = () => {
                   },
                 }}
               >
-                {loading ? <CircularProgress size={20} color="inherit" /> : 'Save changes'}
+                {loading ? <CircularProgress size={20} color="inherit" /> : t('common.saveChanges')}
               </Button>
             </Box>
           </Box>

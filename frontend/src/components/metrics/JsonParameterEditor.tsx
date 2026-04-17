@@ -14,6 +14,7 @@ import {
   Lightbulb as LightbulbIcon,
   Check as CheckIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const GREEN = '#00B37E';
 
@@ -21,20 +22,20 @@ const GREEN = '#00B37E';
 // Per-metric JSON examples (derived from docs/metricas)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string, any>; description: string }> = {
+export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string, any>; descriptionKey: string }> = {
   completeness: {
     example: {
       threshold: 0.95,
       columns: ['nombre', 'email', 'telefono'],
     },
-    description: 'threshold: mínimo de completitud (0–1). columns: vacío = todas.',
+    descriptionKey: 'jsonEditor.paramHints.completeness',
   },
   uniqueness: {
     example: {
       threshold: 1.0,
       columns: ['user_id', 'transaction_id'],
     },
-    description: 'threshold: unicidad mínima de filas (1.0 = sin duplicados). columns: columnas que deben ser únicas.',
+    descriptionKey: 'jsonEditor.paramHints.uniqueness',
   },
   syntactic_accuracy: {
     example: {
@@ -45,7 +46,7 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
         { column: 'telefono', expected_type: 'phone_es' },
       ],
     },
-    description: 'auto_detect_types: detectar formatos automáticamente. columns: reglas columna→formato. Tipos: email, phone_es, phone_intl, date_iso, date_eu, dni_es, postal_code_es, integer, decimal, url, uuid, ip_v4, credit_card.',
+    descriptionKey: 'jsonEditor.paramHints.syntactic_accuracy',
   },
   class_balance: {
     example: {
@@ -55,7 +56,7 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
       imbalance_threshold_high: 0.90,
       imbalance_threshold_low: 0.05,
     },
-    description: 'auto_detect: detectar columnas categóricas. max_cardinality: máx. valores únicos para considerar categórico. imbalance_threshold_high/low: umbrales de desequilibrio.',
+    descriptionKey: 'jsonEditor.paramHints.class_balance',
   },
   currentness: {
     example: {
@@ -63,7 +64,7 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
       columns: ['fecha_registro', 'fecha_actualizacion'],
       staleness_threshold_days: 30,
     },
-    description: 'auto_detect: detectar columnas de fecha. staleness_threshold_days: días sin actualización = alerta.',
+    descriptionKey: 'jsonEditor.paramHints.currentness',
   },
   logical_consistency: {
     example: {
@@ -81,7 +82,7 @@ export const METRIC_PARAMETER_EXAMPLES: Record<string, { example: Record<string,
         },
       ],
     },
-    description: 'rules: lista de reglas. Tipo "if_then": condition + assertion. Tipo "violation": expression (filas que violan la regla).',
+    descriptionKey: 'jsonEditor.paramHints.logical_consistency',
   },
 };
 
@@ -104,6 +105,7 @@ const JsonParameterEditor: React.FC<JsonParameterEditorProps> = ({
   metricName,
   height = '100%',
 }) => {
+  const { t } = useTranslation();
   const editorRef = useRef<any>(null);
   const isInternalUpdate = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,56 +143,56 @@ const JsonParameterEditor: React.FC<JsonParameterEditorProps> = ({
     try {
       const parsed = JSON.parse(newValue);
       if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
-        setError('El JSON debe ser un objeto { }');
+        setError(t('jsonEditor.validationErrors.mustBeObject'));
         onValidationChange?.(false);
         return;
       }
-      
+
       // Validate threshold values (must be 0-1)
       if ('threshold' in parsed) {
-        const t = parsed.threshold;
-        if (typeof t === 'number' && (t < 0 || t > 1)) {
-          setError('threshold debe estar entre 0 y 1');
+        const thresh = parsed.threshold;
+        if (typeof thresh === 'number' && (thresh < 0 || thresh > 1)) {
+          setError(t('jsonEditor.validationErrors.thresholdRange'));
           onValidationChange?.(false);
           return;
         }
       }
-      
+
       // Validate imbalance thresholds
       if ('imbalance_threshold_high' in parsed) {
-        const t = parsed.imbalance_threshold_high;
-        if (typeof t === 'number' && (t < 0 || t > 1)) {
-          setError('imbalance_threshold_high debe estar entre 0 y 1');
+        const thresh = parsed.imbalance_threshold_high;
+        if (typeof thresh === 'number' && (thresh < 0 || thresh > 1)) {
+          setError(t('jsonEditor.validationErrors.thresholdRange'));
           onValidationChange?.(false);
           return;
         }
       }
       if ('imbalance_threshold_low' in parsed) {
-        const t = parsed.imbalance_threshold_low;
-        if (typeof t === 'number' && (t < 0 || t > 1)) {
-          setError('imbalance_threshold_low debe estar entre 0 y 1');
+        const thresh = parsed.imbalance_threshold_low;
+        if (typeof thresh === 'number' && (thresh < 0 || thresh > 1)) {
+          setError(t('jsonEditor.validationErrors.thresholdRange'));
           onValidationChange?.(false);
           return;
         }
       }
-      
+
       // Validate factor (outliers)
       if ('factor' in parsed) {
         const f = parsed.factor;
         if (typeof f === 'number' && (f < 0 || f > 10)) {
-          setError('factor debe estar entre 0 y 10');
+          setError(t('jsonEditor.validationErrors.factorPositive'));
           onValidationChange?.(false);
           return;
         }
       }
-      
+
       setError(null);
       onValidationChange?.(true);
       isInternalUpdate.current = true;
       lastExternalJson.current = JSON.stringify(parsed, null, 2);
       onChange(parsed);
     } catch (e: any) {
-      const msg = e.message?.replace(/^JSON\.parse: /, '') || 'JSON inválido';
+      const msg = e.message?.replace(/^JSON\.parse: /, '') || t('jsonEditor.validationErrors.invalidJson');
       setError(msg);
       onValidationChange?.(false);
     }
@@ -243,24 +245,24 @@ const JsonParameterEditor: React.FC<JsonParameterEditorProps> = ({
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>
-            JSON
+            {t('jsonEditor.json')}
           </Typography>
-          <Chip label="parameters" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+          <Chip label={t('jsonEditor.parameters')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
           {hint && (
-            <Tooltip title="Cargar ejemplo para esta métrica" arrow>
+            <Tooltip title={t('jsonEditor.loadExample')} arrow>
               <IconButton size="small" onClick={handleLoadExample} sx={{ fontSize: 12 }}>
                 <LightbulbIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
-          <Tooltip title="Formatear JSON" arrow>
+          <Tooltip title={t('jsonEditor.formatJson')} arrow>
             <IconButton size="small" onClick={handleFormat}>
               <FormatIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={copied ? '¡Copiado!' : 'Copiar al portapapeles'} arrow>
+          <Tooltip title={copied ? t('jsonEditor.copied') : t('jsonEditor.copyToClipboard')} arrow>
             <IconButton size="small" onClick={handleCopy}>
               {copied ? <CheckIcon fontSize="small" sx={{ color: GREEN }} /> : <CopyIcon fontSize="small" />}
             </IconButton>
@@ -272,7 +274,7 @@ const JsonParameterEditor: React.FC<JsonParameterEditorProps> = ({
       {hint && (
         <Box sx={{ px: 1.5, py: 0.75, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
           <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4, display: 'block' }}>
-            {hint.description}
+            {t(hint.descriptionKey)}
           </Typography>
         </Box>
       )}

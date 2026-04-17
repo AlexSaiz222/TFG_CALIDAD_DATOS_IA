@@ -60,6 +60,7 @@ import {
 import { datasetsAPI } from '../services/api';
 import type { DataProfilingResult, ProfilingColumn, ColumnMetrics } from '../types';
 import MetricDetailsTabs from './evaluations/MetricDetailsTabs';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
@@ -76,8 +77,17 @@ const formatBytes = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-const subTypeLabels: Record<string, string> = { continuous: 'Continua', discrete: 'Discreta', binary: 'Binaria', nominal: 'Nominal', text: 'Texto' };
-const getSubTypeLabel = (s: string) => subTypeLabels[s] || s;
+// subTypeLabels is resolved via i18n inside component (see useSubTypeLabel hook usage)
+const getSubTypeLabel = (s: string, t: (key: string) => string) => {
+  const map: Record<string, string> = {
+    continuous: t('profiling.subTypes.continuous'),
+    discrete: t('profiling.subTypes.discrete'),
+    binary: t('profiling.subTypes.binary'),
+    nominal: t('profiling.subTypes.nominal'),
+    text: t('profiling.subTypes.text'),
+  };
+  return map[s] || s;
+};
 const getCategoryColor = (cat: string) => cat === 'numeric' ? '#1976d2' : '#7b1fa2';
 const completenessColor = (v: number) => v >= 98 ? '#00B37E' : v >= 90 ? '#FFB800' : '#E5484D';
 const formatStat = (v: number | null | undefined) => v == null ? '—' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 4 });
@@ -93,12 +103,12 @@ const correlationColor = (v: number): { bg: string; text: string } => {
   return { bg: `rgb(${b}, ${b}, ${255 - Math.round(abs * 50)})`, text: abs > 0.5 ? '#fff' : '#333' };
 };
 
-const badgeFor = (val: number, thresholds: [number, number, number, number] = [0.98, 0.95, 0.90, 0.80]) => {
-  if (val >= thresholds[0]) return { label: 'Excelente', bg: 'rgba(0,179,126,0.1)', color: '#00B37E' };      // >= 98%
-  if (val >= thresholds[1]) return { label: 'Bueno', bg: 'rgba(52,211,153,0.1)', color: '#34D399' };        // >= 95%
-  if (val >= thresholds[2]) return { label: 'Aceptable', bg: 'rgba(251,191,36,0.1)', color: '#FBB024' };    // >= 90%
-  if (val >= thresholds[3]) return { label: 'Requiere atención', bg: 'rgba(251,146,60,0.1)', color: '#FB923C' }; // >= 80%
-  return { label: 'Crítico', bg: 'rgba(239,68,68,0.1)', color: '#EF4444' };                                 // < 80%
+const badgeFor = (val: number, t: (key: string) => string, thresholds: [number, number, number, number] = [0.98, 0.95, 0.90, 0.80]) => {
+  if (val >= thresholds[0]) return { label: t('profiling.qualityBadge.excellent'), bg: 'rgba(0,179,126,0.1)', color: '#00B37E' };
+  if (val >= thresholds[1]) return { label: t('profiling.qualityBadge.good'), bg: 'rgba(52,211,153,0.1)', color: '#34D399' };
+  if (val >= thresholds[2]) return { label: t('profiling.qualityBadge.acceptable'), bg: 'rgba(251,191,36,0.1)', color: '#FBB024' };
+  if (val >= thresholds[3]) return { label: t('profiling.qualityBadge.attention'), bg: 'rgba(251,146,60,0.1)', color: '#FB923C' };
+  return { label: t('profiling.qualityBadge.critical'), bg: 'rgba(239,68,68,0.1)', color: '#EF4444' };
 };
 
 // ── Collapsible Section ─────────────────────────────────────────
@@ -215,7 +225,9 @@ const MetricCard: React.FC<{
   insight: string;
   onDetail?: () => void;
   configButton?: React.ReactNode;
-}> = ({ title, badge, value, insight, onDetail, configButton }) => (
+}> = ({ title, badge, value, insight, onDetail, configButton }) => {
+  const { t } = useTranslation();
+  return (
   <Paper
     elevation={0}
     onClick={onDetail}
@@ -242,18 +254,20 @@ const MetricCard: React.FC<{
     </Box>
     <Typography variant="h4" sx={{ fontWeight: 700, color: badge.color, mb: 1, lineHeight: 1 }}>{value}</Typography>
     <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1, minHeight: '2em' }}>{insight}</Typography>
-    <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500 }}>Ver detalle →</Typography>
+    <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 500 }}>{t('profiling.viewDetail')}</Typography>
   </Paper>
-);
+  );
+};
 
 // ── Enhanced Chart Cards ───────────────────────────────────────
 const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }) => {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!column.histogram || column.histogram.bins.length === 0) {
     return (
       <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
-        <Typography variant="caption" sx={{ color: '#CCC' }}>Sin histograma</Typography>
+        <Typography variant="caption" sx={{ color: '#CCC' }}>{t('profiling.histogram.noHistogram')}</Typography>
       </Box>
     );
   }
@@ -298,15 +312,15 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
             const bins = column.histogram!.bins;
             const binStart = bins[index];
             const binEnd = bins[index + 1] || bins[index];
-            return `Rango: ${binStart.toFixed(2)} - ${binEnd.toFixed(2)}`;
+            return t('profiling.histogram.range', { start: binStart.toFixed(2), end: binEnd.toFixed(2) });
           },
           label: (context: any) => {
             const count = context.parsed.y;
             const total = column.histogram!.counts.reduce((a: number, b: number) => a + b, 0);
             const percentage = ((count / total) * 100).toFixed(1);
             return [
-              `Frecuencia: ${count} valores`,
-              `Porcentaje: ${percentage}%`
+              t('profiling.histogram.frequency', { count }),
+              t('profiling.histogram.percentage', { pct: percentage }),
             ];
           },
         },
@@ -359,7 +373,7 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
           <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
-            Histograma
+            {t('profiling.histogram.title')}
           </Typography>
           <IconButton
             size="small"
@@ -383,7 +397,7 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
         </Box>
       </Box>
 
-      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Histograma - ${column.name}`}>
+      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={t('profiling.histogram.modalTitle', { name: column.name })}>
         <Box sx={{ height: 450 }}>
           <Bar data={chartData} options={chartOptions(true)} />
         </Box>
@@ -393,12 +407,13 @@ const EnhancedHistogramCard: React.FC<{ column: ProfilingColumn }> = ({ column }
 };
 
 const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) => {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!column.boxplot) {
     return (
       <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
-        <Typography variant="caption" sx={{ color: '#CCC' }}>Sin boxplot</Typography>
+        <Typography variant="caption" sx={{ color: '#CCC' }}>{t('profiling.boxplot.noBoxplot')}</Typography>
       </Box>
     );
   }
@@ -422,7 +437,7 @@ const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) 
         }}
       >
         <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', display: 'block', mb: 0.5, fontSize: '0.7rem', letterSpacing: '0.02em' }}>
-          Boxplot
+          {t('profiling.boxplot.title')}
         </Typography>
         <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', minHeight: 200 }}>
           <Box sx={{ width: '100%' }}>
@@ -431,7 +446,7 @@ const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) 
         </Box>
       </Box>
 
-      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Boxplot - ${column.name}`}>
+      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={t('profiling.boxplot.modalTitle', { name: column.name })}>
         <EnhancedBoxplot boxplot={column.boxplot} columnName={column.name} isExpanded />
       </ChartModal>
     </>
@@ -439,12 +454,13 @@ const EnhancedBoxplotCard: React.FC<{ column: ProfilingColumn }> = ({ column }) 
 };
 
 const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column }) => {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!column.bar_chart || column.bar_chart.labels.length === 0) {
     return (
       <Box sx={{ p: 2, border: '1px dashed #E8E8E8', borderRadius: 1.5, textAlign: 'center' }}>
-        <Typography variant="caption" sx={{ color: '#CCC' }}>Sin datos de distribución</Typography>
+        <Typography variant="caption" sx={{ color: '#CCC' }}>{t('profiling.barChart.noData')}</Typography>
       </Box>
     );
   }
@@ -485,16 +501,16 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
         displayColors: false,
         callbacks: {
           title: (context: any) => {
-            return `Categoría: ${context[0].label}`;
+            return t('profiling.barChart.category', { label: context[0].label });
           },
           label: (context: any) => {
             const count = context.parsed.y || context.parsed.x;
             const total = column.bar_chart!.counts.reduce((a: number, b: number) => a + b, 0);
             const percentage = ((count / total) * 100).toFixed(1);
             return [
-              `Frecuencia: ${count} registros`,
-              `Porcentaje: ${percentage}%`,
-              `Total: ${total} registros`
+              t('profiling.barChart.records', { count }),
+              `${percentage}%`,
+              t('profiling.barChart.total', { total }),
             ];
           },
         },
@@ -544,7 +560,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
           <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
-            Top {Math.min(20, column.bar_chart.labels.length)} categorías
+            {t('profiling.barChart.topCategories', { count: Math.min(20, column.bar_chart.labels.length) })}
           </Typography>
           <IconButton
             size="small"
@@ -568,7 +584,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
         </Box>
       </Box>
 
-      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={`Distribución - ${column.name}`}>
+      <ChartModal open={modalOpen} onClose={() => setModalOpen(false)} title={t('profiling.barChart.title', { name: column.name })}>
         <Box sx={{ height: 450 }}>
           <Bar data={chartData} options={chartOptions(true)} />
         </Box>
@@ -579,6 +595,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
 
 // ── Main Component ──────────────────────────────────────────────
 const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiveColumns = [] }) => {
+  const { t } = useTranslation();
   const [profiling, setProfiling] = useState<DataProfilingResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -615,7 +632,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         }
       } catch (err: any) {
         if (!cancelled) {
-          setError(err?.response?.data?.message || 'Error al cargar el profiling del dataset.');
+          setError(err?.response?.data?.message || t('common.error'));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -871,12 +888,12 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, gap: 2 }}>
         <CircularProgress sx={{ color: '#00B37E' }} />
-        <Typography variant="body2" sx={{ color: '#666' }}>Generando análisis exploratorio…</Typography>
+        <Typography variant="body2" sx={{ color: '#666' }}>{t('common.loading')}</Typography>
       </Box>
     );
   }
   if (error) return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
-  if (!profiling) return <Alert severity="info" sx={{ mt: 2 }}>No hay datos de profiling disponibles.</Alert>;
+  if (!profiling) return <Alert severity="info" sx={{ mt: 2 }}>{t('common.noData')}</Alert>;
 
   const { overview, type_summary, columns } = profiling;
 
@@ -884,11 +901,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
   const compVal = filteredEvalOverallMetrics.completeness ?? 1;
   const nullPct = ((1 - compVal) * 100).toFixed(1);
   const nullCols = Object.values(filteredEvalColumnMetrics).filter((c: any) => (c.n_nulls || 0) > 0).length;
-  const compBadge = badgeFor(compVal);
+  const compBadge = badgeFor(compVal, t);
 
   const uniqVal = filteredEvalOverallMetrics.uniqueness ?? 1;
   const dupPct = ((1 - uniqVal) * 100).toFixed(1);
-  const uniqBadge = badgeFor(uniqVal);
+  const uniqBadge = badgeFor(uniqVal, t);
 
   const outlierMap = filteredEvalOverallMetrics.outliers || {};
   const totalOutliers = Object.values(outlierMap).reduce((s: number, c: any) => s + (c?.count || 0), 0);
@@ -898,11 +915,11 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
 
   // Badge informativo para outliers (NO indica calidad)
   const getOutlierBadge = () => {
-    if (totalOutliers === 0) return { label: 'Sin outliers', bg: 'rgba(34,197,94,0.1)', color: '#22C55E' };
-    if (outlierProp < 0.01) return { label: 'Muy pocos', bg: 'rgba(132,204,22,0.1)', color: '#84CC16' };
-    if (outlierProp < 0.05) return { label: 'Algunos', bg: 'rgba(234,179,8,0.1)', color: '#EAB308' };
-    if (outlierProp < 0.10) return { label: 'Moderados', bg: 'rgba(249,115,22,0.1)', color: '#F97316' };
-    return { label: 'Frecuentes', bg: 'rgba(239,68,68,0.1)', color: '#EF4444' };
+    if (totalOutliers === 0) return { label: t('profiling.outlierBadge.none'), bg: 'rgba(34,197,94,0.1)', color: '#22C55E' };
+    if (outlierProp < 0.01) return { label: t('profiling.outlierBadge.veryFew'), bg: 'rgba(132,204,22,0.1)', color: '#84CC16' };
+    if (outlierProp < 0.05) return { label: t('profiling.outlierBadge.some'), bg: 'rgba(234,179,8,0.1)', color: '#EAB308' };
+    if (outlierProp < 0.10) return { label: t('profiling.outlierBadge.moderate'), bg: 'rgba(249,115,22,0.1)', color: '#F97316' };
+    return { label: t('profiling.outlierBadge.frequent'), bg: 'rgba(239,68,68,0.1)', color: '#EF4444' };
   };
   const outBadge = getOutlierBadge();
 
@@ -937,7 +954,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         >
           <ViewColumnIcon sx={{ fontSize: 18, color: '#00B37E' }} />
           <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.82rem', color: '#444', flexGrow: 1 }}>
-            Alcance del análisis
+            {t('profiling.scope.title')}
           </Typography>
           <Chip
             label={`${activeCount} de ${columns.length} columnas`}
@@ -963,26 +980,26 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
           <Box sx={{ px: 2, pb: 2, pt: 0.5, borderTop: '1px solid #E8E8E8' }}>
             {/* Quick-action buttons */}
             <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#888', mr: 0.5, fontSize: '0.68rem' }}>Selección rápida:</Typography>
+              <Typography variant="caption" sx={{ color: '#888', mr: 0.5, fontSize: '0.68rem' }}>{t('profiling.scope.quickSelect')}</Typography>
               <Button size="small" variant="outlined" onClick={selectAll}
                 sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#CCC', color: '#666' }}
               >
-                Todas
+                {t('profiling.scope.all')}
               </Button>
               <Button size="small" variant="outlined" onClick={selectNone}
                 sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#CCC', color: '#666' }}
               >
-                Ninguna
+                {t('profiling.scope.none')}
               </Button>
               <Button size="small" variant="outlined" onClick={() => selectByCategory('numeric')}
                 sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#1976d2', color: '#1976d2' }}
               >
-                Solo numéricas ({type_summary.numeric_count})
+                {t('profiling.scope.onlyNumeric', { n: type_summary.numeric_count })}
               </Button>
               <Button size="small" variant="outlined" onClick={() => selectByCategory('categorical')}
                 sx={{ textTransform: 'none', fontSize: '0.68rem', py: 0.2, px: 1, minHeight: 24, borderRadius: 3, borderColor: '#9C27B0', color: '#9C27B0' }}
               >
-                Solo categóricas ({type_summary.categorical_count})
+                {t('profiling.scope.onlyCategorical', { n: type_summary.categorical_count })}
               </Button>
             </Box>
 
@@ -1022,20 +1039,20 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
       {/* ── SECTION 1 – Overview + Metrics ── */}
       <CollapsibleSection
         icon={<NotesIcon sx={{ color: '#00B37E' }} />}
-        title="Resumen del dataset"
-        subtitle={`${overview.total_rows.toLocaleString()} filas · ${overview.total_columns} columnas · ${formatBytes(overview.estimated_size_bytes)}${isFiltered ? ` · ${activeCount} activas` : ''}`}
+        title={t('profiling.overview.title')}
+        subtitle={`${overview.total_rows.toLocaleString()} ${t('profiling.overview.rows').toLowerCase()} · ${overview.total_columns} ${t('profiling.overview.columns').toLowerCase()} · ${formatBytes(overview.estimated_size_bytes)}${isFiltered ? ` · ${activeCount} activas` : ''}`}
         open={sections.overview}
         onToggle={() => toggle('overview')}
       >
         {/* Compact volumetry strip */}
         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 3, px: 1 }}>
           {[
-            { label: 'Filas', val: overview.total_rows.toLocaleString() },
-            { label: 'Columnas', val: isFiltered ? `${activeCount} / ${overview.total_columns}` : String(overview.total_columns) },
-            { label: 'Celdas', val: overview.total_cells.toLocaleString() },
-            { label: 'Tamaño', val: formatBytes(overview.estimated_size_bytes) },
-            { label: 'Numéricas', val: `${filteredNumericCols.length}${isFiltered ? ` / ${type_summary.numeric_count}` : ''} (${numPct}%)` },
-            { label: 'Categóricas', val: `${filteredCatCols.length}${isFiltered ? ` / ${type_summary.categorical_count}` : ''} (${catPct}%)` },
+            { label: t('profiling.overview.rows'), val: overview.total_rows.toLocaleString() },
+            { label: t('profiling.overview.columns'), val: isFiltered ? `${activeCount} / ${overview.total_columns}` : String(overview.total_columns) },
+            { label: t('profiling.overview.cells'), val: overview.total_cells.toLocaleString() },
+            { label: t('profiling.overview.size'), val: formatBytes(overview.estimated_size_bytes) },
+            { label: t('profiling.overview.numeric'), val: `${filteredNumericCols.length}${isFiltered ? ` / ${type_summary.numeric_count}` : ''} (${numPct}%)` },
+            { label: t('profiling.overview.categorical'), val: `${filteredCatCols.length}${isFiltered ? ` / ${type_summary.categorical_count}` : ''} (${catPct}%)` },
           ].map(({ label, val }) => (
             <Box key={label} sx={{ minWidth: 80 }}>
               <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', lineHeight: 1 }}>{label}</Typography>
@@ -1054,35 +1071,35 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Valores nulos"
+              title={t('profiling.metrics.nullValues')}
               value={`${nullPct}%`}
               badge={compBadge}
-              insight={nullCols > 0 ? `${nullCols} de ${activeCount} columnas con nulos` : 'Sin valores nulos'}
+              insight={nullCols > 0 ? `${nullCols} de ${activeCount} columnas con nulos` : t('completenessDetail.allComplete')}
               onDetail={openValoresNulos}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Registros duplicados"
+              title={t('profiling.metrics.duplicates')}
               value={`${dupPct}%`}
               badge={uniqBadge}
               insight={overview.duplicate_rows > 0
-                ? `${overview.duplicate_rows.toLocaleString()} fila${overview.duplicate_rows !== 1 ? 's' : ''} duplicada${overview.duplicate_rows !== 1 ? 's' : ''}`
-                : 'Sin filas duplicadas'}
+                ? t('uniquenessDetail.duplicatesFound', { count: overview.duplicate_rows })
+                : t('uniquenessDetail.allUnique')}
               onDetail={openRegistrosDuplicados}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
             <MetricCard
-              title="Outliers detectados"
+              title={t('profiling.metrics.outliers')}
               value={String(totalOutliers)}
               badge={outBadge}
               insight={totalOutliers === 0
-                ? 'Sin valores atípicos detectados'
-                : `${outlierColCount} columna${outlierColCount !== 1 ? 's' : ''} · ${(outlierProp * 100).toFixed(1)}% de valores`}
+                ? t('outlierDetail.stats.outlierCount') + ': 0'
+                : `${outlierColCount} col · ${(outlierProp * 100).toFixed(1)}%`}
               onDetail={openOutliers}
               configButton={
-                <Tooltip title={`Configurar detección de outliers (Factor IQR actual: ${iqrFactor})`}>
+                <Tooltip title={t('profiling.iqrTooltip', { factor: iqrFactor })}>
                   <IconButton
                     size="small"
                     onClick={handleIqrDialogOpen}
@@ -1119,8 +1136,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
       <CollapsibleSection
         id="profiling-analysis-details"
         icon={<ManageSearchIcon sx={{ color: '#00B37E' }} />}
-        title="Valores nulos, registros duplicados y outliers"
-        subtitle="Completitud, unicidad y valores atípicos"
+        title={`${t('profiling.metrics.nullValues')}, ${t('profiling.metrics.duplicates').toLowerCase()} y ${t('profiling.metrics.outliers').toLowerCase()}`}
+        subtitle={t('metricDetailsTabs.tabs.completeness') + ', ' + t('metricDetailsTabs.tabs.uniqueness').toLowerCase() + ' y ' + t('metricDetailsTabs.tabs.outliers').toLowerCase()}
         open={sections.metricDetails}
         onToggle={() => toggle('metricDetails')}
       >
@@ -1132,8 +1149,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
       {/* ── SECTION 3 – Per-column Analysis ── */}
       <CollapsibleSection
         icon={<BarChartIcon sx={{ color: '#00B37E' }} />}
-        title="Análisis por columna"
-        subtitle={isFiltered ? `${filteredColumns.length} de ${columns.length} columnas activas` : 'Estadísticas descriptivas y distribuciones'}
+        title={t('evaluations.detail.sections.columnMetrics', { count: filteredColumns.length })}
+        subtitle={isFiltered ? `${filteredColumns.length} / ${columns.length}` : ''}
         count={filteredColumns.length}
         open={sections.columns}
         onToggle={() => toggle('columns')}
@@ -1163,21 +1180,21 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                   />
                   <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1, fontSize: '0.85rem' }}>{col.name}</Typography>
                   {isSensitive && (
-                    <Tooltip title="Columna marcada como sensible – valores ofuscados">
+                    <Tooltip title={t('profiling.sensitiveColumnTooltip')}>
                       <Chip
                         icon={<VisibilityOffIcon sx={{ fontSize: 12 }} />}
-                        label="Sensible"
+                        label={t('profiling.sensitiveChipLabel')}
                         size="small"
                         sx={{ fontSize: '0.6rem', height: 20, bgcolor: 'rgba(229,72,77,0.08)', color: '#E5484D', fontWeight: 600, '& .MuiChip-icon': { color: '#E5484D' } }}
                       />
                     </Tooltip>
                   )}
-                  <Chip label={getSubTypeLabel(col.sub_type)} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 20, borderColor: '#DDD' }} />
+                  <Chip label={getSubTypeLabel(col.sub_type, t)} size="small" variant="outlined" sx={{ fontSize: '0.6rem', height: 20, borderColor: '#DDD' }} />
                   <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#888', fontSize: '0.65rem' }}>
-                    {col.n_unique} únicos
+                    {col.n_unique} {t('profiling.uniqueValues')}
                   </Typography>
                   {/* Inline mini completeness bar */}
-                  <Tooltip title={`${compColPct.toFixed(1)}% completo · ${col.n_missing} nulos`}>
+                  <Tooltip title={t('profiling.completenessTooltip', { pct: compColPct.toFixed(1), nulls: col.n_missing })}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 70 }}>
                       <Box sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: '#EEEEEE', overflow: 'hidden' }}>
                         <Box sx={{ width: `${compColPct}%`, height: '100%', borderRadius: 2, bgcolor: completenessColor(compColPct) }} />
@@ -1198,8 +1215,8 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                     bgcolor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(6px)', borderRadius: 1,
                   }}>
                     <VisibilityOffIcon sx={{ fontSize: 32, color: '#E5484D', mb: 1 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#E5484D' }}>Columna sensible</Typography>
-                    <Typography variant="caption" sx={{ color: '#888' }}>Los valores de ejemplo están ofuscados por privacidad</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#E5484D' }}>{t('profiling.sensitiveColumn')}</Typography>
+                    <Typography variant="caption" sx={{ color: '#888' }}>{t('profiling.sensitiveColumnObfuscated')}</Typography>
                   </Box>
                 )}
                 {col.category === 'numeric' ? (
@@ -1207,16 +1224,16 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                     {/* Stat cards */}
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 1, mb: 2 }}>
                       {[
-                        { label: 'Media', value: col.mean },
-                        { label: 'Mediana', value: col.median },
-                        { label: 'Desv. Est.', value: col.std },
+                        { label: t('outlierDetail.stats.mean'), value: col.mean },
+                        { label: t('outlierDetail.stats.median'), value: col.median },
+                        { label: t('outlierDetail.stats.stdDev'), value: col.std },
                         { label: 'Mín', value: col.min },
                         { label: 'Máx', value: col.max },
                         { label: 'Q1', value: col.q1 },
                         { label: 'Q3', value: col.q3 },
-                        { label: 'IQR', value: col.iqr },
-                        { label: 'Asimetría', value: col.skewness },
-                        { label: 'Curtosis', value: col.kurtosis },
+                        { label: t('outlierDetail.stats.iqr'), value: col.iqr },
+                        { label: t('profiling.skewness'), value: col.skewness },
+                        { label: t('profiling.kurtosis'), value: col.kurtosis },
                       ].map(({ label, value }) => (
                         <Box key={label} sx={{ p: 1, bgcolor: '#FAFAFA', borderRadius: 1, border: '1px solid #F0F0F0' }}>
                           <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.6rem', lineHeight: 1 }}>{label}</Typography>
@@ -1259,7 +1276,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                           border: '1px solid #F0F0F0',
                           textAlign: 'center'
                         }}>
-                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>Valores únicos</Typography>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>{t('profiling.uniqueValues')}</Typography>
                           <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#00B37E', fontSize: '1.5rem' }}>{col.n_unique.toLocaleString()}</Typography>
                         </Box>
                         <Box sx={{
@@ -1269,7 +1286,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                           border: '1px solid #F0F0F0',
                           textAlign: 'center'
                         }}>
-                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>Moda (más frecuente)</Typography>
+                          <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.65rem', mb: 0.5 }}>{t('profiling.mode')}</Typography>
                           <Typography variant="body2" sx={{ fontWeight: 700, color: '#333', fontSize: '0.9rem', wordBreak: 'break-word' }}>{col.mode || '—'}</Typography>
                         </Box>
                       </Box>
@@ -1291,18 +1308,18 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
       {filteredCorrelation && (
         <CollapsibleSection
           icon={<GridOnIcon sx={{ color: '#00B37E' }} />}
-          title="Matriz de correlación"
-          subtitle={`${filteredCorrelation.columns.length} variables numéricas · ${correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}`}
+          title={t('profiling.correlationMatrix')}
+          subtitle={`${filteredCorrelation.columns.length} ${t('profiling.numericVars')} · ${correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}`}
           open={sections.correlation}
           onToggle={() => toggle('correlation')}
         >
           {/* Correlation Method Selector */}
           <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Método de correlación</InputLabel>
+              <InputLabel>{t('profiling.correlationMethod')}</InputLabel>
               <Select
                 value={correlationMethod}
-                label="Método de correlación"
+                label={t('profiling.correlationMethod')}
                 onChange={(e) => setCorrelationMethod(e.target.value as 'pearson' | 'spearman')}
               >
                 <MenuItem value="pearson">Pearson</MenuItem>
@@ -1322,13 +1339,9 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
             >
               <Typography variant="caption" sx={{ color: '#666', display: 'block', lineHeight: 1.4, fontSize: '0.75rem' }}>
                 {correlationMethod === 'pearson' ? (
-                  <>
-                    <strong>Pearson:</strong> Mide relaciones <strong>lineales</strong> entre variables. Sensible a outliers y asume distribución normal.
-                  </>
+                  <>{t('profiling.pearsonDesc')}</>
                 ) : (
-                  <>
-                    <strong>Spearman:</strong> Mide relaciones <strong>monótonas</strong> (no necesariamente lineales). Más <strong>robusto a outliers</strong> y no asume normalidad.
-                  </>
+                  <>{t('profiling.spearmanDesc')}</>
                 )}
               </Typography>
             </Paper>
@@ -1436,7 +1449,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                                     {filteredCorrelation!.columns[i]}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>
-                                    Correlación perfecta consigo misma
+                                    {t('profiling.correlationSelf')}
                                   </Typography>
                                 </Box>
                               ) : (
@@ -1448,13 +1461,13 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                                     {correlationMethod === 'pearson' ? 'Pearson' : 'Spearman'}: {corrValue.toFixed(4)}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.9 }}>
-                                    {Math.abs(corrValue) < 0.3 ? 'Correlación débil' :
-                                      Math.abs(corrValue) < 0.7 ? 'Correlación moderada' :
-                                        'Correlación fuerte'}
-                                    {corrValue > 0 ? ' positiva' : corrValue < 0 ? ' negativa' : ''}
+                                    {Math.abs(corrValue) < 0.3 ? t('profiling.correlationWeak') :
+                                      Math.abs(corrValue) < 0.7 ? t('profiling.correlationModerate') :
+                                        t('profiling.correlationStrong')}
+                                    {corrValue > 0 ? ` ${t('profiling.correlationPositive')}` : corrValue < 0 ? ` ${t('profiling.correlationNegative')}` : ''}
                                   </Typography>
                                   <Typography variant="caption" sx={{ display: 'block', fontSize: '0.6rem', opacity: 0.7, mt: 0.5, fontStyle: 'italic' }}>
-                                    Click para ver gráfico de dispersión
+                                    {t('profiling.clickForScatter')}
                                   </Typography>
                                 </Box>
                               )
@@ -1488,7 +1501,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
               textAlign: 'center',
               letterSpacing: '0.02em'
             }}>
-              Leyenda de correlación
+              {t('profiling.correlationLegend')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
               <Box sx={{ textAlign: 'center' }}>
@@ -1496,7 +1509,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                   −1.0
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#888', fontSize: '0.6rem', display: 'block' }}>
-                  Negativa
+                  {t('profiling.correlationNegative')}
                 </Typography>
               </Box>
               <Box sx={{
@@ -1512,7 +1525,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
                   +1.0
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#888', fontSize: '0.6rem', display: 'block' }}>
-                  Positiva
+                  {t('profiling.correlationPositive')}
                 </Typography>
               </Box>
             </Box>
@@ -1525,21 +1538,21 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         <CollapsibleSection
           id="scatter-section"
           icon={<ScatterPlotIcon sx={{ color: '#00B37E' }} />}
-          title="Dispersión"
-          subtitle={isFiltered ? `${filteredNumericCols.length} variables numéricas activas` : 'Explora la relación entre dos variables numéricas'}
+          title={t('profiling.scatter')}
+          subtitle={isFiltered ? `${filteredNumericCols.length} ${t('profiling.numericVars')}` : ''}
           open={sections.scatter}
           onToggle={() => toggle('scatter')}
         >
           <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Eje X</InputLabel>
-              <Select value={scatterX} label="Eje X" onChange={(e) => setScatterX(e.target.value)}>
+              <InputLabel>{t('profiling.axisX')}</InputLabel>
+              <Select value={scatterX} label={t('profiling.axisX')} onChange={(e) => setScatterX(e.target.value)}>
                 {filteredNumericCols.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
               </Select>
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Eje Y</InputLabel>
-              <Select value={scatterY} label="Eje Y" onChange={(e) => setScatterY(e.target.value)}>
+              <InputLabel>{t('profiling.axisY')}</InputLabel>
+              <Select value={scatterY} label={t('profiling.axisY')} onChange={(e) => setScatterY(e.target.value)}>
                 {filteredNumericCols.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
               </Select>
             </FormControl>
@@ -1557,10 +1570,10 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
             }}>
               <BubbleChartIcon sx={{ fontSize: 48, color: '#CCC', mb: 1 }} />
               <Typography variant="body2" sx={{ color: '#999', fontWeight: 500 }}>
-                Selecciona dos variables numéricas distintas
+                {t('profiling.scatterHint')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#BBB', display: 'block', mt: 0.5 }}>
-                Usa los selectores de arriba para elegir las variables
+                {t('profiling.scatterHint2')}
               </Typography>
             </Box>
           )}
@@ -1575,16 +1588,15 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         fullWidth
       >
         <DialogTitle>
-          Configurar detección de outliers
+          {t('profiling.iqrDialog.title')}
         </DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 3 }}>
-            Ajusta el factor IQR para controlar la sensibilidad de la detección de outliers.
-            Valores más altos detectan menos outliers (más permisivo).
+            {t('profiling.iqrDialog.info')}
           </Alert>
 
           <Typography gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
-            Factor IQR: {tempIqrFactor.toFixed(1)}
+            {t('profiling.iqrDialog.factor')}: {tempIqrFactor.toFixed(1)}
           </Typography>
 
           <Box sx={{ px: 2, mb: 2 }}>
@@ -1596,7 +1608,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
               step={0.1}
               marks={[
                 { value: 1.0, label: '1.0' },
-                { value: 1.5, label: '1.5 (Estándar)' },
+                { value: 1.5, label: `1.5 (${t('profiling.iqrDialog.standard')})` },
                 { value: 2.0, label: '2.0' },
                 { value: 3.0, label: '3.0' },
                 { value: 5.0, label: '5.0' }
@@ -1609,7 +1621,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
         </DialogContent>
         <DialogActions>
           <Button onClick={handleIqrDialogClose} color="inherit">
-            Cancelar
+            {t('profiling.iqrDialog.cancel')}
           </Button>
           <Button
             onClick={handleIqrFactorApply}
@@ -1620,7 +1632,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
               '&:hover': { bgcolor: '#00A070' }
             }}
           >
-            Aplicar y recalcular
+            {t('profiling.iqrDialog.apply')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1635,8 +1647,9 @@ const EnhancedBoxplot: React.FC<{
   onExpand?: () => void;
   isExpanded?: boolean;
 }> = ({ boxplot, columnName, onExpand, isExpanded = false }) => {
+  const { t } = useTranslation();
   const range = boxplot.max - boxplot.min;
-  if (range === 0) return <Typography variant="caption" sx={{ color: '#999' }}>Todos los valores son iguales</Typography>;
+  if (range === 0) return <Typography variant="caption" sx={{ color: '#999' }}>{t('profiling.allSameValue')}</Typography>;
 
   const toX = (v: number) => Math.max(5, Math.min(995, ((v - boxplot.min) / range) * 990 + 5));
   const [lbX, ubX, q1X, q3X, medX] = [toX(boxplot.lower_fence), toX(boxplot.upper_fence), toX(boxplot.q1), toX(boxplot.q3), toX(boxplot.median)];
@@ -1684,9 +1697,9 @@ const EnhancedBoxplot: React.FC<{
         <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Límite Inferior (Whisker)</Typography>
-              <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.lower_fence.toFixed(2)}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valores por debajo son outliers</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>{t('outlierDetail.stats.lowerFence')}</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>{boxplot.lower_fence.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>{t('profiling.boxplot.belowAreOutliers')}</Typography>
             </Box>
           }
           arrow
@@ -1701,9 +1714,9 @@ const EnhancedBoxplot: React.FC<{
         <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Límite Superior (Whisker)</Typography>
-              <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.upper_fence.toFixed(2)}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valores por encima son outliers</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>{t('outlierDetail.stats.upperFence')}</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>{boxplot.upper_fence.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>{t('profiling.boxplot.aboveAreOutliers')}</Typography>
             </Box>
           }
           arrow
@@ -1718,10 +1731,10 @@ const EnhancedBoxplot: React.FC<{
         <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Rango Intercuartílico (IQR)</Typography>
-              <Typography variant="caption" sx={{ display: 'block' }}>Cuartil 1 (Q1): {boxplot.q1.toFixed(2)}</Typography>
-              <Typography variant="caption" sx={{ display: 'block' }}>Cuartil 3 (Q3): {boxplot.q3.toFixed(2)}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8, mt: 0.5 }}>Contiene el 50% central de los datos</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>{t('outlierDetail.stats.iqr')}</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Q1: {boxplot.q1.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>Q3: {boxplot.q3.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8, mt: 0.5 }}>{t('profiling.boxplot.iqrDesc')}</Typography>
             </Box>
           }
           arrow
@@ -1743,9 +1756,9 @@ const EnhancedBoxplot: React.FC<{
         <Tooltip
           title={
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Mediana (Q2)</Typography>
-              <Typography variant="caption" sx={{ display: 'block' }}>Valor: {boxplot.median.toFixed(2)}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Valor central de la distribución</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>{t('outlierDetail.stats.median')}</Typography>
+              <Typography variant="caption" sx={{ display: 'block' }}>{boxplot.median.toFixed(2)}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>{t('profiling.boxplot.medianDesc')}</Typography>
             </Box>
           }
           arrow
@@ -1759,9 +1772,9 @@ const EnhancedBoxplot: React.FC<{
             key={i}
             title={
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>Valor atípico (Outlier)</Typography>
-                <Typography variant="caption" sx={{ display: 'block' }}>Valor: {v.toFixed(2)}</Typography>
-                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>Fuera del rango normal</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>{t('profiling.boxplot.outlierLabel')}</Typography>
+                <Typography variant="caption" sx={{ display: 'block' }}>{v.toFixed(2)}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.65rem', opacity: 0.8 }}>{t('profiling.boxplot.outsideRange')}</Typography>
               </Box>
             }
             arrow
@@ -1791,7 +1804,7 @@ const EnhancedBoxplot: React.FC<{
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, justifyContent: 'center' }}>
           <WarningIcon sx={{ color: '#FFB800', fontSize: 14 }} />
           <Typography variant="caption" sx={{ color: '#666', fontSize: '0.7rem', fontWeight: 500 }}>
-            {boxplot.outlier_count} outlier{boxplot.outlier_count > 1 ? 's' : ''} detectado{boxplot.outlier_count > 1 ? 's' : ''}
+            {boxplot.outlier_count} {t('outlierDetail.stats.outlierCount').toLowerCase()}
           </Typography>
         </Box>
       )}
@@ -1803,6 +1816,7 @@ const MiniBoxplot = EnhancedBoxplot;
 
 // ── Scatter Plot (fetches on demand) ────────────────────────────
 const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string }> = ({ datasetId, xCol, yCol }) => {
+  const { t } = useTranslation();
   const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -1835,7 +1849,7 @@ const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string
         borderWidth: 2,
         displayColors: false,
         callbacks: {
-          title: () => 'Punto de datos',
+          title: () => t('profiling.dataPoint'),
           label: (context: any) => {
             const xVal = context.parsed.x;
             const yVal = context.parsed.y;
@@ -1897,7 +1911,7 @@ const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string
   };
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} sx={{ color: '#00B37E' }} /></Box>;
-  if (points.length === 0) return <Box sx={{ py: 2, textAlign: 'center' }}><Typography variant="caption" sx={{ color: '#BBB' }}>Sin datos suficientes.</Typography></Box>;
+  if (points.length === 0) return <Box sx={{ py: 2, textAlign: 'center' }}><Typography variant="caption" sx={{ color: '#BBB' }}>{t('dashboardCharts.noEnoughData')}</Typography></Box>;
 
   return (
     <>
@@ -1942,7 +1956,7 @@ const ScatterPlotChart: React.FC<{ datasetId: number; xCol: string; yCol: string
       <ChartModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={`Dispersión: ${xCol} vs ${yCol}`}
+        title={`${t('profiling.scatter')}: ${xCol} vs ${yCol}`}
       >
         <Box sx={{ height: 450 }}>
           <Scatter data={chartData} options={chartOptions(true)} />

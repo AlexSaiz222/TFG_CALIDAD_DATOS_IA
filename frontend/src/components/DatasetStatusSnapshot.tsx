@@ -11,8 +11,8 @@ import {
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import type { AnalysisRun } from '../types';
+import { useTranslation } from 'react-i18next';
 
-// Colores consistentes
 const GREEN = '#00B37E';
 const RED = '#E5484D';
 const ORANGE = '#FFB800';
@@ -51,16 +51,15 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
   onSelectDataset,
   qualityGateThreshold = 80,
 }) => {
-  // Agrupar datasets por cadena de versiones
+  const { t } = useTranslation();
+
   const groupedDatasets = useMemo(() => {
-    // Función para encontrar el root de una cadena de versiones
     const findRootId = (dataset: DatasetInfo): number => {
       if (!dataset.parent_dataset_id) return dataset.id;
       const parent = datasets.find(d => d.id === dataset.parent_dataset_id);
       return parent ? findRootId(parent) : dataset.id;
     };
 
-    // Agrupar por root ID
     const groups = new Map<number, DatasetInfo[]>();
     datasets.forEach(dataset => {
       const rootId = findRootId(dataset);
@@ -70,14 +69,11 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
       groups.get(rootId)!.push(dataset);
     });
 
-    // Para cada grupo, obtener el nombre base y todos los IDs
     return Array.from(groups.entries()).map(([rootId, groupDatasets]) => {
-      // Ordenar por versión descendente para obtener la última
       const sorted = [...groupDatasets].sort((a, b) => (b.version || 1) - (a.version || 1));
       const latestDataset = sorted[0];
-      // Usar el nombre del root (sin versión en el nombre)
       const rootDataset = groupDatasets.find(d => d.id === rootId) || latestDataset;
-      
+
       return {
         baseName: rootDataset.name,
         latestDatasetId: latestDataset.id,
@@ -86,16 +82,14 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
     });
   }, [datasets]);
 
-  // Calcular el estado actual de cada grupo de datasets
   const datasetStatuses = useMemo((): DatasetStatus[] => {
     return groupedDatasets.map((group) => {
-      // Encontrar el último análisis completado para cualquier versión de este dataset
       const groupRuns = runs
         .filter((run) => run.dataset_id && group.allIds.includes(run.dataset_id) && run.status === 'COMPLETED')
         .sort((a, b) => {
           const dateA = new Date(a.completed_at || a.created_at).getTime();
           const dateB = new Date(b.completed_at || b.created_at).getTime();
-          return dateB - dateA; // Más reciente primero
+          return dateB - dateA;
         });
 
       const latestRun = groupRuns[0] || null;
@@ -115,7 +109,7 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
 
       const score = latestRun.quality_score || 0;
       let status: 'PASSED' | 'WARNING' | 'FAILED' = 'PASSED';
-      
+
       if (latestRun.quality_gate_status) {
         status = latestRun.quality_gate_status as 'PASSED' | 'WARNING' | 'FAILED';
       } else if (score >= qualityGateThreshold) {
@@ -139,13 +133,10 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
     });
   }, [runs, groupedDatasets, qualityGateThreshold]);
 
-  // Ordenar por score (menor primero para destacar problemas)
   const sortedStatuses = useMemo(() => {
     return [...datasetStatuses].sort((a, b) => {
-      // NO_DATA al final
       if (a.status === 'NO_DATA' && b.status !== 'NO_DATA') return 1;
       if (b.status === 'NO_DATA' && a.status !== 'NO_DATA') return -1;
-      // Luego por score ascendente (peores primero)
       return a.score - b.score;
     });
   }, [datasetStatuses]);
@@ -163,16 +154,15 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
     }
   };
 
-
   if (datasets.length === 0) {
     return (
       <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
         <TrendingUpIcon sx={{ fontSize: 48, color: GRAY, mb: 2 }} />
         <Typography variant="h6" sx={{ color: '#555555' }}>
-          No hay datasets en este proyecto
+          {t('datasets.statusSnapshot.noDatasets')}
         </Typography>
         <Typography variant="body2" sx={{ color: '#888888' }}>
-          Añade datasets para ver su estado de calidad.
+          {t('datasets.statusSnapshot.noDatasetsSub')}
         </Typography>
       </Paper>
     );
@@ -182,19 +172,18 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
     <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: '1px solid #EEEEEE' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 500, color: '#555555' }}>
-          Estado actual de los datasets
+          {t('datasets.statusSnapshot.header')}
         </Typography>
         <Typography variant="caption" sx={{ color: GRAY }}>
-          {datasets.length} datasets · Clic para ver evolución
+          {t('datasets.statusSnapshot.count', { count: datasets.length })}
         </Typography>
       </Box>
-      
+
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
         {sortedStatuses.map((ds) => {
-          // Verificar si el dataset seleccionado pertenece a esta cadena de versiones
           const isSelected = selectedDatasetId !== null && ds.versionChainIds.includes(selectedDatasetId);
           const statusColor = ds.status === 'PASSED' ? GREEN : ds.status === 'WARNING' ? ORANGE : ds.status === 'FAILED' ? RED : GRAY;
-          
+
           return (
             <Box
               key={ds.datasetId}
@@ -214,10 +203,8 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
                 },
               }}
             >
-              {/* Status icon */}
               {getStatusIcon(ds.status)}
-              
-              {/* Dataset name */}
+
               <Typography
                 variant="body2"
                 sx={{
@@ -231,8 +218,7 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
               >
                 {ds.datasetName}
               </Typography>
-              
-              {/* Score and issues */}
+
               {ds.status !== 'NO_DATA' ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Typography
@@ -242,7 +228,7 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
                       fontWeight: 500,
                     }}
                   >
-                    {ds.issuesCount} issues
+                    {t('datasets.statusSnapshot.issues', { count: ds.issuesCount })}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -258,7 +244,7 @@ const DatasetStatusSnapshot: React.FC<DatasetStatusSnapshotProps> = ({
                 </Box>
               ) : (
                 <Typography variant="caption" sx={{ color: GRAY, fontStyle: 'italic' }}>
-                  Sin analizar
+                  {t('datasets.statusSnapshot.notAnalyzed')}
                 </Typography>
               )}
             </Box>

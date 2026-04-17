@@ -18,12 +18,14 @@ import {
   InputLabel,
   Tooltip,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface OutlierDetailProps {
   outliers: Record<string, any>;
 }
 
 const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
+  const { t } = useTranslation();
   const columnsWithOutliers = Object.entries(outliers)
     .filter(([_, col]: [string, any]) => col?.count > 0)
     .sort(([, a]: [string, any], [, b]: [string, any]) => (b.count || 0) - (a.count || 0));
@@ -53,11 +55,11 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         proportion >= 0.05 ? '#EAB308' :  // Moderados (>= 5%) - amarillo
           proportion >= 0.02 ? '#84CC16' :  // Pocos (>= 2%) - verde lima
             '#22C55E';                         // Muy pocos (< 2%) - verde
-    const densityLabel = proportion >= 0.20 ? 'Muy frecuentes' :
-      proportion >= 0.10 ? 'Frecuentes' :
-        proportion >= 0.05 ? 'Moderados' :
-          proportion >= 0.02 ? 'Pocos' :
-            'Muy pocos';
+    const densityLabel = proportion >= 0.20 ? t('outlierDetail.density.veryHigh') :
+      proportion >= 0.10 ? t('outlierDetail.density.high') :
+        proportion >= 0.05 ? t('outlierDetail.density.moderate') :
+          proportion >= 0.02 ? t('outlierDetail.density.low') :
+            t('outlierDetail.density.veryLow');
 
     const lb = col.lower_bound ?? col.series_min ?? 0;
     const ub = col.upper_bound ?? col.series_max ?? 100;
@@ -114,10 +116,10 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Typography variant="body2" sx={{ color: '#666' }}>
-              {col.count} de {col.total_values || 'N/A'} registros · {proportionPct}% de valores
+              {t('outlierDetail.countOfTotal', { count: col.count, total: col.total_values || 'N/A', percentage: proportionPct })}
             </Typography>
             <Chip
-              label={`Densidad: ${densityLabel}`}
+              label={t('outlierDetail.densityLabel', { density: densityLabel })}
               size="small"
               sx={{
                 backgroundColor: densityColor,
@@ -133,7 +135,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         <Box sx={{ mb: 3, p: 2, backgroundColor: '#fff', borderRadius: 2, border: '1px solid #E0E0E0' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="caption" sx={{ color: '#888', fontWeight: 600 }}>
-              Distribución y outliers
+              {t('outlierDetail.chartHeader', { column: colName })}
             </Typography>
             {needsZoom && (
               <Button
@@ -141,7 +143,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                 onClick={toggleScale}
                 sx={{ fontSize: '0.7rem', textTransform: 'none' }}
               >
-                {showFullScale ? 'Zoom al rango normal' : 'Ver escala completa'}
+                {showFullScale ? t('outlierDetail.zoomIn') : t('outlierDetail.zoomOut')}
               </Button>
             )}
           </Box>
@@ -157,9 +159,9 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                   const visibleCount = outlierValues.length - outOfScaleCount;
 
                   if (outOfScaleCount === outlierValues.length) {
-                    return `Todos los ${outlierValues.length} outliers están fuera de escala. Haz clic en "Ver escala completa" para visualizarlos.`;
+                    return t('outlierDetail.allOutOfScale', { count: outlierValues.length });
                   } else if (outOfScaleCount > 0) {
-                    return `${visibleCount} outlier${visibleCount > 1 ? 's' : ''} visible${visibleCount > 1 ? 's' : ''} en rango normal. ${outOfScaleCount} colapsado${outOfScaleCount > 1 ? 's' : ''} fuera de escala (haz clic en "Ver escala completa").`;
+                    return t('outlierDetail.partialOutOfScale', { count: visibleCount, visible: visibleCount, hidden: outOfScaleCount });
                   }
                   return '';
                 })()}
@@ -171,7 +173,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
             {/* SVG Box-plot */}
             <svg width="100%" height="100" viewBox="0 0 1000 100" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
               {/* Lower whisker */}
-              <Tooltip title={`Límite inferior: ${lb.toFixed(2)}`} arrow>
+              <Tooltip title={`${t('outlierDetail.stats.lowerFence')}: ${lb.toFixed(2)}`} arrow>
                 <g>
                   <line x1={lbPct * 10} y1="50" x2={q1Pct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" style={{ cursor: 'help' }} />
                   <line x1={lbPct * 10} y1="35" x2={lbPct * 10} y2="65" stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
@@ -179,7 +181,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
               </Tooltip>
 
               {/* Upper whisker */}
-              <Tooltip title={`Límite superior: ${ub.toFixed(2)}`} arrow>
+              <Tooltip title={`${t('outlierDetail.stats.upperFence')}: ${ub.toFixed(2)}`} arrow>
                 <g>
                   <line x1={q3Pct * 10} y1="50" x2={ubPct * 10} y2="50" stroke="#999" strokeWidth="2" strokeDasharray="4,2" style={{ cursor: 'help' }} />
                   <line x1={ubPct * 10} y1="35" x2={ubPct * 10} y2="65" stroke="#999" strokeWidth="2" style={{ cursor: 'help' }} />
@@ -202,7 +204,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
               </Tooltip>
 
               {/* Median line - PROMINENT */}
-              <Tooltip title={`Mediana (Q2): ${median.toFixed(2)}`} arrow>
+              <Tooltip title={`${t('outlierDetail.stats.median')}: ${median.toFixed(2)}`} arrow>
                 <line
                   x1={medianPct * 10}
                   y1="25"
@@ -234,7 +236,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
 
                 const color = outlier.isSuspicious ? '#B71C1C' : outlier.isExtreme ? '#E53935' : '#E5484D';
                 const radius = outlier.isSuspicious ? 7 : outlier.isExtreme ? 6 : 5;
-                const outlierType = outlier.isSuspicious ? 'Sospechoso' : outlier.isExtreme ? 'Extremo' : 'moderado';
+                const outlierType = outlier.isSuspicious ? t('outlierDetail.outlierClass.mild') : outlier.isExtreme ? t('outlierDetail.outlierClass.extreme') : t('outlierDetail.outlierClass.moderate');
 
                 return (
                   <Tooltip key={idx} title={`Outlier ${outlierType}: ${outlier.val.toFixed(2)} (${outlier.iqrMultiple.toFixed(1)}× IQR)`} arrow>
@@ -256,10 +258,10 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
             {/* Scale labels */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5, px: 0.5 }}>
               <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.7rem' }}>
-                {showFullScale ? 'Min absoluto' : 'Min visible'}: {Number(rangeMin).toLocaleString()}
+                {showFullScale ? t('outlierDetail.scaleLinear') : t('outlierDetail.scaleLog')} min: {Number(rangeMin).toLocaleString()}
               </Typography>
               <Typography variant="caption" sx={{ color: '#999', fontFamily: 'monospace', fontSize: '0.7rem' }}>
-                {showFullScale ? 'Max absoluto' : 'Max visible'}: {Number(rangeMax).toLocaleString()}
+                {showFullScale ? t('outlierDetail.scaleLinear') : t('outlierDetail.scaleLog')} max: {Number(rangeMax).toLocaleString()}
               </Typography>
             </Box>
           </Box>
@@ -269,7 +271,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 2, mb: 2 }}>
           {col.q1 !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
-              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Q1 (25%)</Typography>
+              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>{t('outlierDetail.stats.iqr')} Q1 (25%)</Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#2E7D32' }}>
                 {Number(col.q1).toLocaleString()}
               </Typography>
@@ -277,7 +279,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           )}
           {col.median !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#E8F5E9', borderRadius: 1, border: '2px solid #66BB6A' }}>
-              <Typography variant="caption" sx={{ color: '#1B5E20', display: 'block', fontWeight: 600 }}>Mediana (Q2)</Typography>
+              <Typography variant="caption" sx={{ color: '#1B5E20', display: 'block', fontWeight: 600 }}>{t('outlierDetail.stats.median')} (Q2)</Typography>
               <Typography variant="body2" sx={{ fontWeight: 700, fontFamily: 'monospace', color: '#1B5E20' }}>
                 {Number(col.median).toLocaleString()}
               </Typography>
@@ -285,7 +287,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           )}
           {col.q3 !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
-              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Q3 (75%)</Typography>
+              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>{t('outlierDetail.stats.iqr')} Q3 (75%)</Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#2E7D32' }}>
                 {Number(col.q3).toLocaleString()}
               </Typography>
@@ -293,7 +295,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           )}
           {col.iqr !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
-              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>IQR (Q3 - Q1)</Typography>
+              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>{t('outlierDetail.stats.iqr')} (Q3 - Q1)</Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#1976d2' }}>
                 {Number(col.iqr).toLocaleString()}
               </Typography>
@@ -302,7 +304,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           {col.mean !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#FAFAFA', borderRadius: 1, border: '1px solid #E0E0E0' }}>
               <Typography variant="caption" sx={{ color: '#999', display: 'block', fontSize: '0.7rem' }}>
-                Media (sesgada por extremos)
+                {t('outlierDetail.stats.mean')}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace', color: '#999', fontSize: '0.8rem' }}>
                 {Number(col.mean).toLocaleString()}
@@ -311,7 +313,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           )}
           {col.lower_bound !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
-              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Límite inferior</Typography>
+              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>{t('outlierDetail.stats.lowerFence')}</Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#E5484D' }}>
                 {Number(col.lower_bound).toLocaleString()}
               </Typography>
@@ -319,7 +321,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           )}
           {col.upper_bound !== undefined && (
             <Box sx={{ p: 1.5, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
-              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>Límite superior</Typography>
+              <Typography variant="caption" sx={{ color: '#888', display: 'block' }}>{t('outlierDetail.stats.upperFence')}</Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', color: '#E5484D' }}>
                 {Number(col.upper_bound).toLocaleString()}
               </Typography>
@@ -332,7 +334,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
           <Box sx={{ p: 2, backgroundColor: '#fff', borderRadius: 1, border: '1px solid #E8E8E8' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Typography variant="caption" sx={{ color: '#888', fontWeight: 600 }}>
-                Valores atípicos detectados ({col.count} total):
+                {t('outlierDetail.stats.outlierCount')} ({col.count}):
               </Typography>
               {col.count > 5 && (
                 <Button
@@ -340,7 +342,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                   onClick={() => setShowAllOutliers(prev => ({ ...prev, [colName]: !prev[colName] }))}
                   sx={{ fontSize: '0.7rem', textTransform: 'none' }}
                 >
-                  {showAllOutliers[colName] ? 'Mostrar solo primeros 5' : `Mostrar todos (${col.count})`}
+                  {showAllOutliers[colName] ? t('uniquenessDetail.hideButton') : `${t('uniquenessDetail.showButton', { count: col.count })}`}
                 </Button>
               )}
             </Box>
@@ -348,9 +350,9 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>Valor</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>Clasificación</TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>Distancia</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>{t('outlierDetail.tableColumns.bounds')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>{t('outlierDetail.tableColumns.density')}</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.7rem', color: '#666' }}>{t('outlierDetail.stats.iqr')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -371,7 +373,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={outlier.isSuspicious ? 'Posible error' : outlier.isExtreme ? 'Extremo' : 'Plausible'}
+                          label={outlier.isSuspicious ? t('outlierDetail.outlierClass.mild') : outlier.isExtreme ? t('outlierDetail.outlierClass.extreme') : t('outlierDetail.outlierClass.moderate')}
                           size="small"
                           sx={{
                             backgroundColor: outlier.isSuspicious ? '#FFEBEE' : outlier.isExtreme ? '#FFF3E0' : '#F5F5F5',
@@ -383,7 +385,7 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="caption" sx={{ color: '#666', fontFamily: 'monospace' }}>
-                          {outlier.iqrMultiple.toFixed(1)}× sobre límite {outlier.val < lb ? '(bajo)' : '(alto)'}
+                          {t('outlierDetail.iqrAboveLimit', { multiple: outlier.iqrMultiple.toFixed(1), direction: outlier.val < lb ? t('outlierDetail.directionLow') : t('outlierDetail.directionHigh') })}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -414,12 +416,10 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
         }}
       >
         <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1565C0' }}>
-          Los outliers no son automáticamente indicadores de mala calidad
+          {t('outlierDetail.educationalTitle')}
         </Typography>
         <Typography variant="caption" sx={{ display: 'block', color: '#1976d2', lineHeight: 1.5 }}>
-          Los valores atípicos pueden ser <strong>legítimos</strong> según el contexto de la variable. Por ejemplo:
-          salarios ejecutivos, transacciones grandes, eventos raros, o mediciones extremas pero válidas.
-          Revisa cada caso individualmente antes de considerar su eliminación o corrección.
+          {t('outlierDetail.educationalBody')}
         </Typography>
       </Alert>
 
@@ -427,16 +427,15 @@ const OutlierDetail: React.FC<OutlierDetailProps> = ({ outliers }) => {
       <Box sx={summaryContainerSx}>
         <Box>
           <Typography variant="body2" sx={{ color: '#555' }}>
-            {totalOutliers} outlier{totalOutliers !== 1 ? 's' : ''} detectado{totalOutliers !== 1 ? 's' : ''} en {columnsWithOutliers.length} columna{columnsWithOutliers.length !== 1 ? 's' : ''} de {totalValues.toLocaleString()} valores analizados.
-            Método IQR: un valor es outlier si está fuera de [Q1 − 1.5×IQR, Q3 + 1.5×IQR].
+            {t('outlierDetail.stats.outlierCount')}: {totalOutliers} ({t('outlierDetail.tableColumns.column')}: {columnsWithOutliers.length}, {t('outlierDetail.tableColumns.pct')}: {totalValues.toLocaleString()})
           </Typography>
         </Box>
         {columnsWithOutliers.length > 1 && (
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Columna</InputLabel>
+            <InputLabel>{t('outlierDetail.tableColumns.column')}</InputLabel>
             <Select
               value={selectedColumn}
-              label="Columna"
+              label={t('outlierDetail.tableColumns.column')}
               onChange={(e) => setSelectedColumn(e.target.value)}
             >
               {columnsWithOutliers.map(([name, col]: [string, any]) => (

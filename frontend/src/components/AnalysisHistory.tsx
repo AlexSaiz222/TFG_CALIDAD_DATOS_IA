@@ -19,11 +19,9 @@ import {
 import {
   ChevronRight as ChevronRightIcon,
   Schedule as ScheduleIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Warning as WarningIcon,
 } from '@mui/icons-material';
 import type { AnalysisRun } from '../types';
+import { useTranslation } from 'react-i18next';
 
 const GREEN = '#00B37E';
 const RED = '#E5484D';
@@ -48,19 +46,6 @@ function getGateColor(status: string | null | undefined): string {
     case 'FAILED': return RED;
     default: return GRAY;
   }
-}
-
-function relativeDate(dateStr?: string): string {
-  if (!dateStr) return '—';
-  const ms = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 2) return 'ahora';
-  if (mins < 60) return `hace ${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `hace ${days}d`;
-  return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
 }
 
 function fullDate(dateStr?: string): string {
@@ -112,8 +97,15 @@ const DeltaChip: React.FC<{ delta: number | null }> = ({ delta }) => {
 
 // Gate status dot + label (compact)
 const GateDot: React.FC<{ status: string | null | undefined }> = ({ status }) => {
+  const { t } = useTranslation();
   const color = getGateColor(status);
-  const label = status === 'PASSED' ? 'Aprobado' : status === 'WARNING' ? 'Advertencia' : status === 'FAILED' ? 'Fallido' : '—';
+  const label = status === 'PASSED'
+    ? t('analysisHistory.gateStatus.passed')
+    : status === 'WARNING'
+    ? t('analysisHistory.gateStatus.warning')
+    : status === 'FAILED'
+    ? t('analysisHistory.gateStatus.failed')
+    : '—';
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
       <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
@@ -133,7 +125,21 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
   selectedDatasetId = null,
 }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const relativeDate = (dateStr?: string): string => {
+    if (!dateStr) return '—';
+    const ms = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(ms / 60000);
+    if (mins < 2) return t('time.justNow');
+    if (mins < 60) return t('time.minutesAgo', { count: mins });
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return t('time.hoursAgo', { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 7) return t('time.daysAgo', { count: days });
+    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  };
 
   const getDatasetVersion = (datasetId?: number): number => {
     if (!datasetId) return 1;
@@ -168,9 +174,9 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
     return (
       <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
         <ScheduleIcon sx={{ fontSize: 40, color: GRAY, mb: 1.5 }} />
-        <Typography variant="h6" sx={{ color: '#555' }}>Sin análisis ejecutados</Typography>
+        <Typography variant="h6" sx={{ color: '#555' }}>{t('analysisHistory.noRuns')}</Typography>
         <Typography variant="body2" sx={{ color: '#999', mt: 0.5 }}>
-          Ejecuta un análisis para ver el historial aquí.
+          {t('analysisHistory.noHistoryDesc')}
         </Typography>
       </Paper>
     );
@@ -185,13 +191,13 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1A1A1A' }}>
-          Análisis
+          {t('evaluations.title')}
           <Box component="span" sx={{ ml: 1, px: 0.8, py: 0.1, borderRadius: '10px', backgroundColor: '#F0F0F0', fontSize: '0.75rem', fontWeight: 700, color: '#555' }}>
             {runs.length}
           </Box>
         </Typography>
         <Typography sx={{ fontSize: '0.75rem', color: GRAY }}>
-          Más reciente primero
+          {t('analysisHistory.mostRecent')}
         </Typography>
       </Box>
 
@@ -202,13 +208,13 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={thSx}>Gate</TableCell>
-              <TableCell sx={thSx}>Fecha</TableCell>
-              {showDatasetCol && <TableCell sx={thSx}>Dataset</TableCell>}
-              <TableCell sx={{ ...thSx, minWidth: 150 }}>Score</TableCell>
-              <TableCell sx={thSx}>Δ</TableCell>
-              <TableCell sx={thSx}>Issues</TableCell>
-              <TableCell sx={{ ...thSx, textAlign: 'center' }}>Dur.</TableCell>
+              <TableCell sx={thSx}>{t('analysisHistory.columns.gate')}</TableCell>
+              <TableCell sx={thSx}>{t('analysisHistory.columns.date')}</TableCell>
+              {showDatasetCol && <TableCell sx={thSx}>{t('analysisHistory.columns.dataset')}</TableCell>}
+              <TableCell sx={{ ...thSx, minWidth: 150 }}>{t('analysisHistory.columns.score')}</TableCell>
+              <TableCell sx={thSx}>{t('analysisHistory.columns.delta')}</TableCell>
+              <TableCell sx={thSx}>{t('analysisHistory.columns.issues')}</TableCell>
+              <TableCell sx={{ ...thSx, textAlign: 'center' }}>{t('analysisHistory.columns.duration')}</TableCell>
               <TableCell sx={{ ...thSx, width: 40 }} />
             </TableRow>
           </TableHead>
@@ -217,7 +223,6 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
               const isLatest = index === 0;
               const isCurrent = run.id === currentRunId;
               const dur = duration(run.started_at, run.completed_at);
-              const durLong = dur && dur !== '—' && parseInt(dur) > 60;
 
               return (
                 <TableRow
@@ -233,7 +238,7 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     <GateDot status={run.quality_gate_status} />
                   </TableCell>
 
-                  {/* Fecha */}
+                  {/* Date */}
                   <TableCell sx={tdSx}>
                     <Tooltip title={fullDate(run.completed_at || run.created_at)} placement="top">
                       <Typography sx={{
@@ -251,7 +256,7 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     </Tooltip>
                   </TableCell>
 
-                  {/* Dataset (solo si no hay filtro activo) */}
+                  {/* Dataset (only when no active filter) */}
                   {showDatasetCol && (
                     <TableCell sx={tdSx}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
@@ -267,12 +272,12 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     </TableCell>
                   )}
 
-                  {/* Score con barra */}
+                  {/* Score with bar */}
                   <TableCell sx={{ ...tdSx, pr: 2 }}>
                     <ScoreBar score={run.quality_score} />
                   </TableCell>
 
-                  {/* Δ siempre visible */}
+                  {/* Δ always visible */}
                   <TableCell sx={tdSx}>
                     <DeltaChip delta={deltas[run.id] ?? null} />
                   </TableCell>
@@ -295,16 +300,16 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
                     )}
                   </TableCell>
 
-                  {/* Duración — solo si > 1min */}
+                  {/* Duration */}
                   <TableCell sx={{ ...tdSx, textAlign: 'center' }}>
                     <Typography sx={{ fontSize: '0.75rem', color: GRAY }}>
                       {dur && dur !== '—' ? dur : '—'}
                     </Typography>
                   </TableCell>
 
-                  {/* Acción */}
+                  {/* Action */}
                   <TableCell sx={{ ...tdSx, pr: 1 }}>
-                    <Tooltip title="Ver análisis">
+                    <Tooltip title={t('analysisHistory.viewAnalysis')}>
                       <IconButton
                         size="small"
                         onClick={() => router.push(`/evaluations/${run.id}`)}
@@ -330,7 +335,10 @@ const AnalysisHistory: React.FC<AnalysisHistoryProps> = ({
             onClick={() => setVisibleCount(c => c + LOAD_MORE)}
             sx={{ color: GRAY, fontSize: '0.8rem', textTransform: 'none', '&:hover': { color: '#333', backgroundColor: '#F5F5F5' } }}
           >
-            Ver {Math.min(LOAD_MORE, sortedRuns.length - visibleCount)} más de {sortedRuns.length - visibleCount} restantes
+            {t('analysisHistory.loadMore', {
+              count: Math.min(LOAD_MORE, sortedRuns.length - visibleCount),
+              remaining: sortedRuns.length - visibleCount,
+            })}
           </Button>
         </Box>
       )}

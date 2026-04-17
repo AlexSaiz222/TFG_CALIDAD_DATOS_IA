@@ -4,6 +4,7 @@ import QualityTrendChart from './QualityTrendChart';
 import VersionEvolutionChart from './VersionEvolutionChart';
 import { datasetsAPI } from '../services/api';
 import type { AnalysisRun } from '../types';
+import { useTranslation } from 'react-i18next';
 
 const GREEN = '#00B37E';
 const RED = '#E5484D';
@@ -32,16 +33,6 @@ function getGateColor(score: number | null, threshold: number): string {
   return RED;
 }
 
-function relativeTime(dateStr: string | null | undefined): string {
-  if (!dateStr) return '—';
-  const ms = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 60) return `hace ${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  return `hace ${Math.floor(hours / 24)}d`;
-}
-
 const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
   projectId,
   runs,
@@ -49,6 +40,7 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
   selectedDatasetId,
   qualityGateThreshold = 70,
 }) => {
+  const { t } = useTranslation();
   const [chartView, setChartView] = useState<'time' | 'version'>('time');
   const [chainVersions, setChainVersions] = useState<any[] | null>(null);
   const [chainLoading, setChainLoading] = useState(false);
@@ -144,10 +136,10 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
         mb: 2,
         backgroundColor: '#fff',
       }}>
-        {/* Score actual */}
+        {/* Current score */}
         <KpiBlock
-          label="Score actual"
-          sublabel={selectedDatasetId ? undefined : '(global)'}
+          label={t('analysisDashboard.currentScore')}
+          sublabel={selectedDatasetId ? undefined : t('analysisDashboard.global')}
         >
           <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: scoreColor, lineHeight: 1 }}>
             {currentScore !== null ? `${currentScore.toFixed(1)}%` : '—'}
@@ -156,8 +148,8 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
 
         <Divider />
 
-        {/* Δ vs anterior */}
-        <KpiBlock label="vs. anterior">
+        {/* Δ vs previous */}
+        <KpiBlock label={t('analysisDashboard.vsPrev')}>
           {scoreDelta !== null ? (
             <Chip
               label={`${scoreDelta >= 0 ? '+' : ''}${scoreDelta.toFixed(1)}%`}
@@ -178,8 +170,8 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
 
         <Divider />
 
-        {/* Nº análisis */}
-        <KpiBlock label="Análisis">
+        {/* Analysis count */}
+        <KpiBlock label={t('analysisDashboard.analysisCount')}>
           <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#1A1A1A', lineHeight: 1 }}>
             {runCount}
           </Typography>
@@ -188,7 +180,7 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
         <Divider />
 
         {/* Issues */}
-        <KpiBlock label="Issues actuales">
+        <KpiBlock label={t('analysisDashboard.currentIssues')}>
           {totalIssues !== null ? (
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
               <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: totalIssues > 0 ? RED : GREEN, lineHeight: 1 }}>
@@ -196,7 +188,7 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
               </Typography>
               {criticalIssues > 0 && (
                 <Typography sx={{ fontSize: '0.75rem', color: RED, fontWeight: 600 }}>
-                  {criticalIssues} críticos
+                  {t('analysisDashboard.criticalIssues', { count: criticalIssues })}
                 </Typography>
               )}
             </Box>
@@ -215,16 +207,16 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
         }}>
           <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: '#1A1A1A' }}>
             {selectedDatasetName
-              ? <><span style={{ color: GRAY, fontWeight: 400 }}>Evolución · </span>{selectedDatasetName}</>
-              : 'Evolución · todos los datasets'}
+              ? <><span style={{ color: GRAY, fontWeight: 400 }}>{t('analysisDashboard.evolutionTitle').split('·')[0] + '· '}</span>{selectedDatasetName}</>
+              : t('analysisDashboard.evolutionTitle')}
             {runCount > 0 && (
               <span style={{ marginLeft: 8, fontSize: '0.78rem', color: GRAY, fontWeight: 400 }}>
-                {runCount} análisis
+                {t('analysisDashboard.runCount', { count: runCount })}
               </span>
             )}
           </Typography>
 
-          {/* Toggle Por tiempo / Por versión */}
+          {/* Toggle by time / by version */}
           {(hasVersionToggle || chainLoading) && (
             <Box sx={{
               display: 'flex',
@@ -252,7 +244,7 @@ const AnalysisDashboardPanel: React.FC<AnalysisDashboardPanelProps> = ({
                   {chainLoading && view === 'version' ? (
                     <CircularProgress size={10} sx={{ color: '#999' }} />
                   ) : null}
-                  {view === 'time' ? 'Por tiempo' : 'Por versión'}
+                  {view === 'time' ? t('analysisDashboard.byTime') : t('analysisDashboard.byVersion')}
                 </Box>
               ))}
             </Box>

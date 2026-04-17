@@ -28,15 +28,21 @@ import {
   Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../../components/layout/MainLayout';
 import { projectsAPI, datasetsAPI } from '../../services/api';
 import { Project } from '../../types';
 import { GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
-const steps = ['Selecciona un proyecto', 'Añade un archivo', 'Revisa y confirma'];
-
 const DatasetUpload = () => {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const steps = [
+    t('datasets.upload.steps.selectProject'),
+    t('datasets.upload.steps.addFile'),
+    t('datasets.upload.steps.review'),
+  ];
   const { projectId: queryProjectId, parentId: queryParentId } = router.query;
 
   // Check if this is a new version upload
@@ -71,12 +77,12 @@ const DatasetUpload = () => {
         } else {
           // Handle unexpected response format
           setProjects([]);
-          setError('Formato de respuesta inválido del servidor');
+          setError(t('datasets.upload.errors.invalidResponse'));
         }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setError('Error al cargar los proyectos. Inténtalo de nuevo más tarde.');
+        setError(t('datasets.upload.errors.loadProjects'));
         setLoading(false);
       }
     };
@@ -122,7 +128,7 @@ const DatasetUpload = () => {
     if (!selectedFile.name.endsWith('.csv')) {
       setErrors(prev => ({
         ...prev,
-        file: 'Solo se admiten archivos CSV'
+        file: t('datasets.upload.errors.csvOnly')
       }));
       return;
     }
@@ -131,7 +137,7 @@ const DatasetUpload = () => {
     if (selectedFile.size > 10 * 1024 * 1024) {
       setErrors(prev => ({
         ...prev,
-        file: 'El archivo supera el límite de 10MB'
+        file: t('datasets.upload.errors.sizeLimit')
       }));
       return;
     }
@@ -211,15 +217,15 @@ const DatasetUpload = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.projectId) {
-      newErrors.projectId = 'Por favor, selecciona un proyecto';
+      newErrors.projectId = t('datasets.upload.errors.selectProject');
     }
 
     if (!formData.name.trim()) {
-      newErrors.name = 'El nombre del dataset es obligatorio';
+      newErrors.name = t('datasets.upload.errors.nameRequired');
     }
 
     if (!file) {
-      newErrors.file = 'Por favor, sube un archivo CSV';
+      newErrors.file = t('datasets.upload.errors.uploadFile');
     }
 
     setErrors(newErrors);
@@ -230,7 +236,7 @@ const DatasetUpload = () => {
     if (activeStep === 0 && !formData.projectId) {
       setErrors(prev => ({
         ...prev,
-        projectId: 'Please select a project'
+        projectId: t('datasets.upload.errors.selectProject')
       }));
       return;
     }
@@ -238,7 +244,7 @@ const DatasetUpload = () => {
     if (activeStep === 1 && !file) {
       setErrors(prev => ({
         ...prev,
-        file: 'Por favor, sube un archivo CSV'
+        file: t('datasets.upload.errors.uploadFile')
       }));
       return;
     }
@@ -310,7 +316,7 @@ const DatasetUpload = () => {
 
       if (!datasetId) {
         console.error('Dataset ID not found in response:', response);
-        setError('Upload complete, pero no pude obtener el ID del dataset del servidor.');
+        setError(t('datasets.upload.errors.noDatasetId'));
         setUploading(false);
         return;
       }
@@ -321,7 +327,7 @@ const DatasetUpload = () => {
       router.replace(`/datasets/${datasetId}`);
     } catch (error: any) {
       console.error('Error uploading dataset:', error);
-      setError(error.response?.data?.message || 'Error al subir el dataset. Inténtalo de nuevo.');
+      setError(error.response?.data?.message || t('datasets.upload.errors.uploadFailed'));
       setUploading(false);
     }
   };
@@ -351,7 +357,7 @@ const DatasetUpload = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            {isNewVersion ? 'Subir nueva versión' : 'Subir dataset'}
+            {isNewVersion ? t('datasets.upload.newVersion') : t('datasets.upload.title')}
           </Typography>
           {isNewVersion && parentDataset && (
             <Box sx={{
@@ -364,7 +370,7 @@ const DatasetUpload = () => {
               fontSize: '0.85rem',
               fontWeight: 500,
             }}>
-              Nueva versión de {parentDataset.name}
+              {t('datasets.upload.newVersionOf', { name: parentDataset.name })}
             </Box>
           )}
         </Box>
@@ -437,7 +443,7 @@ const DatasetUpload = () => {
             {activeStep === 0 && (
               <Box>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Selecciona un proyecto
+                  {t('datasets.upload.steps.selectProject')}
                 </Typography>
 
                 {loading ? (
@@ -446,24 +452,24 @@ const DatasetUpload = () => {
                   </Box>
                 ) : (
                   <FormControl fullWidth error={!!errors.projectId}>
-                    <InputLabel id="project-select-label">Proyecto</InputLabel>
+                    <InputLabel id="project-select-label">{t('datasets.upload.project')}</InputLabel>
                     <Select
                       labelId="project-select-label"
                       id="projectId"
                       name="projectId"
                       value={formData.projectId || ''}
-                      label="Proyecto"
+                      label={t('datasets.upload.project')}
                       onChange={handleChange}
                     >
                       <MenuItem value={0} disabled>
-                        Selecciona un proyecto
+                        {t('datasets.upload.selectProjectLabel')}
                       </MenuItem>
                       {projects && projects.length > 0 ? projects.map((project) => (
                         <MenuItem key={project.id} value={project.id}>
                           {project.name}
                         </MenuItem>
                       )) : (
-                        <MenuItem disabled>No hay proyectos disponibles</MenuItem>
+                        <MenuItem disabled>{t('datasets.upload.noProjectsAvailable')}</MenuItem>
                       )}
                     </Select>
                     {errors.projectId && (
@@ -477,7 +483,7 @@ const DatasetUpload = () => {
             {activeStep === 1 && (
               <Box>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Subir archivo
+                  {t('datasets.upload.steps.addFile')}
                 </Typography>
 
                 <Box
@@ -516,10 +522,10 @@ const DatasetUpload = () => {
                   ) : (
                     <Box>
                       <Typography variant="body1" sx={{ fontWeight: 500, mb: 1 }}>
-                        {isDragActive ? 'Suelta el archivo CSV aquí' : 'Arrastra y suelta un archivo CSV aquí, o haz clic para seleccionar'}
+                        {isDragActive ? t('datasets.upload.dragActive') : t('datasets.upload.dragInactive')}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Solo se admiten archivos CSV (máx. 10MB)
+                        {t('datasets.upload.csvOnly')}
                       </Typography>
                     </Box>
                   )}
@@ -535,7 +541,7 @@ const DatasetUpload = () => {
 
                 <TextField
                   fullWidth
-                  label="Nombre del dataset"
+                  label={t('datasets.upload.datasetName')}
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
@@ -547,26 +553,26 @@ const DatasetUpload = () => {
 
                 <TextField
                   fullWidth
-                  label="Descripción"
+                  label={t('common.description')}
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   multiline
                   rows={3}
                   sx={{ mb: 3 }}
-                  placeholder="Introduce una descripción para el dataset (opcional)"
+                  placeholder={t('datasets.upload.descriptionPlaceholder')}
                 />
 
                 {isNewVersion && (
                   <TextField
                     fullWidth
-                    label="Etiqueta de versión (opcional)"
+                    label={t('datasets.upload.versionTag')}
                     name="versionTag"
                     value={formData.versionTag}
                     onChange={handleChange}
                     sx={{ mb: 3 }}
-                    placeholder="Ej: v2.0, corregido, final, etc."
-                    helperText="Una etiqueta descriptiva para identificar esta versión"
+                    placeholder={t('datasets.upload.versionTagPlaceholder')}
+                    helperText={t('datasets.upload.versionTagHelper')}
                   />
                 )}
               </Box>
@@ -575,31 +581,31 @@ const DatasetUpload = () => {
             {activeStep === 2 && (
               <Box>
                 <Typography variant="h5" sx={{ mb: 4, fontWeight: 700, color: '#1A1A1A' }}>
-                  Resumen y anonimización
+                  {t('datasets.upload.summary')}
                 </Typography>
 
                 {/* Resumen del Dataset */}
                 <Box sx={{ mb: 4 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
-                    Resumen del Dataset
+                    {t('datasets.upload.datasetSummary')}
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: '#FAFAFA', borderColor: '#EAEAEA' }}>
                     <Grid container spacing={3}>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>Proyecto</Typography>
+                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>{t('datasets.upload.project')}</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 500 }}>
                           {projects && projects.find(p => p.id === formData.projectId)?.name || 'Unknown Project'}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>Nombre del Dataset</Typography>
+                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>{t('datasets.upload.datasetName')}</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 500 }}>
                           {formData.name}
                         </Typography>
                       </Grid>
                       {formData.description && (
                         <Grid item xs={12}>
-                          <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>Descripción</Typography>
+                          <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.5 }}>{t('common.description')}</Typography>
                           <Typography variant="body2" sx={{ color: '#444' }}>
                             {formData.description}
                           </Typography>
@@ -624,7 +630,7 @@ const DatasetUpload = () => {
                 {detectedColumns.length > 0 && (
                   <Box sx={{ mb: 4 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
-                      Privacidad de Datos
+                      {t('datasets.upload.dataPrivacy')}
                     </Typography>
                     <Box sx={{ p: 3, border: '1px solid #FFE0E0', borderRadius: 2, backgroundColor: '#FFF5F5' }}>
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
@@ -633,11 +639,10 @@ const DatasetUpload = () => {
                         </Box>
                         <Box>
                           <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#E5484D', mb: 0.5 }}>
-                            Selección de columnas sensibles
+                            {t('datasets.upload.sensitiveColumns')}
                           </Typography>
                           <Typography variant="body2" sx={{ color: '#666' }}>
-                            Es crucial proteger la información personal. Por favor, selecciona a continuación cualquier columna que contenga datos confidenciales.
-                            <strong> Sus valores serán enmascarados/anonimizados automáticamente.</strong>
+                            {t('datasets.upload.sensitiveColumnsDesc')}
                           </Typography>
                         </Box>
                       </Box>
@@ -683,7 +688,7 @@ const DatasetUpload = () => {
                       {sensitiveColumns.length > 0 && (
                         <Typography variant="body2" sx={{ color: '#E5484D', mt: 2, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <VisibilityOffIcon sx={{ fontSize: 16 }} />
-                          {sensitiveColumns.length} columna{sensitiveColumns.length !== 1 ? 's' : ''} protegida{sensitiveColumns.length !== 1 ? 's' : ''}.
+                          {t('datasets.upload.protectedColumns', { count: sensitiveColumns.length })}
                         </Typography>
                       )}
                     </Box>
@@ -710,7 +715,7 @@ const DatasetUpload = () => {
                   },
                 }}
               >
-                {activeStep === 0 ? 'Cancelar' : 'Anterior'}
+                {activeStep === 0 ? t('common.cancel') : t('common.back')}
               </Button>
 
               {activeStep === steps.length - 1 ? (
@@ -727,7 +732,7 @@ const DatasetUpload = () => {
                     },
                   }}
                 >
-                  {uploading ? <CircularProgress size={20} color="inherit" /> : 'Subir dataset'}
+                  {uploading ? <CircularProgress size={20} color="inherit" /> : t('datasets.upload.title')}
                 </Button>
               ) : (
                 <Button
@@ -742,7 +747,7 @@ const DatasetUpload = () => {
                     },
                   }}
                 >
-                  Siguiente
+                  {t('common.next')}
                 </Button>
               )}
             </Box>

@@ -11,8 +11,9 @@ import {
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
-// Registrar componentes de Chart.js
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,7 +24,7 @@ ChartJS.register(
   Filler
 );
 
-// Colores consistentes
+// Consistent colors
 const GREEN = '#00B37E';
 const RED = '#E5484D';
 const ORANGE = '#FFB800';
@@ -36,18 +37,20 @@ interface SparklineProps {
 }
 
 /**
- * Mini sparkline para mostrar tendencia de scores
+ * Mini sparkline for showing score trend
  */
-export const MiniSparkline: React.FC<SparklineProps> = ({ 
-  data, 
+export const MiniSparkline: React.FC<SparklineProps> = ({
+  data,
   color = GREEN,
-  height = 40 
+  height = 40
 }) => {
+  const { t } = useTranslation();
+
   if (data.length < 2) {
     return (
       <Box sx={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="caption" sx={{ color: '#888' }}>
-          Sin datos suficientes
+          {t('dashboardCharts.noEnoughData')}
         </Typography>
       </Box>
     );
@@ -77,7 +80,7 @@ export const MiniSparkline: React.FC<SparklineProps> = ({
     },
     scales: {
       x: { display: false },
-      y: { 
+      y: {
         display: false,
         min: Math.min(...data) - 5,
         max: Math.max(...data) + 5,
@@ -104,7 +107,7 @@ interface StatusDonutProps {
 }
 
 /**
- * Gráfico donut para distribución de estados de Quality Gate
+ * Donut chart for Quality Gate status distribution
  */
 export const StatusDonut: React.FC<StatusDonutProps> = ({
   passed,
@@ -113,28 +116,34 @@ export const StatusDonut: React.FC<StatusDonutProps> = ({
   noAnalysis,
   size = 120,
 }) => {
+  const { t } = useTranslation();
   const total = passed + warning + failed + noAnalysis;
-  
+
   if (total === 0) {
     return (
-      <Box sx={{ 
-        width: size, 
-        height: size, 
-        display: 'flex', 
-        alignItems: 'center', 
+      <Box sx={{
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         borderRadius: '50%',
         border: '2px dashed #ccc',
       }}>
         <Typography variant="caption" sx={{ color: '#888', textAlign: 'center' }}>
-          Sin datos
+          {t('dashboardCharts.noData')}
         </Typography>
       </Box>
     );
   }
 
   const chartData = {
-    labels: ['Aprobado', 'Advertencia', 'Fallido', 'Sin análisis'],
+    labels: [
+      t('dashboardCharts.chartLabels.passed'),
+      t('dashboardCharts.chartLabels.warning'),
+      t('dashboardCharts.chartLabels.failed'),
+      t('dashboardCharts.chartLabels.noAnalysis'),
+    ],
     datasets: [
       {
         data: [passed, warning, failed, noAnalysis],
@@ -155,7 +164,7 @@ export const StatusDonut: React.FC<StatusDonutProps> = ({
     },
   };
 
-  // Calcular el porcentaje de "saludables" (passed)
+  // Calculate percentage of "healthy" (passed) projects
   const healthyPercentage = total > 0 ? Math.round((passed / total) * 100) : 0;
 
   return (
@@ -174,7 +183,7 @@ export const StatusDonut: React.FC<StatusDonutProps> = ({
           {healthyPercentage}%
         </Typography>
         <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem' }}>
-          aprobados
+          {t('dashboardCharts.approved')}
         </Typography>
       </Box>
     </Box>
@@ -187,15 +196,15 @@ interface TrendIndicatorProps {
 }
 
 /**
- * Indicador de tendencia con flecha
+ * Trend indicator with arrow
  */
 export const TrendIndicator: React.FC<TrendIndicatorProps> = ({ current, previous }) => {
   if (previous === null) return null;
-  
+
   const diff = current - previous;
   const isPositive = diff > 0;
   const isNeutral = diff === 0;
-  
+
   if (isNeutral) {
     return (
       <Typography component="span" sx={{ fontSize: '0.75rem', color: '#888', ml: 0.5 }}>
@@ -205,10 +214,10 @@ export const TrendIndicator: React.FC<TrendIndicatorProps> = ({ current, previou
   }
 
   return (
-    <Typography 
-      component="span" 
-      sx={{ 
-        fontSize: '0.75rem', 
+    <Typography
+      component="span"
+      sx={{
+        fontSize: '0.75rem',
         color: isPositive ? GREEN : RED,
         ml: 0.5,
         fontWeight: 500,

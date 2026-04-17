@@ -24,21 +24,7 @@ import LogicalConsistencyDetail from './LogicalConsistencyDetail';
 import ClassBalanceDetail from './ClassBalanceDetail';
 import CurrentnessDetail from './CurrentnessDetail';
 import { ColumnMetrics } from '../../types';
-
-// ══════════════════════════════════════════════════════════════════════════════
-// IMPORTANTE: Este componente se usa TEMPORALMENTE para mostrar características
-// del dataset (completitud, unicidad, outliers).
-//
-// Estas NO son métricas de evaluación de calidad de datos, son características
-// descriptivas intrínsecas del dataset.
-//
-// En el futuro:
-// - Este componente volverá a su propósito original: mostrar SOLO métricas de evaluación
-// - Se creará un nuevo componente específico para características del dataset
-// - La separación permitirá distinguir claramente entre:
-//   * Características del dataset (completitud, unicidad, outliers)
-//   * Métricas de calidad de datos (las que se definan en el sistema de evaluaciones)
-// ══════════════════════════════════════════════════════════════════════════════
+import { useTranslation } from 'react-i18next';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -76,8 +62,8 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [activeTab, setActiveTab] = useState(initialTab);
+  const { t } = useTranslation();
 
-  // Sync activeTab when initialTab prop changes
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
@@ -94,42 +80,42 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
 
   if (hasCompleteness) {
     const nullPercent = ((1 - overallMetrics.completeness) * 100).toFixed(1);
-    tabs.push({ name: 'Completitud', summary: `${nullPercent}% nulos` });
+    tabs.push({ name: t('metricDetailsTabs.tabs.completeness'), summary: `${nullPercent}%` });
   }
 
   if (hasUniqueness) {
     const duplicatePercent = ((1 - overallMetrics.uniqueness) * 100).toFixed(1);
-    tabs.push({ name: 'Unicidad', summary: `${duplicatePercent}% duplicados` });
+    tabs.push({ name: t('metricDetailsTabs.tabs.uniqueness'), summary: `${duplicatePercent}%` });
   }
 
   if (hasOutliers) {
     const totalOutliers = Object.values(overallMetrics.outliers).reduce(
       (sum: number, col: any) => sum + (col?.count || 0), 0
     );
-    tabs.push({ name: 'Outliers', summary: `${totalOutliers} detectados` });
+    tabs.push({ name: t('metricDetailsTabs.tabs.outliers'), summary: `${totalOutliers}` });
   }
 
   if (hasSyntacticAccuracy) {
     const conformancePct = (overallMetrics.syntactic_accuracy.overall_conformance * 100).toFixed(1);
-    tabs.push({ name: 'Exactitud sintáctica', summary: `${conformancePct}%` });
+    tabs.push({ name: t('metricDetailsTabs.tabs.syntacticAccuracy'), summary: `${conformancePct}%` });
   }
 
   if (hasLogicalConsistency) {
     const violations = overallMetrics.logical_consistency.rules_with_violations || 0;
-    tabs.push({ name: 'Consistencia lógica', summary: `${violations} violaciones` });
+    tabs.push({ name: t('metricDetailsTabs.tabs.logicalConsistency'), summary: `${violations}` });
   }
 
   if (hasClassBalance) {
     const balanceIdx = overallMetrics.class_balance.overall_balance_index?.toFixed(0) || '?';
-    tabs.push({ name: 'Equilibrio de clases', summary: `${balanceIdx}/100` });
+    tabs.push({ name: t('metricDetailsTabs.tabs.classBalance'), summary: `${balanceIdx}/100` });
   }
 
   if (hasCurrentness) {
     const staleCount = overallMetrics.currentness.columns_stale || 0;
     const freshPct = (overallMetrics.currentness.overall_freshness_score * 100).toFixed(0);
     tabs.push({
-      name: 'Actualidad',
-      summary: staleCount > 0 ? `${staleCount} obsoletas` : `${freshPct}%`,
+      name: t('metricDetailsTabs.tabs.currentness'),
+      summary: staleCount > 0 ? `${staleCount}` : `${freshPct}%`,
     });
   }
 
@@ -137,7 +123,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
     return (
       <Paper elevation={0} sx={{ p: 3, border: '1px solid #EEEEEE', borderRadius: 2, textAlign: 'center' }}>
         <Typography variant="body2" sx={{ color: '#888' }}>
-          No hay métricas detalladas disponibles.
+          {t('projects.detail.noParams')}
         </Typography>
       </Paper>
     );
@@ -154,13 +140,6 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
             value={safeTab}
             onChange={(e) => setActiveTab(e.target.value as number)}
             size="small"
-            sx={{
-              '& .MuiSelect-select': {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              },
-            }}
           >
             {tabs.map((tab, idx) => (
               <MenuItem key={idx} value={idx}>
@@ -173,7 +152,6 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
           </Select>
         </FormControl>
       ) : (
-        /* Desktop/Tablet: Scrollable tabs */
         <Tabs
           value={safeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
@@ -213,10 +191,8 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
       )}
 
       <Box sx={{ p: 3 }}>
-        {/* Render tab content based on which metrics are available */}
         {(() => {
           let tabIdx = 0;
-
           const panels: React.ReactNode[] = [];
 
           if (hasCompleteness) {

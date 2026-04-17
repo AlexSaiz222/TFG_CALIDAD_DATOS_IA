@@ -17,6 +17,7 @@ import {
   Error as ErrorIcon,
   AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface ColumnCurrentness {
   max_date: string | null;
@@ -55,11 +56,13 @@ const formatDate = (isoStr: string | null): string => {
 };
 
 const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
+  const { t } = useTranslation();
+
   if (!data || !data.columns || Object.keys(data.columns).length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
         <Typography variant="body2" color="text.secondary">
-          No se detectaron columnas de fecha para analizar la actualidad de los datos.
+          {t('currentnessDetail.noDateCols')}
         </Typography>
       </Box>
     );
@@ -67,7 +70,7 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
 
   const columns = Object.entries(data.columns)
     .map(([name, col]) => ({ name, ...col }))
-    .sort((a, b) => (b.age_days ?? 0) - (a.age_days ?? 0)); // Most stale first
+    .sort((a, b) => (b.age_days ?? 0) - (a.age_days ?? 0));
 
   const overallPct = (data.overall_freshness_score * 100).toFixed(1);
 
@@ -95,7 +98,7 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
 
   return (
     <Box>
-      {/* Score global */}
+      {/* Global score */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
         <Typography
           variant="h4"
@@ -105,7 +108,7 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
         </Typography>
         <Box sx={{ flex: 1 }}>
           <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
-            Frescura global de datos
+            {t('currentnessDetail.scoreLabel')}
           </Typography>
           <LinearProgress
             variant="determinate"
@@ -125,16 +128,17 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
 
       {/* Insight */}
       <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-        {data.columns_stale === 0
-          ? `Las ${data.columns_analyzed} columnas de fecha analizadas contienen datos dentro del umbral de frescura (${data.staleness_threshold_days} dias).`
-          : `${data.columns_stale} de ${data.columns_analyzed} columnas contienen datos que superan el umbral de ${data.staleness_threshold_days} dias de antiguedad.`}
+        {t('currentnessDetail.insight', {
+          stale: data.columns_stale,
+          total: data.columns_analyzed,
+          days: data.staleness_threshold_days,
+        })}
       </Typography>
 
       {/* Stale alert */}
       {data.columns_stale > 0 && (
         <Alert severity="warning" sx={{ mb: 2, fontSize: '0.8rem' }}>
-          Se detectaron {data.columns_stale} columna{data.columns_stale > 1 ? 's' : ''} con datos obsoletos.
-          Considera actualizar el dataset para obtener resultados mas fiables.
+          {t('currentnessDetail.staleAlert')}
         </Alert>
       )}
 
@@ -143,12 +147,10 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Columna</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Fecha mas reciente</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Antiguedad</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Rango cubierto</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Frescura</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Estado</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{t('currentnessDetail.tableColumns.column')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{t('currentnessDetail.tableColumns.maxDate')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{t('currentnessDetail.tableColumns.ageDays')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{t('currentnessDetail.tableColumns.status')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -172,11 +174,6 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
                   <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                     {formatDate(col.max_date)}
                   </Typography>
-                  {col.min_date && col.min_date !== col.max_date && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-                      desde {formatDate(col.min_date)}
-                    </Typography>
-                  )}
                 </TableCell>
                 <TableCell>
                   <Typography
@@ -191,54 +188,22 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                    {col.date_range_days !== null
-                      ? col.date_range_days >= 365
-                        ? `${(col.date_range_days / 365).toFixed(1)} años`
-                        : col.date_range_days >= 30
-                          ? `${Math.round(col.date_range_days / 30)} meses`
-                          : `${col.date_range_days} dias`
-                      : '-'}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 120 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={col.freshness_score * 100}
-                      sx={{
-                        flex: 1,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: '#F0F0F0',
-                        '& .MuiLinearProgress-bar': {
-                          borderRadius: 3,
-                          backgroundColor: getColor(col.freshness_score),
-                        },
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ fontWeight: 600, minWidth: 42, textAlign: 'right' }}>
-                      {(col.freshness_score * 100).toFixed(0)}%
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
                   {col.is_stale ? (
                     <Chip
-                      label="Obsoleto"
+                      label={t('currentnessDetail.staleChip', { days: col.age_days ?? 0 })}
                       size="small"
                       sx={{ fontSize: '0.7rem', height: 22, backgroundColor: '#FEE2E2', color: '#991B1B' }}
                     />
                   ) : (
                     <Chip
-                      label="Vigente"
+                      label={t('currentnessDetail.currentChip')}
                       size="small"
                       sx={{ fontSize: '0.7rem', height: 22, backgroundColor: '#D1FAE5', color: '#065F46' }}
                     />
                   )}
                   {col.parse_success_rate < 0.80 && (
                     <Chip
-                      label={`Parseo: ${(col.parse_success_rate * 100).toFixed(0)}%`}
+                      label={t('currentnessDetail.parseError')}
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: '0.65rem', height: 20, ml: 0.5, borderColor: '#FBB024', color: '#92400E' }}
@@ -253,7 +218,7 @@ const CurrentnessDetail: React.FC<CurrentnessDetailProps> = ({ data }) => {
 
       {/* Analysis timestamp */}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'right' }}>
-        Analisis realizado: {formatDate(data.analysis_timestamp)}
+        {t('currentnessDetail.timestampFooter', { ts: formatDate(data.analysis_timestamp) })}
       </Typography>
     </Box>
   );

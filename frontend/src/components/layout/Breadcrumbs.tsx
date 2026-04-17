@@ -5,6 +5,7 @@ import {
   Home as HomeIcon,
   NavigateNext as NavigateNextIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface BreadcrumbItem {
   label: string;
@@ -16,27 +17,27 @@ interface BreadcrumbsProps {
   currentPage?: string;
 }
 
-// Mapeo de rutas a nombres legibles en español (sin capitalización innecesaria)
-const routeLabels: Record<string, string> = {
-  dashboard: 'Panel principal',
-  projects: 'Proyectos',
-  datasets: 'Datasets',
-  evaluations: 'Historial de análisis',
-  profile: 'Perfil',
-  settings: 'Configuración',
-  templates: 'Plantillas',
-  new: 'Nuevo',
-  upload: 'Subir',
-  edit: 'Editar',
-  compare: 'Comparar',
-  runs: 'Análisis',
-  metrics: 'Métricas',
-  configure: 'Configurar',
-};
-
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const pathSegments = router.asPath.split('?')[0].split('/').filter(Boolean);
+
+  const routeLabels: Record<string, string> = {
+    dashboard: t('breadcrumbs.routes.dashboard'),
+    projects: t('breadcrumbs.routes.projects'),
+    datasets: t('breadcrumbs.routes.datasets'),
+    evaluations: t('breadcrumbs.routes.evaluations'),
+    profile: t('breadcrumbs.routes.profile'),
+    settings: t('breadcrumbs.routes.settings'),
+    templates: t('nav.items.templates'),
+    new: t('common.new'),
+    upload: t('common.upload'),
+    edit: t('common.edit'),
+    compare: t('datasets.compare.title'),
+    runs: t('evaluations.title'),
+    metrics: t('projects.detail.tabs.metrics'),
+    configure: t('common.configure'),
+  };
 
   // Si se proporcionan items personalizados, usarlos
   if (items && items.length > 0) {
@@ -66,11 +67,11 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
             }}
           >
             <HomeIcon sx={{ fontSize: 18, mr: 0.5 }} />
-            Inicio
+            {t('breadcrumbs.home')}
           </Link>
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
-            
+
             if (isLast || !item.href) {
               return (
                 <Typography
@@ -118,12 +119,12 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
     pathSegments.forEach((segment, index) => {
       currentPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
-      
+
       // Detectar si es un ID dinámico (número o UUID)
       const isId = /^\d+$/.test(segment) || /^[a-f0-9-]{36}$/.test(segment);
-      
+
       let label = routeLabels[segment] || segment;
-      
+
       // Si es un ID, usar un label genérico o el currentPage si es el último
       if (isId) {
         if (isLast && currentPage) {
@@ -131,10 +132,10 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
         } else {
           // Intentar inferir el tipo de entidad del segmento anterior
           const prevSegment = pathSegments[index - 1];
-          if (prevSegment === 'projects') label = 'Proyecto';
-          else if (prevSegment === 'datasets') label = 'Dataset';
-          else if (prevSegment === 'evaluations') label = 'Análisis';
-          else if (prevSegment === 'runs') label = 'Ejecución';
+          if (prevSegment === 'projects') label = t('common.project');
+          else if (prevSegment === 'datasets') label = t('common.dataset');
+          else if (prevSegment === 'evaluations') label = t('evaluations.title');
+          else if (prevSegment === 'runs') label = t('analysisHistory.viewAnalysis');
           else label = `#${segment}`;
         }
       }
@@ -184,7 +185,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, currentPage }) => {
           }}
         >
           <HomeIcon sx={{ fontSize: 18, mr: 0.5 }} />
-          Inicio
+          {t('breadcrumbs.home')}
         </Link>
         {autoBreadcrumbs.map((item, index) => {
           const isLast = index === autoBreadcrumbs.length - 1;

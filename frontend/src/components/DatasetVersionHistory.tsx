@@ -27,6 +27,7 @@ import Button from '@mui/material/Button';
 import { useRouter } from 'next/router';
 import { datasetsAPI } from '../services/api';
 import { Dataset } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface VersionWithAnalysis extends Dataset {
   latestAnalysis?: {
@@ -233,6 +234,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
   onOpenCanvas,
 }) => {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const [versions, setVersions] = useState<VersionWithAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -263,7 +265,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
         setVersions(data.versions || []);
         setError(null);
       } catch {
-        setError('No se pudieron cargar las versiones del dataset');
+        setError(t('datasets.versionHistory.loadError'));
       } finally {
         setLoading(false);
       }
@@ -286,7 +288,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
 
   const formatDate = (d: string | null | undefined) => {
     if (!d) return '—';
-    return new Date(d).toLocaleDateString('es-ES', {
+    return new Date(d).toLocaleDateString(i18n.language, {
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   };
@@ -312,7 +314,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          No hay historial de versiones disponible
+          {t('datasets.versionHistory.noHistory')}
         </Typography>
       </Box>
     );
@@ -324,13 +326,13 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Chip
-            label={versions.length === 1 ? '1 versión' : `${versions.length} versiones`}
+            label={t('datasets.versionHistory.versionCount', { count: versions.length })}
             size="small"
             sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 500, height: 22 }}
           />
           {isBranched && (
             <Chip
-              label="Ramificado"
+              label={t('datasets.versionHistory.branched')}
               size="small"
               sx={{ backgroundColor: 'rgba(156,39,176,0.1)', color: '#9c27b0', fontWeight: 500, height: 22 }}
             />
@@ -350,14 +352,14 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
               '&:hover': { borderColor: '#00B37E', color: '#00B37E', backgroundColor: 'rgba(0,179,126,0.04)' },
             }}
           >
-            Ver árbol visual
+            {t('datasets.versionHistory.viewTree')}
           </Button>
         )}
       </Box>
 
       {selectedForCompare && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Selecciona otra versión para comparar con{' '}
+          {t('datasets.versionHistory.compareWith')}{' '}
           <strong>
             {versions.find(v => v.id === selectedForCompare)?.version_tag
               || `v${versions.find(v => v.id === selectedForCompare)?.version}`}
@@ -445,23 +447,23 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
                           />
                           {v.is_latest && (
                             <Chip
-                              label="Última" size="small"
+                              label={t('datasets.versionHistory.latest')} size="small"
                               sx={{ height: 18, fontSize: '0.63rem', backgroundColor: 'rgba(25,118,210,0.1)', color: '#1976d2', fontWeight: 600 }}
                             />
                           )}
                           {isCurrent && (
                             <Chip
-                              label="Actual" size="small"
+                              label={t('datasets.versionHistory.current')} size="small"
                               sx={{ height: 18, fontSize: '0.63rem', backgroundColor: 'rgba(0,179,126,0.1)', color: '#00B37E', fontWeight: 600 }}
                             />
                           )}
                           {node.lane > 0 && (
                             <Chip
-                              label="rama" size="small"
+                              label={t('datasets.versionHistory.branch')} size="small"
                               sx={{ height: 18, fontSize: '0.63rem', backgroundColor: `${col}18`, color: col, fontWeight: 500 }}
                             />
                           )}
-                          <Tooltip title="Editar etiqueta">
+                          <Tooltip title={t('datasets.versionHistory.editLabel')}>
                             <IconButton size="small" onClick={() => startEdit(v)} sx={{ opacity: 0.3, '&:hover': { opacity: 1 }, p: 0.2 }}>
                               <EditIcon sx={{ fontSize: 12 }} />
                             </IconButton>
@@ -488,10 +490,10 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
                       </Box>
                       <Divider orientation="vertical" flexItem sx={{ mx: 0.25 }} />
                       <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.75rem' }}>
-                        {v.row_count?.toLocaleString() || '—'} filas · {v.column_count || '—'} cols
+                        {t('datasets.versionHistory.rowsCols', { rows: v.row_count?.toLocaleString() || '—', cols: v.column_count || '—' })}
                       </Typography>
                       <Divider orientation="vertical" flexItem sx={{ mx: 0.25 }} />
-                      <Tooltip title="Ver dataset">
+                      <Tooltip title={t('datasets.versionHistory.viewDataset')}>
                         <IconButton
                           size="small"
                           onClick={() => router.push(`/datasets/${v.id}`)}
@@ -501,7 +503,7 @@ const DatasetVersionHistory: React.FC<DatasetVersionHistoryProps> = ({
                         </IconButton>
                       </Tooltip>
                       {onCompare && versions.length > 1 && (
-                        <Tooltip title={selectedForCompare === v.id ? 'Cancelar comparación' : 'Comparar'}>
+                        <Tooltip title={selectedForCompare === v.id ? t('datasets.versionHistory.cancelCompare') : t('datasets.versionHistory.compare')}>
                           <IconButton
                             size="small"
                             onClick={() => handleCompare(v.id)}

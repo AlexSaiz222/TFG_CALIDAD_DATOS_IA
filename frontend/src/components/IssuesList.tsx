@@ -38,6 +38,7 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 import type { DataQualityIssue } from '../types';
+import { useTranslation } from 'react-i18next';
 
 // Colores consistentes
 const GREEN = '#00B37E';
@@ -46,37 +47,16 @@ const ORANGE = '#FFB800';
 const BLUE = '#3B82F6';
 const GRAY = '#888888';
 
-// Configuración de severidades
-const SEVERITY_CONFIG = {
-  critical: {
-    color: RED,
-    bgColor: 'rgba(229, 72, 77, 0.1)',
-    icon: ErrorIcon,
-    label: 'Crítico',
-    order: 0,
-  },
-  major: {
-    color: ORANGE,
-    bgColor: 'rgba(255, 184, 0, 0.1)',
-    icon: WarningIcon,
-    label: 'Mayor',
-    order: 1,
-  },
-  minor: {
-    color: BLUE,
-    bgColor: 'rgba(59, 130, 246, 0.1)',
-    icon: InfoIcon,
-    label: 'Menor',
-    order: 2,
-  },
-  info: {
-    color: GRAY,
-    bgColor: 'rgba(136, 136, 136, 0.1)',
-    icon: CheckCircleIcon,
-    label: 'Info',
-    order: 3,
-  },
+// Severity config without labels (labels resolved via i18n inside component)
+const SEVERITY_CONFIG_BASE = {
+  critical: { color: RED, bgColor: 'rgba(229, 72, 77, 0.1)', icon: ErrorIcon, order: 0 },
+  major:    { color: ORANGE, bgColor: 'rgba(255, 184, 0, 0.1)', icon: WarningIcon, order: 1 },
+  minor:    { color: BLUE, bgColor: 'rgba(59, 130, 246, 0.1)', icon: InfoIcon, order: 2 },
+  info:     { color: GRAY, bgColor: 'rgba(136, 136, 136, 0.1)', icon: CheckCircleIcon, order: 3 },
 };
+
+type SeverityBase = typeof SEVERITY_CONFIG_BASE;
+const SEVERITY_CONFIG = SEVERITY_CONFIG_BASE as Record<string, { color: string; bgColor: string; icon: any; order: number }>;
 
 type SeverityType = keyof typeof SEVERITY_CONFIG;
 type SortField = 'severity' | 'issue_type' | 'created_at' | 'is_new';
@@ -88,6 +68,7 @@ interface IssuesListProps {
 }
 
 const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
+  const { t } = useTranslation();
   // Filtros
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -204,15 +185,22 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
 
   const hasActiveFilters = severityFilter !== 'all' || statusFilter !== 'all' || typeFilter !== 'all' || searchTerm !== '';
 
+  const SEVERITY_LABELS: Record<string, string> = {
+    critical: t('issuesList.severity.critical'),
+    major: t('issuesList.severity.high'),
+    minor: t('issuesList.severity.medium'),
+    info: t('issuesList.severity.info'),
+  };
+
   // Renderizar badge de severidad
   const renderSeverityBadge = (severity: string) => {
-    const config = SEVERITY_CONFIG[severity as SeverityType] || SEVERITY_CONFIG.info;
+    const config = SEVERITY_CONFIG[severity] || SEVERITY_CONFIG.info;
     const IconComponent = config.icon;
 
     return (
       <Chip
         icon={<IconComponent sx={{ fontSize: 16 }} />}
-        label={config.label}
+        label={SEVERITY_LABELS[severity] || severity}
         size="small"
         sx={{
           backgroundColor: config.bgColor,
@@ -230,7 +218,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
       return (
         <Chip
           icon={<NewReleasesIcon sx={{ fontSize: 14 }} />}
-          label="NUEVO"
+          label={t('issuesList.newBadge')}
           size="small"
           sx={{
             backgroundColor: 'rgba(229, 72, 77, 0.1)',
@@ -246,7 +234,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
     return (
       <Chip
         icon={<ReplayIcon sx={{ fontSize: 14 }} />}
-        label="Recurrente"
+        label={t('issuesList.recurring')}
         size="small"
         sx={{
           backgroundColor: 'rgba(136, 136, 136, 0.1)',
@@ -265,10 +253,10 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
       <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: '1px dashed #CCCCCC', textAlign: 'center' }}>
         <CheckCircleIcon sx={{ fontSize: 48, color: GREEN, mb: 2 }} />
         <Typography variant="h6" sx={{ color: '#555555' }}>
-          No hay issues detectados
+          {t('issuesList.noIssues')}
         </Typography>
         <Typography variant="body2" sx={{ color: '#888888' }}>
-          El análisis no encontró problemas de calidad en los datos.
+          {t('issuesList.noIssuesDesc')}
         </Typography>
       </Paper>
     );
@@ -285,7 +273,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
             </Typography>
             {hasActiveFilters && (
               <Chip
-                label="Filtros activos"
+                label={t('issuesList.activeFilters')}
                 size="small"
                 onDelete={clearFilters}
                 sx={{ backgroundColor: 'rgba(0, 179, 126, 0.1)', color: GREEN }}
@@ -295,7 +283,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <TextField
               size="small"
-              placeholder="Buscar..."
+              placeholder={t('common.search') + '...'}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -317,7 +305,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
               }}
               sx={{ width: 200 }}
             />
-            <Tooltip title={showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}>
+            <Tooltip title={showFilters ? t('common.hideFilters') : t('common.showFilters')}>
               <IconButton onClick={() => setShowFilters(!showFilters)}>
                 <FilterListIcon sx={{ color: hasActiveFilters ? GREEN : GRAY }} />
               </IconButton>
@@ -330,52 +318,52 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <FormControl fullWidth size="small">
-                <InputLabel>Severidad</InputLabel>
+                <InputLabel>{t('issuesList.filterSeverity')}</InputLabel>
                 <Select
                   value={severityFilter}
-                  label="Severidad"
+                  label={t('issuesList.filterSeverity')}
                   onChange={(e) => {
                     setSeverityFilter(e.target.value);
                     setPage(0);
                   }}
                 >
-                  <MenuItem value="all">Todas</MenuItem>
-                  <MenuItem value="critical">Crítico</MenuItem>
-                  <MenuItem value="major">Mayor</MenuItem>
-                  <MenuItem value="minor">Menor</MenuItem>
-                  <MenuItem value="info">Info</MenuItem>
+                  <MenuItem value="all">{t('issuesList.allSeverities')}</MenuItem>
+                  <MenuItem value="critical">{t('issuesList.severity.critical')}</MenuItem>
+                  <MenuItem value="major">{t('issuesList.severity.high')}</MenuItem>
+                  <MenuItem value="minor">{t('issuesList.severity.medium')}</MenuItem>
+                  <MenuItem value="info">{t('issuesList.severity.info')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={4}>
               <FormControl fullWidth size="small">
-                <InputLabel>Estado</InputLabel>
+                <InputLabel>{t('issuesList.filterStatus')}</InputLabel>
                 <Select
                   value={statusFilter}
-                  label="Estado"
+                  label={t('issuesList.filterStatus')}
                   onChange={(e) => {
                     setStatusFilter(e.target.value);
                     setPage(0);
                   }}
                 >
-                  <MenuItem value="all">Todos</MenuItem>
-                  <MenuItem value="new">Nuevos</MenuItem>
-                  <MenuItem value="recurrent">Recurrentes</MenuItem>
+                  <MenuItem value="all">{t('issuesList.allStatuses')}</MenuItem>
+                  <MenuItem value="new">{t('issuesList.isNew')}</MenuItem>
+                  <MenuItem value="recurrent">{t('issuesList.isRecurring')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={4}>
               <FormControl fullWidth size="small">
-                <InputLabel>Tipo</InputLabel>
+                <InputLabel>{t('issuesList.filterType')}</InputLabel>
                 <Select
                   value={typeFilter}
-                  label="Tipo"
+                  label={t('issuesList.filterType')}
                   onChange={(e) => {
                     setTypeFilter(e.target.value);
                     setPage(0);
                   }}
                 >
-                  <MenuItem value="all">Todos</MenuItem>
+                  <MenuItem value="all">{t('issuesList.allTypes')}</MenuItem>
                   {issueTypes.map((type) => (
                     <MenuItem key={type} value={type}>
                       {type}
@@ -399,7 +387,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                   direction={sortField === 'severity' ? sortOrder : 'asc'}
                   onClick={() => handleSort('severity')}
                 >
-                  Severidad
+                  {t('issuesList.filterSeverity')}
                 </TableSortLabel>
               </TableCell>
               <TableCell sx={{ fontWeight: 600, width: 100 }}>
@@ -408,7 +396,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                   direction={sortField === 'is_new' ? sortOrder : 'asc'}
                   onClick={() => handleSort('is_new')}
                 >
-                  Estado
+                  {t('issuesList.filterStatus')}
                 </TableSortLabel>
               </TableCell>
               <TableCell sx={{ fontWeight: 600, width: 150 }}>
@@ -417,12 +405,12 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                   direction={sortField === 'issue_type' ? sortOrder : 'asc'}
                   onClick={() => handleSort('issue_type')}
                 >
-                  Tipo
+                  {t('issuesList.filterType')}
                 </TableSortLabel>
               </TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: 180 }}>Columnas Afectadas</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: 80, textAlign: 'right' }}>Filas</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{t('issuesList.columns.description')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, width: 180 }}>{t('issuesList.columns.affectedColumns')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, width: 80, textAlign: 'right' }}>{t('issuesList.columns.rows')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -447,7 +435,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                   </Typography>
                   {issue.rule_key && (
                     <Typography variant="caption" sx={{ color: GRAY }}>
-                      Regla: {issue.rule_key}
+                      {t('evaluations.issues.rule', { key: issue.rule_key })}
                     </Typography>
                   )}
                 </TableCell>
@@ -504,10 +492,10 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
               <TableRow>
                 <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                   <Typography variant="body2" sx={{ color: GRAY }}>
-                    No se encontraron issues con los filtros aplicados
+                    {t('issuesList.noResults')}
                   </Typography>
                   <Button size="small" onClick={clearFilters} sx={{ mt: 1, color: GREEN }}>
-                    Limpiar filtros
+                    {t('issuesList.clearFilters')}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -525,8 +513,8 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
-        labelRowsPerPage="Filas por página:"
-        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        labelRowsPerPage={t('issuesList.pagination.rowsPerPage')}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('issuesList.pagination.of')} ${count}`}
         sx={{ borderTop: '1px solid #EEEEEE' }}
       />
     </Paper>

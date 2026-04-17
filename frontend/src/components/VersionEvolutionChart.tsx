@@ -22,6 +22,7 @@ import {
   TrendingDown as TrendingDownIcon,
   TrendingFlat as TrendingFlatIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(
   CategoryScale,
@@ -50,13 +51,15 @@ interface VersionEvolutionChartProps {
 
 const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
   versions,
-  title = 'Evolución de calidad',
+  title,
 }) => {
+  const { t } = useTranslation();
+
   if (!versions || versions.length === 0) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          No hay datos de versiones para mostrar
+          {t('versionEvolution.noData')}
         </Typography>
       </Box>
     );
@@ -79,9 +82,9 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
   };
 
   const getTrendLabel = () => {
-    if (scoreDiff > 2) return 'Mejorando';
-    if (scoreDiff < -2) return 'Empeorando';
-    return 'Estable';
+    if (scoreDiff > 2) return t('versionEvolution.improving');
+    if (scoreDiff < -2) return t('versionEvolution.worsening');
+    return t('versionEvolution.stable');
   };
 
   const getTrendColor = () => {
@@ -96,7 +99,7 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
     labels,
     datasets: [
       {
-        label: 'Quality Score',
+        label: t('versionEvolution.defaultTitle'),
         data: scores,
         backgroundColor: scores.map(s =>
           s === null ? 'rgba(180,180,180,0.4)'
@@ -140,11 +143,14 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
             const score = context.raw;
             const v = sortedVersions[context.dataIndex];
             const gate = score !== null
-              ? (score >= THRESHOLD ? '\u2713 Aprobado' : '\u2717 Fallido')
+              ? (score >= THRESHOLD ? t('versionEvolution.tooltipPassed') : t('versionEvolution.tooltipFailed'))
               : '';
+            const scoreLine = score !== null
+              ? t('versionEvolution.tooltipScore', { value: Number(score).toFixed(1), gate })
+              : t('versionEvolution.tooltipScoreNoAnalysis');
             return [
-              `Score: ${score !== null ? `${Number(score).toFixed(1)}%  \u2014  ${gate}` : 'Sin an\u00e1lisis'}`,
-              `Issues: ${v?.total_issues ?? 0}`,
+              scoreLine,
+              t('versionEvolution.tooltipIssues', { count: v?.total_issues ?? 0 }),
             ];
           },
         },
@@ -173,7 +179,7 @@ const VersionEvolutionChart: React.FC<VersionEvolutionChartProps> = ({
 
   return (
     <Box>
-      {/* Indicador de tendencia — compacto */}
+      {/* Trend indicator */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, mb: 1.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {getTrendIcon()}

@@ -13,11 +13,13 @@ import {
   Container
 } from '@mui/material';
 import { Person as PersonIcon } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProfilePage = () => {
   const { user, loading: authLoading, updateProfile } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -83,7 +85,7 @@ const ProfilePage = () => {
       <Container maxWidth="lg" sx={{ py: 3 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A' }}>
-            Perfil
+            {t('profile.title')}
           </Typography>
         </Box>
 
@@ -95,7 +97,7 @@ const ProfilePage = () => {
 
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
-            Perfil actualizado correctamente
+            {t('profile.success')}
           </Alert>
         )}
 
@@ -140,14 +142,14 @@ const ProfilePage = () => {
 
           <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 500 }}>
-              Información personal
+              {t('profile.personalInfo')}
             </Typography>
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Nombre"
+                  label={t('profile.firstName')}
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
@@ -157,7 +159,7 @@ const ProfilePage = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Apellido"
+                  label={t('profile.lastName')}
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
@@ -167,7 +169,7 @@ const ProfilePage = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Correo electrónico"
+                  label={t('profile.email')}
                   name="email"
                   type="email"
                   value={formData.email}
@@ -178,13 +180,13 @@ const ProfilePage = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Nombre de usuario"
+                  label={t('profile.username')}
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
                   disabled
                   variant="outlined"
-                  helperText="El nombre de usuario no se puede cambiar"
+                  helperText={t('profile.usernameHelper')}
                 />
               </Grid>
             </Grid>
@@ -204,7 +206,7 @@ const ProfilePage = () => {
                   py: 1
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Guardar cambios'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : t('profile.saveChanges')}
               </Button>
             </Box>
           </Box>

@@ -1,0 +1,1709 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Volver",
+    "loading": "Cargando...",
+    "error": "Error",
+    "retry": "Reintentar",
+    "noData": "Sin datos",
+    "search": "Buscar",
+    "close": "Cerrar",
+    "yes": "Sí",
+    "no": "No",
+    "name": "Nombre",
+    "description": "Descripción",
+    "all": "Todos",
+    "actions": "Acciones",
+    "status": "Estado",
+    "create": "Crear",
+    "update": "Actualizar",
+    "upload": "Subir",
+    "download": "Descargar",
+    "export": "Exportar",
+    "import": "Importar",
+    "add": "Añadir",
+    "remove": "Eliminar",
+    "view": "Ver",
+    "details": "Detalles",
+    "type": "Tipo",
+    "date": "Fecha",
+    "version": "Versión",
+    "project": "Proyecto",
+    "dataset": "Dataset",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "finish": "Finalizar",
+    "optional": "opcional",
+    "required": "requerido",
+    "unknown": "Desconocido",
+    "none": "Ninguno",
+    "new": "Nuevo",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado",
+    "rowsPerPage": "Filas por página:",
+    "of": "de",
+    "noResults": "Sin resultados",
+    "saveChanges": "Guardar cambios",
+    "clearFilters": "Limpiar filtros",
+    "applyFilters": "Aplicar filtros",
+    "showFilters": "Mostrar filtros",
+    "hideFilters": "Ocultar filtros",
+    "copy": "Copiar",
+    "duplicate": "Duplicar",
+    "configure": "Configurar",
+    "reset": "Restablecer",
+    "clear": "Limpiar"
+  },
+  "time": {
+    "minutesAgo": "hace {{count}}m",
+    "hoursAgo": "hace {{count}}h",
+    "daysAgo": "hace {{count}}d",
+    "monthsAgo_one": "hace {{count}} mes",
+    "monthsAgo_other": "hace {{count}} meses",
+    "never": "Nunca",
+    "justNow": "Ahora mismo",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "daysAgoShort": "Hace {{count}} d.",
+    "weeksAgoShort": "Hace {{count}} sem.",
+    "monthsAgoShort": "Hace {{count}} mes.",
+    "jan": "ene",
+    "feb": "feb",
+    "mar": "mar",
+    "apr": "abr",
+    "may": "may",
+    "jun": "jun",
+    "jul": "jul",
+    "aug": "ago",
+    "sep": "sep",
+    "oct": "oct",
+    "nov": "nov",
+    "dec": "dic"
+  },
+  "language": {
+    "label": "Idioma",
+    "spanish": "Español",
+    "english": "English",
+    "changed": "Idioma cambiado"
+  },
+  "nav": {
+    "sections": {
+      "main": "Principal",
+      "system": "Sistema",
+      "recent": "Recientes"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "projects": "Proyectos",
+      "allProjects": "Ver todos",
+      "newProject": "Nuevo proyecto",
+      "datasets": "Datasets",
+      "allDatasets": "Todos los datasets",
+      "uploadDataset": "Subir dataset",
+      "analysis": "Análisis",
+      "history": "Historial",
+      "settings": "Configuración",
+      "profile": "Perfil",
+      "templates": "Plantillas",
+      "language": "Idioma"
+    },
+    "expandPanel": "Expandir panel",
+    "collapsePanel": "Colapsar panel",
+    "logout": "Cerrar sesión",
+    "recentProjects": "Proyectos recientes",
+    "accountSettings": "Configuración de cuenta"
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Accede a tu cuenta para gestionar tus proyectos",
+      "usernameOrEmail": "Usuario o correo",
+      "usernamePlaceholder": "usuario@ejemplo.com…",
+      "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "rememberMe": "Recordarme",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar sesión",
+      "loading": "Iniciando sesión…",
+      "noAccount": "¿No tienes cuenta?",
+      "createAccount": "Crear cuenta",
+      "tabLogin": "Iniciar sesión",
+      "tabRegister": "Registrarse"
+    },
+    "register": {
+      "title": "Crear cuenta",
+      "subtitle": "Únete a DataQual",
+      "username": "Nombre de usuario",
+      "usernamePlaceholder": "tu_usuario…",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "correo@ejemplo.com…",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "firstName": "Nombre",
+      "lastName": "Apellidos",
+      "organization": "Organización (opcional)",
+      "submit": "Crear cuenta",
+      "loading": "Creando cuenta…",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Iniciar sesión"
+    },
+    "validation": {
+      "usernameRequired": "El usuario es requerido",
+      "passwordRequired": "La contraseña es requerida",
+      "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+      "usernameMinLength": "El nombre de usuario debe tener al menos 3 caracteres",
+      "usernameRequired2": "El nombre de usuario es requerido",
+      "emailRequired": "El email es requerido",
+      "emailInvalid": "El email no es válido",
+      "passwordsNoMatch": "Las contraseñas no coinciden",
+      "confirmRequired": "Confirma tu contraseña"
+    },
+    "tagline": "Analiza y valida la calidad de datos usados en proyectos de IA",
+    "hero1": "Impulsa tus",
+    "hero2": "datos en IA"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bienvenido de nuevo, {{name}}",
+    "refresh": "Actualizar datos",
+    "error": "Error al cargar el dashboard.",
+    "kpi": {
+      "projects": "Proyectos",
+      "datasets": "Datasets",
+      "avgQuality": "Calidad media",
+      "active": "Activos",
+      "inUse": "En uso",
+      "score": "Puntuación",
+      "new": "Nuevo",
+      "upload": "Subir",
+      "noEvaluations": "Sin evaluaciones",
+      "viewProjects": "Ver proyectos",
+      "viewDatasets": "Ver datasets",
+      "viewAnalysis": "Ver análisis"
+    },
+    "distribution": {
+      "title": "Distribución de calidad",
+      "subtitle": "Último análisis completado por proyecto",
+      "passed": "Aprobado",
+      "passedDesc": "Score ≥ umbral",
+      "warning": "Advertencia",
+      "warningDesc": "Score en el límite",
+      "failed": "Fallido",
+      "failedDesc": "Score < umbral",
+      "noAnalysis": "Sin análisis",
+      "noAnalysisDesc": "Aún no evaluado"
+    },
+    "issuesPerProject": "Problemas de calidad por proyecto",
+    "healthHistory": "Historial de salud de proyectos",
+    "healthHistoryDesc": "Cada barra es un día. Si hay varias evaluaciones en un día, se muestra la más desfavorable.",
+    "requiresAttention": "Requiere atención",
+    "requiresAttentionDesc": "Proyectos con Quality Gate fallido, en advertencia o score inferior al 70%",
+    "empty": {
+      "title": "Comienza creando tu primer proyecto",
+      "subtitle": "Sube datasets, configura métricas de calidad y ejecuta evaluaciones.",
+      "createProject": "Crear proyecto"
+    },
+    "gateDistribution": {
+      "passed": "{{count}} aprobados",
+      "warning": "{{count}} advertencia",
+      "failed": "{{count}} fallidos"
+    }
+  },
+  "projects": {
+    "title": "Proyectos",
+    "newProject": "Nuevo proyecto",
+    "searchPlaceholder": "Buscar proyectos...",
+    "filteredBy": "Filtrado por:",
+    "projectCount_one": "({{count}} proyecto)",
+    "projectCount_other": "({{count}} proyectos)",
+    "noDescription": "Sin descripción",
+    "noProjects": "Aún no tienes ningún proyecto.",
+    "noProjectsSearch": "No se encontraron proyectos con ese criterio de búsqueda.",
+    "createFirst": "Crear tu primer proyecto",
+    "loadError": "Error al cargar los proyectos. Por favor, inténtalo de nuevo.",
+    "deleteError": "Error al eliminar el proyecto. Por favor, inténtalo de nuevo.",
+    "invalidId": "ID de proyecto inválido o no especificado.",
+    "loadInfoError": "No se pudo cargar la información del proyecto.",
+    "loadDataError": "Error al cargar datos del proyecto. Inténtelo de nuevo.",
+    "createError": "Error al crear el proyecto. Inténtelo de nuevo.",
+    "loadProjectError": "Error al cargar el proyecto. Inténtalo de nuevo.",
+    "updateError": "Error al actualizar el proyecto. Inténtelo de nuevo.",
+    "delete": {
+      "title": "¿Eliminar proyecto?",
+      "message": "¿Estás seguro de que quieres eliminar el proyecto \"{{name}}\"? Esta acción no se puede deshacer y eliminará todos los datasets y análisis asociados."
+    },
+    "new": {
+      "title": "Nuevo proyecto",
+      "steps": {
+        "basicInfo": "Información básica",
+        "templateMetrics": "Plantilla y métricas",
+        "summary": "Resumen y confirmación"
+      },
+      "projectInfo": "Información del proyecto",
+      "projectName": "Nombre del proyecto",
+      "descriptionPlaceholder": "Describe brevemente el propósito del proyecto (opcional)",
+      "chooseTemplate": "Elige una plantilla",
+      "templateSubtitle": "Selecciona una plantilla predefinida o personaliza las métricas manualmente.",
+      "custom": "Personalizada",
+      "customSubtitle": "Selecciona métricas manualmente sin partir de una plantilla.",
+      "activeMetrics": "Métricas activas",
+      "activeMetricsSubtitle": "Activa o desactiva métricas individuales. Podrás configurar parámetros detallados desde el proyecto.",
+      "projectSummary": "Resumen del proyecto",
+      "summarySubtitle": "Revisa la información antes de crear el proyecto. Podrás modificarla después desde la configuración.",
+      "basicInfoLabel": "Información básica",
+      "templateLabel": "Plantilla",
+      "customTemplate": "Plantilla personalizada",
+      "noTemplate": "Personalizada (sin plantilla)",
+      "selectedMetrics": "Métricas seleccionadas ({{count}})",
+      "afterCreate": "Al crear el proyecto, podrás subir datasets y configurar evaluaciones de calidad de datos.",
+      "nameRequired": "El nombre del proyecto es obligatorio",
+      "createSuccess": "Proyecto creado correctamente",
+      "createError": "Error al crear el proyecto",
+      "createButton": "Crear proyecto",
+      "metricsConfig": "Configuración de métricas",
+      "notFound": "Proyecto no encontrado",
+      "backToProjects": "Volver a proyectos"
+    },
+    "edit": {
+      "title": "Editar proyecto",
+      "loadError": "Error al cargar el proyecto. Inténtalo de nuevo.",
+      "updateError": "Error al actualizar el proyecto. Inténtalo de nuevo.",
+      "nameRequired": "El nombre del proyecto es obligatorio"
+    },
+    "detail": {
+      "tabs": {
+        "overview": "Resumen",
+        "datasets": "Datasets",
+        "metrics": "Métricas",
+        "analysis": "Análisis",
+        "qualityGate": "Quality Gate"
+      },
+      "runAnalysis": "Ejecutar análisis",
+      "configureMetrics": "Configurar métricas",
+      "noDatasets": "No hay datasets en este proyecto",
+      "uploadFirst": "Sube tu primer dataset",
+      "noAnalysis": "Sin análisis ejecutados",
+      "runFirst": "Ejecuta tu primer análisis",
+      "info": "Información del proyecto",
+      "createdAt": "Fecha de creación",
+      "lastUpdated": "Última actualización",
+      "appliedMetrics": "Métricas aplicadas",
+      "projectDatasets": "Datasets del proyecto",
+      "addDataset": "Añadir dataset",
+      "tableColumns": {
+        "name": "Nombre",
+        "version": "Versión",
+        "versionPrefix": "v",
+        "versionHistory": "Historial de versiones",
+        "created": "Fecha de creación",
+        "actions": "Acciones"
+      },
+      "viewDetails": "Ver detalles",
+      "noDatasetsTitle": "Aún no hay datasets",
+      "noDatasetsDesc": "Comienza añadiendo tu primer dataset",
+      "configuredMetrics": "Métricas configuradas",
+      "noDescAvailable": "Sin descripción disponible.",
+      "whatMeasures": "¿Qué mide?",
+      "configuredParams": "Parámetros configurados",
+      "noParams": "No hay parámetros configurados. Se usarán los valores por defecto.",
+      "noMetricsTitle": "No hay métricas configuradas",
+      "noMetricsDesc": "Configura métricas para evaluar la calidad de tus datasets.",
+      "deleteTitle": "¿Eliminar Proyecto?",
+      "deleteMessage": "¿Estás seguro de que deseas eliminar el proyecto \"{{name}}\"? Esta acción no se puede deshacer y eliminará todos los datasets y evaluaciones asociados.",
+      "notFound": "Proyecto no encontrado",
+      "backToProjects": "Volver a Proyectos"
+    },
+    "paramHelp": {
+      "completeness": {
+        "threshold": { "label": "Umbral mínimo", "unit": "0 – 1", "description": "Proporción mínima de valores no nulos exigida. Si la completitud real es inferior, se genera un issue." },
+        "columns": { "label": "Columnas", "description": "Columnas a evaluar. Vacío = todas las columnas del dataset." }
+      },
+      "uniqueness": {
+        "threshold": { "label": "Umbral de unicidad", "unit": "0 – 1", "description": "Proporción mínima de filas únicas exigida. 1.0 = ningún duplicado permitido." },
+        "columns": { "label": "Columnas clave", "description": "Columnas cuya combinación debe ser única (p.ej. identificadores). Vacío = filas completas." }
+      },
+      "outliers": {
+        "method": { "label": "Método de detección", "description": "IQR es robusto ante distribuciones asimétricas. Z-Score asume distribución normal y es más sensible a extremos." },
+        "factor": { "label": "Factor de sensibilidad", "unit": "> 0", "description": "Multiplicador de tolerancia. Más bajo = más estricto (más outliers detectados). 1.5 es el estándar; 3.0 es permisivo." },
+        "columns": { "label": "Columnas numéricas", "description": "Columnas numéricas a analizar. Vacío = todas las columnas numéricas detectadas." }
+      },
+      "syntactic_accuracy": {
+        "auto_detect_types": { "label": "Detección automática", "description": "Detecta formatos comunes (email, teléfono, fecha…) sin configuración manual. Si está desactivado, solo se evalúan las reglas de 'columns'." },
+        "threshold": { "label": "Umbral de conformidad", "unit": "0 – 1", "description": "Porcentaje mínimo de valores que deben cumplir el formato en cada columna analizada." },
+        "columns": { "label": "Reglas de formato", "description": "Lista de columnas con su tipo esperado (email, phone_es, date_iso, dni_es, url…). Complementa o reemplaza la detección automática." }
+      },
+      "class_balance": {
+        "auto_detect": { "label": "Detección automática", "description": "Detecta automáticamente columnas categóricas según el umbral de cardinalidad." },
+        "columns": { "label": "Columnas a analizar", "description": "Columnas categóricas específicas. Vacío = todas las detectadas automáticamente." },
+        "max_cardinality": { "label": "Cardinalidad máxima", "unit": "entero", "description": "Nº máximo de valores únicos para considerar una columna como categórica. Columnas con más valores serán ignoradas." },
+        "imbalance_threshold_high": { "label": "Umbral de dominancia", "unit": "0 – 1", "description": "Porcentaje máximo que puede ocupar una clase. Superarlo genera un issue de desequilibrio." },
+        "imbalance_threshold_low": { "label": "Umbral de minoría", "unit": "0 – 1", "description": "Porcentaje mínimo que debe tener cualquier clase. Por debajo = infrarepresentada." }
+      },
+      "currentness": {
+        "auto_detect": { "label": "Detección automática", "description": "Detecta automáticamente columnas de tipo fecha, timestamp o datetime." },
+        "columns": { "label": "Columnas de fecha", "description": "Columnas de fecha específicas. Vacío = todas las detectadas automáticamente." },
+        "staleness_threshold_days": { "label": "Umbral de obsolescencia", "unit": "días", "description": "Días sin actualización a partir de los cuales un registro se considera desactualizado." }
+      },
+      "logical_consistency": {
+        "rules": { "label": "Reglas de negocio", "description": "Lista de reglas que los datos deben cumplir. 'violation': expresión que selecciona filas inválidas. 'if_then': si se cumple la condición, la aserción debe ser verdadera." }
+      }
+    },
+    "qualityGate": {
+      "title": "Quality Gate",
+      "strictness": {
+        "strict": "Estricto",
+        "moderate": "Moderado",
+        "permissive": "Permisivo"
+      },
+      "thresholds": {
+        "minScore": "Score mínimo",
+        "maxCritical": "Máx. issues críticos",
+        "maxNew": "Máx. nuevos issues"
+      },
+      "saveChanges": "Guardar cambios",
+      "resetDefaults": "Restaurar valores por defecto",
+      "saveSuccess": "Quality Gate guardado correctamente",
+      "saveError": "Error al guardar el Quality Gate"
+    }
+  },
+  "datasets": {
+    "title": "Datasets",
+    "notFound": "Dataset no encontrado",
+    "backToProjects": "Volver a proyectos",
+    "invalidId": "ID de dataset inválido o no especificado.",
+    "noName": "Dataset sin nombre",
+    "noDataLoaded": "No se pudo cargar la información del dataset.",
+    "previewUnavailable": "No se pudo cargar la vista previa del dataset.",
+    "previewNoData": "No hay datos de vista previa disponibles.",
+    "sensitiveTooltip": "Columna sensible – valores ofuscados",
+    "tabs": {
+      "preview": "Vista previa",
+      "profiling": "Perfilado",
+      "evaluations": "Evaluaciones",
+      "issues": "Issues",
+      "versions": "Versiones"
+    },
+    "info": {
+      "project": "Proyecto",
+      "rows": "Filas",
+      "columns": "Columnas",
+      "uploaded": "Subido"
+    },
+    "actions": {
+      "newVersion": "Nueva versión",
+      "delete": "Eliminar",
+      "runEvaluation": "Ejecutar evaluación",
+      "running": "Ejecutando…",
+      "processing": "Procesando…",
+      "viewDetails": "Ver detalles"
+    },
+    "evaluationsTab": {
+      "noEvaluations": "No hay evaluaciones ejecutadas para este dataset",
+      "columns": {
+        "id": "ID",
+        "date": "Fecha",
+        "duration": "Duración",
+        "qualityGate": "Quality Gate",
+        "score": "Score",
+        "issues": "Issues",
+        "actions": "Acciones"
+      },
+      "pending": "En cola",
+      "running": "Ejecutando {{progress}}%",
+      "onGoing": "En curso…"
+    },
+    "issuesTab": {
+      "noIssues": "No hay issues encontrados en la última evaluación",
+      "runFirst": "Ejecuta una evaluación para identificar problemas de calidad de datos",
+      "runEvaluation": "Ejecuta una evaluación",
+      "columns": {
+        "severity": "Severidad",
+        "type": "Tipo",
+        "columns": "Columnas",
+        "description": "Descripción"
+      }
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar dataset?",
+      "message": "¿Estás seguro de que quieres eliminar el dataset \"{name}\"? Esta acción no se puede deshacer y eliminará todas las evaluaciones y problemas asociados."
+    },
+    "lineageTitle": "Árbol de versiones visual",
+    "noMetricsConfigured": "Este proyecto no tiene métricas configuradas. Ve a la configuración del proyecto para añadir métricas antes de ejecutar una evaluación.",
+    "evalLaunchError": "Error al lanzar la evaluación. Por favor, inténtalo de nuevo.",
+    "previewCsvError": "El archivo CSV podría estar vacío o tener un formato incorrecto. Verifica que tenga encabezados y contenido válido.",
+    "severityLabels": {
+      "critical": "Crítico",
+      "high": "Alto",
+      "major": "Mayor",
+      "medium": "Medio",
+      "minor": "Menor",
+      "low": "Bajo",
+      "info": "Info"
+    },
+    "issueTypeLabels": {
+      "completeness": "Completitud",
+      "low_variability": "Baja variabilidad",
+      "high_variability": "Alta variabilidad",
+      "outlier": "Valor atípico",
+      "outliers": "Valores atípicos",
+      "duplicate": "Duplicado",
+      "duplicates": "Duplicados",
+      "uniqueness": "Unicidad",
+      "consistency": "Consistencia",
+      "validity": "Validez",
+      "accuracy": "Exactitud",
+      "timeliness": "Actualidad",
+      "currentness": "Actualidad",
+      "class_balance": "Balance de clases",
+      "distribution": "Distribución",
+      "correlation": "Correlación",
+      "format": "Formato",
+      "schema": "Esquema",
+      "null_rate": "Tasa de nulos",
+      "range": "Rango",
+      "pattern": "Patrón"
+    },
+    "searchPlaceholder": "Buscar por nombre, descripción o proyecto...",
+    "uploadDataset": "Subir dataset",
+    "noDatasets": "Aún no hay datasets. Sube el primero.",
+    "noResults": "No hay datasets que coincidan con la búsqueda.",
+    "loadError": "No se pudieron cargar los datasets. Verifica la conexión con el servidor.",
+    "loadDatasetsError": "No se pudieron cargar los datasets. Verifica la conexión con el servidor.",
+    "noData": "No hay datos disponibles para este dataset.",
+    "datasetCount_one": "{{count}} dataset",
+    "datasetCount_other": "{{count}} datasets",
+    "totalVersions": "· {{count}} versiones totales",
+    "stats": {
+      "rows": "filas",
+      "cols": "cols"
+    },
+    "columns": {
+      "name": "Nombre",
+      "project": "Proyecto",
+      "version": "Versión",
+      "sizeRowsCols": "Tamaño · Filas · Cols",
+      "updated": "Actualizado",
+      "actions": "Acciones"
+    },
+    "latest": "Última",
+    "versionsAvailable": "{{count}} versiones disponibles",
+    "viewDataset": "Ver dataset",
+    "viewVersion": "Ver esta versión",
+    "upload": {
+      "title": "Subir dataset",
+      "newVersion": "Subir nueva versión",
+      "steps": {
+        "selectProject": "Selecciona un proyecto",
+        "addFile": "Añade un archivo",
+        "review": "Revisa y confirma"
+      },
+      "project": "Proyecto",
+      "selectProjectLabel": "Selecciona un proyecto",
+      "noProjectsAvailable": "No hay proyectos disponibles",
+      "uploadFile": "Subir archivo",
+      "dragActive": "Suelta el archivo CSV aquí",
+      "dragInactive": "Arrastra y suelta un archivo CSV aquí, o haz clic para seleccionar",
+      "csvOnly": "Solo se admiten archivos CSV (máx. 10MB)",
+      "datasetName": "Nombre del dataset",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Introduce una descripción para el dataset (opcional)",
+      "versionTag": "Etiqueta de versión (opcional)",
+      "summary": "Resumen y anonimización",
+      "datasetSummary": "Resumen del Dataset",
+      "dataPrivacy": "Privacidad de Datos",
+      "sensitiveColumns": "Selección de columnas sensibles",
+      "sensitiveColumnsDesc": "Es crucial proteger la información personal. Por favor, selecciona a continuación cualquier columna que contenga datos confidenciales. Sus valores serán enmascarados/anonimizados automáticamente.",
+      "protectedColumns": "{{count}} columna(s) protegida(s).",
+      "newVersionOf": "Nueva versión de {{name}}",
+      "versionTagPlaceholder": "Ej: v2.0, corregido, final, etc.",
+      "versionTagHelper": "Una etiqueta descriptiva para identificar esta versión",
+      "errors": {
+        "selectProject": "Por favor, selecciona un proyecto",
+        "nameRequired": "El nombre del dataset es obligatorio",
+        "uploadFile": "Por favor, sube un archivo CSV",
+        "csvOnly": "Solo se admiten archivos CSV",
+        "sizeLimit": "El archivo supera el límite de 10MB",
+        "loadProjects": "Error al cargar los proyectos. Inténtalo de nuevo más tarde.",
+        "invalidResponse": "Formato de respuesta inválido del servidor",
+        "uploadFailed": "Error al subir el dataset. Inténtalo de nuevo.",
+        "noDatasetId": "Subida completada, pero no se pudo obtener el ID del dataset del servidor."
+      }
+    },
+    "detail": {
+      "loadError": "Error al cargar los datos del dataset. Inténtalo de nuevo.",
+      "deleteError": "Error al eliminar el dataset. Inténtalo de nuevo más tarde.",
+      "issuesError": "Error al cargar los problemas de esta evaluación.",
+      "delete": {
+        "title": "¿Eliminar dataset?",
+        "message": "¿Estás seguro de que quieres eliminar este dataset? Esta acción no se puede deshacer."
+      }
+    },
+    "compare": {
+      "title": "Comparar versiones",
+      "previousVersion": "Versión anterior",
+      "currentVersion": "Versión actual",
+      "qualityScoreLabel": "Quality Score",
+      "viewVersion": "Ver {{version}}",
+      "deltaTooltip": {
+        "noData": "Sin datos",
+        "improved": "Mejoró {{value}}%",
+        "worsened": "Empeoró {{value}}%",
+        "noChange": "Sin cambios",
+        "noIssueChange": "Sin cambios en issues",
+        "newIssues": "Aparecieron {{count}} issues nuevos",
+        "resolvedIssues": "Se resolvieron {{count}} issues",
+        "sameRows": "Mismas filas",
+        "addedRows_one": "{{count}} fila añadida",
+        "addedRows_other": "{{count}} filas añadidas",
+        "removedRows_one": "{{count}} fila eliminada",
+        "removedRows_other": "{{count}} filas eliminadas",
+        "sameColumns": "Mismas columnas",
+        "addedColumns_one": "{{count}} columna añadida",
+        "addedColumns_other": "{{count}} columnas añadidas",
+        "removedColumns_one": "{{count}} columna eliminada",
+        "removedColumns_other": "{{count}} columnas eliminadas"
+      },
+      "issuesDeltaMore": "+{{count}} más",
+      "issuesDeltaLess": "{{count}} menos",
+      "previousValue": "Versión anterior: {{value}}",
+      "previousAffected": "Versión anterior: {{count}} filas afectadas",
+      "rowsDelta": "{{sign}}{{count}} filas",
+      "quality": "Calidad",
+      "qualityScore": "Score de calidad",
+      "issues": "Problemas detectados",
+      "rows": "Filas",
+      "columns": "Columnas",
+      "records": "Registros",
+      "fields": "Campos",
+      "addedColumns_one": "{{count}} columna añadida",
+      "addedColumns_other": "{{count}} columnas añadidas",
+      "removedColumns_one": "{{count}} columna eliminada",
+      "removedColumns_other": "{{count}} columnas eliminadas",
+      "resolvedIssues": "Issues resueltos",
+      "noResolvedIssues": "Sin issues resueltos",
+      "newIssues": "Issues nuevos",
+      "noNewIssues": "Sin issues nuevos",
+      "persistentIssues": "Issues persistentes",
+      "noPersistentIssues": "Sin issues persistentes",
+      "loadError": "No se pudo cargar la comparación de versiones",
+      "noData": "No se encontraron datos de comparación"
+    },
+    "versionHistory": {
+      "loadError": "No se pudieron cargar las versiones del dataset",
+      "noHistory": "No hay historial de versiones disponible",
+      "branched": "Ramificado",
+      "viewTree": "Ver árbol visual",
+      "compareWith": "Selecciona otra versión para comparar con",
+      "rowsCols": "{{rows}} filas · {{cols}} cols",
+      "viewDataset": "Ver dataset",
+      "compare": "Comparar",
+      "cancelCompare": "Cancelar comparación",
+      "latest": "Última",
+      "current": "Actual",
+      "branch": "rama",
+      "editLabel": "Editar etiqueta",
+      "versionCount_one": "1 versión",
+      "versionCount_other": "{{count}} versiones"
+    },
+    "lineage": {
+      "loadError": "No se pudieron cargar las versiones",
+      "noVersions": "No hay versiones para mostrar",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Resetear posiciones y zoom",
+      "latest": "Última",
+      "current": "Actual",
+      "editLabel": "Editar etiqueta",
+      "rows": "{{count}} filas",
+      "cols": "{{count}} cols",
+      "clickHint": "Haz clic en un nodo para seleccionarlo · Arrástralo para reposicionarlo",
+      "dragHint": "Arrastra el fondo para desplazar · rueda para zoom · arrastra nodos para reorganizar",
+      "navHint": "Clic en nodo para navegar · ✏️ editar etiqueta · etiqueta en flecha = cambio de calidad",
+      "versionCount_one": "1 versión",
+      "versionCount_other": "{{count}} versiones",
+      "legend": {
+        "passed": "Aprobado",
+        "warning": "Advertencia",
+        "failed": "Fallido",
+        "noAnalysis": "Sin análisis"
+      }
+    },
+    "statusSnapshot": {
+      "noDatasets": "No hay datasets en este proyecto",
+      "noDatasetsSub": "Añade datasets para ver su estado de calidad.",
+      "header": "Estado actual de los datasets",
+      "count": "{{count}} datasets · Clic para ver evolución",
+      "issues": "{{count}} issues",
+      "notAnalyzed": "Sin analizar"
+    }
+  },
+  "evaluations": {
+    "title": "Análisis",
+    "history": "Historial de análisis",
+    "subtitle": "Vista global de todos los análisis de calidad ejecutados en la plataforma",
+    "noAnalysis": "Sin análisis",
+    "loading": "Cargando análisis...",
+    "notFound": "No se encontraron análisis",
+    "stats": {
+      "total": "Total análisis",
+      "passed": "Aprobados",
+      "failed": "Fallidos",
+      "avgScore": "Score promedio"
+    },
+    "filter": {
+      "searchPlaceholder": "Buscar por proyecto o dataset...",
+      "allProjects": "Todos los proyectos"
+    },
+    "viewDetails": "Ver detalles",
+    "columns": {
+      "date": "Fecha",
+      "score": "Score",
+      "issues": "Issues"
+    },
+    "status": {
+      "completed": "Completado",
+      "running": "En progreso",
+      "failed": "Fallido",
+      "pending": "Pendiente",
+      "inProgress": "En progreso"
+    },
+    "severity": {
+      "critical": "Crítico",
+      "major": "Mayor",
+      "minor": "Menor",
+      "info": "Info",
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Bajo"
+    },
+    "gateStatus": {
+      "passed": "Aprobado",
+      "warning": "Advertencia",
+      "failed": "Fallido",
+      "noData": "Sin datos",
+      "noAnalysis": "Sin análisis"
+    },
+    "issues": {
+      "title": "Issues ({{count}})",
+      "noIssues": "No hay issues detectados",
+      "noIssuesDesc": "El análisis no encontró problemas de calidad en los datos.",
+      "noResults": "No se encontraron issues con los filtros aplicados",
+      "clearFilters": "Limpiar filtros",
+      "newBadge": "NUEVO",
+      "recurring": "Recurrente",
+      "filterSeverity": "Severidad",
+      "filterStatus": "Estado",
+      "filterType": "Tipo",
+      "allSeverities": "Todas",
+      "allStatuses": "Todos",
+      "allTypes": "Todos",
+      "isNew": "Nuevos",
+      "isRecurring": "Recurrentes",
+      "columns": {
+        "severity": "Severidad",
+        "status": "Estado",
+        "type": "Tipo",
+        "metric": "Métrica",
+        "description": "Descripción",
+        "affectedColumns": "Columnas Afectadas",
+        "rows": "Filas"
+      },
+      "rule": "Regla: {{key}}"
+    },
+    "detail": {
+      "qualityGateResult": "Resultado del Quality Gate",
+      "score": "Puntuación de calidad",
+      "totalIssues": "Total issues",
+      "criticalIssues": "Issues críticos",
+      "newIssues": "Nuevos issues",
+      "fixedIssues": "Issues corregidos",
+      "comparedTo": "Comparado con análisis base",
+      "invalidId": "ID de análisis inválido.",
+      "loadError": "Error al cargar el análisis.",
+      "notFound": "Análisis no encontrado",
+      "backToHistory": "Volver al historial",
+      "analysisNumber": "Análisis #{{id}}",
+      "badge": {
+        "excellent": "Excelente",
+        "needsAttention": "Requiere atención",
+        "critical": "Crítico",
+        "acceptable": "Aceptable"
+      },
+      "scoreVerdict": {
+        "excellent": "Excelente",
+        "good": "Bueno",
+        "acceptable": "Aceptable",
+        "poor": "Deficiente",
+        "critical": "Crítico"
+      },
+      "gate": {
+        "passedTitle": "Supera el Quality Gate",
+        "warningTitle": "Quality Gate con advertencias",
+        "failedTitle": "No supera el Quality Gate",
+        "passedDesc": "El análisis cumple los estándares de calidad definidos para este proyecto.",
+        "warningDesc": "El análisis presenta advertencias que requieren atención.",
+        "failedDesc": "El score obtenido ({{score}}/100) no alcanza el umbral mínimo requerido para este proyecto.",
+        "failedDescThreshold": "El score obtenido ({{score}}/100) no alcanza el umbral mínimo requerido: {{threshold}}/100."
+      },
+      "sections": {
+        "metricSummary": "Resumen de métricas",
+        "detectedIssues": "Issues detectados ({{count}})",
+        "metricDetails": "Detalles de métricas",
+        "scoreCalculation": "Cálculo de puntuación",
+        "columnMetrics": "Métricas por Columna ({{count}} columnas)"
+      },
+      "metricsEvaluated_one": "{{count}} métrica evaluada",
+      "metricsEvaluated_other": "{{count}} métricas evaluadas",
+      "issuesCount_one": "{{count}} issue detectado",
+      "issuesCount_other": "{{count}} issues detectados",
+      "noIssues": "Sin issues",
+      "severityLabel": {
+        "critical": "Crítica",
+        "high": "Alta",
+        "medium": "Media",
+        "low": "Baja"
+      },
+      "metricName": {
+        "completeness": "Completitud",
+        "uniqueness": "Unicidad",
+        "outliers": "Outliers",
+        "syntacticAccuracy": "Exactitud sintáctica",
+        "classBalance": "Equilibrio de clases",
+        "currentness": "Actualidad",
+        "logicalConsistency": "Consistencia lógica",
+        "general": "General"
+      },
+      "insight": {
+        "completeness": {
+          "partial_one": "{{count}} de {{total}} columna tiene valores nulos",
+          "partial_other": "{{count}} de {{total}} columnas tienen valores nulos",
+          "allComplete": "Todas las columnas están completas"
+        },
+        "uniqueness": {
+          "duplicates_one": "{{count}} fila completamente duplicada",
+          "duplicates_other": "{{count}} filas completamente duplicadas",
+          "noDuplicates": "Sin filas duplicadas detectadas"
+        },
+        "outliers": {
+          "none": "Sin valores atípicos detectados",
+          "oneCol": "{{count}} columna afectada ({{col}}, {{pct}}%)",
+          "multiCol": "{{count}} columnas afectadas ({{pct}}% del total)"
+        },
+        "syntacticAccuracy": {
+          "columns_one": "{{count}} columna analizada",
+          "columns_other": "{{count}} columnas analizadas",
+          "none": "Sin columnas analizadas"
+        },
+        "logicalConsistency": {
+          "noViolations_one": "{{count}} regla sin violaciones",
+          "noViolations_other": "{{count}} reglas sin violaciones",
+          "violations_one": "{{count}} de {{total}} regla con violaciones",
+          "violations_other": "{{count}} de {{total}} reglas con violaciones"
+        },
+        "classBalance": {
+          "noAlerts": "Sin desequilibrios detectados",
+          "alerts_one": "{{count}} columna con desequilibrio",
+          "alerts_other": "{{count}} columnas con desequilibrio"
+        },
+        "currentness": {
+          "upToDate_one": "{{count}} columna actualizada",
+          "upToDate_other": "{{count}} columnas actualizadas",
+          "stale_one": "{{count}} de {{total}} columna desactualizada",
+          "stale_other": "{{count}} de {{total}} columnas desactualizadas"
+        }
+      },
+      "scoreCalc": {
+        "description": "El Quality Score parte de 100% y deduce una penalización según los issues detectados, normalizada por el número de columnas del dataset.",
+        "step1Title": "1. Penalización por issues",
+        "step1Desc": "Cada issue resta según su severidad. La penalización máxima es −97%.",
+        "noIssues": "Sin issues — penalización bruta = 0%",
+        "rawPenalty": "Penalización bruta = −{{value}}%",
+        "step2Title": "2. Normalización por dimensionalidad",
+        "step2Desc": "Datasets más anchos generan más issues. Se divide la penalización por √(columnas / 10).",
+        "capped": "(limitado al tope máximo −97%)",
+        "step3Title": "3. Puntuación final",
+        "diagnosticTitle": "Diagnóstico por dimensión",
+        "diagnosticDesc": "Porcentaje de valores válidos por métrica. Referencia para localizar el origen de los issues.",
+        "diagnosticAvg": "Media ponderada de diagnóstico: {{value}}%"
+      },
+      "noIssuesDetected": "No se detectaron problemas. ¡La calidad de tus datos es excelente!",
+      "scoreCalculationDescription": "El Quality Score parte de 100% y deduce una penalización según los issues detectados, normalizada por el número de columnas del dataset. Los scores por dimensión son un diagnóstico complementario.",
+      "finalScore": "Puntuación final",
+      "metricDetails": "Detalles de métricas",
+      "columnMetrics": "Métricas por Columna ({{count}} columnas)",
+      "scoreCalculationSteps": {
+        "penaltyByIssues": "1. Penalización por issues",
+        "penaltyDescription": "Cada issue resta según su severidad. La penalización máxima es −97%.",
+        "noIssuesPenalty": "Sin issues — penalización bruta = 0%",
+        "rawPenalty": "Penalización bruta = −{{value}}%",
+        "normalization": "2. Normalización por dimensionalidad",
+        "normalizationDescription": "Datasets más anchos generan más issues. Se divide la penalización por √(columnas / 10).",
+        "capped": "(limitado al tope máximo −97%)",
+        "diagnosticByDimension": "Diagnóstico por dimensión",
+        "diagnosticDescription": "Porcentaje de valores válidos por métrica. Referencia para localizar el origen de los issues.",
+        "weightedAverage": "Media ponderada de diagnóstico: {{value}}%"
+      }
+    }
+  },
+  "metrics": {
+    "configure": {
+      "title": "Configuración de métricas",
+      "subtitle": "Configura los parámetros de cada métrica para el proyecto",
+      "saveConfig": "Guardar configuración",
+      "saveSuccess": "Configuración guardada correctamente",
+      "saveError": "Error al guardar la configuración",
+      "resetDefaults": "Restaurar valores por defecto",
+      "threshold": "Umbral mínimo",
+      "weight": "Peso",
+      "enabled": "Habilitada",
+      "disabled": "Deshabilitada",
+      "parameters": "Parámetros",
+      "saveParameters": "Guardar parámetros",
+      "saving": "Guardando...",
+      "tabs": {
+        "available": "Métricas disponibles",
+        "selected": "Métricas seleccionadas",
+        "templates": "Plantillas"
+      },
+      "searchPlaceholder": "Buscar métricas...",
+      "categoryLabel": "Categoría",
+      "allCategories": "Todas las categorías",
+      "categories": {
+        "data_quality": "Calidad de datos",
+        "statistical": "Estadísticas",
+        "ml_specific": "Específicas de ML",
+        "general": "General"
+      },
+      "metricCount_one": "{{count}} métrica",
+      "metricCount_other": "{{count}} métricas",
+      "noMetricsFound": "No se encontraron métricas",
+      "noMetricsFoundDesc": "Ajusta los filtros o la búsqueda para ver otras métricas disponibles.",
+      "add": "Añadir",
+      "remove": "Quitar",
+      "configure": "Configurar",
+      "noSelectedInfo": "No has seleccionado ninguna métrica. Añade métricas desde la pestaña \"Métricas disponibles\".",
+      "saveAsTemplate": "Guardar como plantilla",
+      "templatesSubtitle": "Plantillas de configuración",
+      "templatesDesc": "Aplica una configuración predefinida de métricas para acelerar la puesta en marcha.",
+      "noTemplates": "No hay plantillas disponibles",
+      "noTemplatesDesc": "Crea plantillas desde Configuración > Plantillas para reutilizar configuraciones de métricas.",
+      "goToTemplates": "Ir a plantillas",
+      "newTemplateCard": "Nueva plantilla",
+      "newTemplateCardSub": "Ir a configuración",
+      "applyTemplateDialog": {
+        "title": "Aplicar plantilla",
+        "confirm": "¿Deseas aplicar la plantilla <strong>\"{{name}}\"</strong>?",
+        "metricsInfo": "Esta plantilla incluye {{count}} métricas que se añadirán a tu configuración actual.",
+        "addInfo": "Las métricas de la plantilla se añadirán a tu selección actual. Puedes modificarlas después.",
+        "cancel": "Cancelar",
+        "apply": "Aplicar plantilla"
+      },
+      "saveAsTemplateDialog": {
+        "title": "Guardar como plantilla",
+        "desc": "Guarda la configuración actual ({{count}} métricas) como una plantilla reutilizable.",
+        "nameLabel": "Nombre de la plantilla",
+        "descLabel": "Descripción (opcional)",
+        "cancel": "Cancelar",
+        "saving": "Guardando...",
+        "save": "Guardar plantilla"
+      },
+      "appliedTemplate": "Plantilla \"{{name}}\" aplicada correctamente",
+      "templateSaved": "Plantilla guardada correctamente",
+      "templateSaveError": "Error al guardar la plantilla",
+      "reloadPage": "Recargar página",
+      "backToProjects": "Volver a proyectos",
+      "retry": "Reintentar",
+      "noDescription": "Sin descripción",
+      "projectIdError": "No se pudo determinar el ID de proyecto para guardar la configuración.",
+      "category": "Categoría",
+      "dataQuality": "Calidad de datos",
+      "statistical": "Estadísticas",
+      "mlSpecific": "Específicas de ML",
+      "invalidProjectId": "El ID de proyecto \"{{id}}\" no es válido. Debe ser un número entero.",
+      "loadProjectError": "No se pudo cargar el proyecto con ID {{id}}. El proyecto no existe en caché.",
+      "cacheError": "Error al recuperar datos de caché: {{error}}",
+      "noCacheData": "No se pudo cargar el proyecto con ID {{id}}. No hay datos en caché.",
+      "loadMetricsError": "Error al cargar métricas. Algunas funcionalidades pueden no estar disponibles.",
+      "saveConfigError": "Error al guardar la configuración de métricas.",
+      "noMetricsSelected": "No has seleccionado ninguna métrica. Añade métricas desde la pestaña \"Métricas disponibles\".",
+      "configurationTemplates": "Plantillas de configuración",
+      "templateDescription": "Aplica una configuración predefinida de métricas para acelerar la puesta en marcha.",
+      "noTemplatesAvailable": "No hay plantillas disponibles",
+      "createTemplatesHint": "Crea plantillas desde Configuración > Plantillas para reutilizar configuraciones de métricas.",
+      "newTemplate": "Nueva plantilla",
+      "goToConfiguration": "Ir a configuración",
+      "applyTemplateConfirm": "¿Deseas aplicar la plantilla <strong>\"{{name}}\"</strong>?",
+      "templateIncludesMetrics": "Esta plantilla incluye {{count}} métricas que se añadirán a tu configuración actual.",
+      "templateMetricsInfo": "Las métricas de la plantilla se añadirán a tu selección actual. Puedes modificarlas después.",
+      "saveTemplateDescription": "Guarda la configuración actual ({{count}} métricas) como una plantilla reutilizable.",
+      "templateName": "Nombre de la plantilla",
+      "templateDescriptionOptional": "Descripción (opcional)",
+      "saveTemplate": "Guardar plantilla"
+    },
+    "names": {
+      "completeness": "Completitud",
+      "uniqueness": "Unicidad",
+      "syntacticAccuracy": "Precisión sintáctica",
+      "logicalConsistency": "Consistencia lógica",
+      "classBalance": "Balance de clases",
+      "currentness": "Actualidad",
+      "outlierDetection": "Detección de outliers"
+    },
+    "configure": {
+      "title": "Configurar métricas",
+      "subtitle": "Configura los parámetros de cada métrica para el proyecto",
+      "saveConfig": "Guardar configuración",
+      "saveSuccess": "Configuración guardada correctamente",
+      "saveError": "Error al guardar la configuración",
+      "resetDefaults": "Restaurar valores por defecto",
+      "threshold": "Umbral mínimo",
+      "weight": "Peso",
+      "enabled": "Habilitada",
+      "disabled": "Deshabilitada",
+      "parameters": "Parámetros",
+      "saveParameters": "Guardar parámetros"
+    },
+    "templates": {
+      "title": "Plantillas de métricas",
+      "subtitle": "Crea y gestiona plantillas personalizadas de métricas para tus proyectos.",
+      "pageSubtitle": "Crea y gestiona plantillas personalizadas para aplicar en tus proyectos",
+      "importJson": "Importar JSON",
+      "newTemplate": "Nueva plantilla",
+      "noTemplates": "No tienes plantillas aún",
+      "noTemplatesDesc": "Crea tu primera plantilla para reutilizar configuraciones de métricas en múltiples proyectos",
+      "createFirst": "Crear plantilla",
+      "editTemplate": "Editar plantilla",
+      "deleteTemplate": "Eliminar plantilla",
+      "loadError": "Error al cargar las plantillas. Por favor, inténtalo de nuevo.",
+      "createSuccess": "Plantilla creada correctamente",
+      "updateSuccess": "Plantilla actualizada correctamente",
+      "deleteSuccess": "Plantilla eliminada correctamente",
+      "deleteConfirm": "Eliminar plantilla",
+      "deleteMessage": "¿Estás seguro de que quieres eliminar la plantilla \"{{name}}\"? Esta acción no se puede deshacer.",
+      "dialog": {
+        "editTitle": "Editar plantilla",
+        "newTitle": "Nueva plantilla",
+        "nameLabel": "Nombre de la plantilla",
+        "descLabel": "Descripción (opcional)",
+        "selectMetrics": "Selecciona las métricas",
+        "metricsSelected_one": "{{count}} métrica seleccionada",
+        "metricsSelected_other": "{{count}} métricas seleccionadas",
+        "saveChanges": "Guardar cambios",
+        "create": "Crear plantilla",
+        "cancel": "Cancelar",
+        "configure": "Configurar",
+        "jsonInvalid": "El JSON tiene errores. Corrígelos antes de guardar.",
+        "jsonNoMetrics": "Debes incluir al menos una métrica",
+        "noMetricsSelected": "Debes seleccionar al menos una métrica",
+        "nameRequired": "El nombre de la plantilla es obligatorio"
+      },
+      "jsonDialog": {
+        "title": "Ver / Editar JSON de plantilla",
+        "invalid": "JSON inválido",
+        "loadFile": "Cargar archivo",
+        "close": "Cerrar",
+        "download": "Descargar JSON",
+        "import": "Importar como nueva plantilla",
+        "jsonInvalidFmt": "El JSON tiene errores y no se puede convertir a vista visual. Corrígelos o sigue editando en JSON.",
+        "mustInclude": "El JSON debe incluir \"name\" y \"metrics\" (array).",
+        "readError": "Error al leer el fichero JSON. Asegúrate de que es un JSON válido.",
+        "unrecognizedMetrics": "Métricas no reconocidas y omitidas: {{list}}",
+        "chip": "plantilla completa"
+      },
+      "pageTitle": "Plantillas de métricas",
+      "noTemplatesYet": "No tienes plantillas aún",
+      "createFirstTemplate": "Crea tu primera plantilla para reutilizar configuraciones de métricas en múltiples proyectos",
+      "createTemplate": "Crear plantilla",
+      "selectMetrics": "Selecciona las métricas",
+      "metricCount_one": "{{count}} métrica seleccionada",
+      "metricCount_other": "{{count}} métricas seleccionadas",
+      "completeTemplate": "plantilla completa",
+      "configure": "Configurar",
+      "saveChanges": "Guardar cambios",
+      "deleteWarning": "Esta acción no se puede deshacer.",
+      "viewEditJson": "Ver / Editar JSON de plantilla",
+      "formatJson": "Formatear JSON",
+      "structureHint": "Estructura: {\"name\": \"...\", \"description\": \"...\", \"metrics\": [{\"name\": \"completeness\", \"parameters\": {...}}, ...]}",
+      "loadFile": "Cargar archivo",
+      "downloadJson": "Descargar JSON",
+      "importAsNewTemplate": "Importar como nueva plantilla",
+      "jsonError": "El JSON tiene errores. Corrígelos antes de guardar.",
+      "templateNameRequired": "El nombre de la plantilla es obligatorio",
+      "atLeastOneMetric": "Debes seleccionar al menos una métrica",
+      "templateUpdated": "Plantilla actualizada correctamente",
+      "templateCreated": "Plantilla creada correctamente",
+      "saveError": "Error al guardar la plantilla",
+      "templateDeleted": "Plantilla eliminada correctamente",
+      "deleteError": "Error al eliminar la plantilla",
+      "jsonVisualError": "El JSON tiene errores y no se puede convertir a vista visual. Corrígelos o sigue editando en JSON.",
+      "invalidJson": "JSON inválido",
+      "fileReadError": "Error al leer el fichero JSON. Asegúrate de que es un JSON válido.",
+      "jsonObjectError": "El JSON debe ser un objeto { }",
+      "jsonStructureError": "El JSON debe incluir \"name\" y \"metrics\" (array).",
+      "unrecognizedMetrics": "Métricas no reconocidas y omitidas: {{metrics}}",
+      "card": {
+        "applyTemplate": "Aplicar plantilla",
+        "metricsLabel": "Métricas ({{count}})",
+        "editTooltip": "Editar plantilla",
+        "deleteTooltip": "Eliminar plantilla",
+        "duplicateTooltip": "Duplicar plantilla",
+        "exportTooltip": "Exportar JSON"
+      },
+      "detailsDialog": {
+        "closeAriaLabel": "cerrar",
+        "metricsTitle": "Métricas incluidas",
+        "noMetrics": "Esta plantilla no tiene métricas.",
+        "applyButton": "Aplicar plantilla",
+        "cancelButton": "Cancelar"
+      }
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "personalInfo": "Información personal",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo electrónico",
+    "username": "Nombre de usuario",
+    "usernameHelper": "El nombre de usuario no se puede cambiar",
+    "saveChanges": "Guardar cambios",
+    "success": "Perfil actualizado correctamente",
+    "error": "Error al actualizar el perfil"
+  },
+  "qualityGate": {
+    "passed": "Aprobado",
+    "warning": "Advertencia",
+    "failed": "Fallido",
+    "noAnalysis": "Sin análisis",
+    "noAnalysisTooltip": "No hay análisis ejecutados",
+    "tooltip": "Quality Gate: {{status}}",
+    "badge": {
+      "newIssues_one": "{{count}} nuevo issue",
+      "newIssues_other": "{{count}} nuevos issues",
+      "fixedIssues_one": "{{count}} issue corregido",
+      "fixedIssues_other": "{{count}} issues corregidos"
+    },
+    "settings": {
+      "subtitle": "Condiciones mínimas que debe cumplir un análisis para marcarse como PASSED",
+      "passIf": "PASA SI",
+      "and": "AND",
+      "scoreCondition": "score ≥ {{value}}",
+      "criticalCondition": "issues críticos ≤ {{value}}",
+      "newIssuesCondition": "nuevos issues ≤ {{value}}",
+      "scoreLabel": "Score mínimo",
+      "scoreDesc": "El análisis debe obtener al menos esta puntuación para superar el gate.",
+      "criticalLabel": "Máx. issues críticos",
+      "criticalDesc": "Número máximo de issues críticos permitidos (0 = ninguno).",
+      "newIssuesLabel": "Máx. nuevos issues",
+      "newIssuesDesc": "Número máximo de nuevos issues permitidos respecto al análisis base.",
+      "strict": "Estricto",
+      "moderate": "Moderado",
+      "permissive": "Permisivo",
+      "saveSuccess": "Quality Gate guardado correctamente",
+      "saveError": "Error al guardar el Quality Gate",
+      "saveButton": "Guardar cambios",
+      "resetButton": "Restaurar valores por defecto"
+    }
+  },
+  "analysisHistory": {
+    "title": "Historial de análisis",
+    "latestBadge": "Más reciente",
+    "baseline": "Análisis base",
+    "setBaseline": "Establecer como base",
+    "noHistory": "Sin historial de análisis",
+    "noHistoryDesc": "Ejecuta un análisis para ver el historial aquí.",
+    "mostRecent": "Más reciente primero",
+    "loadMore": "Ver {{count}} más de {{remaining}} restantes",
+    "columns": {
+      "date": "Fecha",
+      "score": "Score",
+      "gate": "Gate",
+      "issues": "Issues",
+      "newIssues": "Nuevos",
+      "fixedIssues": "Resueltos",
+      "delta": "Δ",
+      "dataset": "Dataset",
+      "duration": "Dur."
+    },
+    "noRuns": "Sin análisis ejecutados",
+    "gateStatus": {
+      "passed": "Aprobado",
+      "warning": "Advertencia",
+      "failed": "Fallido"
+    },
+    "viewAnalysis": "Ver análisis"
+  },
+  "versionEvolution": {
+    "noData": "No hay datos de versiones para mostrar",
+    "defaultTitle": "Evolución de calidad",
+    "improving": "Mejorando",
+    "worsening": "Empeorando",
+    "stable": "Estable",
+    "tooltipNoAnalysis": "Sin análisis",
+    "tooltipPassed": "✓ Aprobado",
+    "tooltipFailed": "✗ Fallido",
+    "tooltipScore": "Score: {{value}}%  —  {{gate}}",
+    "tooltipScoreNoAnalysis": "Score: Sin análisis",
+    "tooltipIssues": "Issues: {{count}}"
+  },
+  "analysisDashboard": {
+    "currentScore": "Score actual",
+    "global": "(global)",
+    "vsPrev": "vs. anterior",
+    "analysisCount": "Análisis",
+    "currentIssues": "Issues actuales",
+    "criticalIssues": "{{count}} críticos",
+    "evolutionTitle": "Evolución · todos los datasets",
+    "runCount": "{{count}} análisis",
+    "byTime": "Por tiempo",
+    "byVersion": "Por versión"
+  },
+  "attentionTable": {
+    "allGood": "Todos los proyectos en buen estado",
+    "columns": {
+      "project": "Proyecto",
+      "score": "Score",
+      "status": "Estado",
+      "issues": "Problemas",
+      "lastAnalysis": "Último análisis"
+    }
+  },
+  "dashboardCharts": {
+    "noEnoughData": "Sin datos suficientes",
+    "noData": "Sin datos",
+    "chartLabels": {
+      "passed": "Aprobado",
+      "warning": "Advertencia",
+      "failed": "Fallido",
+      "noAnalysis": "Sin análisis"
+    },
+    "approved": "aprobados"
+  },
+  "issueSeverityChart": {
+    "noIssues": "Sin incidencias detectadas",
+    "severity": {
+      "critical": "Crítico",
+      "major": "Alto",
+      "minor": "Medio",
+      "info": "Bajo"
+    }
+  },
+  "projectHealthTimeline": {
+    "days30": "30 días",
+    "days90": "90 días",
+    "all": "Todo",
+    "noAnalysis": "Sin análisis",
+    "lastAnalysis": "Última: {{time}}",
+    "evalCount": "{{count}} eval. en el periodo",
+    "multipleEvals": "{{count}} evaluaciones (se muestra la más desfavorable)",
+    "noEvaluation": "Sin evaluación",
+    "legend": {
+      "passed": "Aprobado",
+      "warning": "Advertencia",
+      "failed": "Fallido",
+      "noEvaluation": "Sin evaluación"
+    }
+  },
+  "profiling": {
+    "subTypes": {
+      "continuous": "Continua",
+      "discrete": "Discreta",
+      "binary": "Binaria",
+      "nominal": "Nominal",
+      "text": "Texto"
+    },
+    "qualityBadge": {
+      "excellent": "Excelente",
+      "good": "Bueno",
+      "acceptable": "Aceptable",
+      "attention": "Requiere atención",
+      "critical": "Crítico"
+    },
+    "outlierBadge": {
+      "none": "Sin outliers",
+      "veryFew": "Muy pocos",
+      "some": "Algunos",
+      "moderate": "Moderados",
+      "frequent": "Frecuentes"
+    },
+    "histogram": {
+      "noHistogram": "Sin histograma",
+      "title": "Histograma",
+      "modalTitle": "Histograma - {{name}}",
+      "range": "Rango: {{start}} - {{end}}",
+      "frequency": "Frecuencia: {{count}} valores",
+      "percentage": "Porcentaje: {{pct}}%"
+    },
+    "boxplot": {
+      "noBoxplot": "Sin boxplot",
+      "title": "Boxplot",
+      "modalTitle": "Boxplot - {{name}}",
+      "belowAreOutliers": "Valores por debajo son outliers",
+      "aboveAreOutliers": "Valores por encima son outliers",
+      "iqrDesc": "Contiene el 50% central de los datos",
+      "medianDesc": "Valor central de la distribución",
+      "outlierLabel": "Valor atípico (Outlier)",
+      "outsideRange": "Fuera del rango normal"
+    },
+    "allSameValue": "Todos los valores son iguales",
+    "barChart": {
+      "noData": "Sin datos de distribución",
+      "title": "Distribución - {{name}}",
+      "topCategories": "Top {{count}} categorías",
+      "category": "Categoría: {{label}}",
+      "records": "Frecuencia: {{count}} registros",
+      "total": "Total: {{total}} registros"
+    },
+    "viewDetail": "Ver detalle →",
+    "overview": {
+      "title": "Resumen del dataset",
+      "rows": "Filas",
+      "columns": "Columnas",
+      "cells": "Celdas",
+      "size": "Tamaño",
+      "numeric": "Numéricas",
+      "categorical": "Categóricas"
+    },
+    "metrics": {
+      "nullValues": "Valores nulos",
+      "duplicates": "Registros duplicados",
+      "outliers": "Outliers detectados"
+    },
+    "scope": {
+      "title": "Alcance del análisis",
+      "quickSelect": "Selección rápida:",
+      "all": "Todas",
+      "none": "Ninguna",
+      "onlyNumeric": "Solo numéricas ({{n}})",
+      "onlyCategorical": "Solo categóricas ({{n}})"
+    },
+    "iqrTooltip": "Configurar detección de outliers (Factor IQR actual: {{factor}})",
+    "iqrDialog": {
+      "title": "Configurar detección de outliers",
+      "info": "Ajusta el factor IQR para controlar la sensibilidad de la detección de outliers. Valores más altos detectan menos outliers (más permisivo).",
+      "factor": "Factor IQR",
+      "standard": "Estándar",
+      "cancel": "Cancelar",
+      "apply": "Aplicar y recalcular"
+    },
+    "uniqueValues": "únicos",
+    "pearsonDesc": "Pearson: Mide relaciones lineales entre variables. Sensible a outliers y asume distribución normal.",
+    "spearmanDesc": "Spearman: Mide relaciones monótonas (no necesariamente lineales). Más robusto a outliers y no asume normalidad.",
+    "sensitiveColumn": "Columna sensible",
+    "sensitiveColumnTooltip": "Columna marcada como sensible – valores ofuscados",
+    "sensitiveColumnObfuscated": "Los valores de ejemplo están ofuscados por privacidad",
+    "sensitiveChipLabel": "Sensible",
+    "completenessTooltip": "{{pct}}% completo · {{nulls}} nulos",
+    "mode": "Moda (más frecuente)",
+    "skewness": "Asimetría",
+    "kurtosis": "Curtosis",
+    "correlationMatrix": "Matriz de correlación",
+    "numericVars": "variables numéricas",
+    "correlationMethod": "Método de correlación",
+    "correlationSelf": "Correlación perfecta consigo misma",
+    "correlationWeak": "Correlación débil",
+    "correlationModerate": "Correlación moderada",
+    "correlationStrong": "Correlación fuerte",
+    "correlationPositive": "positiva",
+    "correlationNegative": "negativa",
+    "correlationLegend": "Leyenda de correlación",
+    "clickForScatter": "Click para ver gráfico de dispersión",
+    "scatter": "Dispersión",
+    "axisX": "Eje X",
+    "axisY": "Eje Y",
+    "scatterHint": "Selecciona dos variables numéricas distintas",
+    "scatterHint2": "Usa los selectores de arriba para elegir las variables",
+    "dataPoint": "Punto de datos"
+  },
+  "completenessDetail": {
+    "allComplete": "Todas las columnas están completas",
+    "insight": "{{nullCols}} de {{totalCols}} columnas tienen valores nulos ({{worstPct}}% en '{{worst}}')",
+    "tableTitle": "Detalle por columna",
+    "columns": {
+      "column": "Columna",
+      "nullCount": "Nulos",
+      "nullPct": "% nulos",
+      "completeness": "Completitud"
+    },
+    "footer": "{{count}} columnas completamente rellenas (100%)"
+  },
+  "currentnessDetail": {
+    "noDateCols": "No se detectaron columnas de fecha",
+    "scoreLabel": "Actualidad global",
+    "insight": "{{stale}} de {{total}} columnas de fecha contienen datos desactualizados (umbral: {{days}} días)",
+    "staleAlert": "Columna desactualizada",
+    "tableColumns": {
+      "column": "Columna",
+      "maxDate": "Fecha más reciente",
+      "ageDays": "Antigüedad (días)",
+      "status": "Estado"
+    },
+    "staleChip": "Desactualizado ({{days}} días)",
+    "currentChip": "Actualizado",
+    "parseError": "Error al parsear",
+    "timestampFooter": "Marca temporal de evaluación: {{ts}}",
+    "rangeValues": {
+      "days7": "7 días",
+      "days30": "30 días",
+      "days90": "90 días",
+      "days180": "6 meses",
+      "days365": "1 año"
+    }
+  },
+  "issuesSummary": {
+    "severity": {
+      "critical": "Crítica",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja"
+    },
+    "filter": {
+      "all": "Todos",
+      "new": "Nuevos",
+      "recurring": "Recurrentes"
+    },
+    "clearFilter": "Limpiar"
+  },
+  "metricDetailsTabs": {
+    "tabs": {
+      "completeness": "Completitud",
+      "uniqueness": "Unicidad",
+      "outliers": "Outliers",
+      "syntacticAccuracy": "Exactitud sint.",
+      "classBalance": "Equilibrio clases",
+      "currentness": "Actualidad",
+      "logicalConsistency": "Consistencia lógica"
+    }
+  },
+  "outlierDetail": {
+    "allOutOfScale": "Todos los {{count}} outliers están fuera de escala. Haz clic en \"Ver escala completa\" para visualizarlos.",
+    "partialOutOfScale_visible_one": "{{visible}} outlier visible en rango normal. {{hidden}} colapsado fuera de escala (haz clic en \"Ver escala completa\").",
+    "partialOutOfScale_visible_other": "{{visible}} outliers visibles en rango normal. {{hidden}} colapsados fuera de escala (haz clic en \"Ver escala completa\").",
+    "iqrAboveLimit": "{{multiple}}× sobre límite {{direction}}",
+    "directionLow": "(bajo)",
+    "directionHigh": "(alto)",
+    "density": {
+      "veryLow": "Muy baja",
+      "low": "Baja",
+      "moderate": "Moderada",
+      "high": "Alta",
+      "veryHigh": "Muy alta"
+    },
+    "chartHeader": "Distribución — {{column}}",
+    "zoomIn": "Ampliar zona de outliers",
+    "zoomOut": "Vista completa",
+    "scaleLinear": "Lineal",
+    "scaleLog": "Log",
+    "educationalTitle": "Los outliers no son automáticamente indicadores de mala calidad",
+    "educationalBody": "Los valores atípicos pueden ser legítimos según el contexto de la variable. Por ejemplo: salarios ejecutivos, transacciones grandes, eventos raros, o mediciones extremas pero válidas. Revisa cada caso individualmente antes de considerar su eliminación o corrección.",
+    "stats": {
+      "mean": "Media",
+      "median": "Mediana",
+      "stdDev": "Desv. estándar",
+      "iqr": "IQR",
+      "lowerFence": "Límite inferior",
+      "upperFence": "Límite superior",
+      "outlierCount": "Outliers detectados"
+    },
+    "outlierClass": {
+      "extreme": "Extremo",
+      "moderate": "Moderado",
+      "mild": "Leve"
+    },
+    "tableColumns": {
+      "column": "Columna",
+      "outlierCount": "Outliers",
+      "pct": "% del total",
+      "density": "Densidad",
+      "bounds": "Límites"
+    },
+    "countOfTotal": "{{count}} de {{total}} registros · {{percentage}}% de valores",
+    "densityLabel": "Densidad: {{density}}"
+  },
+  "qualityScoreGauge": {
+    "label": "Quality Score",
+    "verdict": {
+      "excellent": "Excelente",
+      "good": "Bueno",
+      "acceptable": "Aceptable",
+      "poor": "Deficiente",
+      "critical": "Crítico",
+      "excellentDesc": "Los datos cumplen los estándares de calidad.",
+      "goodDesc": "La calidad es buena con margen de mejora.",
+      "acceptableDesc": "Calidad aceptable pero con áreas a mejorar.",
+      "poorDesc": "La calidad es insuficiente. Revisa los issues.",
+      "criticalDesc": "Calidad crítica. Se requiere acción inmediata."
+    }
+  },
+  "uniquenessDetail": {
+    "allUnique": "Todas las filas son únicas",
+    "duplicatesFound": "Se encontraron {{count}} filas duplicadas",
+    "alertTitle": "Filas duplicadas detectadas",
+    "loadButton": "Cargar filas duplicadas",
+    "hideButton": "Ocultar duplicados",
+    "showButton": "Mostrar {{count}} duplicados",
+    "tableTitle": "Filas duplicadas ({{count}})",
+    "statusChip": {
+      "original": "Original",
+      "duplicate": "Duplicado"
+    },
+    "columns": {
+      "index": "#",
+      "status": "Estado"
+    }
+  },
+  "issuesList": {
+    "severity": {
+      "critical": "Crítico",
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Bajo",
+      "info": "Info"
+    },
+    "noIssues": "No hay issues detectados",
+    "noIssuesDesc": "El análisis no encontró problemas de calidad en los datos.",
+    "noResults": "No se encontraron issues con los filtros aplicados",
+    "clearFilters": "Limpiar filtros",
+    "newBadge": "NUEVO",
+    "recurring": "Recurrente",
+    "activeFilters": "Filtros activos",
+    "filterSeverity": "Severidad",
+    "filterStatus": "Estado",
+    "filterType": "Tipo",
+    "allSeverities": "Todas las severidades",
+    "allStatuses": "Todos los estados",
+    "allTypes": "Todos los tipos",
+    "isNew": "Nuevos",
+    "isRecurring": "Recurrentes",
+    "viewTooltip": "Ver issue",
+    "columns": {
+      "severity": "Severidad",
+      "status": "Estado",
+      "type": "Tipo",
+      "metric": "Métrica",
+      "description": "Descripción",
+      "affectedColumns": "Columnas Afectadas",
+      "rows": "Filas"
+    },
+    "pagination": {
+      "rowsPerPage": "Filas por página:",
+      "of": "de"
+    }
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "routes": {
+      "dashboard": "Dashboard",
+      "projects": "Proyectos",
+      "newProject": "Nuevo proyecto",
+      "datasets": "Datasets",
+      "uploadDataset": "Subir dataset",
+      "evaluations": "Análisis",
+      "profile": "Perfil",
+      "settings": "Configuración"
+    }
+  },
+  "jsonEditor": {
+    "loadExample": "Cargar ejemplo",
+    "paramHints": {
+      "completeness": "threshold: mínimo de completitud (0–1). columns: vacío = todas.",
+      "uniqueness": "threshold: unicidad mínima de filas (1.0 = sin duplicados). columns: columnas que deben ser únicas.",
+      "syntactic_accuracy": "auto_detect_types: detectar formatos automáticamente. columns: reglas columna→formato. Tipos: email, phone_es, phone_intl, date_iso, date_eu, dni_es, postal_code_es, integer, decimal, url, uuid, ip_v4, credit_card.",
+      "class_balance": "auto_detect: detectar columnas categóricas. max_cardinality: máx. valores únicos para considerar categórico. imbalance_threshold_high/low: umbrales de desequilibrio.",
+      "currentness": "auto_detect: detectar columnas de fecha. staleness_threshold_days: días sin actualización = alerta.",
+      "logical_consistency": "rules: lista de reglas. Tipo \"if_then\": condition + assertion. Tipo \"violation\": expression (filas que violan la regla)."
+    },
+    "formatJson": "Formatear JSON",
+    "copied": "¡Copiado!",
+    "copyToClipboard": "Copiar al portapapeles",
+    "validationErrors": {
+      "invalidJson": "JSON inválido",
+      "mustBeObject": "El JSON debe ser un objeto",
+      "thresholdRange": "threshold debe estar entre 0 y 1",
+      "factorPositive": "factor debe ser mayor que 0",
+      "columnsMustBeArray": "columns debe ser un array"
+    },
+    "json": "JSON",
+    "parameters": "parámetros"
+  },
+  "logicalConsistency": {
+    "ruleEditor": {
+      "violationType": "Violación",
+      "ifThenType": "Si…Entonces",
+      "ruleName": "Nombre de la regla",
+      "expression": "Expresión (pandas query)",
+      "condition": "Condición",
+      "assertion": "Aserción",
+      "addRule": "Agregar regla",
+      "noRules": "Sin reglas configuradas",
+      "deleteRule": "Eliminar regla",
+      "ifLabel": "SI",
+      "thenLabel": "ENTONCES",
+      "errors": {
+        "nameRequired": "El nombre de la regla es obligatorio",
+        "expressionRequired": "La expresión es obligatoria",
+        "conditionRequired": "La condición es obligatoria",
+        "assertionRequired": "La aserción es obligatoria"
+      }
+    }
+  },
+  "metricConfig": {
+    "paramDialog": {
+      "title": "Configurar parámetros: {{name}}",
+      "noDescription": "Sin descripción disponible",
+      "cancel": "Cancelar",
+      "save": "Guardar parámetros"
+    },
+    "smartDialog": {
+      "title": "Configurar métrica",
+      "invalidJson": "JSON inválido",
+      "visual": "Visual",
+      "json": "JSON",
+      "cancel": "Cancelar",
+      "save": "Guardar configuración",
+      "noConfigNeeded": "Esta métrica no requiere configuración adicional.",
+      "advancedOptions": "Opciones avanzadas",
+      "autoWorks": "Funciona automáticamente sin configuración adicional",
+      "columnPlaceholder": "Nombre de columna…",
+      "emptyColumns": "Vacío = se comprueban todas las columnas automáticamente",
+      "addButton": "Añadir",
+      "completeness": {
+        "title": "Completitud",
+        "description": "Detecta columnas con valores nulos o faltantes. Analiza todas las columnas del dataset y alerta cuando la proporción de datos faltantes supera el umbral configurado.",
+        "thresholdLabel": "Mínimo de valores presentes requerido",
+        "thresholdHelp": "Se emitirá una alerta si la completitud global cae por debajo de este umbral.",
+        "columnsLabel": "Revisar solo estas columnas (opcional)"
+      },
+      "uniqueness": {
+        "title": "Unicidad",
+        "description": "Detecta filas completamente duplicadas en el dataset. También identifica columnas con poca variabilidad (ej: una columna que siempre tiene el mismo valor).",
+        "thresholdLabel": "Proporción mínima de unicidad requerida",
+        "thresholdHelp": "1.0 = no se permite ningún duplicado. 0.95 = permite hasta un 5% de duplicados.",
+        "columnsLabel": "Columnas que deben ser completamente únicas (ej: IDs)",
+        "columnsEmpty": "Vacío = se aplica la detección global al dataset completo"
+      },
+      "syntacticAccuracy": {
+        "title": "Precisión sintáctica",
+        "description": "Verifica que los valores de las columnas cumplan un formato esperado: emails válidos, números de teléfono, fechas, DNIs, códigos postales, etc.",
+        "autoDetectLabel": "Detectar formatos automáticamente",
+        "autoDetectCaption": "Analiza el contenido de cada columna e identifica automáticamente emails, teléfonos, fechas, IDs y más.",
+        "thresholdLabel": "Conformidad mínima requerida por columna",
+        "thresholdHelp": "Si menos del X% de los valores de una columna cumplen el formato esperado, se genera una alerta.",
+        "advancedTitle": "Reglas de formato adicionales (opcional)",
+        "advancedCaption": "Especifica el formato esperado para columnas concretas, complementando la detección automática.",
+        "columnField": "Columna",
+        "formatField": "Formato esperado",
+        "formatOptions": {
+          "email": "Correo electrónico",
+          "phone_es": "Teléfono (España)",
+          "phone_intl": "Teléfono internacional",
+          "date_iso": "Fecha ISO (YYYY-MM-DD)",
+          "date_eu": "Fecha europea (DD/MM/YYYY)",
+          "dni_es": "DNI / NIE (España)",
+          "postal_code_es": "Código postal (España)",
+          "integer": "Número entero",
+          "decimal": "Número decimal",
+          "url": "URL",
+          "uuid": "UUID",
+          "ip_v4": "Dirección IP (v4)",
+          "credit_card": "Tarjeta de crédito"
+        }
+      },
+      "classBalance": {
+        "title": "Equilibrio de clases",
+        "description": "Detecta cuando una categoría domina los datos de forma desproporcionada. Por ejemplo: un campo 'Estado' donde el 98% de los registros son 'Activo' puede indicar un problema de calidad.",
+        "autoDetectLabel": "Detectar columnas categóricas automáticamente",
+        "autoDetectCaption": "Analiza todas las columnas con pocos valores únicos (textos, booleanos, códigos).",
+        "thresholdHighLabel": "Alerta si una clase supera el % de los datos",
+        "thresholdHighHelp": "Una clase que representa más del X% del total se considera dominante.",
+        "thresholdLowLabel": "Alerta si una clase representa menos del % de los datos",
+        "thresholdLowHelp": "Una clase con presencia inferior al X% se considera infrarrepresentada.",
+        "maxCardinalityTitle": "Máximo de valores únicos para considerar categórico",
+        "valuesLabel": "{{count}} valores",
+        "columnsLabel": "Analizar solo estas columnas (opcional)"
+      },
+      "currentness": {
+        "title": "Actualidad de datos (Currentness)",
+        "description": "Detecta si las columnas de fecha contienen datos desactualizados. Por ejemplo: si la última fecha registrada es más antigua de lo esperado, puede indicar que los datos no se están actualizando correctamente.",
+        "autoDetectLabel": "Detectar columnas de fecha automáticamente",
+        "autoDetectCaption": "Identifica columnas con fechas (timestamp, date, datetime) sin necesidad de indicarlas manualmente.",
+        "stalenessTitle": "Considerar datos desactualizados después de",
+        "customPreset": "Personalizado",
+        "daysLabel": "Días",
+        "daysAlertSuffix": "días sin actualización = alerta",
+        "stalenessCaption": "Si el valor más reciente de una columna de fecha tiene más de este tiempo, se generará una alerta.",
+        "columnsLabel": "Revisar solo estas columnas de fecha (opcional)",
+        "columnsEmpty": "Vacío = se detectan y comprueban todas las columnas de fecha automáticamente",
+        "presets": {
+          "days7": "7 días",
+          "days30": "30 días",
+          "days90": "90 días",
+          "months6": "6 meses",
+          "year1": "1 año"
+        }
+      },
+      "logicalConsistency": {
+        "title": "Consistencia lógica",
+        "description": "Verifica que los datos cumplan reglas de negocio definidas por ti. Puedes detectar contradicciones como \"fecha de fin antes que fecha de inicio\", \"campo obligatorio vacío si está activo\", o cualquier condición específica de tu dominio.",
+        "templatesTitle": "Plantillas de reglas rápidas",
+        "templatesHint": "Añade reglas predefinidas con un clic y personalízalas a continuación",
+        "rulesConfigured": "Reglas configuradas",
+        "noRulesAlert": "Aún no hay reglas. Usa las plantillas de arriba para añadir reglas rápidamente, o crea una personalizada con \"Agregar regla\".",
+        "ruleTemplates": {
+          "values": "Valores",
+          "dates": "Fechas",
+          "ifThen": "Reglas SI…ENTONCES",
+          "noNegative": "Sin valores negativos",
+          "noNegativeHint": "Detecta valores menores que cero. Reemplaza \"mi_columna\" con el nombre de tu columna.",
+          "required": "Campo obligatorio",
+          "requiredHint": "Detecta registros donde el campo está vacío (NaN != NaN es true). Reemplaza \"mi_columna\" con el nombre de tu columna.",
+          "range": "Rango de valores",
+          "rangeHint": "Detecta valores fuera de un rango esperado. Ajusta los límites y el nombre de la columna.",
+          "dateOrder": "Fecha fin posterior a inicio",
+          "dateOrderHint": "La fecha de fin debe ser posterior a la de inicio.",
+          "activeRequired": "Si activo, campo requerido",
+          "activeRequiredHint": "Si el estado es \"activo\", el campo indicado debe estar relleno (campo == campo es false para NaN).",
+          "qtyPrice": "Si cantidad > 0, precio > 0",
+          "qtyPriceHint": "Si hay una cantidad, debe existir un precio.",
+          "paidAmount": "Si pagado, importe positivo",
+          "paidAmountHint": "Si el estado es \"pagado\", el importe debe ser mayor que cero."
+        }
+      }
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": {
+      "title": "Idioma",
+      "subtitle": "Selecciona el idioma de la interfaz"
+    }
+  },
+  "qualityTrendChart": {
+    "threshold": "Umbral",
+    "recurring": "Recurrentes",
+    "new": "nuevos",
+    "fixed": "corregidos",
+    "noCompleted": "Sin análisis completados",
+    "forThisDataset": "para este dataset",
+    "stats": {
+      "last": "Último",
+      "trend": "Tendencia",
+      "range": "Rango",
+      "passed": "Superado"
+    }
+  },
+  "errors": {
+    "sessionExpired": "Sesión expirada. Por favor, inicia sesión de nuevo.",
+    "loginFailed": "Error al iniciar sesión. Comprueba tus credenciales.",
+    "registrationFailed": "Error al registrarse. Inténtalo de nuevo.",
+    "updateProfileFailed": "Error al actualizar el perfil",
+    "generic": "Ha ocurrido un error. Inténtalo de nuevo."
+  }
+}

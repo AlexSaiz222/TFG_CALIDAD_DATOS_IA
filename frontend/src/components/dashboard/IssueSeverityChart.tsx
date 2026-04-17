@@ -9,6 +9,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -32,14 +33,16 @@ const SEVERITY_COLORS = {
   info: '#00B37E',
 };
 
-const SEVERITY_LABELS = {
-  critical: 'Crítico',
-  major: 'Alto',
-  minor: 'Medio',
-  info: 'Bajo',
-};
-
 const IssueSeverityChart: React.FC<IssueSeverityChartProps> = ({ projects, maxProjects = 10 }) => {
+  const { t } = useTranslation();
+
+  const SEVERITY_LABELS = {
+    critical: t('issueSeverityChart.severity.critical'),
+    major: t('issueSeverityChart.severity.major'),
+    minor: t('issueSeverityChart.severity.minor'),
+    info: t('issueSeverityChart.severity.info'),
+  };
+
   const sorted = [...projects]
     .sort((a, b) => (b.critical + b.major + b.minor + b.info) - (a.critical + a.major + a.minor + a.info))
     .slice(0, maxProjects);
@@ -48,7 +51,7 @@ const IssueSeverityChart: React.FC<IssueSeverityChartProps> = ({ projects, maxPr
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 200 }}>
         <Typography variant="body2" sx={{ color: '#888' }}>
-          Sin incidencias detectadas
+          {t('issueSeverityChart.noIssues')}
         </Typography>
       </Box>
     );

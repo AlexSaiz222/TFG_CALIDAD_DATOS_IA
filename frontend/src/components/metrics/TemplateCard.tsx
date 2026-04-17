@@ -19,6 +19,7 @@ import {
   Assignment as TemplateIcon,
   FileDownload as FileDownloadIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { MetricTemplate } from '../../types';
 import { getMetricMeta, GREEN, GREEN_HOVER } from '../../utils/metricColors';
 
@@ -49,6 +50,7 @@ export default function TemplateCard({
   onViewDetails,
   onExport,
 }: TemplateCardProps) {
+  const { t } = useTranslation();
   const metricCount = template.metrics?.length || 0;
 
   // --- MODE: select (project creation wizard) ---
@@ -80,10 +82,10 @@ export default function TemplateCard({
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.4 }}>
-            {template.description || 'Sin descripción'}
+            {template.description || t('metrics.templates.card.noDescription')}
           </Typography>
           <Chip
-            label={`${metricCount} métrica${metricCount !== 1 ? 's' : ''}`}
+            label={t('metrics.templates.card.metricCount', { count: metricCount })}
             size="small"
             sx={{ backgroundColor: 'rgba(0,179,126,0.1)', color: GREEN, fontWeight: 500 }}
           />
@@ -132,7 +134,7 @@ export default function TemplateCard({
               WebkitBoxOrient: 'vertical',
             }}
           >
-            {template.description || 'Sin descripción'}
+            {template.description || t('metrics.templates.card.noDescription')}
           </Typography>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
@@ -173,7 +175,7 @@ export default function TemplateCard({
               '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
             }}
           >
-            Aplicar plantilla
+            {t('metrics.templates.card.applyTemplate')}
           </Button>
           <Button
             size="small"
@@ -185,7 +187,7 @@ export default function TemplateCard({
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
             }}
           >
-            Detalles
+            {t('metrics.templates.card.details')}
           </Button>
         </CardActions>
       </Card>
@@ -224,7 +226,7 @@ export default function TemplateCard({
           variant="caption"
           sx={{ color: '#999', textTransform: 'uppercase', fontWeight: 600, mb: 1, display: 'block' }}
         >
-          Métricas ({metricCount})
+          {t('metrics.templates.card.metricsLabel', { count: metricCount })}
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
           {template.metrics?.slice(0, 4).map((metric: any, idx: number) => {
@@ -254,7 +256,7 @@ export default function TemplateCard({
       </CardContent>
 
       <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
-        <Tooltip title="Editar">
+        <Tooltip title={t('metrics.templates.card.editTooltip')}>
           <IconButton
             size="small"
             onClick={() => onEdit?.(template)}
@@ -263,7 +265,7 @@ export default function TemplateCard({
             <EditIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Duplicar">
+        <Tooltip title={t('metrics.templates.card.duplicateTooltip')}>
           <IconButton
             size="small"
             onClick={() => onDuplicate?.(template)}
@@ -272,7 +274,7 @@ export default function TemplateCard({
             <CopyIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Exportar JSON">
+        <Tooltip title={t('metrics.templates.card.exportTooltip')}>
           <IconButton
             size="small"
             onClick={() => onExport?.(template)}
@@ -281,7 +283,7 @@ export default function TemplateCard({
             <FileDownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Eliminar">
+        <Tooltip title={t('metrics.templates.card.deleteTooltip')}>
           <IconButton
             size="small"
             onClick={() => onDelete?.(template)}
