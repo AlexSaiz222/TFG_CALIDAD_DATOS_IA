@@ -143,7 +143,7 @@ export default function TemplateCard({
               return (
                 <Chip
                   key={metric.id ?? metric.metric_id ?? idx}
-                  label={meta.label}
+                  label={t(`metrics.labels.${metric.name}`, { defaultValue: meta.label })}
                   size="small"
                   sx={{
                     backgroundColor: meta.bg,

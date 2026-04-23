@@ -674,7 +674,7 @@ const ProjectDetail = () => {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={`${t('projects.detail.tableColumns.versionPrefix')}${dataset.version || 1}`}
+                          label={dataset.version_tag || `v${dataset.version ?? 1}`}
                           size="small"
                           sx={{
                             backgroundColor: 'rgba(0, 179, 126, 0.1)',
