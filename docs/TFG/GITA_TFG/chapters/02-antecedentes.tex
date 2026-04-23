@@ -353,7 +353,7 @@ acordado, lo que remite a acuerdos de nivel de servicio (\ac{SLA}) y
 arquitecturas de almacenamiento. La \emph{portabilidad} evalúa la capacidad
 de mover el dato entre sistemas preservando su calidad, lo que requiere acceso
 a los conectores y formatos de exportación propietarios de la organización.
-La \emph{recuperabilidad} depende de las políticas de backup y los mecanismos
+La \emph{recuperabilidad} depende de las políticas de copia de seguridad y los mecanismos
 de restauración de datos. Ninguna de estas métricas puede calcularse analizando
 el contenido de un fichero: exigen acceso al entorno operativo de la
 organización, del que una herramienta de análisis de datos externo no dispone
@@ -367,8 +367,8 @@ requisito de negocio no inscrito en el dato. La \emph{relevancia} y la
 \emph{efectividad} requieren un diccionario de datos y políticas de gobernanza
 privadas para determinar si el dataset es adecuado para la tarea prevista.
 La \emph{diversidad} y la \emph{similitud} presuponen un conocimiento del
-espacio de características del dominio que, como investigador externo, no es
-accesible sin la colaboración directa de la organización propietaria.
+espacio de características del dominio que, desde una posición de análisis
+externo, no resulta accesible sin la colaboración directa de la organización propietaria.
 
 \subsection{Priorización de características para el MVP}
 \label{sec:priorizacion-mvp}
@@ -399,10 +399,10 @@ aplicable:
 \end{enumerate}
 
 Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado como
-herramienta de diagnóstico en el módulo de \acf{EDA}, sin ser computados como
+herramienta de diagnóstico en el módulo de \ac{EDA}, sin ser computados como
 parte de la puntuación de calidad global. Esta decisión sigue explícitamente
 la recomendación de \ac{ISO}/IEC~5259-2~\cite{iso5259}, que no considera los
-outliers una dimensión de calidad inherente, sino un indicador diagnóstico cuya
+\emph{outliers} una dimensión de calidad inherente, sino un indicador diagnóstico cuya
 relevancia depende del dominio de aplicación.
 
 El resultado es una delimitación deliberada del alcance del proyecto en la
