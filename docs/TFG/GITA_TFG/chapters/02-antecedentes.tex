@@ -147,11 +147,11 @@ características de \ac{ISO}/IEC 25012 y las métricas implementadas en
     \toprule
     \textbf{Característica ISO 25012} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
     \midrule
-    Completitud     & \texttt{completeness}        & Ratio de valores no nulos por columna \\
-    Exactitud       & \texttt{syntactic\_accuracy}  & Conformidad con patrones de formato \\
-    Consistencia    & \texttt{logical\_consistency} & Reglas IF-THEN entre columnas \\
-    Actualidad      & \texttt{currentness}           & Antigüedad del dato más reciente \\
-    Credibilidad    & \texttt{uniqueness}           & Detección de registros duplicados \\
+    Completitud              & \texttt{completeness}        & Ratio de valores no nulos por columna \\
+    Exactitud                & \texttt{syntactic\_accuracy}  & Conformidad con patrones de formato \\
+    Consistencia (Con-ML-4)  & \texttt{logical\_consistency} & Reglas IF-THEN entre columnas \\
+    Consistencia (Con-ML-1)  & \texttt{uniqueness}           & Detección de registros duplicados \\
+    Actualidad               & \texttt{currentness}          & Antigüedad del dato más reciente \\
     \midrule
     \multicolumn{3}{l}{\emph{Métricas adicionales específicas para IA/ML}} \\
     \midrule
@@ -325,9 +325,10 @@ algorítmicamente porque sus métricas se calculan a partir de los propios
 valores del dataset, sin necesidad de acceder a sistemas externos ni de conocer
 el dominio de negocio. La completitud se mide como la proporción de valores no
 nulos; la exactitud sintáctica, como la conformidad con patrones de formato
-definidos; la consistencia, como la ausencia de contradicciones lógicas entre
-columnas; la credibilidad, como la ausencia de registros duplicados; y la
-actualidad, como la antigüedad del valor más reciente en columnas temporales.
+definidos; la consistencia, como la ausencia de contradicciones lógicas entre columnas
+(sub-dimensión Con-ML-4 de \ac{ISO}/IEC 5259-2) y como la ausencia de registros
+duplicados (sub-dimensión Con-ML-1); y la actualidad, como la antigüedad del valor
+más reciente en columnas temporales.
 
 Esta propiedad de \emph{auto-contención} es lo que hace posible desarrollar
 una herramienta de auditoría que opera exclusivamente sobre el fichero de datos
@@ -379,10 +380,12 @@ de los modelos de \ac{IA}/\ac{ML} y en el cumplimiento del marco normativo
 aplicable:
 
 \begin{enumerate}
-  \item \textbf{Las cinco características inherentes de \ac{ISO}/IEC~25012}
-    ---completitud, exactitud sintáctica, consistencia lógica, credibilidad y
-    actualidad--- constituyen la base normativa mínima para cualquier
-    herramienta de auditoría de datos y proporcionan cobertura directa de los
+  \item \textbf{Las características inherentes de \ac{ISO}/IEC~25012}
+    ---completitud, exactitud, consistencia y actualidad--- implementadas a
+    través de cuatro métricas (\texttt{completeness}, \texttt{syntactic\_accuracy},
+    \texttt{logical\_consistency} y \texttt{currentness}) y de la detección de
+    duplicados (\texttt{uniqueness}, sub-dimensión Con-ML-1 de consistencia
+    según \ac{ISO}/IEC~5259-2). Esto proporciona cobertura directa de los
     requisitos de \ac{ISO}/IEC~5259-2~\cite{iso5259} e \ac{ISO}/IEC~25024~\cite{iso25024}.
 
   \item \textbf{Equilibrio de clases} (\texttt{class\_balance}), medido

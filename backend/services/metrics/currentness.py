@@ -1,11 +1,11 @@
 """Métrica de actualidad (Currentness): frescura y antigüedad de columnas de fecha.
 
-Implementa la dimensión Currentness (ΔT₂) de ISO/IEC 5259-2:2024 §6.2.5 / §6.5.9,
+Implementa la dimensión Currentness (ΔT₂) de ISO/IEC 5259-2:2024 §6.2.5,
 medida Cur-ML-1 (Feature currentness).
 
 Currentness mide el tiempo transcurrido desde que se registró el dato hasta hoy
-(staleness/frescura). No confundir con currentness (ΔT₁), que sería la latencia
-entre el evento real y su ingesta en el sistema — esa medida requiere dos
+(staleness/frescura). No confundir con Timeliness (§6.5.9, ΔT₁), que mide la
+latencia entre el evento real y su ingesta en el sistema — esa medida requiere dos
 timestamps externos y no es calculable desde un dataset estático.
 """
 import logging
