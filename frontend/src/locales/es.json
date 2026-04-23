@@ -889,6 +889,7 @@
       "remove": "Quitar",
       "configure": "Configurar",
       "noSelectedInfo": "No has seleccionado ninguna métrica. Añade métricas desde la pestaña \"Métricas disponibles\".",
+      "selectedMetrics": "Métricas seleccionadas",
       "saveAsTemplate": "Guardar como plantilla",
       "templatesSubtitle": "Plantillas de configuración",
       "templatesDesc": "Aplica una configuración predefinida de métricas para acelerar la puesta en marcha.",
@@ -955,6 +956,15 @@
       "classBalance": "Balance de clases",
       "currentness": "Actualidad",
       "outlierDetection": "Detección de outliers"
+    },
+    "descriptions": {
+      "completeness": "Detecta columnas con valores nulos o faltantes. Un dataset completo garantiza que los modelos de IA no reciban entradas vacías que distorsionen el entrenamiento o la inferencia.",
+      "uniqueness": "Identifica filas completamente duplicadas. Los duplicados sesgan las distribuciones estadísticas y pueden inflar artificialmente la representación de ciertos patrones en el modelo.",
+      "outliers": "Detecta valores que se alejan anormalmente del resto en columnas numéricas. Los outliers sin gestionar pueden degradar modelos sensibles a la escala y distorsionar métricas estadísticas.",
+      "currentness": "Mide la obsolescencia temporal de los registros. Entrenar con datos antiguos asume un mundo estático y provoca Data Drift: el modelo aprende patrones que ya no representan la realidad operativa.",
+      "logical_consistency": "Verifica que los datos cumplan reglas de negocio definidas explícitamente. Detecta contradicciones y relaciones inválidas entre columnas que no son detectables por métricas estadísticas.",
+      "class_balance": "Detecta desequilibrios en columnas categóricas donde una clase domina. El desequilibrio severo en la variable a predecir lleva a modelos de clasificación sesgados hacia la clase mayoritaria.",
+      "syntactic_accuracy": "Verifica que los valores cumplan el formato esperado (emails, teléfonos, DNIs, fechas, URLs…). Formatos incorrectos en columnas clave generan errores en pipelines de procesamiento y empeoran la calidad de las features."
     },
     "labels": {
       "completeness": "Completitud de datos",

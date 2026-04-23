@@ -892,6 +892,7 @@
       "remove": "Remove",
       "configure": "Configure",
       "noSelectedInfo": "No metrics selected. Add metrics from the \"Available metrics\" tab.",
+      "selectedMetrics": "Selected metrics",
       "saveAsTemplate": "Save as template",
       "templatesSubtitle": "Configuration templates",
       "templatesDesc": "Apply a predefined metric configuration to speed up setup.",
@@ -951,6 +952,15 @@
       "classBalance": "Class balance",
       "currentness": "Currentness",
       "outlierDetection": "Outlier detection"
+    },
+    "descriptions": {
+      "completeness": "Detects columns with null or missing values. A complete dataset ensures AI models do not receive empty inputs that distort training or inference.",
+      "uniqueness": "Identifies completely duplicated rows. Duplicates bias statistical distributions and can artificially inflate the representation of certain patterns in the model.",
+      "outliers": "Detects values that deviate abnormally from the rest in numeric columns. Unmanaged outliers can degrade scale-sensitive models and distort statistical metrics.",
+      "currentness": "Measures the temporal obsolescence of records. Training with stale data assumes a static world and causes Data Drift: the model learns patterns that no longer represent operational reality.",
+      "logical_consistency": "Verifies that data complies with explicitly defined business rules. Detects contradictions and invalid relationships between columns undetectable by statistical metrics.",
+      "class_balance": "Detects imbalances in categorical columns where one class dominates. Severe imbalance in the target variable leads to classification models biased toward the majority class.",
+      "syntactic_accuracy": "Verifies that values comply with the expected format (emails, phones, IDs, dates, URLs\u2026). Incorrect formats in key columns generate pipeline errors and worsen feature quality."
     },
     "labels": {
       "completeness": "Data completeness",

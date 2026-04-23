@@ -879,12 +879,12 @@ const ProjectDetail = () => {
 
                         {/* Metric title (human-readable label) */}
                         <Typography variant="h6" sx={{ fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2, mb: 0.5 }}>
-                          {meta.label}
+                          {t(`metrics.labels.${drawerMetric.name}`, { defaultValue: meta.label })}
                         </Typography>
 
                         {/* Category chip */}
                         <Chip
-                          label={meta.category}
+                          label={t(`metrics.metricCategories.${meta.categoryKey}`, { defaultValue: meta.category })}
                           size="small"
                           sx={{
                             height: 18, fontSize: '0.65rem', fontWeight: 600,
@@ -905,7 +905,7 @@ const ProjectDetail = () => {
                           {t('projects.detail.whatMeasures')}
                         </Typography>
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', lineHeight: 1.65, color: '#444', mb: 3 }}>
-                          {meta.description || drawerMetric.description || t('projects.detail.noDescAvailable')}
+                          {t(`metrics.descriptions.${drawerMetric.name}`, { defaultValue: meta.description || drawerMetric.description || t('projects.detail.noDescAvailable') })}
                         </Typography>
 
                         {/* Parámetros */}
