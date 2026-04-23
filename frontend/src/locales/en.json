@@ -952,19 +952,40 @@
       "currentness": "Currentness",
       "outlierDetection": "Outlier detection"
     },
-    "configure": {
-      "title": "Configure metrics",
-      "subtitle": "Configure each metric's parameters for the project",
-      "saveConfig": "Save configuration",
-      "saveSuccess": "Configuration saved successfully",
-      "saveError": "Failed to save configuration",
-      "resetDefaults": "Restore defaults",
-      "threshold": "Minimum threshold",
-      "weight": "Weight",
+    "labels": {
+      "completeness": "Data completeness",
+      "uniqueness": "Record uniqueness",
+      "outliers": "Outlier detection",
+      "currentness": "Data currentness (Currentness)",
+      "logical_consistency": "Logical consistency",
+      "class_balance": "Class balance",
+      "syntactic_accuracy": "Syntactic accuracy"
+    },
+    "metricCategories": {
+      "completeness": "Completeness",
+      "uniqueness": "Uniqueness",
+      "accuracy": "Accuracy",
+      "temporal": "Temporal",
+      "consistency": "Consistency",
+      "distribution": "Distribution",
+      "default": "Metric"
+    },
+    "paramLabels": {
+      "threshold": "Threshold",
+      "columns": "Columns",
+      "method": "Method",
+      "factor": "Factor",
+      "auto_detect": "Auto-detection",
+      "auto_detect_types": "Auto-detection of types",
+      "staleness_threshold_days": "Staleness days",
+      "max_cardinality": "Max cardinality",
+      "imbalance_threshold_high": "High threshold",
+      "imbalance_threshold_low": "Low threshold",
+      "rules": "Rules"
+    },
+    "paramValues": {
       "enabled": "Enabled",
-      "disabled": "Disabled",
-      "parameters": "Parameters",
-      "saveParameters": "Save parameters"
+      "disabled": "Disabled"
     },
     "templates": {
       "title": "Metric templates",
@@ -1062,7 +1083,8 @@
         "editTooltip": "Edit template",
         "deleteTooltip": "Delete template",
         "duplicateTooltip": "Duplicate template",
-        "exportTooltip": "Export JSON"
+        "exportTooltip": "Export JSON",
+        "details": "Details"
       },
       "detailsDialog": {
         "closeAriaLabel": "close",

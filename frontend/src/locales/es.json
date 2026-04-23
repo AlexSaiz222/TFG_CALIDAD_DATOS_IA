@@ -300,8 +300,8 @@
       "tableColumns": {
         "name": "Nombre",
         "version": "Versión",
-        "versionPrefix": "v",
-        "versionHistory": "Historial de versiones",
+        "rows": "Filas",
+        "cols": "Columnas",
         "created": "Fecha de creación",
         "actions": "Acciones"
       },
@@ -956,19 +956,40 @@
       "currentness": "Actualidad",
       "outlierDetection": "Detección de outliers"
     },
-    "configure": {
-      "title": "Configurar métricas",
-      "subtitle": "Configura los parámetros de cada métrica para el proyecto",
-      "saveConfig": "Guardar configuración",
-      "saveSuccess": "Configuración guardada correctamente",
-      "saveError": "Error al guardar la configuración",
-      "resetDefaults": "Restaurar valores por defecto",
-      "threshold": "Umbral mínimo",
-      "weight": "Peso",
-      "enabled": "Habilitada",
-      "disabled": "Deshabilitada",
-      "parameters": "Parámetros",
-      "saveParameters": "Guardar parámetros"
+    "labels": {
+      "completeness": "Completitud de datos",
+      "uniqueness": "Unicidad de registros",
+      "outliers": "Detección de outliers",
+      "currentness": "Actualidad de los datos (Currentness)",
+      "logical_consistency": "Consistencia lógica",
+      "class_balance": "Equilibrio de clases",
+      "syntactic_accuracy": "Exactitud sintáctica"
+    },
+    "metricCategories": {
+      "completeness": "Completitud",
+      "uniqueness": "Unicidad",
+      "accuracy": "Exactitud",
+      "temporal": "Temporal",
+      "consistency": "Consistencia",
+      "distribution": "Distribución",
+      "default": "Métrica"
+    },
+    "paramLabels": {
+      "threshold": "Umbral",
+      "columns": "Columnas",
+      "method": "Método",
+      "factor": "Factor",
+      "auto_detect": "Autodetección",
+      "auto_detect_types": "Autodetección de tipos",
+      "staleness_threshold_days": "Días de obsolescencia",
+      "max_cardinality": "Cardinalidad máxima",
+      "imbalance_threshold_high": "Umbral alto",
+      "imbalance_threshold_low": "Umbral bajo",
+      "rules": "Reglas"
+    },
+    "paramValues": {
+      "enabled": "Activado",
+      "disabled": "Desactivado"
     },
     "templates": {
       "title": "Plantillas de métricas",
@@ -1054,7 +1075,8 @@
         "editTooltip": "Editar plantilla",
         "deleteTooltip": "Eliminar plantilla",
         "duplicateTooltip": "Duplicar plantilla",
-        "exportTooltip": "Exportar JSON"
+        "exportTooltip": "Exportar JSON",
+        "details": "Detalles"
       },
       "detailsDialog": {
         "closeAriaLabel": "cerrar",

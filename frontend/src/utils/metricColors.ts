@@ -20,50 +20,51 @@ export interface MetricMeta {
   color: string;
   bg: string;
   category: string;
+  categoryKey: string;
   label: string;
   description: string;
 }
 
 export const METRIC_META: Record<string, MetricMeta> = {
   completeness: {
-    icon: FileCheck2, color: '#1976D2', bg: '#E3F2FD', category: 'Completitud',
+    icon: FileCheck2, color: '#1976D2', bg: '#E3F2FD', category: 'Completitud', categoryKey: 'completeness',
     label: 'Completitud de datos',
     description: 'Detecta columnas con valores nulos o faltantes. Un dataset completo garantiza que los modelos de IA no reciban entradas vacías que distorsionen el entrenamiento o la inferencia.',
   },
   uniqueness: {
-    icon: Fingerprint, color: '#7B2FBE', bg: '#F3E5F5', category: 'Unicidad',
+    icon: Fingerprint, color: '#7B2FBE', bg: '#F3E5F5', category: 'Unicidad', categoryKey: 'uniqueness',
     label: 'Unicidad de registros',
     description: 'Identifica filas completamente duplicadas. Los duplicados sesgan las distribuciones estadísticas y pueden inflar artificialmente la representación de ciertos patrones en el modelo.',
   },
   outliers: {
-    icon: AlertTriangle, color: '#E08C00', bg: '#FFF8E1', category: 'Exactitud',
+    icon: AlertTriangle, color: '#E08C00', bg: '#FFF8E1', category: 'Exactitud', categoryKey: 'accuracy',
     label: 'Detección de outliers',
     description: 'Detecta valores que se alejan anormalmente del resto en columnas numéricas. Los outliers sin gestionar pueden degradar el rendimiento de modelos sensibles a la escala y distorsionar métricas estadísticas.',
   },
   currentness: {
-    icon: Clock, color: '#7C3AED', bg: '#EDE9FE', category: 'Temporal',
+    icon: Clock, color: '#7C3AED', bg: '#EDE9FE', category: 'Temporal', categoryKey: 'temporal',
     label: 'Actualidad de los datos (Currentness)',
     description: 'Mide la obsolescencia temporal de los registros. En entornos dinámicos, la validez predictiva de los datos decae con el tiempo. Entrenar con datos antiguos asume un mundo estático y provoca Data Drift: el modelo aprende patrones que ya no representan la realidad operativa.',
   },
   logical_consistency: {
-    icon: GitBranch, color: '#0D7377', bg: '#E0F2F1', category: 'Consistencia',
+    icon: GitBranch, color: '#0D7377', bg: '#E0F2F1', category: 'Consistencia', categoryKey: 'consistency',
     label: 'Consistencia lógica',
     description: 'Verifica que los datos cumplan reglas de negocio definidas explícitamente. Detecta contradicciones y relaciones inválidas entre columnas que no son detectables por métricas estadísticas.',
   },
   class_balance: {
-    icon: Scale, color: '#2E7D32', bg: '#E8F5E9', category: 'Distribución',
+    icon: Scale, color: '#2E7D32', bg: '#E8F5E9', category: 'Distribución', categoryKey: 'distribution',
     label: 'Equilibrio de clases',
     description: 'Detecta desequilibrios en columnas categóricas donde una clase domina. El desequilibrio severo en la variable a predecir lleva a modelos de clasificación sesgados hacia la clase mayoritaria.',
   },
   syntactic_accuracy: {
-    icon: Braces, color: '#C75000', bg: '#FBE9E7', category: 'Exactitud',
+    icon: Braces, color: '#C75000', bg: '#FBE9E7', category: 'Exactitud', categoryKey: 'accuracy',
     label: 'Exactitud sintáctica',
     description: 'Verifica que los valores cumplan el formato esperado (emails, teléfonos, DNIs, fechas, URLs…). Formatos incorrectos en columnas clave generan errores en pipelines de procesamiento y empeoran la calidad de las features.',
   },
 };
 
 export const DEFAULT_METRIC_META: MetricMeta = {
-  icon: BarChart3, color: GREEN, bg: 'rgba(0,179,126,0.1)', category: 'Métrica',
+  icon: BarChart3, color: GREEN, bg: 'rgba(0,179,126,0.1)', category: 'Métrica', categoryKey: 'default',
   label: 'Métrica personalizada',
   description: '',
 };
