@@ -876,11 +876,11 @@ const MetricsConfigurationPage = () => {
                                 fontWeight: 600, lineHeight: 1.2, mb: 0.4,
                                 color: isAdded ? '#1A1A1A' : '#555555',
                               }}>
-                                {metric.name}
+                                {t(`metrics.labels.${metric.name}`, { defaultValue: metric.name })}
                               </Typography>
                               {/* Badge de categoría: verde si seleccionada, gris si no */}
                               <Chip
-                                label={meta.category}
+                                label={t(`metrics.metricCategories.${meta.categoryKey}`, { defaultValue: meta.category })}
                                 size="small"
                                 sx={{
                                   height: 17, fontSize: '0.65rem', fontWeight: 600,
@@ -903,7 +903,7 @@ const MetricsConfigurationPage = () => {
                             display: '-webkit-box', WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical', overflow: 'hidden',
                           }}>
-                            {metric.description}
+                            {t(`metrics.descriptions.${metric.name}`, { defaultValue: metric.description })}
                           </Typography>
                         </CardContent>
 

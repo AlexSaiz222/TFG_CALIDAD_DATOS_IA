@@ -883,6 +883,8 @@
       },
       "metricCount_one": "{{count}} métrica",
       "metricCount_other": "{{count}} métricas",
+      "metric": "métrica",
+      "metrics": "métricas",
       "noMetricsFound": "No se encontraron métricas",
       "noMetricsFoundDesc": "Ajusta los filtros o la búsqueda para ver otras métricas disponibles.",
       "add": "Añadir",
@@ -958,19 +960,19 @@
       "outlierDetection": "Detección de outliers"
     },
     "descriptions": {
-      "completeness": "Detecta columnas con valores nulos o faltantes. Un dataset completo garantiza que los modelos de IA no reciban entradas vacías que distorsionen el entrenamiento o la inferencia.",
-      "uniqueness": "Identifica filas completamente duplicadas. Los duplicados sesgan las distribuciones estadísticas y pueden inflar artificialmente la representación de ciertos patrones en el modelo.",
+      "completeness": "Mide la proporción de valores no nulos en cada columna. Un dataset incompleto implica que los modelos de IA reciban entradas vacías que distorsionan el entrenamiento o la inferencia.",
+      "uniqueness": "Detecta filas duplicadas y mide la variabilidad de valores únicos por columna. Los duplicados sesgan las distribuciones estadísticas y pueden inflar la representación de ciertos patrones.",
       "outliers": "Detecta valores que se alejan anormalmente del resto en columnas numéricas. Los outliers sin gestionar pueden degradar modelos sensibles a la escala y distorsionar métricas estadísticas.",
-      "currentness": "Mide la obsolescencia temporal de los registros. Entrenar con datos antiguos asume un mundo estático y provoca Data Drift: el modelo aprende patrones que ya no representan la realidad operativa.",
-      "logical_consistency": "Verifica que los datos cumplan reglas de negocio definidas explícitamente. Detecta contradicciones y relaciones inválidas entre columnas que no son detectables por métricas estadísticas.",
-      "class_balance": "Detecta desequilibrios en columnas categóricas donde una clase domina. El desequilibrio severo en la variable a predecir lleva a modelos de clasificación sesgados hacia la clase mayoritaria.",
-      "syntactic_accuracy": "Verifica que los valores cumplan el formato esperado (emails, teléfonos, DNIs, fechas, URLs…). Formatos incorrectos en columnas clave generan errores en pipelines de procesamiento y empeoran la calidad de las features."
+      "currentness": "Mide la obsolescencia temporal de los registros (ISO 5259-2 Cur-ML-1). Entrenar con datos antiguos asume un mundo estático y provoca Data Drift: el modelo aprende patrones que ya no representan la realidad operativa.",
+      "logical_consistency": "Valida que los datos cumplan reglas de negocio definidas explícitamente. Detecta contradicciones y relaciones inválidas entre columnas no detectables por métricas estadísticas.",
+      "class_balance": "Detecta desequilibrios en columnas categóricas donde una clase domina. El desequilibrio severo en la variable objetivo lleva a modelos de clasificación sesgados hacia la clase mayoritaria.",
+      "syntactic_accuracy": "Verifica que los valores cumplan el formato esperado (emails, teléfonos, DNIs, fechas, URLs…). Formatos incorrectos en columnas clave generan errores en pipelines y empeoran la calidad de las features."
     },
     "labels": {
-      "completeness": "Completitud de datos",
-      "uniqueness": "Unicidad de registros",
+      "completeness": "Completitud",
+      "uniqueness": "Unicidad",
       "outliers": "Detección de outliers",
-      "currentness": "Actualidad de los datos (Currentness)",
+      "currentness": "Actualidad (Currentness)",
       "logical_consistency": "Consistencia lógica",
       "class_balance": "Equilibrio de clases",
       "syntactic_accuracy": "Exactitud sintáctica"
