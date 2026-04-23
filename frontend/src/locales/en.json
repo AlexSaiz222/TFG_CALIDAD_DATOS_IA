@@ -202,7 +202,7 @@
     },
     "issuesPerProject": "Quality issues per project",
     "healthHistory": "Project health history",
-    "healthHistoryDesc": "Each bar represents a day. If multiple evaluations exist on a day, the worst one is shown.",
+    "healthHistoryDesc": "Each bar is an analysis run. Scroll to see the full history.",
     "requiresAttention": "Requires attention",
     "requiresAttentionDesc": "Projects with failed Quality Gate, warning, or score below 70%",
     "empty": {
@@ -1204,19 +1204,17 @@
     }
   },
   "projectHealthTimeline": {
-    "days30": "30 days",
-    "days90": "90 days",
-    "all": "All",
+    "last20": "Last 20",
+    "last50": "Last 50",
+    "last100": "Last 100",
     "noAnalysis": "No analysis",
+    "noGateStatus": "No gate configured",
     "lastAnalysis": "Last: {{time}}",
-    "evalCount": "{{count}} eval. in period",
-    "multipleEvals": "{{count}} evaluations (worst shown)",
-    "noEvaluation": "No evaluation",
+    "evalCount": "{{count}} analyses in period",
     "legend": {
       "passed": "Passed",
       "warning": "Warning",
-      "failed": "Failed",
-      "noEvaluation": "No evaluation"
+      "failed": "Failed"
     }
   },
   "profiling": {

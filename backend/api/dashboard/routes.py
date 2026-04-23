@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime, timedelta
 import logging
+from sqlalchemy import func
 
 from extensions import db
 from models.project import Project
@@ -21,7 +21,7 @@ def get_dashboard_summary():
     y estadisticas globales.
 
     Query Parameters:
-        history_days (int): Dias de historial de runs a incluir (default: 90)
+        history_limit (int): Numero maximo de runs recientes a incluir por proyecto (default: 50)
     """
     current_user_id = get_jwt_identity()
 
@@ -31,8 +31,7 @@ def get_dashboard_summary():
         return jsonify({'success': False, 'message': 'ID de usuario invalido'}), 401
 
     try:
-        history_days = request.args.get('history_days', 90, type=int)
-        history_since = datetime.utcnow() - timedelta(days=history_days)
+        history_limit = max(1, min(request.args.get('history_limit', 50, type=int), 500))
 
         # Obtener todos los proyectos del usuario
         projects = Project.query.filter_by(owner_id=current_user_id).all()
@@ -115,15 +114,16 @@ def get_dashboard_summary():
             else:
                 gate_distribution['no_analysis'] += 1
 
-            # Historial de runs dentro del rango temporal
+            # Ultimos N runs completados por proyecto (mas recientes primero, luego invertir)
             runs_history = (
                 AnalysisRun.query
                 .filter_by(project_id=project.id)
-                .filter(AnalysisRun.status == 'COMPLETED')
-                .filter(AnalysisRun.created_at >= history_since)
-                .order_by(AnalysisRun.created_at.asc())
+                .filter(AnalysisRun.status == AnalysisStatus.COMPLETED)
+                .order_by(AnalysisRun.created_at.desc())
+                .limit(history_limit)
                 .all()
             )
+            runs_history = list(reversed(runs_history))
 
             runs_history_data = []
             for run in runs_history:

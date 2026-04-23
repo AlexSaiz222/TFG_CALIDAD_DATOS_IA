@@ -202,7 +202,7 @@
     },
     "issuesPerProject": "Problemas de calidad por proyecto",
     "healthHistory": "Historial de salud de proyectos",
-    "healthHistoryDesc": "Cada barra es un día. Si hay varias evaluaciones en un día, se muestra la más desfavorable.",
+    "healthHistoryDesc": "Cada barra es un análisis. Desplázate para ver el histórico completo.",
     "requiresAttention": "Requiere atención",
     "requiresAttentionDesc": "Proyectos con Quality Gate fallido, en advertencia o score inferior al 70%",
     "empty": {
@@ -1196,19 +1196,17 @@
     }
   },
   "projectHealthTimeline": {
-    "days30": "30 días",
-    "days90": "90 días",
-    "all": "Todo",
+    "last20": "Últimos 20",
+    "last50": "Últimos 50",
+    "last100": "Últimos 100",
     "noAnalysis": "Sin análisis",
+    "noGateStatus": "Sin gate configurado",
     "lastAnalysis": "Última: {{time}}",
-    "evalCount": "{{count}} eval. en el periodo",
-    "multipleEvals": "{{count}} evaluaciones (se muestra la más desfavorable)",
-    "noEvaluation": "Sin evaluación",
+    "evalCount": "{{count}} análisis en el periodo",
     "legend": {
       "passed": "Aprobado",
       "warning": "Advertencia",
-      "failed": "Fallido",
-      "noEvaluation": "Sin evaluación"
+      "failed": "Fallido"
     }
   },
   "profiling": {

@@ -736,8 +736,8 @@ export const metricsAPI = {
 
 // Dashboard API
 export const dashboardAPI = {
-  getSummary: (historyDays: number = 90) =>
-    api.get('/api/dashboard/summary', { params: { history_days: historyDays } }),
+  getSummary: (historyLimit: number = 50) =>
+    api.get('/api/dashboard/summary', { params: { history_limit: historyLimit } }),
 };
 
 // Analysis Runs API (Sonar-Lite)
