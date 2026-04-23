@@ -185,6 +185,16 @@ cuantitativas estandarizadas (Parte~2), implementa gestión de datasets con
 versionado (Parte~3) y ofrece un flujo de evaluación integrado en el ciclo de
 vida del proyecto (Parte~4).
 
+Desde el punto de vista del alcance, la contribución más relevante de
+\ac{ISO}/IEC 5259-2 es la organización de las características de calidad en
+cuatro grupos según su naturaleza y su dependencia del contexto tecnológico:
+\emph{características inherentes}, \emph{características mixtas} (inherentes y
+dependientes del sistema), \emph{características dependientes del sistema} y
+\emph{características adicionales} específicas para \ac{IA}/\ac{ML}. Esta
+taxonomía, analizada en detalle en la Sección~\ref{sec:alcance-metodologico},
+constituye el marco conceptual sobre el que se delimita el alcance técnico de
+\dataqual.
+
 \subsection{ISO/IEC 25024: Medición de la calidad de datos}
 \label{sec:iso25024}
 
@@ -216,6 +226,191 @@ Artificial~\cite{aiact2024} exige que las organizaciones puedan demostrar la
 calidad y trazabilidad de los datos utilizados en sus modelos, lo que convierte
 la evaluación estandarizada de calidad de datos en una necesidad no solo técnica,
 sino también de cumplimiento normativo.
+
+
+%% =========================================================================
+\section{Alcance metodológico: evaluación algorítmica de la calidad inherente}
+\label{sec:alcance-metodologico}
+%% =========================================================================
+
+El marco normativo descrito en la sección anterior permite delimitar con
+precisión qué dimensiones de calidad de datos son evaluables mediante el
+análisis estático de un fichero de datos y cuáles dependen de factores externos
+al propio dato. Esta distinción no es una limitación arbitraria de \dataqual,
+sino una consecuencia directa de la naturaleza de las características definidas
+por \ac{ISO}/IEC 5259-2~\cite{iso5259}. La presente sección justifica las
+decisiones de alcance adoptadas en el proyecto a partir del marco conceptual
+de dicho estándar.
+
+\subsection{Taxonomía de características de calidad según ISO/IEC 5259-2}
+\label{sec:taxonomia-iso5259}
+
+\ac{ISO}/IEC 5259-2 organiza las características de calidad de datos para
+analítica e \ac{IA} en cuatro grupos según su naturaleza y su grado de
+dependencia del contexto tecnológico:
+
+\begin{itemize}
+  \item \textbf{Características inherentes} (5): exactitud
+    (\emph{accuracy}), completitud (\emph{completeness}), consistencia
+    (\emph{consistency}), credibilidad (\emph{credibility}) y actualidad
+    (\emph{currentness}). Son propiedades intrínsecas del dato, evaluables
+    a partir del análisis de sus valores sin necesidad de conocer el sistema
+    que lo aloja.
+
+  \item \textbf{Características mixtas} (7): accesibilidad
+    (\emph{accessibility}), conformidad (\emph{compliance}), eficiencia
+    (\emph{efficiency}), precisión (\emph{precision}), trazabilidad
+    (\emph{traceability}), confidencialidad (\emph{confidentiality}) y
+    comprensibilidad (\emph{understandability}). Dependen tanto de las
+    propiedades del dato como del contexto del sistema que lo gestiona.
+
+  \item \textbf{Características dependientes del sistema} (3):
+    disponibilidad (\emph{availability}), portabilidad (\emph{portability})
+    y recuperabilidad (\emph{recoverability}). Vienen determinadas
+    exclusivamente por la infraestructura tecnológica de la organización.
+
+  \item \textbf{Características adicionales para IA/ML} (9): equilibrio
+    (\emph{balance}), diversidad (\emph{diversity}), efectividad
+    (\emph{effectiveness}), identificabilidad (\emph{identifiability}),
+    relevancia (\emph{relevance}), representatividad
+    (\emph{representativeness}), similitud (\emph{similarity}), puntualidad
+    (\emph{timeliness}) y auditabilidad (\emph{auditability}). Abordan
+    necesidades específicas del aprendizaje automático que los marcos
+    generalistas de calidad de datos no contemplan.
+\end{itemize}
+
+El Cuadro~\ref{tab:iso5259-cobertura} sintetiza la cobertura de \dataqual
+respecto a las cuatro categorías anteriores.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cobertura de \dataqual respecto al modelo de calidad de \ac{ISO}/IEC 5259-2}
+  \label{tab:iso5259-cobertura}
+  \small
+  \begin{tabularx}{\textwidth}{l X c X}
+    \toprule
+    \textbf{Categoría} & \textbf{Características} & \textbf{\dataqual} & \textbf{Motivo} \\
+    \midrule
+    Inherentes
+      & Exactitud, Completitud, Consistencia, Credibilidad, Actualidad
+      & \checkmark~Implementadas
+      & Extraíbles del dataset sin contexto externo \\[4pt]
+    Mixtas
+      & Accesibilidad, Conformidad, Eficiencia, Precisión, Trazabilidad,
+        Confidencialidad, Comprensibilidad
+      & Parcial
+      & Requieren información del sistema que aloja el dato \\[4pt]
+    Dep.\ del sistema
+      & Disponibilidad, Portabilidad, Recuperabilidad
+      & ---~Fuera de alcance
+      & Determinadas por la infraestructura TI de la organización \\[4pt]
+    Adicionales (MVP)
+      & Equilibrio (\texttt{class\_balance}), Identificabilidad (enmascaramiento \ac{PII})
+      & \checkmark~Implementadas
+      & Impacto directo en fiabilidad y cumplimiento normativo de modelos de \ac{IA} \\[4pt]
+    Adicionales (resto)
+      & Diversidad, Efectividad, Relevancia, Representatividad, Similitud,
+        Puntualidad, Auditabilidad
+      & ---~Fuera de alcance
+      & Requieren metadatos organizativos o definición de la población objetivo \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Características evaluables algorítmicamente}
+\label{sec:caracteristicas-evaluables}
+
+Las características inherentes de \ac{ISO}/IEC 5259-2 son evaluables
+algorítmicamente porque sus métricas se calculan a partir de los propios
+valores del dataset, sin necesidad de acceder a sistemas externos ni de conocer
+el dominio de negocio. La completitud se mide como la proporción de valores no
+nulos; la exactitud sintáctica, como la conformidad con patrones de formato
+definidos; la consistencia, como la ausencia de contradicciones lógicas entre
+columnas; la credibilidad, como la ausencia de registros duplicados; y la
+actualidad, como la antigüedad del valor más reciente en columnas temporales.
+
+Esta propiedad de \emph{auto-contención} es lo que hace posible desarrollar
+una herramienta de auditoría que opera exclusivamente sobre el fichero de datos
+sin requerir integración con los sistemas de la organización. El motor de
+métricas de \dataqual explota esta característica al procesar cada
+\texttt{AnalysisRun} de forma asíncrona y aislada, leyendo el dataset
+almacenado en MinIO y calculando las métricas configuradas sin ninguna
+conexión a los sistemas transaccionales del cliente.
+
+\subsection{Características fuera del alcance técnico}
+\label{sec:caracteristicas-fuera-alcance}
+
+Dos categorías de características quedan fuera del alcance técnico de
+\dataqual por razones de naturaleza estructural, no de elección de
+implementación.
+
+\paragraph{Dependencia de infraestructura organizativa.}
+Las características dependientes del sistema ---disponibilidad, portabilidad
+y recuperabilidad--- no describen propiedades del dato en sí, sino de la
+infraestructura que lo almacena y sirve. La \emph{disponibilidad} mide si el
+dataset puede ser recuperado por usuarios autorizados dentro de un plazo
+acordado, lo que remite a acuerdos de nivel de servicio (\ac{SLA}) y
+arquitecturas de almacenamiento. La \emph{portabilidad} evalúa la capacidad
+de mover el dato entre sistemas preservando su calidad, lo que requiere acceso
+a los conectores y formatos de exportación propietarios de la organización.
+La \emph{recuperabilidad} depende de las políticas de backup y los mecanismos
+de restauración de datos. Ninguna de estas métricas puede calcularse analizando
+el contenido de un fichero: exigen acceso al entorno operativo de la
+organización, del que una herramienta de análisis de datos externo no dispone
+por definición.
+
+\paragraph{Dependencia de metadatos organizativos y contexto de negocio.}
+Un subconjunto de las características adicionales para \ac{IA}/\ac{ML} requiere
+información que trasciende el fichero de datos. La \emph{representatividad}
+necesita la definición de la población objetivo del modelo, que es un
+requisito de negocio no inscrito en el dato. La \emph{relevancia} y la
+\emph{efectividad} requieren un diccionario de datos y políticas de gobernanza
+privadas para determinar si el dataset es adecuado para la tarea prevista.
+La \emph{diversidad} y la \emph{similitud} presuponen un conocimiento del
+espacio de características del dominio que, como investigador externo, no es
+accesible sin la colaboración directa de la organización propietaria.
+
+\subsection{Priorización de características para el MVP}
+\label{sec:priorizacion-mvp}
+
+Entre las características algorítmicamente evaluables, el desarrollo del
+\ac{MVP} de \dataqual ha priorizado aquellas con mayor impacto en la fiabilidad
+de los modelos de \ac{IA}/\ac{ML} y en el cumplimiento del marco normativo
+aplicable:
+
+\begin{enumerate}
+  \item \textbf{Las cinco características inherentes de \ac{ISO}/IEC~25012}
+    ---completitud, exactitud sintáctica, consistencia lógica, credibilidad y
+    actualidad--- constituyen la base normativa mínima para cualquier
+    herramienta de auditoría de datos y proporcionan cobertura directa de los
+    requisitos de \ac{ISO}/IEC~5259-2~\cite{iso5259} e \ac{ISO}/IEC~25024~\cite{iso25024}.
+
+  \item \textbf{Equilibrio de clases} (\texttt{class\_balance}), medido
+    mediante la entropía de Shannon. El desequilibrio de clases es uno de los
+    factores documentados de sesgo en sistemas de \ac{IA}~\cite{amazon2018,
+    buolamwini2018} y su corrección tiene un impacto directo en la equidad y
+    fiabilidad de los modelos de clasificación.
+
+  \item \textbf{Identificabilidad de \ac{PII}} mediante enmascaramiento
+    automático de columnas sensibles. Su inclusión en el \ac{MVP} responde a
+    la obligación legal establecida por el \ac{RGPD}~\cite{rgpd2016} y por el
+    Reglamento Europeo de \ac{IA}~\cite{aiact2024} de proteger los datos
+    personales utilizados en el entrenamiento de modelos.
+\end{enumerate}
+
+Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado como
+herramienta de diagnóstico en el módulo de \acf{EDA}, sin ser computados como
+parte de la puntuación de calidad global. Esta decisión sigue explícitamente
+la recomendación de \ac{ISO}/IEC~5259-2~\cite{iso5259}, que no considera los
+outliers una dimensión de calidad inherente, sino un indicador diagnóstico cuya
+relevancia depende del dominio de aplicación.
+
+El resultado es una delimitación deliberada del alcance del proyecto en la
+frontera donde el dato pasa a depender del sistema que lo aloja: \dataqual
+ofrece una auditoría algorítmica y estadística de la calidad intrínseca del
+dato para proyectos de \ac{IA}, y deja fuera de su ámbito las dimensiones
+cuya evaluación requiere acceso a la infraestructura o a los metadatos
+organizativos de la entidad propietaria.
 
 
 %% =========================================================================
