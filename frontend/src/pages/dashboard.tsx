@@ -26,7 +26,7 @@ import MainLayout from '../components/layout/MainLayout';
 import { StatusDonut } from '../components/dashboard/DashboardCharts';
 import KpiCard from '../components/dashboard/KpiCard';
 import IssueSeverityChart from '../components/dashboard/IssueSeverityChart';
-import ProjectHealthTimeline, { type TimeRange } from '../components/dashboard/ProjectHealthTimeline';
+import ProjectHealthTimeline, { type AnalysisLimit } from '../components/dashboard/ProjectHealthTimeline';
 import AttentionTable from '../components/dashboard/AttentionTable';
 import { useAuth } from '../contexts/AuthContext';
 import { dashboardAPI } from '../services/api';
@@ -40,7 +40,7 @@ function Dashboard() {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState<TimeRange>('90d');
+  const [analysisLimit, setAnalysisLimit] = useState<AnalysisLimit>(50);
   const router = useRouter();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
   const { t } = useTranslation();
@@ -56,8 +56,7 @@ function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const historyDays = timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
-      const response = await dashboardAPI.getSummary(historyDays);
+      const response = await dashboardAPI.getSummary(analysisLimit);
       const summary = response?.data?.data || response?.data;
       if (summary && summary.projects && summary.aggregated) {
         setData(summary);
@@ -81,8 +80,7 @@ function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        const historyDays = timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
-        const response = await dashboardAPI.getSummary(historyDays);
+        const response = await dashboardAPI.getSummary(analysisLimit);
         if (!isMounted) return;
         const summary = response?.data?.data || response?.data;
         if (summary && summary.projects && summary.aggregated) {
@@ -99,7 +97,7 @@ function Dashboard() {
     };
     load();
     return () => { isMounted = false; };
-  }, [isAuthenticated, authLoading, timeRange]);
+  }, [isAuthenticated, authLoading, analysisLimit]);
 
   // Derived data for charts
   const issuesByProject = useMemo(() => {
@@ -386,8 +384,8 @@ function Dashboard() {
               </Typography>
               <ProjectHealthTimeline
                 projects={data.projects}
-                timeRange={timeRange}
-                onTimeRangeChange={setTimeRange}
+                analysisLimit={analysisLimit}
+                onAnalysisLimitChange={setAnalysisLimit}
               />
             </Card>
           )}

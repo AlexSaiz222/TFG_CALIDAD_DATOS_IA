@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Box, Typography, Tooltip, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { useRouter } from 'next/router';
 import type { DashboardProject, DashboardRunHistory } from '../../types';
@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 const GREEN = '#00B37E';
 const RED = '#E5484D';
 const ORANGE = '#FFB800';
-const GRAY_EMPTY = '#F0F0F0';
 
 const GATE_COLORS: Record<string, string> = {
   PASSED: GREEN,
@@ -15,83 +14,17 @@ const GATE_COLORS: Record<string, string> = {
   FAILED: RED,
 };
 
-const GATE_PRIORITY: Record<string, number> = {
-  FAILED: 3,
-  WARNING: 2,
-  PASSED: 1,
-};
-
-export type TimeRange = '30d' | '90d' | 'all';
+export type AnalysisLimit = 20 | 50 | 100;
 
 interface ProjectHealthTimelineProps {
   projects: DashboardProject[];
-  timeRange: TimeRange;
-  onTimeRangeChange: (range: TimeRange) => void;
+  analysisLimit: AnalysisLimit;
+  onAnalysisLimitChange: (limit: AnalysisLimit) => void;
 }
 
-interface TimeSlot {
-  date: string;
-  run: DashboardRunHistory | null;
-  runCount: number;
-}
-
-function getDateKey(dateStr: string): string {
-  return dateStr.substring(0, 10);
-}
-
-function buildSlots(runs: DashboardRunHistory[], timeRange: TimeRange): TimeSlot[] {
-  const now = new Date();
-  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-
-  let startUTC: Date;
-
-  if (timeRange === 'all') {
-    if (runs.length === 0) {
-      startUTC = new Date(todayUTC.getTime() - 30 * 24 * 60 * 60 * 1000);
-    } else {
-      const earliest = runs.reduce((min, r) => {
-        const d = r.completed_at || r.created_at;
-        return d < min ? d : min;
-      }, runs[0].completed_at || runs[0].created_at);
-      const e = new Date(earliest);
-      startUTC = new Date(Date.UTC(e.getUTCFullYear(), e.getUTCMonth(), e.getUTCDate()));
-    }
-  } else {
-    const days = timeRange === '30d' ? 30 : 90;
-    startUTC = new Date(todayUTC.getTime() - days * 24 * 60 * 60 * 1000);
-  }
-
-  const runsByDate: Record<string, DashboardRunHistory> = {};
-  const countByDate: Record<string, number> = {};
-  for (const run of runs) {
-    const dateKey = getDateKey(run.completed_at || run.created_at);
-    countByDate[dateKey] = (countByDate[dateKey] || 0) + 1;
-    const existing = runsByDate[dateKey];
-    if (!existing) {
-      runsByDate[dateKey] = run;
-    } else {
-      const existingPriority = GATE_PRIORITY[existing.quality_gate_status || ''] || 0;
-      const newPriority = GATE_PRIORITY[run.quality_gate_status || ''] || 0;
-      if (newPriority > existingPriority) {
-        runsByDate[dateKey] = run;
-      }
-    }
-  }
-
-  const slots: TimeSlot[] = [];
-  const current = new Date(startUTC);
-
-  while (current <= todayUTC) {
-    const dateKey = current.toISOString().substring(0, 10);
-    slots.push({
-      date: dateKey,
-      run: runsByDate[dateKey] || null,
-      runCount: countByDate[dateKey] || 0,
-    });
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
-
-  return slots;
+interface AnalysisSlot {
+  run: DashboardRunHistory;
+  datetime: string;
 }
 
 function scoreColor(score: number | null): string {
@@ -99,15 +32,21 @@ function scoreColor(score: number | null): string {
   return score >= 80 ? GREEN : score >= 60 ? ORANGE : RED;
 }
 
-function formatDate(dateStr: string): string {
+function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  return d.toLocaleString('es-ES', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
   projects,
-  timeRange,
-  onTimeRangeChange,
+  analysisLimit,
+  onAnalysisLimitChange,
 }) => {
   const router = useRouter();
   const { t } = useTranslation();
@@ -135,22 +74,20 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
   }, [projects]);
 
   const projectSlots = useMemo(() => {
-    return projectsToShow.map(project => ({
-      project,
-      slots: buildSlots(project.runs_history, timeRange),
-    }));
-  }, [projectsToShow, timeRange]);
+    return projectsToShow.map(project => {
+      const slots: AnalysisSlot[] = [...project.runs_history]
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(run => ({ run, datetime: run.completed_at ?? run.created_at }));
+      return { project, slots };
+    });
+  }, [projectsToShow]);
 
-  const dateLabels = useMemo(() => {
-    if (projectSlots.length === 0) return [];
-    const slots = projectSlots[0].slots;
-    if (slots.length === 0) return [];
-    const labels = [
-      formatDate(slots[0].date),
-      formatDate(slots[Math.floor(slots.length / 2)].date),
-      formatDate(slots[slots.length - 1].date),
-    ];
-    return labels;
+  // Auto-scroll all timeline bar containers to the right (most recent analysis visible)
+  useEffect(() => {
+    const containers = document.querySelectorAll('[data-timeline-scroll]');
+    containers.forEach(el => {
+      (el as HTMLElement).scrollLeft = el.scrollWidth;
+    });
   }, [projectSlots]);
 
   if (projects.length === 0) {
@@ -165,12 +102,12 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
 
   return (
     <Box>
-      {/* Time range selector */}
+      {/* Analysis limit selector */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <ToggleButtonGroup
-          value={timeRange}
+          value={analysisLimit}
           exclusive
-          onChange={(_, val) => val && onTimeRangeChange(val)}
+          onChange={(_, val) => val !== null && onAnalysisLimitChange(val as AnalysisLimit)}
           size="small"
           sx={{
             '& .MuiToggleButton-root': {
@@ -188,9 +125,9 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
             },
           }}
         >
-          <ToggleButton value="30d">{t('projectHealthTimeline.days30')}</ToggleButton>
-          <ToggleButton value="90d">{t('projectHealthTimeline.days90')}</ToggleButton>
-          <ToggleButton value="all">{t('projectHealthTimeline.all')}</ToggleButton>
+          <ToggleButton value={20}>{t('projectHealthTimeline.last20')}</ToggleButton>
+          <ToggleButton value={50}>{t('projectHealthTimeline.last50')}</ToggleButton>
+          <ToggleButton value={100}>{t('projectHealthTimeline.last100')}</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
@@ -220,8 +157,8 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
                 borderRadius: '50%',
                 flexShrink: 0,
                 backgroundColor: project.latest_analysis?.quality_gate_status
-                  ? GATE_COLORS[project.latest_analysis.quality_gate_status] || GRAY_EMPTY
-                  : GRAY_EMPTY,
+                  ? GATE_COLORS[project.latest_analysis.quality_gate_status] || '#CCC'
+                  : '#CCC',
               }}
             />
             <Typography
@@ -241,48 +178,57 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
             </Typography>
           </Box>
 
-          {/* Timeline bars */}
-          <Box sx={{ display: 'flex', flex: 1, gap: '1.5px', height: 26, alignItems: 'center' }}>
-            {slots.map((slot, i) => {
-              const hasRun = slot.run !== null;
-              const color = hasRun && slot.run!.quality_gate_status
-                ? GATE_COLORS[slot.run!.quality_gate_status] || GRAY_EMPTY
-                : GRAY_EMPTY;
+          {/* Timeline bars - horizontally scrollable, newest on the right */}
+          <Box
+            data-timeline-scroll=""
+            sx={{
+              display: 'flex',
+              flex: 1,
+              gap: '1.5px',
+              height: 26,
+              alignItems: 'center',
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            {slots.length === 0 ? (
+              <Typography sx={{ fontSize: '0.72rem', color: '#CCC', ml: 0.5 }}>
+                {t('projectHealthTimeline.noAnalysis')}
+              </Typography>
+            ) : (
+              slots.map((slot, i) => {
+                const color = slot.run.quality_gate_status
+                  ? GATE_COLORS[slot.run.quality_gate_status] || '#CCC'
+                  : '#CCC';
 
-              const gateLabel = slot.run?.quality_gate_status
-                ? GATE_LABELS[slot.run.quality_gate_status] || slot.run.quality_gate_status
-                : 'N/A';
-              const multiInfo = slot.runCount > 1
-                ? ` · ${t('projectHealthTimeline.multipleEvals', { count: slot.runCount })}`
-                : '';
-              const tooltipContent = hasRun
-                ? `${formatDate(slot.date)} · Score: ${slot.run!.quality_score?.toFixed(1) ?? 'N/A'}% · ${gateLabel} · ${slot.run!.total_issues_count} issues${multiInfo}`
-                : `${formatDate(slot.date)} · ${t('projectHealthTimeline.noEvaluation')}`;
+                const gateLabel = slot.run.quality_gate_status
+                  ? GATE_LABELS[slot.run.quality_gate_status] || slot.run.quality_gate_status
+                  : t('projectHealthTimeline.noGateStatus');
 
-              return (
-                <Tooltip key={i} title={tooltipContent} arrow placement="top">
-                  <Box
-                    sx={{
-                      flex: 1,
-                      height: hasRun ? '100%' : '60%',
-                      minWidth: 2,
-                      borderRadius: '2px',
-                      backgroundColor: color,
-                      cursor: hasRun ? 'pointer' : 'default',
-                      transition: 'opacity 0.15s, transform 0.15s',
-                      '&:hover': hasRun
-                        ? { opacity: 0.75, transform: 'scaleY(1.15)' }
-                        : {},
-                    }}
-                    onClick={() => {
-                      if (hasRun && slot.run) {
-                        router.push(`/evaluations/${slot.run.id}`);
-                      }
-                    }}
-                  />
-                </Tooltip>
-              );
-            })}
+                const tooltipContent = `${formatDateTime(slot.datetime)} · Score: ${slot.run.quality_score?.toFixed(1) ?? 'N/A'}% · ${gateLabel}`;
+
+                return (
+                  <Tooltip key={i} title={tooltipContent} arrow placement="top">
+                    <Box
+                      sx={{
+                        flex: '1 0 6px',
+                        maxWidth: 24,
+                        minWidth: 6,
+                        height: '100%',
+                        flexShrink: 0,
+                        borderRadius: '2px',
+                        backgroundColor: color,
+                        cursor: 'pointer',
+                        transition: 'opacity 0.15s, transform 0.15s',
+                        '&:hover': { opacity: 0.75, transform: 'scaleY(1.15)' },
+                      }}
+                      onClick={() => router.push(`/evaluations/${slot.run.id}`)}
+                    />
+                  </Tooltip>
+                );
+              })
+            )}
           </Box>
 
           {/* Stats column */}
@@ -311,28 +257,12 @@ const ProjectHealthTimeline: React.FC<ProjectHealthTimelineProps> = ({
         </Box>
       ))}
 
-      {/* Date axis labels */}
-      {dateLabels.length > 0 && (
-        <Box sx={{ display: 'flex', ml: '132px', mr: '167px', mt: 0.5 }}>
-          <Typography variant="caption" sx={{ color: '#AAA', flex: 1, textAlign: 'left', fontSize: '0.65rem' }}>
-            {dateLabels[0]}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#AAA', flex: 1, textAlign: 'center', fontSize: '0.65rem' }}>
-            {dateLabels[1]}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#AAA', flex: 1, textAlign: 'right', fontSize: '0.65rem' }}>
-            {dateLabels[2]}
-          </Typography>
-        </Box>
-      )}
-
       {/* Legend */}
       <Box sx={{ display: 'flex', gap: 2, mt: 1.5, ml: '132px' }}>
         {[
           { key: 'passed', color: GREEN },
           { key: 'warning', color: ORANGE },
           { key: 'failed', color: RED },
-          { key: 'noEvaluation', color: GRAY_EMPTY },
         ].map(item => (
           <Box key={item.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box sx={{ width: 10, height: 10, borderRadius: '2px', backgroundColor: item.color }} />
