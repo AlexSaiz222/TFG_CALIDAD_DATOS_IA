@@ -39,6 +39,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import { ColumnMetricsTable, IssuesSummary, MetricDetailsTabs, ExecutiveMetricCard } from '../../components/evaluations';
 import QualityGateBadge from '../../components/QualityGateBadge';
 import { analysisAPI, datasetsAPI, projectsAPI } from '../../services/api';
+import { getLocalizedIssueDescription } from '../../utils/issueUtils';
 import type { AnalysisRun, DataQualityIssue, Issue, Dataset, ColumnMetrics } from '../../types';
 
 const EvaluationDetail = () => {
@@ -603,7 +604,7 @@ const EvaluationDetail = () => {
                                   {getMetricName(issue)}
                                 </Typography>
                               </TableCell>
-                              <TableCell>{issue.description}</TableCell>
+                              <TableCell>{getLocalizedIssueDescription(issue, t)}</TableCell>
                               <TableCell>
                                 {issue.affected_columns && issue.affected_columns.length > 0
                                   ? issue.affected_columns.map((col: any) => {

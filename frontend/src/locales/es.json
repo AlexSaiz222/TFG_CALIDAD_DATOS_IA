@@ -470,6 +470,22 @@
       "range": "Rango",
       "pattern": "Patrón"
     },
+    "issueDescriptions": {
+      "completeness_column": "La columna '{{column}}' tiene baja completitud ({{value}})",
+      "completeness_dataset": "La completitud del dataset ({{value}}) está por debajo del umbral",
+      "low_variability": "Baja variabilidad en columna {{colType}} '{{column}}' ({{value}} valores únicos)",
+      "duplicate_rows": "El dataset contiene {{count}} filas duplicadas ({{value}} del total)",
+      "non_unique_identifier": "La columna '{{column}}' se esperaba única pero contiene {{count}} valores duplicados ({{value}} únicos)",
+      "currentness_stale": "La columna '{{column}}' contiene datos desactualizados: el registro más reciente tiene {{ageDays}} días de antigüedad (umbral: {{staleness}} días)",
+      "currentness_parse": "La columna '{{column}}' tiene baja tasa de parseo de fechas ({{value}}): algunos valores pueden no ser fechas válidas",
+      "class_balance_dominant": "La columna '{{column}}' está muy desequilibrada: la clase dominante '{{cls}}' representa el {{value}} de los valores",
+      "class_balance_minority": "La columna '{{column}}' tiene una clase minoritaria subrepresentada '{{cls}}' con {{value}} de los valores",
+      "syntactic_accuracy": "La columna '{{column}}' tiene {{count}} valores que no coinciden con el tipo esperado '{{expectedType}}' ({{value}} de conformidad)",
+      "mixed_format": "La columna '{{column}}' contiene múltiples formatos detectados. Especifica el tipo esperado en la configuración.",
+      "outliers": "La columna '{{column}}' contiene {{count}} valores atípicos ({{value}} de los valores)",
+      "logical_consistency_blocked": "La regla contiene tokens prohibidos y fue bloqueada por seguridad",
+      "logical_consistency_violation": "Regla de consistencia lógica violada en {{count}} filas ({{value}} del dataset)"
+    },
     "searchPlaceholder": "Buscar por nombre, descripción o proyecto...",
     "uploadDataset": "Subir dataset",
     "noDatasets": "Aún no hay datasets. Sube el primero.",

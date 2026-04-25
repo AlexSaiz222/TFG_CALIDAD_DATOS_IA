@@ -65,7 +65,7 @@ import { useTranslation } from 'react-i18next';
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
 // ── Types ───────────────────────────────────────────────────────
-interface DataProfilingTabProps { datasetId: number; sensitiveColumns?: string[]; }
+interface DataProfilingTabProps { datasetId: number; sensitiveColumns?: string[]; analysisRunId?: number; }
 
 type SectionKey = 'overview' | 'metricDetails' | 'columns' | 'correlation' | 'scatter';
 
@@ -594,7 +594,7 @@ const EnhancedBarChartCard: React.FC<{ column: ProfilingColumn }> = ({ column })
 };
 
 // ── Main Component ──────────────────────────────────────────────
-const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiveColumns = [] }) => {
+const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiveColumns = [], analysisRunId }) => {
   const { t } = useTranslation();
   const [profiling, setProfiling] = useState<DataProfilingResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1143,7 +1143,7 @@ const DataProfilingTab: React.FC<DataProfilingTabProps> = ({ datasetId, sensitiv
       >
         {/* NOTA: MetricDetailsTabs se reutiliza temporalmente para mostrar características.
             En el futuro, se creará un componente específico para características del dataset. */}
-        <MetricDetailsTabs overallMetrics={filteredEvalOverallMetrics} columnMetrics={filteredEvalColumnMetrics} datasetId={datasetId} initialTab={initialMetricTab} />
+        <MetricDetailsTabs overallMetrics={filteredEvalOverallMetrics} columnMetrics={filteredEvalColumnMetrics} datasetId={datasetId} initialTab={initialMetricTab} analysisRunId={analysisRunId} />
       </CollapsibleSection>
 
       {/* ── SECTION 3 – Per-column Analysis ── */}

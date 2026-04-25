@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../components/layout/MainLayout';
 import { datasetsAPI } from '../../services/api';
+import { getLocalizedIssueDescription } from '../../utils/issueUtils';
 import { Dataset } from '../../types';
 
 // ─── paleta ───────────────────────────────────────────────────────────────
@@ -371,6 +372,7 @@ const DeltaColumn: React.FC<{
 
 /** Fila de issue en la lista */
 const IssueRow: React.FC<{ issue: any; resolved?: boolean }> = ({ issue, resolved = false }) => {
+  const { t } = useTranslation();
   const color = severityColor(issue.severity);
   return (
     <Box sx={{
@@ -391,7 +393,7 @@ const IssueRow: React.FC<{ issue: any; resolved?: boolean }> = ({ issue, resolve
         textDecoration: resolved ? 'line-through' : 'none',
         lineHeight: 1.45,
       }}>
-        {issue.description}
+        {getLocalizedIssueDescription(issue, t)}
       </Typography>
     </Box>
   );
@@ -429,7 +431,7 @@ const PersistentIssueRow: React.FC<{ issue: any }> = ({ issue }) => {
           }} />
         </Tooltip>
         <Typography sx={{ fontSize: '0.8rem', color: '#333', lineHeight: 1.45 }}>
-          {issue.description}
+          {getLocalizedIssueDescription(issue, t)}
         </Typography>
       </Box>
       {/* Delta chip */}

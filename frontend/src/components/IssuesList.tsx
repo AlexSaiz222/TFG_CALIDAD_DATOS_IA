@@ -39,6 +39,7 @@ import {
 } from '@mui/icons-material';
 import type { DataQualityIssue } from '../types';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedIssueDescription } from '../utils/issueUtils';
 
 // Colores consistentes
 const GREEN = '#00B37E';
@@ -116,7 +117,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (issue) =>
-          issue.description.toLowerCase().includes(term) ||
+          getLocalizedIssueDescription(issue, t).toLowerCase().includes(term) ||
           issue.issue_type.toLowerCase().includes(term) ||
           (issue.affected_columns && 
             issue.affected_columns.some((col: string) => col.toLowerCase().includes(term)))
@@ -431,7 +432,7 @@ const IssuesList: React.FC<IssuesListProps> = ({ issues, loading = false }) => {
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2" sx={{ color: '#333333' }}>
-                    {issue.description}
+                    {getLocalizedIssueDescription(issue, t)}
                   </Typography>
                   {issue.rule_key && (
                     <Typography variant="caption" sx={{ color: GRAY }}>

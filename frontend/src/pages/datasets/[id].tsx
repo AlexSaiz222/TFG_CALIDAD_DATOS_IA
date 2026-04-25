@@ -47,7 +47,8 @@ import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
 import DatasetLineageCanvas from '../../components/DatasetLineageCanvas';
 import DataProfilingTab from '../../components/DataProfilingTab';
-import { datasetsAPI, evaluationsAPI, projectsAPI, analysisAPI } from '../../services/api';
+import { analysisAPI, evaluationsAPI, datasetsAPI } from '../../services/api';
+import { getLocalizedIssueDescription } from '../../utils/issueUtils';
 import { Dataset, Evaluation, Issue, AnalysisRun } from '../../types';
 import QualityGateBadge from '../../components/QualityGateBadge';
 
@@ -869,7 +870,11 @@ const DatasetDetail = () => {
 
         {/* Data Profiling Tab */}
         <TabPanel value={tabValue} index={1}>
-          <DataProfilingTab datasetId={dataset.id} sensitiveColumns={sensitiveColumns} />
+          <DataProfilingTab
+            datasetId={dataset.id}
+            sensitiveColumns={sensitiveColumns}
+            analysisRunId={analysisRuns.find(r => r.status === 'COMPLETED')?.id}
+          />
         </TabPanel>
 
         {/* Evaluations Tab — shows AnalysisRuns for this dataset */}
@@ -1009,7 +1014,7 @@ const DatasetDetail = () => {
                           }).join(', ')
                           : '—'}
                       </TableCell>
-                      <TableCell>{issue.description}</TableCell>
+                      <TableCell>{getLocalizedIssueDescription(issue, t)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

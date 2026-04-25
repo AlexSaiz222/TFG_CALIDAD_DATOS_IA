@@ -470,6 +470,22 @@
       "range": "Range",
       "pattern": "Pattern"
     },
+    "issueDescriptions": {
+      "completeness_column": "Column '{{column}}' has low completeness ({{value}})",
+      "completeness_dataset": "Dataset completeness ({{value}}) is below threshold",
+      "low_variability": "Low variability in {{colType}} column '{{column}}' ({{value}} unique values)",
+      "duplicate_rows": "Dataset contains {{count}} duplicate rows ({{value}} of total)",
+      "non_unique_identifier": "Column '{{column}}' expected to be unique but has {{count}} duplicate values ({{value}} unique)",
+      "currentness_stale": "Column '{{column}}' contains outdated data: most recent record is {{ageDays}} days old (threshold: {{staleness}} days)",
+      "currentness_parse": "Column '{{column}}' has a low date parse rate ({{value}}): some values may not be valid dates",
+      "class_balance_dominant": "Column '{{column}}' is heavily imbalanced: dominant class '{{cls}}' represents {{value}} of values",
+      "class_balance_minority": "Column '{{column}}' has an underrepresented minority class '{{cls}}' with {{value}} of values",
+      "syntactic_accuracy": "Column '{{column}}' has {{count}} values not matching expected type '{{expectedType}}' ({{value}} conformance)",
+      "mixed_format": "Column '{{column}}' contains multiple detected formats. Specify the expected type in the configuration.",
+      "outliers": "Column '{{column}}' contains {{count}} outliers ({{value}} of values)",
+      "logical_consistency_blocked": "Rule contains forbidden tokens and was blocked for security",
+      "logical_consistency_violation": "Logical consistency rule violated in {{count}} rows ({{value}} of dataset)"
+    },
     "searchPlaceholder": "Search by name, description or project...",
     "uploadDataset": "Upload dataset",
     "noDatasets": "No datasets yet. Upload the first one.",
