@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -9,6 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Link,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -17,19 +18,33 @@ import {
 } from '@mui/icons-material';
 import { ColumnMetrics } from '../../types';
 import { useTranslation } from 'react-i18next';
+import ViolationsDrawer from './ViolationsDrawer';
 
 interface CompletenessDetailProps {
   overallCompleteness: number;
   columnMetrics: Record<string, ColumnMetrics>;
   threshold?: number;
+  analysisRunId?: number;
+  evaluationId?: number;
 }
 
 const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
   overallCompleteness,
   columnMetrics,
   threshold = 0.95,
+  analysisRunId,
+  evaluationId,
 }) => {
   const { t } = useTranslation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerColumn, setDrawerColumn] = useState('');
+
+  const canShowViolations = !!(analysisRunId || evaluationId);
+
+  const handleOpenViolations = (colName: string) => {
+    setDrawerColumn(colName);
+    setDrawerOpen(true);
+  };
 
   const columns = Object.entries(columnMetrics)
     .map(([name, metrics]) => ({
@@ -147,9 +162,20 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
                 </TableCell>
                 <TableCell align="right">
                   {col.nNulls > 0 ? (
-                    <Typography variant="body2" sx={{ color: '#E5484D', fontWeight: 600 }}>
-                      {col.nNulls.toLocaleString()}
-                    </Typography>
+                    canShowViolations ? (
+                      <Link
+                        component="button"
+                        variant="body2"
+                        onClick={() => handleOpenViolations(col.name)}
+                        sx={{ color: '#E5484D', fontWeight: 600, textDecoration: 'underline dotted', cursor: 'pointer', '&:hover': { color: '#C0393E' } }}
+                      >
+                        {col.nNulls.toLocaleString()}
+                      </Link>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#E5484D', fontWeight: 600 }}>
+                        {col.nNulls.toLocaleString()}
+                      </Typography>
+                    )
                   ) : (
                     <Typography variant="body2" sx={{ color: '#CCC' }}>0</Typography>
                   )}
@@ -177,6 +203,20 @@ const CompletenessDetail: React.FC<CompletenessDetailProps> = ({
         <Typography variant="caption" sx={{ color: '#999' }}>
           {t('completenessDetail.footer', { count: columns.length - columnsWithNulls.length })}
         </Typography>
+      )}
+
+      {/* Violations Drawer */}
+      {canShowViolations && (
+        <ViolationsDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          analysisRunId={analysisRunId}
+          evaluationId={evaluationId}
+          metric="completeness"
+          column={drawerColumn}
+          title={t('violations.completenessTitle', { column: drawerColumn })}
+          subtitle={t('violations.completenessSubtitle')}
+        />
       )}
     </Box>
   );

@@ -665,6 +665,7 @@ const EvaluationDetail = () => {
                   columnMetrics={columnMetrics}
                   initialTab={activeDetailTab}
                   datasetId={run.dataset_id}
+                  analysisRunId={run.id}
                 />
               </AccordionDetails>
             </Accordion>

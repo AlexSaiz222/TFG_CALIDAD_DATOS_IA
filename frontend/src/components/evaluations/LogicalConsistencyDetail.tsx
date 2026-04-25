@@ -12,6 +12,7 @@ import {
   Chip,
   Collapse,
   IconButton,
+  Link,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -20,6 +21,8 @@ import {
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
+import ViolationsDrawer from './ViolationsDrawer';
 
 interface RuleResult {
   name: string;
@@ -44,11 +47,16 @@ interface LogicalConsistencyData {
 
 interface LogicalConsistencyDetailProps {
   data: LogicalConsistencyData;
+  analysisRunId?: number;
+  evaluationId?: number;
 }
 
-const RuleRow: React.FC<{ rule: RuleResult }> = ({ rule }) => {
+const RuleRow: React.FC<{ rule: RuleResult; ruleIndex: number; analysisRunId?: number; evaluationId?: number }> = ({ rule, ruleIndex, analysisRunId, evaluationId }) => {
   const [open, setOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { t } = useTranslation();
   const hasSamples = rule.sample_violations && rule.sample_violations.length > 0;
+  const canShowViolations = !!(analysisRunId || evaluationId) && rule.violation_count > 0 && !rule.error;
 
   const getColor = (val: number | null): string => {
     if (val === null) return '#999';
@@ -120,16 +128,27 @@ const RuleRow: React.FC<{ rule: RuleResult }> = ({ rule }) => {
           />
         </TableCell>
         <TableCell align="right">
-          <Typography
-            variant="body2"
-            sx={{
-              fontSize: '0.8rem',
-              fontWeight: rule.violation_count > 0 ? 600 : 400,
-              color: rule.violation_count > 0 ? '#E5484D' : '#999',
-            }}
-          >
-            {rule.error ? 'Error' : rule.violation_count.toLocaleString()}
-          </Typography>
+          {canShowViolations ? (
+            <Link
+              component="button"
+              variant="body2"
+              onClick={() => setDrawerOpen(true)}
+              sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#E5484D', textDecoration: 'underline dotted', cursor: 'pointer', '&:hover': { color: '#C0393E' } }}
+            >
+              {rule.violation_count.toLocaleString()}
+            </Link>
+          ) : (
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '0.8rem',
+                fontWeight: rule.violation_count > 0 ? 600 : 400,
+                color: rule.violation_count > 0 ? '#E5484D' : '#999',
+              }}
+            >
+              {rule.error ? 'Error' : rule.violation_count.toLocaleString()}
+            </Typography>
+          )}
         </TableCell>
         <TableCell>
           {rule.compliance_rate !== null && !rule.error ? (
@@ -198,11 +217,25 @@ const RuleRow: React.FC<{ rule: RuleResult }> = ({ rule }) => {
           </TableCell>
         </TableRow>
       )}
+
+      {/* Violations Drawer */}
+      {canShowViolations && (
+        <ViolationsDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          analysisRunId={analysisRunId}
+          evaluationId={evaluationId}
+          metric="logical_consistency"
+          ruleIndex={ruleIndex}
+          title={t('violations.logicalTitle', { rule: rule.name })}
+          subtitle={rule.expression}
+        />
+      )}
     </>
   );
 };
 
-const LogicalConsistencyDetail: React.FC<LogicalConsistencyDetailProps> = ({ data }) => {
+const LogicalConsistencyDetail: React.FC<LogicalConsistencyDetailProps> = ({ data, analysisRunId, evaluationId }) => {
   if (!data || !data.rules || data.rules.length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -275,7 +308,7 @@ const LogicalConsistencyDetail: React.FC<LogicalConsistencyDetailProps> = ({ dat
           </TableHead>
           <TableBody>
             {data.rules.map((rule, idx) => (
-              <RuleRow key={idx} rule={rule} />
+              <RuleRow key={idx} rule={rule} ruleIndex={idx} analysisRunId={analysisRunId} evaluationId={evaluationId} />
             ))}
           </TableBody>
         </Table>

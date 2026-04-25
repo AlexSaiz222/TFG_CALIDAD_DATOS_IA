@@ -779,6 +779,10 @@ export const analysisAPI = {
       metrics,
       options: options || {}
     }),
+
+  // Obtener filas con violaciones de una métrica (AnalysisRun)
+  getAnalysisRunViolations: (runId: number, params: { metric: string; column?: string; rule_index?: number; page?: number; per_page?: number; search?: string }) =>
+    api.get(`/api/evaluations/analysis/${runId}/violations`, { params }),
 };
 
 // Evaluations API
@@ -834,6 +838,9 @@ export const evaluationsAPI = {
     api.get(`/api/evaluations/compare`, { 
       params: { evaluation_id_1: evaluationId1, evaluation_id_2: evaluationId2 } 
     }),
+
+  getViolations: (evaluationId: number, params: { metric: string; column?: string; rule_index?: number; page?: number; per_page?: number; search?: string }) =>
+    api.get(`/api/evaluations/${evaluationId}/violations`, { params }),
 };
 
 export default api;

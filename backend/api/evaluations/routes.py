@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 import logging
+import re
+import json
 from marshmallow import ValidationError, Schema, fields
 
 from schemas.evaluation_schema import create_evaluation_schema, evaluation_filter_schema, compare_evaluations_schema
@@ -942,6 +944,289 @@ def export_evaluation(evaluation_id):
             "error": "Error al exportar evaluación",
             "message": str(e)
         }), 500
+
+
+# =============================================================================
+# VIOLATIONS DETAIL ENDPOINT
+# =============================================================================
+
+SYNTACTIC_PATTERNS = {
+    "email":           r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$",
+    "url":             r"^https?://[^\s]+$",
+    "phone_es":        r"^(\+34)?[6-9]\d{8}$",
+    "phone_intl":      r"^\+?\d{1,4}[\s\-]?\(?\d{1,4}\)?[\s\-]?\d{4,14}$",
+    "dni_es":          r"^\d{8}[A-Za-z]$",
+    "date_iso":        r"^\d{4}-\d{2}-\d{2}$",
+    "date_eu":         r"^\d{2}/\d{2}/\d{4}$",
+    "integer":         r"^-?\d+$",
+    "decimal":         r"^-?\d+[.,]?\d*$",
+    "uuid":            r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+    "ip_v4":           r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$",
+    "postal_code_es":  r"^\d{5}$",
+    "credit_card":     r"^\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}$",
+}
+
+
+def _get_violations_response(results, dataset, metric, column, rule_index, page, per_page, search_q):
+    """Lógica compartida para obtener las filas con violaciones de una métrica.
+    
+    Args:
+        results: dict con los resultados de la evaluación/análisis
+        dataset: modelo Dataset
+        metric: tipo de métrica (completeness, syntactic_accuracy, logical_consistency)
+        column: nombre de columna (requerido para completeness y syntactic_accuracy)
+        rule_index: índice de regla (requerido para logical_consistency)
+        page: número de página
+        per_page: filas por página
+        search_q: texto de búsqueda
+    
+    Returns:
+        tuple: (response_dict, status_code) o (error_dict, status_code)
+    """
+    import pandas as pd
+
+    overall = results.get('overall', {})
+    sensitive = dataset.sensitive_columns or []
+
+    try:
+        file_data = dataset_service.minio_service.download_file(dataset.file_path)
+        df = dataset_service._read_csv_robust(file_data)
+    except Exception as e:
+        logger.error(f"[VIOLATIONS] Error loading CSV for dataset {dataset.id}: {e}")
+        return {"success": False, "error": "csv_load_error", "message": str(e)}, 500
+
+    violation_df = pd.DataFrame()
+    context = {}
+
+    try:
+        if metric == 'completeness':
+            if not column or column not in df.columns:
+                return {"success": False, "error": "invalid_column",
+                        "message": f"Columna '{column}' no encontrada"}, 400
+            violation_df = df[df[column].isna()].copy()
+            violation_df.insert(0, '__row', violation_df.index + 1)
+            context = {"column": column, "total_nulls": int(violation_df.shape[0]),
+                        "total_rows": len(df)}
+
+        elif metric == 'syntactic_accuracy':
+            if not column:
+                return {"success": False, "error": "missing_column"}, 400
+            sa_data = overall.get('syntactic_accuracy', {}).get('columns', {})
+            col_info = sa_data.get(column)
+            if not col_info:
+                return {"success": False, "error": "column_not_in_results",
+                        "message": f"No hay resultados de exactitud sintáctica para '{column}'"}, 400
+
+            pattern_str = col_info.get('pattern', '')
+            expected_type = col_info.get('expected_type', '')
+            if not pattern_str:
+                return {"success": False, "error": "no_pattern"}, 400
+
+            regex = re.compile(pattern_str)
+            non_null = df[column].dropna()
+
+            def is_invalid(value):
+                if isinstance(value, float) and value == int(value):
+                    sv = str(int(value))
+                else:
+                    sv = str(value)
+                return not regex.match(sv)
+
+            invalid_mask = non_null.apply(is_invalid)
+            invalid_indices = non_null[invalid_mask].index
+            violation_df = df.loc[invalid_indices].copy()
+            violation_df.insert(0, '__row', violation_df.index + 1)
+
+            def get_str_value(value):
+                if isinstance(value, float) and value == int(value):
+                    return str(int(value))
+                return str(value)
+
+            violation_df.insert(1, '__invalid_value', df.loc[invalid_indices, column].apply(get_str_value))
+            context = {"column": column, "expected_type": expected_type,
+                        "pattern": pattern_str, "total_invalid": int(violation_df.shape[0]),
+                        "total_rows": len(df)}
+
+        elif metric == 'logical_consistency':
+            if rule_index is None:
+                return {"success": False, "error": "missing_rule_index"}, 400
+            lc_data = overall.get('logical_consistency', {})
+            rules = lc_data.get('rules', [])
+            if rule_index < 0 or rule_index >= len(rules):
+                return {"success": False, "error": "invalid_rule_index"}, 400
+
+            rule = rules[rule_index]
+            rule_name = rule.get('name', '')
+            rule_type = rule.get('type', 'violation')
+            expression = rule.get('expression', '')
+            condition = rule.get('condition', '')
+            assertion = rule.get('assertion', '')
+
+            if rule_type == 'if_then':
+                if not condition or not assertion:
+                    m = re.match(
+                        r"(?:IF|Si|WHEN|Cuando)\s+(.+?)\s+(?:THEN|Entonces)\s+(.+)",
+                        expression, re.IGNORECASE)
+                    if m:
+                        condition, assertion = m.group(1).strip(), m.group(2).strip()
+
+                cond_rows = df.query(condition)
+                if len(cond_rows) > 0:
+                    try:
+                        passing = cond_rows.query(assertion)
+                        violating_idx = cond_rows.index.difference(passing.index)
+                    except Exception:
+                        try:
+                            violating = cond_rows.query(f"not ({assertion})")
+                            violating_idx = violating.index
+                        except Exception:
+                            violating_idx = pd.Index([])
+                    violation_df = df.loc[violating_idx].copy()
+            else:
+                violation_df = df.query(expression).copy()
+
+            violation_df.insert(0, '__row', violation_df.index + 1)
+            context = {"rule_name": rule_name, "rule_type": rule_type,
+                        "expression": expression, "condition": condition,
+                        "assertion": assertion,
+                        "total_violations": int(violation_df.shape[0]),
+                        "total_rows": len(df)}
+
+    except Exception as e:
+        logger.error(f"[VIOLATIONS] Error computing violations: {e}", exc_info=True)
+        return {"success": False, "error": "computation_error", "message": str(e)}, 500
+
+    # Apply text search filter
+    if search_q and len(violation_df) > 0:
+        data_cols = [c for c in violation_df.columns if not c.startswith('__')]
+        mask = violation_df[data_cols].astype(str).apply(
+            lambda row: row.str.lower().str.contains(search_q, na=False).any(), axis=1
+        )
+        violation_df = violation_df[mask]
+
+    total = len(violation_df)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    page_df = violation_df.iloc[start:end]
+
+    # Mask sensitive columns
+    records = json.loads(page_df.to_json(orient='records'))
+    for row in records:
+        for sc in sensitive:
+            if sc in row:
+                row[sc] = '***'
+
+    # Build column metadata
+    columns_meta = []
+    for col in page_df.columns:
+        columns_meta.append({
+            "name": col,
+            "is_sensitive": col in sensitive,
+            "is_meta": col.startswith('__'),
+        })
+
+    return {
+        "success": True,
+        "data": {
+            "rows": records,
+            "columns": columns_meta,
+            "context": context,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total": total,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+                "has_prev": page > 1,
+            }
+        }
+    }, 200
+
+
+@evaluations_bp.route('/<int:evaluation_id>/violations', methods=['GET'])
+@jwt_required()
+def get_violations(evaluation_id):
+    """Obtiene todas las filas con violaciones para una métrica (Evaluation legacy)."""
+    current_user_id = get_jwt_identity()
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "error": "invalid_token_identity"}), 401
+
+    evaluation = Evaluation.query.get(evaluation_id)
+    if not evaluation:
+        return jsonify({"success": False, "error": "not_found", "message": "Evaluación no encontrada"}), 404
+
+    if evaluation.status != 'completed':
+        return jsonify({"success": False, "error": "not_completed", "message": "La evaluación no está completada"}), 400
+
+    dataset = Dataset.query.get(evaluation.dataset_id)
+    if not dataset:
+        return jsonify({"success": False, "error": "dataset_not_found"}), 404
+
+    project = Project.query.get(dataset.project_id)
+    if not project or project.owner_id != current_user_id_int:
+        return jsonify({"success": False, "error": "unauthorized"}), 403
+
+    metric = request.args.get('metric', '')
+    column = request.args.get('column', '')
+    rule_index = request.args.get('rule_index', None, type=int)
+    page = max(1, request.args.get('page', 1, type=int))
+    per_page = min(max(1, request.args.get('per_page', 50, type=int)), 200)
+    search_q = request.args.get('search', '').strip().lower()
+
+    if metric not in ('completeness', 'syntactic_accuracy', 'logical_consistency'):
+        return jsonify({"success": False, "error": "invalid_metric",
+                        "message": "metric debe ser completeness, syntactic_accuracy o logical_consistency"}), 400
+
+    results = evaluation.results or {}
+    response_body, status_code = _get_violations_response(
+        results, dataset, metric, column, rule_index, page, per_page, search_q
+    )
+    return jsonify(response_body), status_code
+
+
+@evaluations_bp.route('/analysis/<int:run_id>/violations', methods=['GET'])
+@jwt_required()
+def get_analysis_violations(run_id):
+    """Obtiene todas las filas con violaciones para una métrica (AnalysisRun)."""
+    current_user_id = get_jwt_identity()
+    try:
+        current_user_id_int = int(current_user_id)
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "error": "invalid_token_identity"}), 401
+
+    analysis_run = AnalysisRun.query.get(run_id)
+    if not analysis_run:
+        return jsonify({"success": False, "error": "not_found"}), 404
+
+    if analysis_run.status != AnalysisStatus.COMPLETED:
+        return jsonify({"success": False, "error": "not_completed"}), 400
+
+    dataset = Dataset.query.get(analysis_run.dataset_id) if analysis_run.dataset_id else None
+    if not dataset:
+        return jsonify({"success": False, "error": "dataset_not_found"}), 404
+
+    project = Project.query.get(analysis_run.project_id)
+    if not project or project.owner_id != current_user_id_int:
+        return jsonify({"success": False, "error": "unauthorized"}), 403
+
+    metric = request.args.get('metric', '')
+    column = request.args.get('column', '')
+    rule_index = request.args.get('rule_index', None, type=int)
+    page = max(1, request.args.get('page', 1, type=int))
+    per_page = min(max(1, request.args.get('per_page', 50, type=int)), 200)
+    search_q = request.args.get('search', '').strip().lower()
+
+    if metric not in ('completeness', 'syntactic_accuracy', 'logical_consistency'):
+        return jsonify({"success": False, "error": "invalid_metric"}), 400
+
+    results = analysis_run.results or {}
+    response_body, status_code = _get_violations_response(
+        results, dataset, metric, column, rule_index, page, per_page, search_q
+    )
+    return jsonify(response_body), status_code
 
 
 # =============================================================================

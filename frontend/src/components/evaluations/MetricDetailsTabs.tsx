@@ -45,6 +45,8 @@ interface MetricDetailsTabsProps {
   columnMetrics: Record<string, ColumnMetrics>;
   initialTab?: number;
   datasetId?: number;
+  analysisRunId?: number;
+  evaluationId?: number;
 }
 
 const getStatusIcon = (value: number, threshold: number) => {
@@ -58,6 +60,8 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
   columnMetrics,
   initialTab = 0,
   datasetId,
+  analysisRunId,
+  evaluationId,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -201,6 +205,8 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
                 <CompletenessDetail
                   overallCompleteness={overallMetrics.completeness}
                   columnMetrics={columnMetrics}
+                  analysisRunId={analysisRunId}
+                  evaluationId={evaluationId}
                 />
               </TabPanel>
             );
@@ -232,7 +238,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
           if (hasSyntacticAccuracy) {
             panels.push(
               <TabPanel key="syntactic_accuracy" value={safeTab} index={tabIdx}>
-                <SyntacticAccuracyDetail data={overallMetrics.syntactic_accuracy} />
+                <SyntacticAccuracyDetail data={overallMetrics.syntactic_accuracy} analysisRunId={analysisRunId} evaluationId={evaluationId} />
               </TabPanel>
             );
             tabIdx++;
@@ -241,7 +247,7 @@ const MetricDetailsTabs: React.FC<MetricDetailsTabsProps> = ({
           if (hasLogicalConsistency) {
             panels.push(
               <TabPanel key="logical_consistency" value={safeTab} index={tabIdx}>
-                <LogicalConsistencyDetail data={overallMetrics.logical_consistency} />
+                <LogicalConsistencyDetail data={overallMetrics.logical_consistency} analysisRunId={analysisRunId} evaluationId={evaluationId} />
               </TabPanel>
             );
             tabIdx++;

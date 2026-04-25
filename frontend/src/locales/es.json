@@ -1737,5 +1737,25 @@
     "registrationFailed": "Error al registrarse. Inténtalo de nuevo.",
     "updateProfileFailed": "Error al actualizar el perfil",
     "generic": "Ha ocurrido un error. Inténtalo de nuevo."
+  },
+  "violations": {
+    "totalRows": "Total filas",
+    "nullValues": "Valores nulos",
+    "invalidValues": "Valores inválidos",
+    "totalViolations": "Total violaciones",
+    "expectedType": "Tipo esperado",
+    "rule": "Regla",
+    "invalidValue": "Valor inválido",
+    "targetColumn": "Objetivo",
+    "searchPlaceholder": "Buscar en los valores de las filas...",
+    "noResults": "No se encontraron violaciones",
+    "tryDifferentSearch": "Prueba con un término de búsqueda diferente.",
+    "showing": "Mostrando {{from}}-{{to}} de {{total}} filas",
+    "completenessTitle": "Valores nulos en «{{column}}»",
+    "completenessSubtitle": "Todas las filas donde esta columna tiene valores nulos o vacíos.",
+    "syntacticTitle": "Valores inválidos en «{{column}}»",
+    "syntacticSubtitle": "Todas las filas con valores que no cumplen el formato esperado.",
+    "logicalTitle": "Violaciones: {{rule}}",
+    "logicalSubtitle": "Filas que no cumplen la regla de consistencia lógica."
   }
 }

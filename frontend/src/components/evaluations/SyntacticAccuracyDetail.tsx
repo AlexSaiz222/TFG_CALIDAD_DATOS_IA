@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -11,12 +11,15 @@ import {
   TableRow,
   Chip,
   Tooltip,
+  Link,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
+import ViolationsDrawer from './ViolationsDrawer';
 
 interface ColumnAccuracy {
   expected_type: string;
@@ -37,6 +40,8 @@ interface SyntacticAccuracyData {
 interface SyntacticAccuracyDetailProps {
   data: SyntacticAccuracyData;
   threshold?: number;
+  analysisRunId?: number;
+  evaluationId?: number;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -59,7 +64,20 @@ const TYPE_LABELS: Record<string, string> = {
 const SyntacticAccuracyDetail: React.FC<SyntacticAccuracyDetailProps> = ({
   data,
   threshold = 0.95,
+  analysisRunId,
+  evaluationId,
 }) => {
+  const { t } = useTranslation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerColumn, setDrawerColumn] = useState('');
+
+  const canShowViolations = !!(analysisRunId || evaluationId);
+
+  const handleOpenViolations = (colName: string) => {
+    setDrawerColumn(colName);
+    setDrawerOpen(true);
+  };
+
   if (!data || !data.columns) {
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -197,12 +215,23 @@ const SyntacticAccuracyDetail: React.FC<SyntacticAccuracyDetailProps> = ({
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography
-                      variant="body2"
-                      sx={{ fontSize: '0.8rem', fontWeight: col.invalid_count > 0 ? 600 : 400, color: col.invalid_count > 0 ? '#E5484D' : '#999' }}
-                    >
-                      {col.invalid_count.toLocaleString()}
-                    </Typography>
+                    {col.invalid_count > 0 && canShowViolations ? (
+                      <Link
+                        component="button"
+                        variant="body2"
+                        onClick={() => handleOpenViolations(col.name)}
+                        sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#E5484D', textDecoration: 'underline dotted', cursor: 'pointer', '&:hover': { color: '#C0393E' } }}
+                      >
+                        {col.invalid_count.toLocaleString()}
+                      </Link>
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{ fontSize: '0.8rem', fontWeight: col.invalid_count > 0 ? 600 : 400, color: col.invalid_count > 0 ? '#E5484D' : '#999' }}
+                      >
+                        {col.invalid_count.toLocaleString()}
+                      </Typography>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 250 }}>
@@ -231,6 +260,20 @@ const SyntacticAccuracyDetail: React.FC<SyntacticAccuracyDetailProps> = ({
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+
+      {/* Violations Drawer */}
+      {canShowViolations && (
+        <ViolationsDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          analysisRunId={analysisRunId}
+          evaluationId={evaluationId}
+          metric="syntactic_accuracy"
+          column={drawerColumn}
+          title={t('violations.syntacticTitle', { column: drawerColumn })}
+          subtitle={t('violations.syntacticSubtitle')}
+        />
       )}
     </Box>
   );

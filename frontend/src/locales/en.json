@@ -1745,5 +1745,25 @@
     "registrationFailed": "Registration failed. Please try again.",
     "updateProfileFailed": "Failed to update profile",
     "generic": "An error occurred. Please try again."
+  },
+  "violations": {
+    "totalRows": "Total rows",
+    "nullValues": "Null values",
+    "invalidValues": "Invalid values",
+    "totalViolations": "Total violations",
+    "expectedType": "Expected type",
+    "rule": "Rule",
+    "invalidValue": "Invalid value",
+    "targetColumn": "Target",
+    "searchPlaceholder": "Search row values...",
+    "noResults": "No violations found",
+    "tryDifferentSearch": "Try a different search term.",
+    "showing": "Showing {{from}}-{{to}} of {{total}} rows",
+    "completenessTitle": "Null values in \"{{column}}\"",
+    "completenessSubtitle": "All rows where this column has null or empty values.",
+    "syntacticTitle": "Invalid values in \"{{column}}\"",
+    "syntacticSubtitle": "All rows with values that don't match the expected format.",
+    "logicalTitle": "Violations: {{rule}}",
+    "logicalSubtitle": "Rows that don't comply with the logical consistency rule."
   }
 }

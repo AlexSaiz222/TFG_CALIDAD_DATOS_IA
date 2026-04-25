@@ -11,3 +11,4 @@ export { default as SyntacticAccuracyDetail } from './SyntacticAccuracyDetail';
 export { default as LogicalConsistencyDetail } from './LogicalConsistencyDetail';
 export { default as ClassBalanceDetail } from './ClassBalanceDetail';
 export { default as CurrentnessDetail } from './CurrentnessDetail';
+export { default as ViolationsDrawer } from './ViolationsDrawer';
