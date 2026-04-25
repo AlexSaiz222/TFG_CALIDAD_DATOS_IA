@@ -192,24 +192,24 @@ const ViolationsDrawer: React.FC<ViolationsDrawerProps> = ({
     if (colMeta?.is_sensitive && value === '***') {
       return (
         <Tooltip title={t('datasets.sensitiveTooltip') as string}>
-          <Typography component="span" sx={{ color: '#aaa', fontFamily: 'monospace', fontSize: '0.82rem' }}>
+          <Typography component="span" sx={{ color: '#aaa', fontFamily: 'monospace', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
             •••••
           </Typography>
         </Tooltip>
       );
     }
     const str = String(value);
-    if (str.length > 80) {
+    if (str.length > 28) {
       return (
         <Tooltip title={str}>
-          <Typography component="span" sx={{ fontSize: '0.82rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-            {str.slice(0, 80)}…
+          <Typography component="span" sx={{ fontSize: '0.82rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+            {str.slice(0, 28)}…
           </Typography>
         </Tooltip>
       );
     }
     return (
-      <Typography component="span" sx={{ fontSize: '0.82rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+      <Typography component="span" sx={{ fontSize: '0.82rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
         {str}
       </Typography>
     );
@@ -345,25 +345,28 @@ const ViolationsDrawer: React.FC<ViolationsDrawerProps> = ({
                     }}
                   >
                     {metaColumns.filter(c => c.name === '__row').length > 0 && (
-                      <TableCell sx={{ fontSize: '0.78rem', color: '#888', fontFamily: 'monospace' }}>
+                      <TableCell sx={{ fontSize: '0.78rem', color: '#888', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
                         {row.__row}
                       </TableCell>
                     )}
                     {metaColumns.filter(c => c.name === '__invalid_value').length > 0 && (
-                      <TableCell>
-                        <Chip
-                          label={row.__invalid_value || '—'}
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          sx={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: 180 }}
-                        />
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        <Tooltip title={String(row.__invalid_value || '')}>
+                          <Chip
+                            label={String(row.__invalid_value || '—').length > 22 ? String(row.__invalid_value || '—').slice(0, 22) + '…' : (row.__invalid_value || '—')}
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            sx={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: 170 }}
+                          />
+                        </Tooltip>
                       </TableCell>
                     )}
                     {dataColumns.map((col) => (
                       <TableCell
                         sx={{
-                          maxWidth: 220,
+                          maxWidth: 200,
+                          whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           bgcolor: col.name === column ? '#FFFBF0' : 'inherit',
