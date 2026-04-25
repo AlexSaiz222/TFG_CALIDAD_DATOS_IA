@@ -1781,5 +1781,43 @@
     "syntacticSubtitle": "All rows with values that don't match the expected format.",
     "logicalTitle": "Violations: {{rule}}",
     "logicalSubtitle": "Rows that don't comply with the logical consistency rule."
+  },
+  "columnPicker": {
+    "loading": "Loading columns…",
+    "emptyDataset": "Select a dataset to view available columns.",
+    "searchPlaceholder": "Search column…",
+    "noMatch": "No columns match your search.",
+    "missingTitle": "Saved columns not found in this dataset",
+    "missingCaption": "These columns are saved in the configuration but don't exist in the selected dataset. You can remove them or keep them for other datasets.",
+    "datasetSelectorLabel": "View columns from:"
+  },
+  "datasetSelector": {
+    "label": "Reference dataset",
+    "loading": "Loading datasets…",
+    "empty": "This project has no uploaded datasets.",
+    "uploadCta": "Upload dataset"
+  },
+  "columnPatternMatrix": {
+    "title": "Column → Pattern assignment",
+    "colColumn": "Column",
+    "colPattern": "Expected pattern",
+    "groupSystem": "— System patterns —",
+    "groupCustom": "— My patterns —",
+    "createNew": "Create new pattern…",
+    "empty": "Select at least one column to assign patterns."
+  },
+  "patternEditor": {
+    "titleCreate": "Create validation pattern",
+    "titleEdit": "Edit validation pattern",
+    "nameLabel": "Name",
+    "descriptionLabel": "Description",
+    "regexLabel": "Regular expression (regex)",
+    "invalidRegex": "The regular expression is invalid.",
+    "testTitle": "Test pattern (one value per line)",
+    "testPlaceholder": "Type test values, one per line…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saveError": "Error saving pattern."
   }
 }

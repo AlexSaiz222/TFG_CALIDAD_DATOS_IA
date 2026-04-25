@@ -64,6 +64,27 @@ export interface ColumnSchema {
   most_common?: { value: string; count: number }[];
 }
 
+// Validation pattern types
+export interface ValidationPattern {
+  id: number;
+  key: string;
+  name: string;
+  description?: string;
+  regex: string;
+  examples_valid: string[];
+  examples_invalid: string[];
+  owner_id: number | null;
+  is_system: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DatasetColumnLite {
+  name: string;
+  type: string;
+  nullable?: boolean;
+}
+
 // Metric types
 export interface Metric {
   id: number;

@@ -1773,5 +1773,43 @@
     "syntacticSubtitle": "Todas las filas con valores que no cumplen el formato esperado.",
     "logicalTitle": "Violaciones: {{rule}}",
     "logicalSubtitle": "Filas que no cumplen la regla de consistencia lógica."
+  },
+  "columnPicker": {
+    "loading": "Cargando columnas…",
+    "emptyDataset": "Selecciona un dataset para ver las columnas disponibles.",
+    "searchPlaceholder": "Buscar columna…",
+    "noMatch": "No hay columnas que coincidan con la búsqueda.",
+    "missingTitle": "Columnas guardadas no presentes en este dataset",
+    "missingCaption": "Estas columnas están guardadas en la configuración pero no existen en el dataset seleccionado. Puedes eliminarlas o conservarlas para otros datasets.",
+    "datasetSelectorLabel": "Ver columnas de:"
+  },
+  "datasetSelector": {
+    "label": "Dataset de referencia",
+    "loading": "Cargando datasets…",
+    "empty": "Este proyecto no tiene datasets cargados.",
+    "uploadCta": "Subir dataset"
+  },
+  "columnPatternMatrix": {
+    "title": "Asignación columna → patrón",
+    "colColumn": "Columna",
+    "colPattern": "Patrón esperado",
+    "groupSystem": "— Patrones del sistema —",
+    "groupCustom": "— Mis patrones —",
+    "createNew": "Crear nuevo patrón…",
+    "empty": "Selecciona al menos una columna para asignar patrones."
+  },
+  "patternEditor": {
+    "titleCreate": "Crear patrón de validación",
+    "titleEdit": "Editar patrón de validación",
+    "nameLabel": "Nombre",
+    "descriptionLabel": "Descripción",
+    "regexLabel": "Expresión regular (regex)",
+    "invalidRegex": "La expresión regular no es válida.",
+    "testTitle": "Probar patrón (un valor por línea)",
+    "testPlaceholder": "Escribe valores de prueba, uno por línea…",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "cancel": "Cancelar",
+    "saveError": "Error al guardar el patrón."
   }
 }

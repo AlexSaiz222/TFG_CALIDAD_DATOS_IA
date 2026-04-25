@@ -1173,6 +1173,7 @@ const MetricsConfigurationPage = () => {
           onClose={handleConfigDialogClose}
           metric={currentMetric}
           onSave={handleConfigDialogSave}
+          projectId={projectIdNum}
         />
 
         {/* Diálogo de plantilla */}

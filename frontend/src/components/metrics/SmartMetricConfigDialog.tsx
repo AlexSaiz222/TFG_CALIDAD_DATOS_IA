@@ -3,7 +3,7 @@
  * Metric-specific configuration dialogs with user-friendly UX for all 6 metrics.
  * Replaces the generic parameter dialog with guided, plain-language controls.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Box, Typography, Slider, Chip, Divider,
@@ -27,6 +27,12 @@ import { useTranslation } from 'react-i18next';
 import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
 import { getIconMeta } from './MetricIcon';
 import JsonParameterEditor from './JsonParameterEditor';
+import ColumnPicker from './columnPicker/ColumnPicker';
+import DatasetSelector from './columnPicker/DatasetSelector';
+import ColumnPatternMatrix, { ColumnRule } from './columnPicker/ColumnPatternMatrix';
+import PatternEditor from './columnPicker/PatternEditor';
+import { datasetsAPI, patternsAPI } from '../../services/api';
+import { DatasetColumnLite, ValidationPattern } from '../../types';
 
 const GREEN = '#00B37E';
 const GREEN_LIGHT = '#F0F9F6';
@@ -118,10 +124,10 @@ const ThresholdSlider: React.FC<ThresholdSliderProps> = ({
   );
 };
 
-interface AdvancedSectionProps { children: React.ReactNode; }
-const AdvancedSection: React.FC<AdvancedSectionProps> = ({ children }) => {
+interface AdvancedSectionProps { children: React.ReactNode; initialOpen?: boolean; }
+const AdvancedSection: React.FC<AdvancedSectionProps> = ({ children, initialOpen = false }) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   return (
     // @ts-ignore — TS2590: MUI Box type inference too complex when lucide-react types are in scope
     <Box mt={2}>
@@ -195,10 +201,10 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ---------- COMPLETENESS ----------
-const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void; loadedColumns: DatasetColumnLite[]; columnsLoading: boolean; missingColumns: string[] }> = ({ params, onChange, loadedColumns, columnsLoading, missingColumns }) => {
   const { t } = useTranslation();
   const threshold = params.threshold ?? 0.95;
-  const columns: string[] = params.columns ?? [];
+  const columns: string[] = (params.columns ?? []).filter((c: any) => typeof c === 'string');
 
   React.useEffect(() => {
     const needsUpdate = params.threshold === undefined || params.columns === undefined;
@@ -223,21 +229,32 @@ const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
         helpText={t('metricConfig.smartDialog.completeness.thresholdHelp')}
       />
       <AdvancedSection>
-        <ColumnTagInput
-          label={t('metricConfig.smartDialog.completeness.columnsLabel')}
-          value={columns}
-          onChange={v => onChange({ ...params, columns: v })}
-        />
+        <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.completeness.columnsLabel')}</Typography>
+        {loadedColumns.length > 0 || columnsLoading ? (
+          <ColumnPicker
+            columns={loadedColumns}
+            selectedColumns={columns}
+            onChange={v => onChange({ ...params, columns: v })}
+            missingColumns={missingColumns}
+            loading={columnsLoading}
+          />
+        ) : (
+          <ColumnTagInput
+            label=""
+            value={columns}
+            onChange={v => onChange({ ...params, columns: v })}
+          />
+        )}
       </AdvancedSection>
     </Box>
   );
 };
 
 // ---------- UNIQUENESS ----------
-const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void; loadedColumns: DatasetColumnLite[]; columnsLoading: boolean; missingColumns: string[] }> = ({ params, onChange, loadedColumns, columnsLoading, missingColumns }) => {
   const { t } = useTranslation();
   const threshold = params.threshold ?? 1.0;
-  const columns: string[] = params.columns ?? [];
+  const columns: string[] = (params.columns ?? []).filter((c: any) => typeof c === 'string');
 
   React.useEffect(() => {
     const needsUpdate = params.threshold === undefined || params.columns === undefined;
@@ -262,30 +279,39 @@ const UniquenessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = 
         helpText={t('metricConfig.smartDialog.uniqueness.thresholdHelp')}
       />
       <AdvancedSection>
-        <ColumnTagInput
-          label={t('metricConfig.smartDialog.uniqueness.columnsLabel')}
-          value={columns}
-          onChange={v => onChange({ ...params, columns: v })}
-          helpText={t('metricConfig.smartDialog.uniqueness.columnsEmpty')}
-        />
+        <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.uniqueness.columnsLabel')}</Typography>
+        {loadedColumns.length > 0 || columnsLoading ? (
+          <ColumnPicker
+            columns={loadedColumns}
+            selectedColumns={columns}
+            onChange={v => onChange({ ...params, columns: v })}
+            missingColumns={missingColumns}
+            loading={columnsLoading}
+          />
+        ) : (
+          <ColumnTagInput
+            label=""
+            value={columns}
+            onChange={v => onChange({ ...params, columns: v })}
+            helpText={t('metricConfig.smartDialog.uniqueness.columnsEmpty')}
+          />
+        )}
       </AdvancedSection>
     </Box>
   );
 };
 
 // ---------- SYNTACTIC ACCURACY ----------
-const FORMAT_OPTION_KEYS = [
-  'email', 'phone_es', 'phone_intl', 'date_iso', 'date_eu',
-  'dni_es', 'postal_code_es', 'integer', 'decimal', 'url', 'uuid', 'ip_v4', 'credit_card',
-];
-
-const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+const SyntacticAccuracyConfig: React.FC<{
+  params: any; onChange: (p: any) => void;
+  loadedColumns: DatasetColumnLite[]; columnsLoading: boolean; missingColumns: string[];
+  allPatterns: ValidationPattern[]; onPatternCreated: (p: ValidationPattern) => void;
+}> = ({ params, onChange, loadedColumns, columnsLoading, missingColumns, allPatterns, onPatternCreated }) => {
   const { t } = useTranslation();
   const autoDetect = params.auto_detect_types !== false;
   const threshold = params.threshold ?? 0.95;
-  const columnRules: Array<{ column: string; expected_type: string }> = params.columns ?? [];
-  const [newCol, setNewCol] = useState('');
-  const [newType, setNewType] = useState('email');
+  const columnRules: ColumnRule[] = (params.columns ?? []).filter((c: any) => typeof c === 'object' && c?.column);
+  const selectedColumns = columnRules.map(r => r.column);
 
   React.useEffect(() => {
     const needsUpdate = params.auto_detect_types === undefined || params.threshold === undefined || params.columns === undefined;
@@ -294,17 +320,17 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
     }
   }, []);
 
-  const addRule = () => {
-    if (!newCol.trim()) return;
-    onChange({ ...params, columns: [...columnRules, { column: newCol.trim(), expected_type: newType }] });
-    setNewCol('');
-  };
-  const removeRule = (i: number) => {
-    onChange({ ...params, columns: columnRules.filter((_, idx) => idx !== i) });
+  const handleColumnSelection = (cols: string[]) => {
+    const ruleMap = new Map(columnRules.map(r => [r.column, r]));
+    const firstPatternKey = allPatterns.find(p => p.is_system)?.key ?? 'email';
+    const newRules: ColumnRule[] = cols.map(col => ruleMap.get(col) ?? { column: col, expected_type: firstPatternKey });
+    onChange({ ...params, columns: newRules });
   };
 
-  const formatLabel = (key: string) =>
-    t(`metricConfig.smartDialog.syntacticAccuracy.formatOptions.${key}`, { defaultValue: key });
+  const handleMissingRemove = (cols: string[]) => {
+    const updated = columnRules.filter(r => cols.includes(r.column) || loadedColumns.find(lc => lc.name === r.column));
+    onChange({ ...params, columns: updated });
+  };
 
   return (
     <Box>
@@ -343,45 +369,44 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
         helpText={t('metricConfig.smartDialog.syntacticAccuracy.thresholdHelp')}
       />
 
-      <AdvancedSection>
+      <AdvancedSection initialOpen>
         <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.syntacticAccuracy.advancedTitle')}</Typography>
         <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
           {t('metricConfig.smartDialog.syntacticAccuracy.advancedCaption')}
         </Typography>
-        <Box display="flex" gap={1} mb={1.5} alignItems="flex-start">
-          <TextField size="small" label={t('metricConfig.smartDialog.syntacticAccuracy.columnField')} value={newCol}
-            onChange={e => setNewCol(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addRule()}
-            sx={{ flex: 1 }} />
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <TextField select size="small" label={t('metricConfig.smartDialog.syntacticAccuracy.formatField')} value={newType}
-              onChange={e => setNewType(e.target.value)}
-              SelectProps={{ native: true }}>
-              {FORMAT_OPTION_KEYS.map(key => (
-                <option key={key} value={key}>{formatLabel(key)}</option>
-              ))}
-            </TextField>
-          </FormControl>
-          <Button size="small" variant="outlined" onClick={addRule}
-            sx={{ borderColor: GREEN, color: GREEN, whiteSpace: 'nowrap', height: 40 }}>
-            {t('metricConfig.smartDialog.addButton')}
-          </Button>
-        </Box>
-        {columnRules.length > 0 && (
-          <List dense disablePadding>
-            {columnRules.map((r, i) => (
-              <ListItem key={i} disableGutters sx={{ py: 0.5 }}>
-                <ListItemText
-                  primary={<Typography variant="body2"><strong>{r.column}</strong> → {formatLabel(r.expected_type)}</Typography>}
+        {loadedColumns.length > 0 || columnsLoading ? (
+          <>
+            <ColumnPicker
+              columns={loadedColumns}
+              selectedColumns={selectedColumns}
+              onChange={handleColumnSelection}
+              missingColumns={missingColumns}
+              loading={columnsLoading}
+            />
+            {columnRules.length > 0 && (
+              <Box mt={2}>
+                <ColumnPatternMatrix
+                  rules={columnRules}
+                  allPatterns={allPatterns}
+                  selectedColumns={selectedColumns}
+                  onChange={rules => onChange({ ...params, columns: rules })}
+                  onPatternCreated={onPatternCreated}
                 />
-                <ListItemSecondaryAction>
-                  <IconButton size="small" edge="end" onClick={() => removeRule(i)}>
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
+              </Box>
+            )}
+          </>
+        ) : (
+          // Fallback to legacy input when no dataset loaded (network error)
+          <Box>
+            {columnRules.map((r, i) => (
+              <Box key={i} display="flex" alignItems="center" gap={1} mb={0.5}>
+                <Typography variant="body2"><strong>{r.column}</strong> → {r.expected_type}</Typography>
+                <IconButton size="small" onClick={() => onChange({ ...params, columns: columnRules.filter((_, idx) => idx !== i) })}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
             ))}
-          </List>
+          </Box>
         )}
       </AdvancedSection>
     </Box>
@@ -389,7 +414,7 @@ const SyntacticAccuracyConfig: React.FC<{ params: any; onChange: (p: any) => voi
 };
 
 // ---------- CLASS BALANCE ----------
-const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void; loadedColumns: DatasetColumnLite[]; columnsLoading: boolean; missingColumns: string[] }> = ({ params, onChange, loadedColumns, columnsLoading, missingColumns }) => {
   const { t } = useTranslation();
   const autoDetect = params.auto_detect !== false;
   const thresholdHigh = params.imbalance_threshold_high ?? 0.90;
@@ -474,11 +499,18 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
             ))}
           </ToggleButtonGroup>
         </Box>
-        <ColumnTagInput
-          label={t('metricConfig.smartDialog.classBalance.columnsLabel')}
-          value={columns}
-          onChange={v => onChange({ ...params, columns: v })}
-        />
+        <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.classBalance.columnsLabel')}</Typography>
+        {loadedColumns.length > 0 || columnsLoading ? (
+          <ColumnPicker
+            columns={loadedColumns}
+            selectedColumns={columns}
+            onChange={v => onChange({ ...params, columns: v })}
+            missingColumns={missingColumns}
+            loading={columnsLoading}
+          />
+        ) : (
+          <ColumnTagInput label="" value={columns} onChange={v => onChange({ ...params, columns: v })} />
+        )}
       </AdvancedSection>
     </Box>
   );
@@ -488,7 +520,7 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void }> 
 const STALENESS_PRESET_DAYS = [7, 30, 90, 180, 365];
 const STALENESS_PRESET_KEYS = ['days7', 'days30', 'days90', 'months6', 'year1'];
 
-const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> = ({ params, onChange }) => {
+const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void; loadedColumns: DatasetColumnLite[]; columnsLoading: boolean; missingColumns: string[] }> = ({ params, onChange, loadedColumns, columnsLoading, missingColumns }) => {
   const { t } = useTranslation();
   const autoDetect = params.auto_detect !== false;
   const staleness = params.staleness_threshold_days ?? 30;
@@ -576,12 +608,18 @@ const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void }> =
       </Typography>
 
       <AdvancedSection>
-        <ColumnTagInput
-          label={t('metricConfig.smartDialog.currentness.columnsLabel')}
-          value={columns}
-          onChange={v => onChange({ ...params, columns: v })}
-          helpText={t('metricConfig.smartDialog.currentness.columnsEmpty')}
-        />
+        <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.currentness.columnsLabel')}</Typography>
+        {loadedColumns.length > 0 || columnsLoading ? (
+          <ColumnPicker
+            columns={loadedColumns}
+            selectedColumns={columns}
+            onChange={v => onChange({ ...params, columns: v })}
+            missingColumns={missingColumns}
+            loading={columnsLoading}
+          />
+        ) : (
+          <ColumnTagInput label="" value={columns} onChange={v => onChange({ ...params, columns: v })} helpText={t('metricConfig.smartDialog.currentness.columnsEmpty')} />
+        )}
       </AdvancedSection>
     </Box>
   );
@@ -701,10 +739,11 @@ interface SmartMetricConfigDialogProps {
   onClose: () => void;
   metric: any | null;
   onSave: (updatedMetric: any) => void;
+  projectId?: number | null;
 }
 
 const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
-  open, onClose, metric, onSave,
+  open, onClose, metric, onSave, projectId,
 }) => {
   const { t } = useTranslation();
   const [params, setParams] = useState<Record<string, any>>({});
@@ -712,6 +751,48 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
   const [mobileTab, setMobileTab] = useState(0); // 0 = visual, 1 = JSON
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Dataset selector + column picker state
+  const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
+  const [loadedColumns, setLoadedColumns] = useState<DatasetColumnLite[]>([]);
+  const [columnsLoading, setColumnsLoading] = useState(false);
+  const [allPatterns, setAllPatterns] = useState<ValidationPattern[]>([]);
+  const lastDatasetKey = projectId ? `metricConfig.lastDatasetId.${projectId}` : null;
+
+  // Load patterns once per open
+  useEffect(() => {
+    if (!open) return;
+    patternsAPI.list()
+      .then((res: any) => setAllPatterns(res?.data?.patterns ?? []))
+      .catch(() => {});
+  }, [open]);
+
+  // Restore last selected dataset from localStorage
+  useEffect(() => {
+    if (!open || !lastDatasetKey) return;
+    try {
+      const stored = localStorage.getItem(lastDatasetKey);
+      if (stored) setSelectedDatasetId(Number(stored));
+    } catch {}
+  }, [open, lastDatasetKey]);
+
+  // Load columns whenever selected dataset changes
+  useEffect(() => {
+    if (!selectedDatasetId) { setLoadedColumns([]); return; }
+    setColumnsLoading(true);
+    datasetsAPI.getDatasetColumns(selectedDatasetId)
+      .then((res: any) => setLoadedColumns(res?.data?.columns ?? []))
+      .catch(() => setLoadedColumns([]))
+      .finally(() => setColumnsLoading(false));
+  }, [selectedDatasetId]);
+
+  // Persist dataset selection
+  const handleDatasetChange = (id: number) => {
+    setSelectedDatasetId(id);
+    if (lastDatasetKey) {
+      try { localStorage.setItem(lastDatasetKey, String(id)); } catch {}
+    }
+  };
 
   useEffect(() => {
     if (metric) {
@@ -731,18 +812,36 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
     onSave({ ...metric, parameters: params });
   };
 
+  const showDatasetSelector = metric.name !== 'logical_consistency';
+
+  // Compute missing columns (selected but not in loaded dataset)
+  const getSelectedStringColumns = (): string[] => {
+    const cols = params.columns ?? [];
+    return cols.filter((c: any) => typeof c === 'string') as string[];
+  };
+  const getSelectedObjectColumns = (): string[] => {
+    const cols = params.columns ?? [];
+    return cols.filter((c: any) => typeof c === 'object' && c?.column).map((c: any) => c.column);
+  };
+  const missingStringCols = loadedColumns.length > 0
+    ? getSelectedStringColumns().filter(c => !loadedColumns.find(lc => lc.name === c))
+    : [];
+  const missingObjectCols = loadedColumns.length > 0
+    ? getSelectedObjectColumns().filter(c => !loadedColumns.find(lc => lc.name === c))
+    : [];
+
   const renderContent = () => {
     switch (metric.name) {
       case 'completeness':
-        return <CompletenessConfig params={params} onChange={setParams} />;
+        return <CompletenessConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingStringCols} />;
       case 'uniqueness':
-        return <UniquenessConfig params={params} onChange={setParams} />;
+        return <UniquenessConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingStringCols} />;
       case 'syntactic_accuracy':
-        return <SyntacticAccuracyConfig params={params} onChange={setParams} />;
+        return <SyntacticAccuracyConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingObjectCols} allPatterns={allPatterns} onPatternCreated={p => setAllPatterns(prev => [...prev, p])} />;
       case 'class_balance':
-        return <ClassBalanceConfig params={params} onChange={setParams} />;
+        return <ClassBalanceConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingStringCols} />;
       case 'currentness':
-        return <CurrentnessConfig params={params} onChange={setParams} />;
+        return <CurrentnessConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingStringCols} />;
       case 'logical_consistency':
         return <LogicalConsistencyConfig params={params} onChange={setParams} />;
       default:
@@ -809,6 +908,18 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
           // Mobile: one panel at a time
           mobileTab === 0 ? (
             <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+              {showDatasetSelector && projectId && (
+                <Box display="flex" alignItems="center" gap={1} mb={2} p={1.5} sx={{ bgcolor: '#F5F5F5', borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                    {t('columnPicker.datasetSelectorLabel')}
+                  </Typography>
+                  <DatasetSelector
+                    projectId={projectId}
+                    value={selectedDatasetId}
+                    onChange={handleDatasetChange}
+                  />
+                </Box>
+              )}
               {renderContent()}
             </Box>
           ) : (
@@ -824,6 +935,18 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
               flex: '0 0 70%', maxWidth: '70%', overflow: 'auto', p: 3,
               borderRight: '1px solid', borderColor: 'divider',
             }}>
+              {showDatasetSelector && projectId && (
+                <Box display="flex" alignItems="center" gap={1} mb={2.5} p={1.5} sx={{ bgcolor: '#F5F5F5', borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                    {t('columnPicker.datasetSelectorLabel')}
+                  </Typography>
+                  <DatasetSelector
+                    projectId={projectId}
+                    value={selectedDatasetId}
+                    onChange={handleDatasetChange}
+                  />
+                </Box>
+              )}
               {renderContent()}
             </Box>
             {/* Right panel — JSON editor */}

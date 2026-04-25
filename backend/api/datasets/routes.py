@@ -704,6 +704,39 @@ def upload_dataset():
             "message": f"Error del servidor: {str(e)}"
         }), 500
 
+@datasets_bp.route('/<int:dataset_id>/columns', methods=['GET'])
+@jwt_required()
+def get_dataset_columns(dataset_id):
+    """Return a lightweight list of column names and types from the stored schema (no MinIO download)."""
+    try:
+        current_user_id = get_jwt_identity()
+        try:
+            current_user_id_int = int(current_user_id)
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "invalid_token_identity", "message": "ID de usuario inválido en el token"}), 401
+
+        dataset = Dataset.query.get(dataset_id)
+        if not dataset:
+            return jsonify({"success": False, "error": "dataset_not_found", "message": f"No se encontró el dataset con ID {dataset_id}"}), 404
+
+        project = Project.query.get(dataset.project_id)
+        if not project:
+            return jsonify({"success": False, "error": "project_not_found", "message": "No se encontró el proyecto asociado al dataset"}), 404
+        if project.owner_id != current_user_id_int:
+            return jsonify({"success": False, "error": "unauthorized_access", "message": "No tiene permiso para acceder a este dataset"}), 403
+
+        schema = dataset.schema or []
+        columns = [
+            {"name": col.get("name", ""), "type": col.get("type", "object"), "nullable": col.get("missing_count", 0) > 0}
+            for col in schema
+            if col.get("name")
+        ]
+        return jsonify({"success": True, "columns": columns}), 200
+    except Exception as e:
+        logger.error(f"Error al obtener columnas del dataset {dataset_id}: {str(e)}")
+        return jsonify({"success": False, "error": "server_error", "message": str(e)}), 500
+
+
 @datasets_bp.route('/<int:dataset_id>/preview', methods=['GET'])
 @jwt_required()
 def preview_dataset(dataset_id):

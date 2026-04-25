@@ -8,6 +8,7 @@ from api.metrics.routes import metrics_bp
 from api.evaluations.routes import evaluations_bp
 from api.admin.routes import admin_bp
 from api.dashboard.routes import dashboard_bp
+from api.patterns.routes import patterns_bp
 
 def register_routes(app):
     """Register all API routes with the Flask application"""
@@ -25,6 +26,7 @@ def register_routes(app):
     api.register_blueprint(evaluations_bp)
     api.register_blueprint(admin_bp)
     api.register_blueprint(dashboard_bp)
+    api.register_blueprint(patterns_bp)
     
     # Register API blueprint with the app
     app.register_blueprint(api)

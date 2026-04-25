@@ -7,6 +7,7 @@ from models.user import User
 from models.project import Project
 from models.dataset import Dataset
 from models.metric import Metric, MetricTemplate
+from models.validation_pattern import ValidationPattern
 from models.evaluation import Evaluation, Issue
 
 # Nuevos modelos Sonar-Lite
@@ -27,6 +28,7 @@ __all__ = [
     'MetricTemplate',
     'Evaluation',
     'Issue',
+    'ValidationPattern',
     # Nuevos modelos Sonar-Lite
     'AnalysisRun',
     'AnalysisStatus',

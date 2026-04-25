@@ -537,6 +537,20 @@ export const datasetsAPI = {
     api.get(`/api/datasets/${id}/duplicates`, {
       timeout: 15000,
     }),
+
+  getDatasetColumns: (id: number) =>
+    api.get(`/api/datasets/${id}/columns`, { timeout: 8000 }),
+};
+
+// Validation patterns API
+export const patternsAPI = {
+  list: () => api.get('/api/patterns/', { timeout: 8000 }),
+  create: (data: { key?: string; name: string; description?: string; regex: string; examples_valid?: string[]; examples_invalid?: string[] }) =>
+    api.post('/api/patterns/', data),
+  update: (id: number, data: Partial<{ name: string; description: string; regex: string; examples_valid: string[]; examples_invalid: string[] }>) =>
+    api.put(`/api/patterns/${id}`, data),
+  remove: (id: number) =>
+    api.delete(`/api/patterns/${id}`),
 };
 
 // Metrics API

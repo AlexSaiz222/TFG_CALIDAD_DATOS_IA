@@ -5,6 +5,19 @@ import re
 from utils.fingerprint_utils import generate_syntactic_accuracy_fingerprint
 from .base import BaseMetric, MetricResult
 
+
+def _load_user_patterns(owner_id):
+    """Return {key: regex} for system patterns + patterns owned by owner_id."""
+    try:
+        from models.validation_pattern import ValidationPattern
+        from extensions import db
+        patterns = ValidationPattern.query.filter(
+            db.or_(ValidationPattern.owner_id.is_(None), ValidationPattern.owner_id == owner_id)
+        ).all()
+        return {p.key: p.regex for p in patterns}
+    except Exception:
+        return {}
+
 logger = logging.getLogger(__name__)
 
 SYNTACTIC_PATTERNS = {
@@ -36,6 +49,15 @@ class SyntacticAccuracyMetric(BaseMetric):
         user_columns = parameters.get("columns", [])
         threshold = parameters.get("threshold", 0.95)
 
+        # Merge built-in patterns with user-defined patterns from DB.
+        # User patterns override built-ins when they share the same key.
+        try:
+            owner_id = dataset.project.owner_id
+        except Exception:
+            owner_id = None
+        user_db_patterns = _load_user_patterns(owner_id) if owner_id else {}
+        resolved_patterns: dict[str, str] = {**SYNTACTIC_PATTERNS, **user_db_patterns}
+
         # Build column → (expected_type, pattern) mapping
         column_checks: dict[str, tuple[str, str]] = {}
         mixed_format_columns: list[dict] = []
@@ -49,8 +71,8 @@ class SyntacticAccuracyMetric(BaseMetric):
             if col_name and col_name in df.columns:
                 if custom_pat:
                     column_checks[col_name] = (exp_type or "custom", custom_pat)
-                elif exp_type in SYNTACTIC_PATTERNS:
-                    column_checks[col_name] = (exp_type, SYNTACTIC_PATTERNS[exp_type])
+                elif exp_type in resolved_patterns:
+                    column_checks[col_name] = (exp_type, resolved_patterns[exp_type])
 
         for col_name, pattern_str in custom_patterns.items():
             if col_name in df.columns and col_name not in column_checks:
