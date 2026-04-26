@@ -47,7 +47,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import DatasetVersionHistory from '../../components/DatasetVersionHistory';
 import DatasetLineageCanvas from '../../components/DatasetLineageCanvas';
 import DataProfilingTab from '../../components/DataProfilingTab';
-import { analysisAPI, evaluationsAPI, datasetsAPI } from '../../services/api';
+import { analysisAPI, evaluationsAPI, datasetsAPI, projectsAPI } from '../../services/api';
 import { getLocalizedIssueDescription } from '../../utils/issueUtils';
 import { Dataset, Evaluation, Issue, AnalysisRun } from '../../types';
 import QualityGateBadge from '../../components/QualityGateBadge';

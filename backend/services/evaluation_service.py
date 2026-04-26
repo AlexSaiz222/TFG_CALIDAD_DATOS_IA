@@ -362,10 +362,26 @@ class EvaluationService:
 
             self._update_progress(evaluation_id, 75, "Analizando métricas por columna...", analysis_run_id)
 
-            # Calculate column-level metrics for all columns
+            # Collect columns explicitly referenced by any configured metric.
+            # If a metric has no column selection (all-columns mode), include all columns.
+            referenced_columns: set = set()
+            all_columns_mode = False
+            for mc in metrics_config:
+                cols = mc.get('parameters', {}).get('columns', [])
+                if cols:
+                    referenced_columns.update(cols)
+                else:
+                    all_columns_mode = True
+
+            if all_columns_mode or not referenced_columns:
+                columns_to_profile = list(df.columns)
+            else:
+                columns_to_profile = [c for c in df.columns if c in referenced_columns]
+
+            # Calculate column-level metrics for selected columns only
             column_metrics = {}
-            total_columns = len(df.columns)
-            for col_index, column in enumerate(df.columns):
+            total_columns = len(columns_to_profile)
+            for col_index, column in enumerate(columns_to_profile):
                 # Update progress: 75% to 90% for column analysis
                 if col_index % max(1, total_columns // 5) == 0:  # Update every 20% of columns
                     col_progress = 75 + int((col_index / total_columns) * 15)

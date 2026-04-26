@@ -27,7 +27,8 @@ class CompletenessMetric(BaseMetric):
 
         if completeness < threshold:
             problem_columns = []
-            for col in df.columns:
+            cols_to_check = [c for c in columns if c in df.columns] if columns else list(df.columns)
+            for col in cols_to_check:
                 null_rate = float(df[col].isna().mean())
                 if null_rate > (1 - threshold):
                     problem_columns.append({"column": col, "null_rate": null_rate})
@@ -55,7 +56,8 @@ class CompletenessMetric(BaseMetric):
             })
 
         # Per-column issues: columns below the user-configured threshold
-        for col in df.columns:
+        cols_to_check = [c for c in columns if c in df.columns] if columns else list(df.columns)
+        for col in cols_to_check:
             col_completeness = float(1 - df[col].isna().mean())
             if col_completeness < threshold:
                 col_severity = self.calculate_dynamic_severity(
