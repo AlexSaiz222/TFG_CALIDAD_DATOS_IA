@@ -2,8 +2,64 @@
 \label{anx:diagramas}
 
 Este anexo recoge las descripciones estructuradas de los principales diagramas
-\ac{UML} del sistema.  Los diagramas visuales se generarán con PlantUML o
-draw.io y se incluirán como figuras en la versión final de la memoria.
+\ac{UML} del sistema.  El diagrama de paquetes a alto nivel se incluye como
+figura en el cuerpo del documento (Figura~\ref{fig:diagrama-paquetes}); el
+resto se describe textualmente en este anexo y, cuando proceda, se complementa
+con representaciones generadas con PlantUML o draw.io.
+
+\section*{Diagrama de paquetes}
+
+La arquitectura del sistema se organiza en seis paquetes principales,
+representados visualmente en la Figura~\ref{fig:diagrama-paquetes} del
+Capítulo~\ref{chap:desarrollo}.  La descripción detallada de cada paquete
+es la siguiente:
+
+\begin{itemize}
+  \item \textbf{Presentación} (\emph{frontend} Next.js + React):
+    \texttt{pages/} (rutas), \texttt{components/} (más de 40 componentes
+    React reutilizables), \texttt{services/} (cliente \ac{API} con Axios)
+    y \texttt{contexts/} (estado global: \texttt{AuthContext},
+    \texttt{NotificationContext}, \texttt{SidebarContext}).
+
+  \item \textbf{API REST} (\emph{backend} Flask, 10 \emph{blueprints}):
+    siete \emph{blueprints} funcionales (\texttt{auth}, \texttt{projects},
+    \texttt{datasets}, \texttt{metrics}, \texttt{evaluations},
+    \texttt{admin}, \texttt{patterns}) y tres de organización técnica
+    REST (\texttt{project\_metrics}, \texttt{project\_datasets},
+    \texttt{dashboard}).
+
+  \item \textbf{Servicios} (lógica de negocio):
+    \texttt{EvaluationService} orquesta el flujo completo de evaluación;
+    \texttt{HybridEvaluationService} permite ejecución asíncrona o síncrona
+    según disponibilidad de Celery; \texttt{DatasetService} parsea archivos
+    y extrae el esquema; \texttt{MinioService} abstrae el almacenamiento
+    S3; \texttt{ExportService} genera informes a partir de los
+    resultados.
+
+  \item \textbf{Motor de métricas} (\texttt{services/metrics/}, núcleo
+    extensible): \texttt{BaseMetric} (clase base abstracta),
+    \texttt{MetricResult} (\emph{dataclass}) y \texttt{METRIC\_REGISTRY}
+    (registro de \emph{plugins}).  Implementa seis métricas evaluables
+    (\texttt{completeness}, \texttt{uniqueness}, \texttt{syntactic\_accuracy},
+    \texttt{logical\_consistency}, \texttt{class\_balance},
+    \texttt{currentness}) y la clase \texttt{OutliersMetric}, usada
+    exclusivamente desde el módulo de perfilado \ac{EDA}.
+
+  \item \textbf{Datos} (modelos SQLAlchemy \ac{ORM}, 10 tablas):
+    \texttt{User}, \texttt{Project}, \texttt{Dataset}, \texttt{Metric},
+    \texttt{Evaluation}, \texttt{Issue} (modelo original) y
+    \texttt{AnalysisRun}, \texttt{DataQualityIssue}, \texttt{QualityGate},
+    \texttt{ValidationPattern} (modelo Sonar-Lite).
+
+  \item \textbf{Infraestructura externa}: PostgreSQL\,14, MinIO,
+    Redis, Celery Worker, Celery Beat y Flower, orquestados con
+    Docker~Compose.
+\end{itemize}
+
+Las dependencias siguen una topología estrictamente vertical
+(\emph{depends-on}): cada capa solo depende de la inmediatamente inferior,
+salvo la conexión adicional Celery~Worker~$\to$~Servicios para la ejecución
+asíncrona de tareas.
 
 \section*{Diagrama de casos de uso}
 

@@ -217,6 +217,116 @@ Todos los servicios poseen una política de reinicio \texttt{unless-stopped}
 y los servicios de infraestructura incluyen \emph{healthchecks} que verifican
 su disponibilidad antes de que arranquen los servicios dependientes.
 
+\subsubsection{Diagrama de paquetes}
+\label{sec:diagrama-paquetes}
+
+La Figura~\ref{fig:diagrama-paquetes} representa la arquitectura del sistema
+como un diagrama de paquetes \ac{UML} a alto nivel.  Cada banda corresponde
+a una capa arquitectónica y las flechas discontinuas con punta abierta
+codifican la relación \emph{depends-on} entre capas.  La descomposición
+garantiza una separación nítida de responsabilidades: el \emph{frontend}
+solo conoce la \ac{API} \ac{REST}, los \emph{blueprints} delegan toda la
+lógica en los servicios, y el motor de métricas
+(\texttt{services/metrics/}, resaltado en el diagrama) concentra el cálculo
+algorítmico de la calidad como núcleo extensible mediante el patrón
+\emph{plugin}.  La especificación textual de cada paquete se recoge en el
+Anexo~\ref{anx:diagramas}.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+      package/.style   = {draw, thick, rectangle,
+                          minimum width=14cm,
+                          align=center, inner sep=7pt,
+                          font=\footnotesize},
+      pkg-tab/.style   = {draw, thin, rectangle,
+                          inner xsep=5pt, inner ysep=2pt,
+                          font=\footnotesize\bfseries,
+                          anchor=south west, yshift=-0.5pt},
+      core/.style      = {draw=black, very thick, rectangle,
+                          fill=yellow!22,
+                          minimum width=14cm,
+                          align=center, inner sep=7pt,
+                          font=\footnotesize},
+      depends/.style   = {-{Latex[open, length=2.5mm, width=2mm]},
+                          thick, dashed, draw=black!55},
+      node distance    = 0.7cm,
+    ]
+    %% --- Capa de Presentación ---
+    \node[package, fill=blue!8] (pres) {%
+      Frontend (Next.js + React) \\[2pt]
+      \texttt{pages/} \quad \texttt{components/} \quad
+      \texttt{services/} \quad \texttt{contexts/}};
+    \node[pkg-tab, fill=blue!18] at (pres.north west) {Presentación};
+
+    %% --- Capa de API REST ---
+    \node[package, fill=green!8, below=of pres] (api) {%
+      Backend Flask --- 10 \emph{blueprints} \\[2pt]
+      \emph{Funcionales:} \texttt{auth} $\cdot$ \texttt{projects} $\cdot$
+      \texttt{datasets} $\cdot$ \texttt{metrics} $\cdot$
+      \texttt{evaluations} $\cdot$ \texttt{admin} $\cdot$
+      \texttt{patterns} \\
+      \emph{Técnicos:} \texttt{project\_metrics} $\cdot$
+      \texttt{project\_datasets} $\cdot$ \texttt{dashboard}};
+    \node[pkg-tab, fill=green!20] at (api.north west) {API REST};
+
+    %% --- Capa de Servicios ---
+    \node[package, fill=orange!10, below=of api] (svc) {%
+      Lógica de negocio \\[2pt]
+      \texttt{EvaluationService} $\cdot$
+      \texttt{HybridEvaluationService} $\cdot$
+      \texttt{DatasetService} $\cdot$
+      \texttt{MinioService} $\cdot$
+      \texttt{ExportService}};
+    \node[pkg-tab, fill=orange!25] at (svc.north west) {Servicios};
+
+    %% --- Motor de métricas (núcleo) ---
+    \node[core, below=of svc] (mtr) {%
+      Motor de métricas --- \texttt{services/metrics/} \\[2pt]
+      \texttt{BaseMetric} (abstracta) $\cdot$
+      \texttt{MetricResult} $\cdot$
+      \texttt{METRIC\_REGISTRY} \\[1pt]
+      \texttt{completeness} $\cdot$ \texttt{uniqueness} $\cdot$
+      \texttt{syntactic\_accuracy} $\cdot$
+      \texttt{logical\_consistency} $\cdot$
+      \texttt{class\_balance} $\cdot$ \texttt{currentness} \\
+      \texttt{outliers} \emph{(solo perfilado \acs{EDA};
+      no contribuye al \emph{Quality Score})}};
+    \node[pkg-tab, fill=yellow!55!orange] at (mtr.north west)
+      {services/metrics/ $\star$};
+
+    %% --- Capa de Datos ---
+    \node[package, fill=purple!8, below=of mtr] (data) {%
+      Modelos SQLAlchemy \ac{ORM} --- 10 tablas \\[2pt]
+      \texttt{User} $\cdot$ \texttt{Project} $\cdot$ \texttt{Dataset} $\cdot$
+      \texttt{Metric} $\cdot$ \texttt{Evaluation} $\cdot$ \texttt{Issue} \\
+      \texttt{AnalysisRun} $\cdot$ \texttt{DataQualityIssue} $\cdot$
+      \texttt{QualityGate} $\cdot$ \texttt{ValidationPattern}};
+    \node[pkg-tab, fill=purple!18] at (data.north west) {Datos};
+
+    %% --- Infraestructura externa ---
+    \node[package, fill=red!7, below=of data] (inf) {%
+      Servicios Docker externos \\[2pt]
+      PostgreSQL\,14 $\cdot$ MinIO (S3) $\cdot$
+      Redis (\emph{broker} + caché) $\cdot$
+      Celery Worker $\cdot$ Celery Beat $\cdot$ Flower};
+    \node[pkg-tab, fill=red!18] at (inf.north west) {Infraestructura};
+
+    %% --- Dependencias entre capas ---
+    \draw[depends] (pres) -- node[right, font=\tiny] {HTTP/JSON} (api);
+    \draw[depends] (api)  -- (svc);
+    \draw[depends] (svc)  -- (mtr);
+    \draw[depends] (mtr)  -- (data);
+    \draw[depends] (data) -- (inf);
+  \end{tikzpicture}
+  \caption{Diagrama de paquetes de \dataqual: arquitectura por capas con
+    dependencias \emph{depends-on} (flecha discontinua de punta abierta).
+    El paquete \texttt{services/metrics/} ($\star$) constituye el núcleo
+    extensible del motor de evaluación, alineado con el principio
+    abierto--cerrado~\cite{design_patterns}}
+  \label{fig:diagrama-paquetes}
+\end{figure}
+
 \subsubsection{Modelo de datos}
 \label{sec:modelo-datos}
 
@@ -400,8 +510,12 @@ Siguiendo la convención REST de rutas anidadas~\cite{fielding2000}, se implemen
 tres \emph{blueprints} de organización técnica: \texttt{project\_metrics}
 (\texttt{/projects/<id>/metrics}), \texttt{project\_datasets}
 (\texttt{/projects/<id>/datasets}) y \texttt{dashboard} (agregaciones de solo
-lectura).  El total de \emph{blueprints} Flask registrados asciende a
-\textbf{nueve}.
+lectura).  El total de \emph{blueprints} Flask registrados al cierre de
+este sprint asciende a \textbf{nueve}; durante el Sprint~5 se añadirá un
+séptimo módulo funcional (\texttt{patterns}, gestión de patrones de
+validación reutilizables) elevando el total final a diez, tal como se
+representa en el diagrama de paquetes
+(Figura~\ref{fig:diagrama-paquetes}).
 
 La lógica de negocio se encapsula en servicios independientes:
 \texttt{EvaluationService} (orquesta el flujo completo de evaluación),
@@ -468,11 +582,13 @@ Anexo~A.
 \textbf{Conseguido:} backend completamente funcional con todos los módulos
 core, API REST operativa y datasets versionados.
 
-\textbf{Estado del producto:} \emph{backend} completo con seis
-\emph{blueprints} REST, módulo de ingesta multiformato, versionado de
-datasets y autenticación JWT.  La plataforma puede almacenar y gestionar
-conjuntos de datos, pero carece aún de motor de métricas e interfaz de
-usuario.
+\textbf{Estado del producto:} \emph{backend} completo con nueve
+\emph{blueprints} Flask registrados (seis módulos funcionales más tres de
+organización técnica REST: \texttt{project\_metrics},
+\texttt{project\_datasets} y \texttt{dashboard}), módulo de ingesta
+multiformato, versionado de datasets y autenticación JWT.  La plataforma
+puede almacenar y gestionar conjuntos de datos, pero carece aún de motor
+de métricas e interfaz de usuario.
 
 \textbf{Pendiente:} el motor de métricas (HU-07, HU-09, HU-10) y el
 \emph{frontend} completo (HU-04, HU-13, HU-14) están programados para S3 y
@@ -946,10 +1062,21 @@ evaluaciones.
     síncrono y \emph{Evaluation Watchdog}.
   \item Añadidas las medidas de seguridad: limitación de tasa, cabeceras HTTP,
     PBKDF2-SHA256 para contraseñas, red Docker aislada.
+  \item Como funcionalidad emergente surgida durante este sprint, se incorporó
+    un séptimo \emph{blueprint} funcional, \texttt{patterns}, que expone un
+    \ac{CRUD} de patrones de validación reutilizables entre proyectos
+    (modelo \texttt{ValidationPattern}).  Esta extensión del catálogo
+    estático de trece formatos predefinidos de la métrica
+    \texttt{syntactic\_accuracy} permite a los usuarios definir y compartir
+    sus propias expresiones regulares sin tocar código.  Con esta adición,
+    el total de \emph{blueprints} Flask registrados pasa de nueve a
+    \textbf{diez} (siete funcionales más tres de organización técnica).
   \item \textbf{Cambio respecto a lo planificado}: el diseño del
     \emph{fingerprint} requirió más iteraciones de las esperadas para
     garantizar que sea completamente determinista ante parámetros de métricas
-    flotantes.
+    flotantes.  Adicionalmente, el \emph{blueprint} \texttt{patterns}
+    constituye una desviación positiva respecto al plan de OE3, que
+    contemplaba seis módulos funcionales.
 \end{itemize}
 
 \subsection{Cómo se ha hecho}
@@ -1139,22 +1266,21 @@ Las pruebas automatizadas se organizan en tres suites en
 
 \begin{itemize}
   \item \textbf{Pruebas unitarias de métricas
-    (\texttt{test\_metrics.py}):} verifican que cada una de las siete
-    métricas produce los resultados esperados ante conjuntos de datos de
-    prueba controlados.  Se cubren los casos canónicos (dataset sin
-    problemas), los casos límite (columna completamente nula, todos los
-    valores duplicados, distribución de una sola clase) y los casos de
-    error (tipos incompatibles, reglas con sintaxis inválida).
+    (\texttt{test\_auth.py} y \texttt{test\_projects\_api.py}):} verifican
+    el flujo de autenticación completo (registro, inicio de sesión, refresco
+    de \emph{token}) y las operaciones \ac{CRUD} sobre proyectos.
 
   \item \textbf{Pruebas de integración de versionado
-    (\texttt{test\_dataset\_versioning.py}):} validan la correcta relación
-    padre-hijo entre versiones de datasets y la actualización del indicador
-    \texttt{is\_latest} ante cargas sucesivas.  Comprueban que solo la
-    versión más reciente tiene \texttt{is\_latest\,=\,true} y que el
-    historial de versiones se recupera ordenado.
+    (\texttt{test\_dataset\_versioning.py},
+    \texttt{test\_dataset\_versioning\_api.py}):} validan la correcta
+    relación padre-hijo entre versiones de datasets y la actualización del
+    indicador \texttt{is\_latest} ante cargas sucesivas.  Comprueban que
+    solo la versión más reciente tiene \texttt{is\_latest\,=\,true} y que
+    el historial de versiones se recupera ordenado, tanto a nivel de servicio
+    como a través de los \emph{endpoints} de la \ac{API}.
 
   \item \textbf{Pruebas de \emph{Quality Gates}
-    (\texttt{test\_quality\_gates.py}):} verifican que los umbrales
+    (\texttt{test\_quality\_gate.py}):} verifican que los umbrales
     configurados producen los estados \texttt{PASSED}, \texttt{WARNING}
     y \texttt{FAILED} esperados para distintas combinaciones de scores e
     issues, incluyendo los casos frontera (score exactamente en el umbral).
