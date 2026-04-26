@@ -16,6 +16,9 @@ class CompletenessMetric(BaseMetric):
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
         columns = parameters.get("columns", [])
         threshold = parameters.get("threshold", 0.95)
+        null_patterns = parameters.get("null_patterns")
+
+        df = self.apply_null_patterns(df, null_patterns, columns or None)
 
         if columns:
             values = [1 - df[c].isna().mean() for c in columns if c in df.columns]

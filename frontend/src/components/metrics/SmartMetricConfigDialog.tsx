@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Box, Typography, Slider, Chip, Divider,
-  FormControlLabel, Switch, Radio, RadioGroup, FormControl,
+  FormControlLabel, Switch, Checkbox, Radio, RadioGroup, FormControl,
   TextField, IconButton, Tooltip, Collapse, Alert,
   ToggleButton, ToggleButtonGroup, Paper, List, ListItem,
   ListItemText, ListItemSecondaryAction, useMediaQuery, useTheme, Tab, Tabs,
@@ -197,6 +197,131 @@ const ColumnTagInput: React.FC<ColumnTagInputProps> = ({ label, value, onChange,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Null-pattern presets for completeness
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NULL_PRESET_KEYS = [
+  'empty_string', 'null_word', 'na', 'nan', 'none', 'dash', 'whitespace_only',
+] as const;
+
+interface NullPatternsConfigProps {
+  value: { presets?: string[]; custom?: string[] } | undefined;
+  onChange: (v: { presets: string[]; custom: string[] }) => void;
+}
+
+const NullPatternsConfig: React.FC<NullPatternsConfigProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
+  const presets: string[] = value?.presets ?? [];
+  const custom: string[] = value?.custom ?? [];
+  const [customInput, setCustomInput] = useState('');
+  const [regexError, setRegexError] = useState('');
+
+  const togglePreset = (key: string) => {
+    const next = presets.includes(key)
+      ? presets.filter(k => k !== key)
+      : [...presets, key];
+    onChange({ presets: next, custom });
+  };
+
+  const addCustom = () => {
+    const v = customInput.trim();
+    if (!v) return;
+    try {
+      new RegExp(v);
+    } catch {
+      setRegexError(t('metricConfig.smartDialog.completeness.customInvalidRegex'));
+      return;
+    }
+    setRegexError('');
+    if (!custom.includes(v)) {
+      onChange({ presets, custom: [...custom, v] });
+    }
+    setCustomInput('');
+  };
+
+  const removeCustom = (pat: string) => {
+    onChange({ presets, custom: custom.filter(c => c !== pat) });
+  };
+
+  return (
+    <Box sx={{ mt: 2.5 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+        {t('metricConfig.smartDialog.completeness.nullPatternsTitle')}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
+        {t('metricConfig.smartDialog.completeness.nullPatternsDesc')}
+      </Typography>
+
+      {/* Presets */}
+      <Typography variant="caption" sx={{ fontWeight: 600, color: '#666', display: 'block', mb: 0.5 }}>
+        {t('metricConfig.smartDialog.completeness.presetsLabel')}
+      </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0, mb: 1.5 }}>
+        {NULL_PRESET_KEYS.map(key => (
+          <FormControlLabel
+            key={key}
+            control={
+              <Checkbox
+                size="small"
+                checked={presets.includes(key)}
+                onChange={() => togglePreset(key)}
+                sx={{ py: 0.3, '&.Mui-checked': { color: GREEN } }}
+              />
+            }
+            label={
+              <Typography variant="body2" sx={{ fontSize: '0.82rem' }}>
+                {t(`metricConfig.smartDialog.completeness.presets.${key}`)}
+              </Typography>
+            }
+          />
+        ))}
+      </Box>
+
+      {/* Custom regex */}
+      <Typography variant="caption" sx={{ fontWeight: 600, color: '#666', display: 'block', mb: 0.5 }}>
+        {t('metricConfig.smartDialog.completeness.customLabel')}
+      </Typography>
+      <Tooltip title={t('metricConfig.smartDialog.completeness.customHelp')} arrow placement="top">
+        <Box display="flex" gap={1} mb={0.5}>
+          <TextField
+            size="small"
+            fullWidth
+            value={customInput}
+            placeholder={t('metricConfig.smartDialog.completeness.customPlaceholder')}
+            onChange={e => { setCustomInput(e.target.value); setRegexError(''); }}
+            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+            error={!!regexError}
+            helperText={regexError || undefined}
+          />
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={addCustom}
+            sx={{ borderColor: GREEN, color: GREEN, minWidth: 48 }}
+          >
+            {t('metricConfig.smartDialog.completeness.customAdd')}
+          </Button>
+        </Box>
+      </Tooltip>
+      {custom.length > 0 && (
+        <Box display="flex" flexWrap="wrap" gap={0.5} mt={0.5}>
+          {custom.map(pat => (
+            <Chip
+              key={pat}
+              label={pat}
+              size="small"
+              variant="outlined"
+              onDelete={() => removeCustom(pat)}
+              sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+            />
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Metric-specific config panels
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -227,6 +352,10 @@ const CompletenessConfig: React.FC<{ params: any; onChange: (p: any) => void; lo
         onChange={v => onChange({ ...params, threshold: v })}
         presets={[0.80, 0.90, 0.95, 0.99]}
         helpText={t('metricConfig.smartDialog.completeness.thresholdHelp')}
+      />
+      <NullPatternsConfig
+        value={params.null_patterns}
+        onChange={np => onChange({ ...params, null_patterns: np })}
       />
       <AdvancedSection>
         <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.completeness.columnsLabel')}</Typography>

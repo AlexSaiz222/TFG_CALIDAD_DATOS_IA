@@ -13,6 +13,7 @@ from models.metric import Metric
 from services.dataset_service import DatasetService
 from services.minio_service import MinioService
 from services.metrics import get_metric
+from services.metrics.base import BaseMetric
 from utils.fingerprint_utils import generate_issue_fingerprint
 
 logger = logging.getLogger(__name__)
@@ -377,6 +378,16 @@ class EvaluationService:
                 columns_to_profile = list(df.columns)
             else:
                 columns_to_profile = [c for c in df.columns if c in referenced_columns]
+
+            # Apply null-patterns from the completeness metric (if configured)
+            # so the profiling numbers are consistent with the metric results.
+            completeness_null_patterns = None
+            for mc in metrics_config:
+                if mc.get('id') == 'completeness':
+                    completeness_null_patterns = mc.get('parameters', {}).get('null_patterns')
+                    break
+            if completeness_null_patterns:
+                df = BaseMetric.apply_null_patterns(df, completeness_null_patterns, columns_to_profile)
 
             # Calculate column-level metrics for selected columns only
             column_metrics = {}

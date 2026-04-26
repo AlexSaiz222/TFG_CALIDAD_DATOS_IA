@@ -100,7 +100,19 @@ export function formatParamValue(value: unknown): string {
     return value.join(', ');
   }
   
-  if (typeof value === 'object') return JSON.stringify(value);
+  if (typeof value === 'object') {
+    // null_patterns: {presets: [...], custom: [...]}
+    const obj = value as Record<string, unknown>;
+    if ('presets' in obj || 'custom' in obj) {
+      const nPresets = Array.isArray(obj.presets) ? obj.presets.length : 0;
+      const nCustom = Array.isArray(obj.custom) ? obj.custom.length : 0;
+      const parts: string[] = [];
+      if (nPresets > 0) parts.push(`${nPresets} predefinido${nPresets !== 1 ? 's' : ''}`);
+      if (nCustom > 0) parts.push(`${nCustom} custom`);
+      return parts.length > 0 ? parts.join(' + ') : '—';
+    }
+    return JSON.stringify(value);
+  }
   return String(value);
 }
 

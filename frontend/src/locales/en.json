@@ -311,6 +311,7 @@
       "configuredMetrics": "Configured metrics",
       "noDescAvailable": "No description available.",
       "whatMeasures": "What does it measure?",
+      "howItWorksTitle": "How it works",
       "configuredParams": "Configured parameters",
       "noParams": "No parameters configured. Default values will be used.",
       "noMetricsTitle": "No metrics configured",
@@ -323,7 +324,8 @@
     "paramHelp": {
       "completeness": {
         "threshold": { "label": "Minimum threshold", "unit": "0 – 1", "description": "Minimum proportion of non-null values required. If actual completeness is lower, an issue is generated." },
-        "columns": { "label": "Columns", "description": "Columns to evaluate. Empty = all dataset columns." }
+        "columns": { "label": "Columns", "description": "Columns to evaluate. Empty = all dataset columns." },
+        "null_patterns": { "label": "Null patterns", "description": "Additional values treated as null (empty strings, \"NULL\", \"N/A\", etc.). Also applied to profiling." }
       },
       "uniqueness": {
         "threshold": { "label": "Uniqueness threshold", "unit": "0 – 1", "description": "Minimum proportion of unique rows required. 1.0 = no duplicates allowed." },
@@ -980,6 +982,15 @@
       "class_balance": "Detects imbalances in categorical columns where one class dominates. Severe imbalance in the target variable leads to classification models biased toward the majority class.",
       "syntactic_accuracy": "Verifies that values conform to the expected format (emails, phones, IDs, dates, URLs\u2026). Incorrect formats in key columns cause pipeline errors and degrade feature quality."
     },
+    "howItWorks": {
+      "completeness": "Internally uses pandas.isna() to detect native null values (None, NaN, NaT). By default, strings like \"NULL\", \"N/A\", empty text or whitespace are NOT considered null. If your dataset uses those conventions, configure null patterns in this metric's parameters so they are detected correctly.",
+      "uniqueness": "Full rows (or selected columns) are compared using pandas.duplicated(). The proportion of unique rows over the total is calculated. Columns are analyzed individually to detect low variability (few distinct values relative to total rows).",
+      "outliers": "The IQR (Interquartile Range) or Z-Score method is applied on each numeric column. IQR flags any value outside [Q1 − k·IQR, Q3 + k·IQR] as an outlier. Z-Score flags values more than k standard deviations from the mean. The factor k is configurable.",
+      "currentness": "Columns with date formats (ISO 8601, European, etc.) are automatically detected. For each record, the age in days is calculated from the current date. An issue is generated if the age exceeds the configured threshold (staleness_threshold_days).",
+      "logical_consistency": "User-defined business rules (column comparisons, ranges, conditionals) are evaluated. Each row is validated individually against the rules. Rows violating at least one rule are reported as issues.",
+      "class_balance": "Categorical columns are detected (up to max_cardinality unique values). The proportion of each class is calculated and compared against imbalance thresholds. If one class dominates above the high threshold, an issue is generated.",
+      "syntactic_accuracy": "Each value in the selected columns is validated against regular expressions (email, phone, ID, date, URL, etc.). Auto-detection infers the most likely type from the content. Values that don't match the expected pattern are reported as issues."
+    },
     "labels": {
       "completeness": "Completeness",
       "uniqueness": "Uniqueness",
@@ -1635,7 +1646,24 @@
         "description": "Detects columns with null or missing values. Analyzes all dataset columns and alerts when the proportion of missing data exceeds the configured threshold.",
         "thresholdLabel": "Minimum required present values",
         "thresholdHelp": "An alert will be issued if overall completeness falls below this threshold.",
-        "columnsLabel": "Check only these columns (optional)"
+        "columnsLabel": "Check only these columns (optional)",
+        "nullPatternsTitle": "Values considered as null",
+        "nullPatternsDesc": "In addition to native nulls (None, NaN), you can mark other text values as null. Also applied to profiling.",
+        "presetsLabel": "Predefined patterns",
+        "presets": {
+          "empty_string": "Empty string (\"\")",
+          "null_word": "Text \"NULL\"",
+          "na": "Text \"N/A\" or \"NA\"",
+          "nan": "Text \"nan\"",
+          "none": "Text \"None\"",
+          "dash": "Dashes (-, –, —)",
+          "whitespace_only": "Whitespace"
+        },
+        "customLabel": "Custom patterns (regex)",
+        "customPlaceholder": "E.g.: ^no data$",
+        "customAdd": "Add",
+        "customHelp": "Write a regular expression. It will be applied case-insensitive on each text value.",
+        "customInvalidRegex": "Invalid regular expression"
       },
       "uniqueness": {
         "title": "Uniqueness",

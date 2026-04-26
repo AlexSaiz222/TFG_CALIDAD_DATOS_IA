@@ -102,7 +102,7 @@ const ProjectDetail = () => {
   const paramHelpMap = useMemo((): Record<string, Record<string, ParamHelp>> => {
     const ph = (key: string) => (t as any)(`projects.paramHelp.${key}`, { returnObjects: true }) as any;
     return {
-      completeness: { threshold: ph('completeness.threshold'), columns: ph('completeness.columns') },
+      completeness: { threshold: ph('completeness.threshold'), columns: ph('completeness.columns'), null_patterns: ph('completeness.null_patterns') },
       uniqueness: { threshold: ph('uniqueness.threshold'), columns: ph('uniqueness.columns') },
       outliers: { method: ph('outliers.method'), factor: ph('outliers.factor'), columns: ph('outliers.columns') },
       syntactic_accuracy: { auto_detect_types: ph('syntactic_accuracy.auto_detect_types'), threshold: ph('syntactic_accuracy.threshold'), columns: ph('syntactic_accuracy.columns') },
@@ -907,6 +907,23 @@ const ProjectDetail = () => {
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', lineHeight: 1.65, color: '#444', mb: 3 }}>
                           {t(`metrics.descriptions.${drawerMetric.name}`, { defaultValue: meta.description || drawerMetric.description || t('projects.detail.noDescAvailable') })}
                         </Typography>
+
+                        {/* Cómo funciona */}
+                        <Typography variant="caption" sx={{
+                          fontWeight: 700, color: '#999', textTransform: 'uppercase',
+                          letterSpacing: '0.07em', display: 'block', mb: 1,
+                        }}>
+                          {t('projects.detail.howItWorksTitle')}
+                        </Typography>
+                        <Box sx={{
+                          mb: 3, p: 1.5, borderRadius: 2,
+                          backgroundColor: '#F8FAFB',
+                          borderLeft: `3px solid ${meta.color}`,
+                        }}>
+                          <Typography variant="body2" sx={{ fontSize: '0.82rem', lineHeight: 1.65, color: '#555' }}>
+                            {t(`metrics.howItWorks.${drawerMetric.name}`, { defaultValue: '' })}
+                          </Typography>
+                        </Box>
 
                         {/* Parámetros */}
                         {params.length > 0 ? (

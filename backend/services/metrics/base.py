@@ -164,3 +164,69 @@ class BaseMetric(ABC):
     def mask_sensitive(value: Any, column: str, sensitive_columns: list) -> Any:
         """Enmascara un valor si la columna es sensible."""
         return "***" if column in (sensitive_columns or []) else value
+
+    # ─── Null-pattern expansion ────────────────────────────────────────────────
+
+    PRESET_NULL_PATTERNS: dict[str, str] = {
+        "empty_string": r"^$",
+        "null_word": r"^null$",
+        "na": r"^n/?a$",
+        "nan": r"^nan$",
+        "none": r"^none$",
+        "dash": r"^[-–—]$",
+        "whitespace_only": r"^\s+$",
+    }
+
+    @staticmethod
+    def apply_null_patterns(
+        df: pd.DataFrame,
+        null_patterns: dict[str, Any] | None,
+        columns: list[str] | None = None,
+    ) -> pd.DataFrame:
+        """Reemplaza valores que coincidan con los patrones de nulidad por NaN.
+
+        Solo actúa sobre columnas de tipo object/string; las numéricas ya
+        representan ausencia con NaN nativo.
+
+        Args:
+            df: DataFrame original (se devuelve una copia modificada).
+            null_patterns: Dict ``{"presets": [...], "custom": [...]}``.
+                           Si es ``None`` o vacío, devuelve *df* sin cambios.
+            columns: Columnas sobre las que aplicar.  ``None`` = todas.
+
+        Returns:
+            DataFrame con los valores coincidentes convertidos a ``np.nan``.
+        """
+        if not null_patterns:
+            return df
+
+        presets = null_patterns.get("presets") or []
+        custom = null_patterns.get("custom") or []
+
+        regex_parts: list[str] = []
+        for key in presets:
+            pat = BaseMetric.PRESET_NULL_PATTERNS.get(key)
+            if pat:
+                regex_parts.append(pat)
+        regex_parts.extend(custom)
+
+        if not regex_parts:
+            return df
+
+        combined = "|".join(f"(?:{p})" for p in regex_parts)
+        try:
+            compiled = re.compile(combined, re.IGNORECASE)
+        except re.error as exc:
+            logger.warning("[NULL-PATTERNS] Regex inválida, se ignoran patrones: %s", exc)
+            return df
+
+        df = df.copy()
+        cols = columns if columns else list(df.columns)
+        for col in cols:
+            if col not in df.columns:
+                continue
+            if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_string_dtype(df[col]):
+                mask = df[col].astype(str).str.match(compiled, na=False)
+                df.loc[mask, col] = np.nan
+
+        return df
