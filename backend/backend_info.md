@@ -45,8 +45,9 @@ backend/
 │   ├── datasets/routes.py      # Gestión de datasets y versioning
 │   ├── evaluations/routes.py   # Evaluaciones (sistema legacy)
 │   ├── metrics/routes.py       # Métricas y plantillas
+│   ├── patterns/routes.py      # CRUD de ValidationPattern (patrones regex de usuario)
 │   ├── projects/routes.py      # Proyectos CRUD + config de métricas
-│   └── routes.py               # Registro central de blueprints
+│   └── routes.py               # Registro central de blueprints (10 blueprints)
 ├── config/
 │   └── logging_config.py       # Configuración de logging
 ├── middleware/
@@ -60,25 +61,26 @@ backend/
 │   ├── evaluation.py           # Evaluation, EvaluationRun (sistema legacy)
 │   ├── metric.py               # Metric
 │   ├── project.py              # Project
-│   └── user.py                 # User
+│   ├── user.py                 # User
+│   └── validation_pattern.py   # ValidationPattern (patrones regex de sistema y usuario)
 ├── services/
 │   ├── dataset_service.py      # Carga, procesamiento y análisis de datasets
 │   ├── evaluation_service.py   # Lógica de evaluación (legacy)
 │   ├── hybrid_evaluation_service.py  # Servicio que orquesta AnalysisRun + Celery
 │   ├── export_service.py       # Exportación de datasets y resultados
-│   └── minio_service.py        # Operaciones sobre MinIO
+│   ├── minio_service.py        # Operaciones sobre MinIO
+│   └── metrics/                # Implementaciones de métricas individuales
+│       ├── base.py             # BaseMetric: severidad, histograma, null-patterns
+│       ├── registry.py         # Registro automático de métricas disponibles
+│       ├── class_balance.py    # Métrica: balance de clases
+│       ├── completeness.py     # Métrica: completitud
+│       ├── currentness.py      # Métrica: actualidad
+│       ├── logical_consistency.py  # Métrica: consistencia lógica
+│       ├── outliers.py         # Métrica: detección de outliers (solo profiling)
+│       ├── syntactic_accuracy.py   # Métrica: precisión sintáctica
+│       └── uniqueness.py       # Métrica: unicidad
 ├── tasks/
 │   └── evaluation_tasks.py     # Tareas Celery para ejecución asíncrona
-├── metrics/                    # Implementaciones de métricas individuales
-│   ├── base.py                 # Clase base MetricCalculator
-│   ├── registry.py             # Registro automático de métricas disponibles
-│   ├── class_balance.py        # Métrica: balance de clases
-│   ├── completeness.py         # Métrica: completitud
-│   ├── currentness.py          # Métrica: actualidad (antes llamada timeliness)
-│   ├── logical_consistency.py  # Métrica: consistencia lógica
-│   ├── outliers.py             # Métrica: detección de outliers
-│   ├── syntactic_accuracy.py   # Métrica: precisión sintáctica
-│   └── uniqueness.py           # Métrica: unicidad
 ├── tests/                      # Tests unitarios e integración
 ├── app.py                      # Punto de entrada principal
 ├── celery_app.py               # Configuración de Celery
@@ -117,10 +119,11 @@ backend/
 
 ```
 User 1──N Project 1──N Dataset 1──N Evaluation (legacy)
-                  |             └──N AnalysisRun ──N DataQualityIssue
-                  |
-                  └──1 QualityGate
-                  └──N Metric
+     |            |             └──N AnalysisRun ──N DataQualityIssue
+     |            |
+     |            └──1 QualityGate
+     |            └──N Metric
+     └──N ValidationPattern (sistema: owner_id = NULL; usuario: owner_id = user.id)
 ```
 
 Dataset tiene auto-referencia para versioning: `parent_dataset_id → datasets.id`
@@ -172,6 +175,16 @@ Issue individual detectado en un AnalysisRun.
 - **Contexto**: description, affected_columns (JSON), affected_rows (JSON), affected_row_count, affected_rows_pct
 - **Tracking**: is_new (bool), rule_key, actual_value, expected_value
 
+### ValidationPattern
+Patrón regex de validación para la métrica de precisión sintáctica.
+
+- **Campos**: id, key, name, description, regex, examples_valid (JSON), examples_invalid (JSON)
+- **Propiedad**: owner_id (NULL = patrón de sistema/built-in; user.id = patrón de usuario)
+- **Flags**: is_system (bool), created_at, updated_at
+- **Restricción**: UNIQUE (owner_id, key) — clave única por propietario
+- Los patrones de sistema se sembian con Alembic y no pueden editarse ni borrarse desde la API.
+- Los patrones de usuario pueden sobreescribir la regex de un built-in compartiendo el mismo `key`.
+
 ---
 
 ## API REST
@@ -182,11 +195,12 @@ Issue individual detectado en un AnalysisRun.
 |---|---|---|
 | `/api/auth` | auth | Registro, login, token refresh, perfil |
 | `/api/projects` | projects | CRUD proyectos + config métricas |
-| `/api/datasets` | datasets | Carga, versioning, profiling, sensitive cols |
+| `/api/datasets` | datasets | Carga, versioning, profiling, sensitive cols, columns |
 | `/api/metrics` | metrics | Métricas disponibles + plantillas |
 | `/api/evaluations` | evaluations | Evaluaciones legacy |
 | `/api/dashboard` | dashboard | Resumen de runs y tendencias |
 | `/api/admin` | admin | Utilidades administrativas |
+| `/api/patterns` | patterns | CRUD de patrones regex de usuario |
 | `/health` | — | Health check (`{"status": "ok"}`) |
 
 ### Endpoints principales
@@ -210,6 +224,13 @@ Issue individual detectado en un AnalysisRun.
 - `GET /api/datasets/{id}/versions` — historial de versiones
 - `GET /api/datasets/{id}/profile` — perfil estadístico (EDA)
 - `PUT /api/datasets/{id}/sensitive-columns` — marcar columnas sensibles
+- `GET /api/datasets/{id}/columns` — lista de columnas del esquema almacenado (sin descargar el fichero)
+
+#### Patrones de validación
+- `GET /api/patterns/` — listar patrones de sistema + propios del usuario
+- `POST /api/patterns/` — crear patrón personalizado
+- `PUT /api/patterns/{id}` — editar patrón propio (los de sistema son inmutables)
+- `DELETE /api/patterns/{id}` — eliminar patrón propio
 
 #### Analysis Runs (Sonar-Lite)
 - `POST /api/projects/{id}/analyze` — lanzar nuevo AnalysisRun

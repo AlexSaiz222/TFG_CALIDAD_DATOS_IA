@@ -23,16 +23,49 @@ Un dataset puede tener un score de completitud global alto pero ocultar columnas
 |-----------|------|-------------------|-------------|
 | `columns` | `list[str]` | `[]` (todas) | Columnas a evaluar. Si está vacío, se evalúan todas. |
 | `threshold` | `float` | `0.95` | Umbral mínimo de completitud global y por columna (0.0–1.0). |
+| `null_patterns` | `dict` | `null` (desactivado) | Patrones de nulidad configurables. Ver formato abajo. |
 | `weight` | `float` | `1.0` | Peso de esta métrica en el Quality Score global (se aplica en el servicio, no dentro de la métrica). |
 
-Ejemplo de configuración:
+### Parámetro `null_patterns`
+
+Permite tratar valores no-nulos nativamente (cadenas como `"NULL"`, `"N/A"`, `""`) como si fueran nulos, convirtiéndolos a `NaN` antes de calcular la completitud. Esto mantiene consistencia entre la métrica y el profiling.
+
+Formato:
+
+```json
+{
+  "presets": ["empty_string", "null_word", "na", "nan", "none", "dash", "whitespace_only"],
+  "custom": ["^sin_dato$", "^desconocido$"]
+}
+```
+
+- **`presets`**: lista de claves del catálogo de presets predefinidos en `BaseMetric.PRESET_NULL_PATTERNS`.
+- **`custom`**: lista de expresiones regulares libres (se validan en tiempo de ejecución; las inválidas se ignoran con warning).
+
+| Preset | Regex |
+|--------|-------|
+| `empty_string` | `^$` |
+| `null_word` | `^null$` |
+| `na` | `^n/?a$` |
+| `nan` | `^nan$` |
+| `none` | `^none$` |
+| `dash` | `^[-–—]$` |
+| `whitespace_only` | `^\s+$` |
+
+Si `null_patterns` es `null` o no se proporciona, la métrica se comporta igual que antes (solo `NaN` nativo se considera nulo). Solo se actúa sobre columnas de tipo `object`/string; las numéricas ya representan ausencia con `NaN` nativo.
+
+Ejemplo de configuración completa:
 
 ```json
 {
   "id": "completeness",
   "parameters": {
     "columns": ["nombre", "email", "fecha_nacimiento"],
-    "threshold": 0.98
+    "threshold": 0.98,
+    "null_patterns": {
+      "presets": ["empty_string", "null_word", "na"],
+      "custom": []
+    }
   },
   "weight": 1.0
 }
@@ -41,6 +74,15 @@ Ejemplo de configuración:
 ---
 
 ## 3. Algoritmo de cálculo
+
+### Paso 0: Normalización de nulos (si `null_patterns` está configurado)
+
+Antes de calcular, se llama a `BaseMetric.apply_null_patterns(df, null_patterns, columns)`, que:
+1. Combina los presets seleccionados y los patrones custom en una única regex alternada.
+2. Recorre las columnas de tipo `object` (o las columnas configuradas si `columns` no está vacío).
+3. Reemplaza por `NaN` cualquier valor que coincida con la regex combinada.
+
+El DataFrame resultante es el que se usa para los cálculos siguientes.
 
 ### Score global
 

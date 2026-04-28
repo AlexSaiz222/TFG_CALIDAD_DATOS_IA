@@ -38,7 +38,16 @@ El frontend sigue una arquitectura basada en componentes con las siguientes capa
 frontend/src/
 ├── components/                  # Componentes reutilizables
 │   ├── layout/                  # Navbar, Sidebar, Layout base
-│   ├── metrics/                 # MetricCard, MetricConfigDialog, MetricTemplateSelector
+│   ├── metrics/                 # Componentes de configuración de métricas
+│   │   ├── SmartMetricConfigDialog.tsx   # Diálogo unificado de configuración por métrica
+│   │   ├── NullPatternsConfig.tsx        # UI de patrones de nulidad (presets + regex custom)
+│   │   ├── MetricCard.tsx               # Tarjeta de resumen de una métrica
+│   │   ├── MetricTemplateSelector.tsx   # Selector de plantillas de métricas
+│   │   └── columnPicker/               # Flujo de selección de columnas y patrones
+│   │       ├── ColumnPicker.tsx         # Selector de columnas de un dataset
+│   │       ├── ColumnPatternMatrix.tsx  # Matriz columna × patrón para syntactic_accuracy
+│   │       ├── DatasetSelector.tsx      # Selector de dataset para cargar su esquema
+│   │       └── PatternEditor.tsx        # Editor/creador de patrones regex custom
 │   ├── AnalysisDashboardPanel.tsx    # Panel de resumen de análisis Sonar-Lite
 │   ├── AnalysisHistory.tsx           # Historial de AnalysisRuns con comparativas
 │   ├── ConfirmDialog.tsx             # Diálogo de confirmación genérico
@@ -83,8 +92,10 @@ frontend/src/
 ├── services/
 │   └── api.ts                   # Todos los clientes de API (authAPI, projectsAPI, etc.)
 ├── types/
-│   └── index.ts                 # Tipos TypeScript compartidos (Dataset, Project, AnalysisRun, etc.)
+│   └── index.ts                 # Tipos TypeScript compartidos (Dataset, Project, AnalysisRun, ValidationPattern, etc.)
 └── utils/                       # Helpers y utilidades
+    ├── issueUtils.ts            # getLocalizedIssueDescription: texto i18n de issues desde campos estructurados
+    └── metricColors.ts          # Colores y etiquetas por métrica (incluye null_patterns)
 ```
 
 ---
@@ -203,11 +214,12 @@ Todos los clientes están en `services/api.ts`:
 |---|---|
 | `authAPI` | login, register, refresh, me |
 | `projectsAPI` | CRUD proyectos, metrics config, quality gate |
-| `datasetsAPI` | CRUD datasets, versioning, profiling, sensitive columns |
+| `datasetsAPI` | CRUD datasets, versioning, profiling, sensitive columns, columns |
 | `metricsAPI` | Métricas disponibles, plantillas |
 | `evaluationsAPI` | Evaluaciones legacy |
 | `analysisRunsAPI` | AnalysisRuns: crear, listar, detalle, issues |
 | `dashboardAPI` | Resumen global |
+| `patternsAPI` | CRUD de patrones regex de usuario (ValidationPattern) |
 
 ### Características
 

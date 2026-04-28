@@ -10,12 +10,14 @@
 La precisión sintáctica mide **qué porcentaje de los valores de cada columna respetan el formato esperado según su tipo de dato**. Esta métrica:
 
 1. Trabaja sobre **múltiples columnas** a la vez.
-2. Usa un **catálogo de 13 tipos predefinidos** con sus patrones regex.
+2. Usa un **catálogo de 13 tipos predefinidos** con sus patrones regex, ampliable con **patrones personalizados** creados por el usuario y almacenados en la tabla `validation_patterns`.
 3. Puede **auto-detectar** el tipo esperado de cada columna string comparando una muestra contra todos los patrones.
+4. Expone un **ColumnPicker** en el frontend para seleccionar columnas y asignarles patrones directamente desde la UI.
 
 **Por qué importa:**
 - Los formatos incorrectos causan fallos silenciosos en procesamientos posteriores (parseos de fechas, validaciones de email, conversiones numéricas).
 - La auto-detección permite auditar columnas sin necesidad de configuración manual.
+- Los patrones de usuario permiten validar formatos de negocio propios (códigos internos, matrículas, etc.) sin modificar el código.
 
 ---
 
@@ -44,7 +46,7 @@ La precisión sintáctica mide **qué porcentaje de los valores de cada columna 
 | Parámetro | Tipo | Valor por defecto | Descripción |
 |-----------|------|-------------------|-------------|
 | `columns` | `list[dict]` | `[]` | Columnas a validar con tipo esperado. Ver formato abajo. |
-| `custom_patterns` | `dict[str, str]` | `{}` | Patrones libres: `{"col": "regex"}`. |
+| `custom_patterns` | `dict[str, str]` | `{}` | Patrones libres inline: `{"col": "regex"}`. |
 | `auto_detect_types` | `bool` | `true` | Si es true, analiza columnas string sin configuración explícita. |
 | `threshold` | `float` | `0.95` | Mínimo de conformidad para generar issue. |
 | `weight` | `float` | `1.0` | Peso en el Quality Score global. |
@@ -58,15 +60,34 @@ Formato de cada elemento en `columns`:
 }
 ```
 
-O con patrón personalizado:
+O referenciando un patrón de usuario (clave de `ValidationPattern`):
 
 ```json
 {
   "column": "codigo_interno",
-  "expected_type": "interno",
-  "pattern": "^INT-\\d{6}$"
+  "expected_type": "codigo_interno_v2"
 }
 ```
+
+O con patrón inline directo (no requiere patrón guardado en BD):
+
+```json
+{
+  "column": "matricula",
+  "expected_type": "matricula",
+  "pattern": "^\\d{4}[A-Z]{3}$"
+}
+```
+
+### Patrones de usuario (`ValidationPattern`)
+
+El campo `expected_type` puede referenciar tanto los 13 tipos built-in del catálogo como cualquier clave (`key`) de un `ValidationPattern` del usuario. Al ejecutar la métrica, la lógica:
+
+1. Carga desde la BD todos los patrones de sistema (`owner_id = NULL`) y los del propietario del proyecto.
+2. Los fusiona con los built-ins, dando prioridad a los de usuario cuando comparten `key`.
+3. Busca el `expected_type` en el diccionario resultante.
+
+Los patrones de usuario se crean y gestionan desde `/api/patterns/` o desde el `PatternEditor` en la UI.
 
 ---
 
@@ -74,11 +95,13 @@ O con patrón personalizado:
 
 ### Paso 1: Construir el mapa columna → (tipo, patrón)
 
-La métrica construye el mapa `column_checks` en tres etapas por orden de precedencia:
+La métrica construye el mapa `column_checks` en cuatro etapas por orden de precedencia:
 
-1. **Configuración explícita** (`columns`): las columnas especificadas por el usuario con su tipo o patrón.
-2. **Patrones custom** (`custom_patterns`): columnas con patrón libre no cubiertas por el paso anterior.
-3. **Auto-detección** (si `auto_detect_types=True`): para cada columna de tipo `object` no cubierta aún, se toma una muestra de hasta 100 valores y se prueba contra los 13 tipos del catálogo. Se recogen **todos** los tipos con una tasa de coincidencia ≥ `AUTO_DETECT_MIN_MATCH` (por defecto **0.85**, endurecido respecto al 0.60 anterior para reducir falsos positivos).
+0. **Carga de patrones de BD**: se leen de la tabla `validation_patterns` todos los registros cuyo `owner_id` sea `NULL` (sistema) o el `owner_id` del propietario del proyecto. Se fusionan con los built-ins (`SYNTACTIC_PATTERNS`), dando prioridad a los de usuario cuando comparten `key`. El resultado es `resolved_patterns`.
+
+1. **Configuración explícita** (`columns`): las columnas especificadas por el usuario. Si llevan `pattern` inline, se usa directamente; si llevan `expected_type`, se busca en `resolved_patterns`.
+2. **Patrones custom** (`custom_patterns`): columnas con patrón libre inline no cubiertas por el paso anterior.
+3. **Auto-detección** (si `auto_detect_types=True`): para cada columna de tipo `object` no cubierta aún, se toma una muestra de hasta 100 valores y se prueba contra los 13 tipos del catálogo **built-in** (no los de usuario). Se recogen **todos** los tipos con una tasa de coincidencia ≥ `AUTO_DETECT_MIN_MATCH` (por defecto **0.85**, endurecido respecto al 0.60 anterior para reducir falsos positivos).
 
 ```python
 matches = []

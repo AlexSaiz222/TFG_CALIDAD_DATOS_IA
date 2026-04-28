@@ -47,7 +47,7 @@ BaseMetric (base.py)
 
 `OutliersMetric` existe en `backend/services/metrics/outliers.py` pero NO está registrada en `METRIC_REGISTRY`: se instancia únicamente desde el pipeline de Data Profiling.
 
-Cada métrica hereda de `BaseMetric` e implementa `evaluate(df, parameters, dataset, evaluation_id, metrics_map) → MetricResult`. La clase base provee utilidades compartidas: cálculo de severidad, generación de histogramas, inferencia de tipo de columna y enmascaramiento de datos sensibles.
+Cada métrica hereda de `BaseMetric` e implementa `evaluate(df, parameters, dataset, evaluation_id, metrics_map) → MetricResult`. La clase base provee utilidades compartidas: cálculo de severidad, generación de histogramas, inferencia de tipo de columna, enmascaramiento de datos sensibles y **normalización de nulos configurables** (`apply_null_patterns` + `PRESET_NULL_PATTERNS`).
 
 ---
 
