@@ -1,4 +1,4 @@
-\chapter{Resultados: desarrollo iterativo por sprints}
+\chapter{Desarrollo iterativo por sprints}
 \label{chap:desarrollo}
 
 \drop{E}{ste} capítulo constituye el núcleo del trabajo y describe el proceso
@@ -141,7 +141,7 @@ Se completaron los ítems del sprint con las siguientes observaciones:
 \begin{itemize}
   \item El entorno Docker Compose quedó completamente operativo con los ocho
     servicios, \emph{healthchecks}, red interna y volúmenes persistentes.
-  \item Se diseñó el modelo relacional de diez tablas con campos JSONB para
+  \item Se diseñó el modelo relacional de once tablas con campos JSONB para
     flexibilidad futura.
   \item Se implementó el módulo de autenticación JWT completo con registro,
     login, refresco de token y revocación por JTI.
@@ -297,9 +297,9 @@ Anexo~\ref{anx:diagramas}.
 
     %% --- Capa de Datos ---
     \node[package, fill=purple!8, below=of mtr] (data) {%
-      Modelos SQLAlchemy \ac{ORM} --- 10 tablas \\[2pt]
+      Modelos SQLAlchemy \ac{ORM} --- 11 tablas \\[2pt]
       \texttt{User} $\cdot$ \texttt{Project} $\cdot$ \texttt{Dataset} $\cdot$
-      \texttt{Metric} $\cdot$ \texttt{Evaluation} $\cdot$ \texttt{Issue} \\
+      \texttt{Metric} $\cdot$ \texttt{MetricTemplate} $\cdot$ \texttt{Evaluation} $\cdot$ \texttt{Issue} \\
       \texttt{AnalysisRun} $\cdot$ \texttt{DataQualityIssue} $\cdot$
       \texttt{QualityGate} $\cdot$ \texttt{ValidationPattern}};
     \node[pkg-tab, fill=purple!18] at (data.north west) {Datos};
@@ -331,7 +331,7 @@ Anexo~\ref{anx:diagramas}.
 \label{sec:modelo-datos}
 
 PostgreSQL~14~\citep{postgresql} almacena todos los datos relacionales y
-metadatos del sistema.  El esquema comprende diez tablas, con
+metadatos del sistema.  El esquema comprende once tablas, con
 un uso extensivo de campos \textbf{JSONB} para almacenar datos
 semiestructurados cuya estructura varía según la métrica o la configuración.
 
@@ -384,6 +384,14 @@ semiestructurados cuya estructura varía según la métrica o la configuración.
     Vinculadas a \texttt{evaluations}.  Las evaluaciones nuevas utilizan
     \texttt{data\_quality\_issues}, que añade \emph{fingerprint}
     \ac{SHA}-256 y muestras de filas.
+
+  \item[\texttt{validation\_patterns}]  Patrones de validación de formato
+    definidos por el usuario (expresiones regulares con ejemplos válidos e
+    inválidos), reutilizables entre proyectos.  Pueden ser del sistema
+    (\texttt{is\_system\,=\,true}) o propios del usuario.  Son la extensión
+    dinámica del catálogo estático de trece formatos de la métrica
+    \texttt{syntactic\_accuracy}, gestionados mediante el
+    \emph{blueprint} \texttt{patterns}.
 \end{definitionlist}
 
 El empleo de campos JSONB permite almacenar estructuras flexibles dentro del

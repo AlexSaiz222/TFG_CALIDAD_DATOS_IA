@@ -45,11 +45,11 @@ es la siguiente:
     \texttt{currentness}) y la clase \texttt{OutliersMetric}, usada
     exclusivamente desde el módulo de perfilado \ac{EDA}.
 
-  \item \textbf{Datos} (modelos SQLAlchemy \ac{ORM}, 10 tablas):
+  \item \textbf{Datos} (modelos SQLAlchemy \ac{ORM}, 11 tablas):
     \texttt{User}, \texttt{Project}, \texttt{Dataset}, \texttt{Metric},
-    \texttt{Evaluation}, \texttt{Issue} (modelo original) y
-    \texttt{AnalysisRun}, \texttt{DataQualityIssue}, \texttt{QualityGate},
-    \texttt{ValidationPattern} (modelo Sonar-Lite).
+    \texttt{MetricTemplate}, \texttt{Evaluation}, \texttt{Issue}
+    (modelo original) y \texttt{AnalysisRun}, \texttt{DataQualityIssue},
+    \texttt{QualityGate}, \texttt{ValidationPattern} (modelo Sonar-Lite).
 
   \item \textbf{Infraestructura externa}: PostgreSQL\,14, MinIO,
     Redis, Celery Worker, Celery Beat y Flower, orquestados con
