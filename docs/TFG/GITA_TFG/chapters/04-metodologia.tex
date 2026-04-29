@@ -334,15 +334,20 @@ en el directorio \texttt{backend/tests/}.  Los principales tipos de pruebas
 cubren:
 
 \begin{itemize}
-  \item \textbf{Pruebas unitarias} de las métricas de calidad, verificando
-    que cada métrica produce los resultados esperados ante conjuntos de datos
-    de prueba controlados.
+  \item \textbf{Pruebas de autenticación y \ac{API} de proyectos}
+    (\texttt{test\_auth.py}, \texttt{test\_projects\_api.py}): verifican
+    el flujo de autenticación completo (registro, inicio de sesión, refresco
+    de \emph{token}) y las operaciones \ac{CRUD} sobre proyectos.
 
-  \item \textbf{Pruebas de integración} del sistema de versionado de
-    conjuntos de datos, validando la correcta relación padre-hijo entre
-    versiones y la actualización del indicador \texttt{is\_latest}.
+  \item \textbf{Pruebas de integración del versionado de datasets}
+    (\texttt{test\_dataset\_versioning.py},
+    \texttt{test\_dataset\_versioning\_api.py}): validan la correcta
+    relación padre-hijo entre versiones y la actualización del indicador
+    \texttt{is\_latest}, tanto a nivel de servicio como a través de los
+    \emph{endpoints} de la \ac{API}.
 
-  \item \textbf{Pruebas de \emph{Quality Gates}}, verificando que los
+  \item \textbf{Pruebas de \emph{Quality Gates}}
+    (\texttt{test\_quality\_gate.py}), verificando que los
     umbrales configurados producen los estados \texttt{PASSED},
     \texttt{WARNING} y \texttt{FAILED} esperados.
 \end{itemize}

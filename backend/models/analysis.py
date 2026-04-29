@@ -191,6 +191,25 @@ class AnalysisRun(db.Model):
         """Versión ligera para listados"""
         total = self.total_issues_count or 0
         new = self.new_issues_count or 0
+        
+        # Severity breakdown — use the dynamic `issues` relationship to avoid
+        # any forward-reference / import-order issues with DataQualityIssue
+        severity_counts = {'critical': 0, 'major': 0, 'minor': 0, 'info': 0}
+        try:
+            from sqlalchemy import text
+            rows = db.session.execute(
+                text(
+                    "SELECT severity, COUNT(*) FROM data_quality_issues "
+                    "WHERE analysis_run_id = :run_id GROUP BY severity"
+                ),
+                {"run_id": self.id}
+            ).fetchall()
+            for sev, cnt in rows:
+                if sev in severity_counts:
+                    severity_counts[sev] = int(cnt)
+        except Exception:
+            pass
+        
         return {
             'id': self.id,
             'project_id': self.project_id,
@@ -202,6 +221,8 @@ class AnalysisRun(db.Model):
             'fixed_issues_count': self.fixed_issues_count or 0,
             'recurrent_issues_count': max(0, total - new),
             'total_issues_count': total,
+            'critical_issues_count': self.critical_issues_count or 0,
+            'severity_counts': severity_counts,
             'baseline_analysis_id': self.baseline_analysis_id,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,

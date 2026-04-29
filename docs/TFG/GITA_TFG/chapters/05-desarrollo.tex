@@ -717,7 +717,8 @@ donde $N$ es el número total de valores esperados y $N_{\mathrm{null}}$ el
 número de valores nulos o ausentes.  La puntuación global es la media de
 $r_{\mathrm{comp}}$ sobre las columnas configuradas.  Se generan
 \emph{issues} si la completitud global queda por debajo del umbral (0,95
-por defecto) o si alguna columna supera el 2\,\% de nulos.
+por defecto) o si alguna columna cae por debajo de ese mismo umbral
+(equivalente a más del 5\,\% de nulos con la configuración por defecto).
 
 \paragraph{Unicidad (\texttt{uniqueness})}
 Evalúa la ausencia de duplicados a dos niveles: filas completas y
@@ -743,7 +744,8 @@ caja se generan para orientar al usuario sin penalizar la puntuación global.
 
 \paragraph{Exactitud sintáctica (\texttt{syntactic\_accuracy})}
 Verifica la conformidad de los valores con patrones de formato predefinidos.
-El catálogo incluye trece tipos (\emph{email}, \emph{url}, teléfono, DNI,
+El catálogo incluye trece tipos (\emph{email}, \emph{url}, teléfono español
+(\texttt{phone\_es}) e internacional (\texttt{phone\_intl}), DNI,
 fechas ISO y europeas, enteros, decimales, UUID, IPv4, código postal y tarjeta
 de crédito).  Para columnas sin configuración explícita, detecta el tipo más
 probable automáticamente.
@@ -1265,7 +1267,7 @@ Las pruebas automatizadas se organizan en tres suites en
 \texttt{backend/tests/}:
 
 \begin{itemize}
-  \item \textbf{Pruebas unitarias de métricas
+  \item \textbf{Pruebas de autenticación y \ac{API} de proyectos
     (\texttt{test\_auth.py} y \texttt{test\_projects\_api.py}):} verifican
     el flujo de autenticación completo (registro, inicio de sesión, refresco
     de \emph{token}) y las operaciones \ac{CRUD} sobre proyectos.

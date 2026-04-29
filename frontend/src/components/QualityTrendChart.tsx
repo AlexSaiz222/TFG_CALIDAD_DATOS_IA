@@ -26,6 +26,13 @@ const RED    = '#E5484D';
 const ORANGE = '#FFB800';
 const GRAY   = '#888888';
 
+const SEVERITY_COLORS = {
+  critical: '#8B0000',
+  major:    '#E5484D',
+  minor:    '#FFB800',
+  info:     '#00B37E',
+};
+
 // ─── plugin: bandas de zona de calidad ────────────────────────────────────
 function makeZonesPlugin(threshold: number) {
   return {
@@ -305,34 +312,22 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
     [sortedRuns, qualityGateThreshold, selectedDatasetId, datasets, t],
   );
 
-  // ── datos issues (barras apiladas) ──────────────────────────────────
+  // ── datos issues (barras apiladas por severidad) ───────────────────
   const issuesData = useMemo(() => ({
     labels,
-    datasets: [
-      {
-        label: t('qualityTrendChart.recurring'),
-        data: sortedRuns.map(r =>
-          Math.max(0, (r.total_issues_count ?? 0) - (r.new_issues_count ?? 0)),
-        ),
-        backgroundColor: 'rgba(140,140,160,0.35)',
-        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
-        stack: 'total',
-      },
-      {
-        label: t('qualityTrendChart.new'),
-        data: sortedRuns.map(r => r.new_issues_count ?? 0),
-        backgroundColor: 'rgba(229,72,77,0.70)',
-        borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
-        stack: 'total',
-      },
-      {
-        label: t('qualityTrendChart.fixed'),
-        data: sortedRuns.map(r => r.fixed_issues_count ?? 0),
-        backgroundColor: 'rgba(0,179,126,0.65)',
-        borderRadius: 4,
-        stack: 'fixed',
-      },
-    ],
+    datasets: (['info', 'minor', 'major', 'critical'] as const).map((sev, i, arr) => ({
+      label: t(`issueSeverityChart.severity.${sev}`),
+      data: sortedRuns.map(r => r.severity_counts?.[sev] ?? 0),
+      backgroundColor: SEVERITY_COLORS[sev],
+      borderRadius: i === arr.length - 1
+        ? { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 }
+        : i === 0
+          ? { topLeft: 0, topRight: 0, bottomLeft: 3, bottomRight: 3 }
+          : 0,
+      stack: 'severity',
+      barThickness: 18,
+      maxBarThickness: 22,
+    })),
   }), [sortedRuns, labels, t]);
 
   const issuesOptions = useMemo(
@@ -345,15 +340,20 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
           display: true,
           position: 'top' as const,
           align: 'end' as const,
+          reverse: true,
           labels: {
             color: GRAY,
             font: { size: 11 },
             usePointStyle: true,
-            pointStyleWidth: 8,
+            pointStyle: 'circle',
+            boxWidth: 8,
+            boxHeight: 8,
             padding: 16,
           },
         },
         tooltip: {
+          mode: 'index' as const,
+          intersect: false,
           backgroundColor: 'rgba(26,26,26,0.92)',
           titleColor: '#fff',
           bodyColor: 'rgba(255,255,255,0.7)',
@@ -368,7 +368,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({
               const run = sortedRuns[items[0]?.dataIndex];
               return fmtDateFull(run?.completed_at || run?.created_at);
             },
-            footer: (items: any[]) => {
+            afterBody: (items: any[]) => {
               const run = sortedRuns[items[0]?.dataIndex];
               const ds = datasets.find(d => d.id === run?.dataset_id);
               const lines: string[] = [];

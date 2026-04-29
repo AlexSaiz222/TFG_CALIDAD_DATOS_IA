@@ -209,6 +209,7 @@ export interface AnalysisRun {
   new_issues_count: number;
   fixed_issues_count: number;
   recurrent_issues_count: number;
+  severity_counts?: { critical: number; major: number; minor: number; info: number };
   metrics_config?: any;
   results?: any;
   task_id?: string;

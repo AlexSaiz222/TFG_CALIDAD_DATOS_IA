@@ -10,6 +10,17 @@
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
 \usepackage{amssymb}  % \checkmark, $\star$ y otros símbolos matemáticos
 
+%% -- Completar jerarquía de títulos sans-serif (gita-tfg.cls solo define
+%%    \titleformat hasta \subsection; \subsubsection y \paragraph heredan
+%%    el defecto de book, que es Times bold y rompe la coherencia visual)
+\titleformat{\subsubsection}
+  {\normalfont\sffamily\bfseries\fontsize{12pt}{1em}\selectfont}
+  {\thesubsubsection}{1em}{}
+\titlespacing{\subsubsection}{0pt}{3mm}{-1mm}
+
+\titleformat{\paragraph}[runin]
+  {\normalfont\sffamily\bfseries\normalsize}{\theparagraph}{1em}{}
+
 \definecolor{deepskyblue}{rgb}{0.0, 0.75, 1.0}
 \definecolor{gray95}{gray}{0.95}
 \definecolor{codegreen}{rgb}{0.0, 0.5, 0.0}
