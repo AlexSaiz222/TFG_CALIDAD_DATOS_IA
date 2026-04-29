@@ -613,71 +613,30 @@ clave que diferencian a \dataqual de las herramientas existentes:
 
 El desarrollo de \dataqual integra de manera transversal múltiples áreas del
 plan de estudios del Grado en Ingeniería Informática, lo que le confiere un
-carácter integrador propio de un \ac{TFG}. A continuación se detalla la
-correspondencia entre las áreas curriculares y los componentes de la
-plataforma.
+carácter integrador propio de un \ac{TFG}.
 
-\subsection{Ingeniería del Software}
-
-El proyecto aplica principios de arquitectura de software a gran escala:
-arquitectura de microservicios orquestados con Docker
-Compose~\cite{docker}, patrón \ac{MVC} en el backend
-Flask~\cite{flask}, y patrones de diseño clásicos~\cite{design_patterns}
-como Abstract Factory (registro de métricas) y Observer (sistema de eventos de
-evaluación). Se ha seguido control de versiones con Git y metodologías ágiles
-de desarrollo.
-
-\subsection{Sistemas distribuidos}
-
-La plataforma implementa procesamiento asíncrono mediante colas de mensajes
-con Celery~\cite{celery} y Redis~\cite{redis} como \emph{broker} de mensajes.
-La orquestación de los ocho servicios Docker incluye \emph{healthchecks},
-reinicio automático y comunicación inter-servicio mediante redes internas.
-Flower proporciona monitorización en tiempo real de los \emph{workers}
-asíncronos.
-
-\subsection{Bases de datos}
-
-El esquema relacional en PostgreSQL~\cite{postgresql} incluye el uso de
-campos \texttt{JSONB} para configuraciones flexibles de métricas, migraciones
-gestionadas con Flask-Migrate/Alembic y almacenamiento de objetos compatible
-con S3 mediante MinIO~\cite{minio}. El \ac{ORM} SQLAlchemy~\cite{sqlalchemy}
-proporciona la capa de abstracción sobre la base de datos relacional.
-
-\subsection{Desarrollo web}
-
-\dataqual es una aplicación \emph{full-stack} que combina un \emph{frontend} construido con
+El proyecto aplica principios de arquitectura de software a gran escala
+(microservicios orquestados con Docker Compose~\cite{docker}, patrón \ac{MVC}
+en Flask~\cite{flask}, patrones de diseño clásicos~\cite{design_patterns} como
+Abstract Factory en el registro de métricas y Observer en el sistema de
+eventos), procesamiento asíncrono mediante colas de mensajes con
+Celery~\cite{celery} y Redis~\cite{redis} como \emph{broker}, y una gestión
+de datos que combina PostgreSQL~\cite{postgresql} con campos \texttt{JSONB}
+para configuraciones flexibles, SQLAlchemy~\cite{sqlalchemy} como \ac{ORM} y
+almacenamiento de objetos compatible con S3 mediante MinIO~\cite{minio} con
+migraciones gestionadas por Alembic.  El \emph{frontend} construido con
 React~\cite{react}, Next.js~\cite{nextjs}, TypeScript~\cite{typescript} y
-Material \ac{UI}~\cite{materialui}, con un backend \ac{REST}ful
-implementado en Flask~\cite{flask}. La autenticación se gestiona mediante
-tokens \ac{JWT}, y la comunicación entre frontend y backend se realiza a
-través de una \ac{API} \ac{REST}.
-
-\subsection{Análisis de datos y estadística}
-
-El motor de métricas implementa técnicas estadísticas como el rango
-intercuartílico (\ac{IQR}) y el Z-score para la detección de outliers, la
-entropía de Shannon para la evaluación del equilibrio de clases, y el
-\ac{EDA} interactivo con histogramas, diagramas de caja, matrices de
-correlación y detección de anomalías.
-
-\subsection{Seguridad informática}
-
-La plataforma incorpora múltiples capas de seguridad: autenticación y
-autorización mediante \ac{JWT}, derivación de contraseñas con \ac{PBKDF2},
-limitación de tasa de peticiones (\emph{rate limiting}), validación de
-entradas en el servidor, y enmascaramiento de \ac{PII} para proteger datos
-sensibles conforme al \ac{RGPD}.
-
-\subsection{DevOps y despliegue}
-
-La containerización con Docker~\cite{docker} y la orquestación con Docker
-Compose permiten desplegar la plataforma completa con un único comando.
-La configuración basada en variables de entorno facilita la adaptación a
-distintos entornos (desarrollo, pruebas, producción), y Flower proporciona
-un panel de monitorización para los \emph{workers} de Celery.
-
-\bigskip
+Material \ac{UI}~\cite{materialui} se comunica con el \emph{backend} mediante
+una \ac{API} \ac{REST} protegida con \ac{JWT}.  El motor de métricas recurre
+a técnicas estadísticas aplicadas~\textemdash rango intercuartílico (\ac{IQR}),
+Z-score y entropía de Shannon~\textemdash junto con un módulo de \ac{EDA}
+interactivo que incluye histogramas, diagramas de caja y matrices de
+correlación.  La seguridad abarca autenticación y autorización \ac{JWT},
+derivación de contraseñas con \ac{PBKDF2}, limitación de tasa, validación de
+entradas en el servidor y enmascaramiento de \ac{PII} conforme al \ac{RGPD},
+todo ello desplegado con un único comando mediante Docker~Compose con
+configuración basada en variables de entorno y monitorización de
+\emph{workers} a través de Flower.
 
 En conjunto, el desarrollo de \dataqual demuestra la capacidad de integrar
 conocimientos de múltiples disciplinas informáticas en un producto de software

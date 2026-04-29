@@ -283,7 +283,7 @@
 \renewcommand{\frontmatter}{
   \frontmatterorig
   \onehalfspacing
-  \pagestyle{mainstyle}
+  \pagestyle{frontstyle}
   \frontchapterformat
 }
 
@@ -349,8 +349,13 @@
           {\GITAhead{}}
 }
 
+\newpagestyle{frontstyle}[\small\sffamily]{
+  \sethead{\textsc{\chaptertitle}}{}{\textsc{\sectiontitle}}
+  \setfoot{}{\thepage{}}{}
+}
+
 \newpagestyle{mainstyle}[\small\sffamily]{
-  \sethead[\thechapter.\ \textsc{\chaptertitle}][][]{}{}{\textsc{\sectiontitle}}
+  \sethead{\thechapter.\ \textsc{\chaptertitle}}{}{\textsc{\sectiontitle}}
   \setfoot{}{\thepage{}}{}
 }
 
@@ -575,6 +580,7 @@
 
 \newcommand{\copyrightpage}{%
   \newpage
+  \thispagestyle{empty}
   \begin{singlespace}
     \null \vfill \noindent
     \textbf{\sffamily\@author} \par
@@ -602,6 +608,7 @@
 
 \newcommand{\jury}{%
 {\sffamily
+  \thispagestyle{empty}
   \vspace*{2cm}
   \noindent\underline{\textbf{{\Large TRIBUNAL:}}}
   \vspace{1.3cm}

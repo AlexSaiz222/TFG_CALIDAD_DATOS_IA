@@ -34,8 +34,6 @@ datos contienen errores, sesgos o valores ausentes, los modelos resultantes
 heredarán~\textemdash y, con frecuencia, amplificarán~\textemdash dichas
 deficiencias~\cite{redman1998}.
 
-\subsection{Impacto en la fiabilidad de los modelos}
-
 Diversos estudios han demostrado que los problemas de calidad de datos
 constituyen la causa principal de fallos de sistemas de \ac{IA} en
 producción, por encima incluso de los errores algorítmicos.
@@ -49,57 +47,32 @@ de entrenamiento puede reducir la precisión de un clasificador en más de 15
 puntos porcentuales, una degradación que ninguna mejora arquitectónica puede
 compensar de forma fiable~\cite{ng2021datacentric}.
 
-\subsection{Coste económico}
-
-El impacto económico de la mala calidad de datos es igualmente significativo.
+Las consecuencias económicas de esta situación son igualmente significativas.
 Según estimaciones de Gartner, las organizaciones pierden una media de 12,9
 millones de dólares anuales como consecuencia directa de datos
-deficientes~\cite{gartner2017}.  En el ámbito de la \ac{IA}, este coste se
-amplifica de manera notable: modelos entrenados con datos erróneos producen
-decisiones incorrectas que se traducen en consecuencias financieras, legales y
-reputacionales.  Redman~\cite{redman2001} señaló que el coste de corregir
-errores en los datos crece exponencialmente a medida que estos avanzan por las
-etapas de un flujo de procesamiento, lo que subraya la importancia de
-detectarlos lo antes posible.
-
-\subsection{Tiempo dedicado a la preparación de datos}
-
-Encuestas realizadas por plataformas de referencia como
+deficientes~\cite{gartner2017}, y el coste de corregir errores crece
+exponencialmente a medida que avanzan por las etapas de un flujo de
+procesamiento~\cite{redman2001}.  Encuestas de referencia como la de
 Kaggle~\cite{kaggle2022} revelan que entre el 60\,\% y el 80\,\% del tiempo
 de los profesionales de datos se dedica a tareas de limpieza y preparación,
-en detrimento del tiempo disponible para el análisis, la experimentación y el
-desarrollo de modelos.  Este desequilibrio evidencia la necesidad de
-herramientas que automaticen y sistematicen los procesos de evaluación de
-calidad, permitiendo a los equipos concentrar sus esfuerzos en actividades de
-mayor valor añadido.
+en detrimento del tiempo disponible para el análisis y el desarrollo de
+modelos, lo que evidencia la necesidad de herramientas que automaticen la
+evaluación de la calidad.
 
-\subsection{Sesgo algorítmico}
-
-Los datos desequilibrados o no representativos constituyen una fuente
-frecuente de sesgo en los modelos de \ac{IA}.  El caso del algoritmo de
-selección de personal de Amazon, que fue descartado en 2018 tras detectarse
-que discriminaba sistemáticamente a las candidatas
-femeninas~\cite{amazon2018}, puso de manifiesto los riesgos de entrenar
-modelos con datos históricos sesgados.  De forma análoga,
-Buolamwini y Gebru~\cite{buolamwini2018} demostraron que los sistemas
-comerciales de reconocimiento facial presentaban tasas de error
-significativamente superiores para personas de piel oscura, especialmente
-mujeres, como consecuencia de conjuntos de entrenamiento
-insuficientemente diversos.  Estos casos ilustran que la calidad de los datos
-no es únicamente una cuestión técnica, sino también ética y social.
-
-\subsection{Requisitos normativos}
-
-El marco regulatorio refuerza la necesidad de garantizar la calidad de los
-datos.  El Reglamento Europeo de \ac{IA} (\emph{AI
-Act})~\cite{aiact2024} establece requisitos explícitos de calidad,
-trazabilidad y documentación de los datos utilizados en sistemas de \ac{IA} de
-alto riesgo.  De manera complementaria, el \ac{RGPD}~\cite{rgpd2016} exige que los datos
-personales sean exactos y estén actualizados, imponiendo obligaciones de
-rectificación y eliminación que afectan directamente a los flujos de datos de
-proyectos de \ac{ML}.  En este contexto normativo, disponer de mecanismos
-formales y auditables de evaluación de la calidad de datos deja de ser una
-buena práctica para convertirse en una obligación legal.
+La calidad de los datos no es, además, únicamente una cuestión técnica.
+Los datos desequilibrados o no representativos son una fuente frecuente de
+sesgo con consecuencias éticas y sociales: el algoritmo de selección de
+personal de Amazon, descartado en 2018 por discriminar sistemáticamente a las
+candidatas femeninas~\cite{amazon2018}, y los sistemas de reconocimiento
+facial con tasas de error desproporcionadas para personas de piel oscura
+documentados por Buolamwini y Gebru~\cite{buolamwini2018} ilustran cómo las
+deficiencias en los datos de entrenamiento se trasladan al comportamiento del
+modelo.  El marco regulatorio refuerza esta dimensión: el Reglamento Europeo
+de \ac{IA}~\cite{aiact2024} establece requisitos explícitos de calidad,
+trazabilidad y documentación de los datos en sistemas de alto riesgo, y el
+\ac{RGPD}~\cite{rgpd2016} exige que los datos personales sean exactos y estén
+actualizados, convirtiendo la evaluación formal de la calidad en una
+obligación legal, no solo una buena práctica.
 
 
 %% ---------------------------------------------------------------------------

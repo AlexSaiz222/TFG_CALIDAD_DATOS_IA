@@ -371,55 +371,25 @@ integración de todos los componentes del sistema en un escenario realista.
 %% =========================================================================
 
 El desarrollo del proyecto se ha distribuido a lo largo del curso académico
-2025--2026, organizado en las fases que se describen a continuación.
-
-\subsection{Fase~1: Análisis y diseño inicial (octubre--noviembre~2025)}
-
-Estudio del estado del arte en evaluación de calidad de datos, análisis de
-los estándares \ac{ISO}/IEC~25012~\cite{iso25012} e
-\ac{ISO}/IEC~5259~\cite{iso5259}, definición de los requisitos funcionales y
-diseño de la arquitectura general del sistema (servicios, modelo de datos,
-\ac{API}).
-
-\subsection{Fase~2: Implementación del núcleo (diciembre~2025--enero~2026)}
-
-Desarrollo del \emph{backend} base: modelos de datos, sistema de
-autenticación \ac{JWT}, módulo de ingesta de conjuntos de datos con soporte
-multiformato y almacenamiento en MinIO, y esqueleto de la \ac{API}
-\ac{REST}ful.
-
-\subsection{Fase~3: Motor de métricas (febrero~2026)}
-
-Diseño e implementación del motor de métricas con arquitectura de
-\emph{plugins}: clase base abstracta, registro dinámico e implementación de
-las seis métricas de calidad evaluables (completitud, exactitud sintáctica,
-consistencia lógica, actualidad, unicidad y equilibrio de clases) y la clase
-de detección de valores atípicos para el módulo de perfilado.
-
-\subsection{Fase~4: Interfaz de usuario y visualización (marzo~2026)}
-
-Desarrollo del \emph{frontend} con Next.js y React: cuadro de mando
-principal, páginas de gestión de proyectos y conjuntos de datos, cuadros de
-mando de resultados de evaluación con gráficos interactivos, y sistema de
-exploración de datos (\ac{EDA}).
-
-\subsection{Fase~5: Funcionalidades avanzadas (abril~2026)}
-
-Implementación del sistema de \emph{fingerprinting} de \emph{issues},
-\emph{Quality Gates}, comparación con línea base, enmascaramiento de
-\ac{PII}, plantillas de métricas y refinamiento de la interfaz de usuario.
-
-\subsection{Fase~6: Documentación y defensa (mayo--junio~2026)}
-
-Redacción de la memoria del \ac{TFG}, preparación de los anexos técnicos
-(especificación de la \ac{API} y catálogo de métricas), validación final de
-la plataforma con conjuntos de datos reales y preparación de la defensa.
-
-\subsection{Diagrama de Gantt}
+2025--2026 en seis fases encadenadas.  La primera (octubre--noviembre~2025)
+cubrió el estudio del estado del arte, el análisis de los estándares
+\ac{ISO}/IEC~25012~\cite{iso25012} e \ac{ISO}/IEC~5259~\cite{iso5259} y el
+diseño de la arquitectura general del sistema.  A continuación,
+durante diciembre~2025 y enero~2026, se implementó el núcleo del
+\emph{backend}: modelos de datos, autenticación \ac{JWT}, módulo de ingesta
+multiformato con almacenamiento en MinIO y esqueleto de la \ac{API}
+\ac{REST}ful.  Durante febrero~2026 se diseñó e implementó el motor de
+métricas con arquitectura de \emph{plugins} (clase base abstracta y registro
+dinámico) y las seis métricas de calidad evaluables.  En marzo~2026 se
+desarrolló el \emph{frontend} con Next.js y React: cuadros de mando,
+páginas de gestión y el módulo de exploración de datos (\ac{EDA}).  Abril~2026
+se dedicó a las funcionalidades avanzadas: \emph{fingerprinting} de
+\emph{issues}, \emph{Quality Gates}, comparación con línea base y
+enmascaramiento de \ac{PII}.  La última fase (mayo--junio~2026) abarca la
+redacción de la memoria, la validación final con datos reales y la preparación
+de la defensa.  La Tabla~\ref{tab:gantt} muestra la distribución mensual de
+estas fases a lo largo del curso.
 \label{sec:gantt}
-
-La Tabla~\ref{tab:gantt} muestra la distribución temporal de las seis fases
-del proyecto a lo largo del curso académico 2025--2026.
 
 \begin{table}[htbp]
   \centering

@@ -224,35 +224,30 @@ evolución de \dataqual:
 \label{sec:aportacion}
 %% =========================================================================
 
-\subsection{Aportación técnica}
+Desde el punto de vista técnico, \dataqual aporta al panorama de herramientas de
+calidad de datos una solución \emph{full-stack} autoalojada que combina en un
+único producto una interfaz web accesible sin necesidad de programar, métricas
+específicas para proyectos de \ac{ML} (equilibrio de clases, actualidad),
+sistema de \emph{fingerprinting} determinista para la trazabilidad de
+\emph{issues}, \emph{Quality Gates} configurables y protección nativa de
+\ac{PII}, una combinación que no está disponible en ninguna de las herramientas
+de código abierto analizadas en el estado del arte
+(sección~\ref{sec:estado-arte}).
 
-\dataqual aporta al panorama de herramientas de calidad de datos una solución
-\emph{full-stack} autoalojada que combina en un único producto: interfaz web
-accesible sin necesidad de programar, métricas específicas para proyectos de
-\ac{ML} (equilibrio de clases, actualidad), sistema de \emph{fingerprinting}
-determinista para trazabilidad de \emph{issues}, \emph{Quality Gates}
-configurables y protección nativa de \ac{PII}.  Esta combinación no está
-disponible en ninguna de las herramientas de código abierto analizadas en el
-estado del arte (sección~\ref{sec:estado-arte}).
+Desde el punto de vista académico, el proyecto materializa la convergencia entre
+la ingeniería del software moderna (arquitecturas de microservicios, patrones de
+diseño como \emph{plugin} y factoría) y el dominio emergente de la calidad de
+datos para \ac{IA}, proporcionando una implementación de referencia alineada
+con los estándares \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259 que puede servir como
+base para investigación futura sobre métricas de calidad específicas para
+\ac{ML}.
 
-\subsection{Aportación académica}
-
-El proyecto materializa la convergencia entre la ingeniería del software
-moderna (arquitecturas de microservicios, patrones de diseño como
-\emph{plugin} y factoría, CI/CD) y el dominio emergente de la calidad de
-datos para \ac{IA}.  Proporciona una implementación de referencia alineada
-con los estándares \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259, que puede servir
-como base para investigación futura sobre métricas de calidad específicas
-para \ac{ML}.
-
-\subsection{Aportación profesional}
-
-El proyecto ha permitido al autor desarrollar competencias profesionales
-en un conjunto amplio de tecnologías de producción: desarrollo \emph{full-stack}
-(Flask + Next.js), bases de datos relacionales con JSONB, almacenamiento de
-objetos S3, colas de tareas asíncronas (Celery + Redis) y despliegue
-contenerizado (Docker Compose), en un contexto de proyecto real con
-requisitos de seguridad, escalabilidad y mantenibilidad.
+Desde el punto de vista profesional, el proyecto ha permitido al autor
+desarrollar competencias en un conjunto amplio de tecnologías de producción
+---desarrollo \emph{full-stack} (Flask + Next.js), bases de datos relacionales
+con JSONB, almacenamiento de objetos S3, colas de tareas asíncronas (Celery +
+Redis) y despliegue contenerizado (Docker Compose)--- en un contexto de proyecto
+real con requisitos de seguridad, escalabilidad y mantenibilidad.
 
 
 %% =========================================================================
@@ -262,8 +257,6 @@ requisitos de seguridad, escalabilidad y mantenibilidad.
 
 El desarrollo de este \ac{TFG} en la intensificación de Sistemas de
 Información ha permitido adquirir y consolidar las siguientes competencias:
-
-\subsection{Competencias técnicas}
 
 \begin{itemize}
   \item \textbf{Desarrollo \emph{full-stack}:} diseño e implementación de
@@ -290,11 +283,7 @@ Información ha permitido adquirir y consolidar las siguientes competencias:
   \item \textbf{Diseño de \ac{API}s \ac{REST}:} especificación y
     documentación de \emph{endpoints}, gestión de versiones, paginación y
     validación de entradas.
-\end{itemize}
 
-\subsection{Competencias metodológicas}
-
-\begin{itemize}
   \item \textbf{Gestión ágil con Scrum adaptado:} planificación de sprints,
     gestión del backlog con GitHub Issues, retrospectivas y adaptación del
     plan ante imprevistos.
@@ -309,20 +298,14 @@ Información ha permitido adquirir y consolidar las siguientes competencias:
 
   \item \textbf{Documentación técnica:} redacción de una memoria de \ac{TFG}
     completa en \LaTeX, especificaciones de \ac{API} y catálogos de métricas.
-\end{itemize}
 
-\subsection{Competencias transversales}
+  \item \textbf{Resolución autónoma de problemas:} diagnóstico y resolución
+    de problemas de integración entre servicios Docker, incompatibilidades de
+    formato de datos y gestión de errores en sistemas distribuidos.
 
-\begin{itemize}
-  \item \textbf{Resolución autónoma de problemas técnicos:} diagnóstico y
-    resolución de problemas de integración entre servicios Docker,
-    incompatibilidades de formato de datos y gestión de errores en sistemas
-    distribuidos.
-
-  \item \textbf{Capacidad de síntesis y abstracción:} diseño de interfaces y
-    abstracciones que permiten extender el sistema (motor de métricas,
-    arquitectura de \emph{plugins}) sin conocer los detalles de las
-    implementaciones concretas.
+  \item \textbf{Capacidad de síntesis y abstracción:} diseño de interfaces
+    que permiten extender el sistema (motor de métricas, arquitectura de
+    \emph{plugins}) sin conocer los detalles de las implementaciones concretas.
 
   \item \textbf{Trabajo autónomo bajo supervisión:} gestión del tiempo y la
     priorización en un proyecto individual de nueve meses con reuniones de
