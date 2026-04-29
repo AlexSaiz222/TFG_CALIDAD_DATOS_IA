@@ -33,7 +33,7 @@ Jupyter~\textemdash y que, al mismo tiempo, no impongan la barrera técnica
 que presentan las bibliotecas basadas exclusivamente en
 código~(sección~\ref{sec:estado-arte}).  \dataqual aspira a
 ofrecer una solución \emph{full-stack}, alineada con los estándares
-\ac{ISO}/IEC~25012~\cite{iso25012} e \ac{ISO}/IEC~5259~\cite{iso5259}, que
+\ac{ISO}/IEC~25012~\citep{iso25012} e \ac{ISO}/IEC~5259~\citep{iso5259}, que
 democratice la evaluación de calidad de datos haciéndola accesible tanto a
 perfiles técnicos como a usuarios de negocio.
 
@@ -96,8 +96,8 @@ de calidad estándar sobre los conjuntos de datos cargados, permitiendo su
 parametrización según la tipología del proyecto.
 
 Las métricas implementadas deben cubrir las principales dimensiones de calidad
-definidas en \ac{ISO}/IEC~25012~\cite{iso25012} y en
-\ac{ISO}/IEC~5259~\cite{iso5259}, complementadas con métricas específicas
+definidas en \ac{ISO}/IEC~25012~\citep{iso25012} y en
+\ac{ISO}/IEC~5259~\citep{iso5259}, complementadas con métricas específicas
 para el contexto de \ac{IA} y \ac{ML}.  En concreto, el motor debe incluir
 las siguientes \textbf{seis métricas evaluables} (que contribuyen al
 \emph{Quality Score}):
@@ -126,13 +126,13 @@ las siguientes \textbf{seis métricas evaluables} (que contribuyen al
   \item \textbf{Equilibrio de clases} (\texttt{class\_balance}): evaluación
     del balance de la variable objetivo mediante la entropía de Shannon,
     métrica específica para proyectos de \ac{ML} que permite detectar
-    desequilibrios que sesgan los modelos~\cite{ng2021datacentric}.
+    desequilibrios que sesgan los modelos~\citep{ng2021datacentric}.
 \end{enumerate}
 
 Adicionalmente, el motor debe incluir una clase de \textbf{detección de
-valores atípicos} (\texttt{outliers}) basada en \ac{IQR}~\cite{tukey1977}
+valores atípicos} (\texttt{outliers}) basada en \ac{IQR}~\citep{tukey1977}
 y Z-score.
-Siguiendo la recomendación de \ac{ISO}/IEC~5259~\cite{iso5259} de no tratar
+Siguiendo la recomendación de \ac{ISO}/IEC~5259~\citep{iso5259} de no tratar
 los \emph{outliers} como una dimensión de calidad per~se, esta clase
 \textbf{no participará en el \emph{Quality Score}} sino que se utilizará
 exclusivamente como herramienta de diagnóstico en el módulo de perfilado
@@ -261,7 +261,7 @@ Este objetivo se materializa en tres componentes principales:
     sus atributos característicos (métrica, columna, tipo de problema),
     permitiendo su identificación unívoca entre ejecuciones independientes.
     Este mecanismo, inspirado en el sistema de rastreo de \emph{issues} de
-    SonarQube~\cite{sonarqube}, permite clasificar automáticamente cada
+    SonarQube~\citep{sonarqube}, permite clasificar automáticamente cada
     incidencia como \emph{nueva}, \emph{recurrente} o \emph{corregida}
     respecto a la evaluación anterior.
 
@@ -271,7 +271,7 @@ Este objetivo se materializa en tres componentes principales:
     \texttt{WARNING} (margen estrecho respecto a algún umbral) y
     \texttt{FAILED} (al menos un umbral incumplido).  Las \emph{Quality
     Gates} proporcionan una señal clara y automatizable que puede integrarse
-    en \emph{pipelines} de \ac{MLOps}~\cite{kreuzberger2023} o de
+    en \emph{pipelines} de \ac{MLOps}~\citep{kreuzberger2023} o de
     integración continua para bloquear el uso de conjuntos de datos de
     calidad insuficiente.
 \end{enumerate}
@@ -393,9 +393,9 @@ requisitos académicos y de las decisiones de arquitectura adoptadas:
     una única máquina, sin requerir infraestructura distribuida.
 
   \item El proyecto debe alinearse con los estándares
-    \ac{ISO}/IEC~25012~\cite{iso25012},
-    \ac{ISO}/IEC~25024~\cite{iso25024} e
-    \ac{ISO}/IEC~5259~\cite{iso5259} en lo relativo a las dimensiones
+    \ac{ISO}/IEC~25012~\citep{iso25012},
+    \ac{ISO}/IEC~25024~\citep{iso25024} e
+    \ac{ISO}/IEC~5259~\citep{iso5259} en lo relativo a las dimensiones
     y métricas de calidad de datos implementadas.
 \end{itemize}
 

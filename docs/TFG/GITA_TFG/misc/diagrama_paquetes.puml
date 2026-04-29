@@ -1,0 +1,35 @@
+@startuml
+skinparam packageStyle folder
+skinparam shadowing false
+
+package "Frontend (React + Next.js)" {
+  package "components" {}
+  package "pages" {}
+  package "services" as front_services {}
+}
+
+package "Backend (Flask)" {
+  package "app.api (Blueprints)" as api {
+  }
+  
+  package "app.services (Lógica)" as services {
+  }
+  
+  package "app.services.metrics (Motor)" as metrics {
+  }
+  
+  package "app.models (ORM SQLAlchemy)" as models {
+  }
+  
+  package "app.infrastructure" as infra {
+  }
+}
+
+front_services .down.> api : <<use>> HTTP/JSON
+api .down.> services : <<use>>
+services .down.> models : <<use>>
+services .right.> metrics : <<use>>
+metrics .down.> models : <<use>>
+services .left.> infra : <<use>>
+
+@enduml

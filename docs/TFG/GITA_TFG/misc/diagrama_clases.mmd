@@ -1,0 +1,91 @@
+classDiagram
+    direction TB
+
+    %% Modelos principales
+    class User {
+        +Integer id
+        +String email
+        +String password_hash
+        +String role
+        +login()
+    }
+
+    class Project {
+        +Integer id
+        +String name
+        +String description
+        +DateTime created_at
+    }
+
+    class Dataset {
+        +Integer id
+        +String filename
+        +Integer file_size
+        +String status
+        +String minio_object_name
+    }
+
+    class Evaluation {
+        +Integer id
+        +String status
+        +Float quality_score
+        +DateTime started_at
+        +DateTime completed_at
+    }
+
+    class Issue {
+        +Integer id
+        +String metric_type
+        +String severity
+        +String description
+        +JSONB details
+    }
+    
+    class ValidationPattern {
+        +Integer id
+        +String name
+        +String pattern_type
+        +String regex
+    }
+
+    %% Relaciones del modelo de datos
+    User "1" -- "*" Project : creates
+    Project "1" -- "*" Dataset : owns
+    Dataset "1" -- "*" Evaluation : undergoes
+    Evaluation "1" -- "*" Issue : produces
+    Project "1" -- "*" ValidationPattern : configures
+
+    %% Servicios y Lógica
+    namespace Services {
+        class EvaluationService {
+            +startEvaluation(datasetId)
+            +cancelEvaluation(evalId)
+            +getEvaluationStatus(evalId)
+        }
+        class DatasetService {
+            +uploadDataset(file)
+            +extractSchema(datasetId)
+        }
+        class MinioService {
+            +putObject(bucket, file)
+            +getObject(bucket, filename)
+        }
+    }
+    
+    namespace MetricsEngine {
+        class BaseMetric {
+            <<abstract>>
+            +String name
+            +evaluate(dataframe, config)*
+        }
+        class CompletenessMetric
+        class UniquenessMetric
+        class SyntacticAccuracyMetric
+    }
+
+    BaseMetric <|-- CompletenessMetric
+    BaseMetric <|-- UniquenessMetric
+    BaseMetric <|-- SyntacticAccuracyMetric
+
+    EvaluationService ..> BaseMetric : executes
+    DatasetService ..> MinioService : uses

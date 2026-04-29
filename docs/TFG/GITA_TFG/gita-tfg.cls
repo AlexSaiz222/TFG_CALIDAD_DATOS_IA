@@ -201,6 +201,9 @@
 \newcommand{\sigla}[1]{\textsc{\textscale{.85}{#1}}}
 
 
+%% -- BIBLIOGRAFÍA APA (natbib + apalike) -------------------------------------
+\usepackage[authoryear,round,sort]{natbib}
+
 %% -- HIPER-ENLACES PARA PDF ---------------------------------------------------
 \usepackage[%
     bookmarks,
@@ -230,7 +233,7 @@
 
 
 %% -- BIBLIOGRAFÍA -------------------------------------------------------------
-\bibliographystyle{es-alpha}
+\bibliographystyle{apalike}
 
 \newcommand{\bibfont}{\small}      % Bibliography's font size
 %% \setlength{\bibhang}{4ex}       % Indent of Bibliography entries
@@ -569,6 +572,7 @@
 
 \newcommand{\dedication}[1]{%
   \cleardoublepage
+  \thispagestyle{empty}
   \null\vspace{\stretch{1}}
   \begin{flushright}
     \textit{#1}

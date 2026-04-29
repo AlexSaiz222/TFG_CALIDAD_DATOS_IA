@@ -7,7 +7,7 @@ son \textbf{métricas evaluables} que contribuyen al \emph{Quality Score}
 (completitud, unicidad, exactitud sintáctica, consistencia lógica, equilibrio
 de clases y actualidad), y una (\texttt{outliers}) es una \textbf{clase de
 diagnóstico} disponible en el módulo de perfilado de datos pero excluida del
-\emph{Quality Score}, en línea con \ac{ISO}/IEC~5259~\cite{iso5259}.  Para
+\emph{Quality Score}, en línea con \ac{ISO}/IEC~5259~\citep{iso5259}.  Para
 cada métrica se detalla su fundamento, los parámetros de configuración
 disponibles y los \emph{issues} que genera.
 
@@ -19,7 +19,7 @@ disponibles y los \emph{issues} que genera.
 
 \textbf{Fundamento.}  Mide el grado en que los datos esperados están
 presentes en el conjunto de datos, alineada con la dimensión de completitud
-de \ac{ISO}/IEC~25012~\cite{iso25012}.
+de \ac{ISO}/IEC~25012~\citep{iso25012}.
 
 \textbf{Algoritmo.}  Ratio de valores no nulos por columna.  Si se
 especifican columnas, la puntuación es la media de sus ratios; en caso
@@ -68,7 +68,7 @@ enmascaradas si contienen \ac{PII}) y columna de identificador no única.
 \textbf{Nota.}  Esta clase \textbf{no es una métrica evaluable}: no produce
 puntuación ni contribuye al \emph{Quality Score}.  Se invoca exclusivamente
 desde el módulo de perfilado de datos (\emph{EDA}), en línea con la
-recomendación de \ac{ISO}/IEC~5259~\cite{iso5259} de no tratar los
+recomendación de \ac{ISO}/IEC~5259~\citep{iso5259} de no tratar los
 \emph{outliers} como una dimensión de calidad per~se.
 
 \textbf{Fundamento.}  Detecta valores que se desvían significativamente del
@@ -103,7 +103,7 @@ ninguna puntuación.
 
 \textbf{Fundamento.}  Verifica la conformidad de los valores con patrones de
 formato predefinidos, alineada con la dimensión de exactitud de
-\ac{ISO}/IEC~25012~\cite{iso25012}.
+\ac{ISO}/IEC~25012~\citep{iso25012}.
 
 \textbf{Catálogo de tipos.}  13 tipos predefinidos: \emph{email},
 \emph{url}, teléfono (español e internacional), DNI, fechas (ISO y europea),
@@ -153,7 +153,7 @@ inyección de código.
 %% =========================================================================
 
 \textbf{Fundamento.}  Métrica específica para \ac{ML} supervisado.  Utiliza
-la entropía de Shannon~\cite{shannon1948} para cuantificar el
+la entropía de Shannon~(\citeyear{shannon1948}) para cuantificar el
 equilibrio de la variable objetivo:
 
 \[
@@ -190,7 +190,7 @@ columnas enteras con hasta 20 valores únicos.
 \textbf{Fundamento.}  Mide la frescura de los datos calculando la antigüedad
 del valor de fecha más reciente de cada columna temporal, alineada con la
 dimensión de actualidad (\emph{currentness}) de
-\ac{ISO}/IEC~25012~\cite{iso25012}.
+\ac{ISO}/IEC~25012~\citep{iso25012}.
 
 \textbf{Algoritmo de frescura.}  La degradación es lineal entre el umbral de
 obsolescencia y el doble de dicho umbral:

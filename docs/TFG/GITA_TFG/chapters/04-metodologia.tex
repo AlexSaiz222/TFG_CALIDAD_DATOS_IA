@@ -16,7 +16,7 @@ el análisis de costes y la gestión de riesgos del proyecto.
 \subsection{Metodología ágil adoptada: Scrum adaptado}
 
 Para la gestión del proyecto se ha adoptado \textbf{Scrum adaptado a un TFG
-individual}~\cite{scrumguide}, metodología ágil iterativa e incremental que
+individual}~\citep{scrumguide}, metodología ágil iterativa e incremental que
 estructura el trabajo en sprints de duración fija y favorece la entrega
 continua de valor.
 La justificación de esta elección se apoya en tres argumentos principales:
@@ -120,8 +120,8 @@ actividades:
 
   \item \textbf{Diseño:} definición de la arquitectura y el modelo de datos
     necesarios para las funcionalidades seleccionadas, tomando como referencia
-    los estándares \ac{ISO}/IEC~25012~\cite{iso25012} e
-    \ac{ISO}/IEC~5259~\cite{iso5259} para el diseño de las métricas de
+    los estándares \ac{ISO}/IEC~25012~\citep{iso25012} e
+    \ac{ISO}/IEC~5259~\citep{iso5259} para el diseño de las métricas de
     calidad.
 
   \item \textbf{Implementación:} desarrollo del código del \emph{backend} y
@@ -171,6 +171,9 @@ grado en Ingeniería Informática.
 \subsection{\emph{Frontend}}
 \label{sec:tech-frontend}
 
+La Tabla~\ref{tab:tech-frontend} detalla las tecnologías seleccionadas para la capa de presentación o \emph{frontend}.
+
+
 \begin{table}[htbp]
   \centering
   \caption{Tecnologías del \emph{frontend}}
@@ -201,6 +204,9 @@ grado en Ingeniería Informática.
 
 \subsection{\emph{Backend}}
 \label{sec:tech-backend}
+
+Las herramientas que componen la lógica de negocio y la \ac{API} del sistema se recogen en la Tabla~\ref{tab:tech-backend}.
+
 
 \begin{table}[htbp]
   \centering
@@ -236,6 +242,9 @@ grado en Ingeniería Informática.
 \subsection{Base de datos y almacenamiento}
 \label{sec:tech-bbdd}
 
+Para la persistencia de datos y la gestión de archivos, se emplean las tecnologías descritas en la Tabla~\ref{tab:tech-bbdd}.
+
+
 \begin{table}[htbp]
   \centering
   \caption{Tecnologías de base de datos y almacenamiento}
@@ -262,6 +271,9 @@ grado en Ingeniería Informática.
 \subsection{Procesamiento asíncrono y orquestación}
 \label{sec:tech-async}
 
+La ejecución de evaluaciones en segundo plano se apoya en las herramientas de orquestación presentadas en la Tabla~\ref{tab:tech-async}.
+
+
 \begin{table}[htbp]
   \centering
   \caption{Tecnologías de procesamiento asíncrono y orquestación}
@@ -273,12 +285,12 @@ grado en Ingeniería Informática.
     Celery    & 5.2  & Cola de tareas distribuida estándar en Python, con
       soporte para reintentos, \emph{timeouts} y seguimiento de progreso.
       Escalable horizontalmente mediante la adición de
-      \emph{workers}~\cite{celery}. \\
+      \emph{workers}~\citep{celery}. \\
     Flower    & 1.2  & Cuadro de mando web para la monitorización en tiempo
       real de \emph{workers}, tareas y colas de Celery. \\
     Docker    & ---  & Contenedorización de cada servicio, garantizando
       aislamiento de dependencias, portabilidad y
-      reproducibilidad~\cite{docker}. \\
+      reproducibilidad~\citep{docker}. \\
     Docker Compose & --- & Orquestación de los ocho servicios con
       \emph{healthchecks}, volúmenes persistentes, red interna y variables de
       entorno.  Un único comando (\texttt{docker-compose~up}) despliega el
@@ -373,7 +385,7 @@ integración de todos los componentes del sistema en un escenario realista.
 El desarrollo del proyecto se ha distribuido a lo largo del curso académico
 2025--2026 en seis fases encadenadas.  La primera (octubre--noviembre~2025)
 cubrió el estudio del estado del arte, el análisis de los estándares
-\ac{ISO}/IEC~25012~\cite{iso25012} e \ac{ISO}/IEC~5259~\cite{iso5259} y el
+\ac{ISO}/IEC~25012~\citep{iso25012} e \ac{ISO}/IEC~5259~\citep{iso5259} y el
 diseño de la arquitectura general del sistema.  A continuación,
 durante diciembre~2025 y enero~2026, se implementó el núcleo del
 \emph{backend}: modelos de datos, autenticación \ac{JWT}, módulo de ingesta
@@ -591,7 +603,7 @@ impacto (Alto/Medio/Bajo) y las acciones preventivas y correctivas definidas.
   \small
   \caption{Plan de gestión de riesgos}
   \label{tab:riesgos}
-  \begin{tabularx}{\textwidth}{l l c c X X}
+  \begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}X c c >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
     \toprule
     \textbf{ID} & \textbf{Riesgo} & \textbf{Prob.} & \textbf{Imp.} &
       \textbf{Acción preventiva} & \textbf{Acción correctiva} \\

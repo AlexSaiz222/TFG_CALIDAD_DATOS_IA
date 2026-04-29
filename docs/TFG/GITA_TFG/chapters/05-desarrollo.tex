@@ -156,7 +156,7 @@ Se completaron los ítems del sprint con las siguientes observaciones:
 \label{sec:arquitectura}
 
 \dataqual sigue una arquitectura de \textbf{servicios orquestados} mediante
-Docker Compose~\cite{docker}.  Los ocho servicios que componen la plataforma
+Docker Compose~\citep{docker}.  Los ocho servicios que componen la plataforma
 se comunican a través de una red interna (\texttt{app-network}, \emph{driver}
 \emph{bridge}) y exponen al anfitrión únicamente los puertos necesarios.
 
@@ -217,11 +217,11 @@ Todos los servicios poseen una política de reinicio \texttt{unless-stopped}
 y los servicios de infraestructura incluyen \emph{healthchecks} que verifican
 su disponibilidad antes de que arranquen los servicios dependientes.
 
-\subsubsection{Diagrama de paquetes}
-\label{sec:diagrama-paquetes}
+\subsubsection{Diagrama de arquitectura}
+\label{sec:diagrama-arquitectura}
 
-La Figura~\ref{fig:diagrama-paquetes} representa la arquitectura del sistema
-como un diagrama de paquetes \ac{UML} a alto nivel.  Cada banda corresponde
+La Figura~\ref{fig:diagrama-arquitectura} representa la arquitectura del sistema
+como un diagrama por capas a alto nivel.  Cada banda corresponde
 a una capa arquitectónica y las flechas discontinuas con punta abierta
 codifican la relación \emph{depends-on} entre capas.  La descomposición
 garantiza una separación nítida de responsabilidades: el \emph{frontend}
@@ -319,18 +319,18 @@ Anexo~\ref{anx:diagramas}.
     \draw[depends] (mtr)  -- (data);
     \draw[depends] (data) -- (inf);
   \end{tikzpicture}
-  \caption{Diagrama de paquetes de \dataqual: arquitectura por capas con
+  \caption{Arquitectura lógica por capas de \dataqual, mostrando las
     dependencias \emph{depends-on} (flecha discontinua de punta abierta).
-    El paquete \texttt{services/metrics/} ($\star$) constituye el núcleo
+    El directorio \texttt{services/metrics/} ($\star$) constituye el núcleo
     extensible del motor de evaluación, alineado con el principio
-    abierto--cerrado~\cite{design_patterns}}
-  \label{fig:diagrama-paquetes}
+    abierto--cerrado~\citep{design_patterns}}
+  \label{fig:diagrama-arquitectura}
 \end{figure}
 
 \subsubsection{Modelo de datos}
 \label{sec:modelo-datos}
 
-PostgreSQL~14~\cite{postgresql} almacena todos los datos relacionales y
+PostgreSQL~14~\citep{postgresql} almacena todos los datos relacionales y
 metadatos del sistema.  El esquema comprende diez tablas, con
 un uso extensivo de campos \textbf{JSONB} para almacenar datos
 semiestructurados cuya estructura varía según la métrica o la configuración.
@@ -489,7 +489,7 @@ El \emph{backend} sigue una \textbf{arquitectura en capas} con separación
 clara de responsabilidades.
 
 La aplicación Flask se crea mediante el \textbf{patrón factoría}
-(\texttt{create\_app()} en \texttt{app.py})~\cite{design_patterns}, que
+(\texttt{create\_app()} en \texttt{app.py})~\citep{design_patterns}, que
 inicializa las extensiones, registra los \emph{blueprints} y configura el
 \emph{middleware}.  Los \textbf{seis módulos funcionales principales} de la \ac{API} se montan
 bajo el prefijo \texttt{/api}:
@@ -506,7 +506,7 @@ bajo el prefijo \texttt{/api}:
   \item \texttt{/api/admin/} --- rendimiento del sistema y comprobación de salud.
 \end{itemize}
 
-Siguiendo la convención REST de rutas anidadas~\cite{fielding2000}, se implementaron adicionalmente
+Siguiendo la convención REST de rutas anidadas~\citep{fielding2000}, se implementaron adicionalmente
 tres \emph{blueprints} de organización técnica: \texttt{project\_metrics}
 (\texttt{/projects/<id>/metrics}), \texttt{project\_datasets}
 (\texttt{/projects/<id>/datasets}) y \texttt{dashboard} (agregaciones de solo
@@ -514,8 +514,8 @@ lectura).  El total de \emph{blueprints} Flask registrados al cierre de
 este sprint asciende a \textbf{nueve}; durante el Sprint~5 se añadirá un
 séptimo módulo funcional (\texttt{patterns}, gestión de patrones de
 validación reutilizables) elevando el total final a diez, tal como se
-representa en el diagrama de paquetes
-(Figura~\ref{fig:diagrama-paquetes}).
+representa en el diagrama de arquitectura
+(Figura~\ref{fig:diagrama-arquitectura}).
 
 La lógica de negocio se encapsula en servicios independientes:
 \texttt{EvaluationService} (orquesta el flujo completo de evaluación),
@@ -709,7 +709,7 @@ en el módulo de perfilado.
 Mide el grado en que los datos esperados están presentes, calculando la ratio
 de valores no nulos por columna.  La fórmula implementada corresponde
 directamente al \emph{Completeness Ratio} definido en
-\ac{ISO}/IEC~25024~\cite{iso25024}:
+\ac{ISO}/IEC~25024~\citep{iso25024}:
 \[
   r_{\mathrm{comp}} = \frac{N - N_{\mathrm{null}}}{N}
 \]
@@ -723,7 +723,7 @@ por defecto) o si alguna columna cae por debajo de ese mismo umbral
 \paragraph{Unicidad (\texttt{uniqueness})}
 Evalúa la ausencia de duplicados a dos niveles: filas completas y
 variabilidad por columna.  La ratio de unicidad sigue la fórmula del
-\emph{Uniqueness Ratio} de \ac{ISO}/IEC~25024~\cite{iso25024}:
+\emph{Uniqueness Ratio} de \ac{ISO}/IEC~25024~\citep{iso25024}:
 \[
   r_{\mathrm{uniq}} = \frac{N_{\mathrm{distinct}}}{N}
 \]
@@ -732,11 +732,11 @@ Los umbrales de variabilidad se adaptan al tipo semántico inferido:
 
 \paragraph{Detección de valores atípicos (\texttt{outliers}) --- solo perfilado}
 La clase \texttt{OutliersMetric} detecta \emph{outliers} en columnas
-numéricas mediante \ac{IQR} (Rango Intercuartílico)~\cite{tukey1977}
+numéricas mediante \ac{IQR} (Rango Intercuartílico)~\citep{tukey1977}
 y Z-score.
 \textbf{Esta clase no figura en el \texttt{METRIC\_REGISTRY} y no contribuye
 al \emph{Quality Score}:} siguiendo la recomendación de
-\ac{ISO}/IEC~5259~\cite{iso5259}, los valores atípicos no se consideran una
+\ac{ISO}/IEC~5259~\citep{iso5259}, los valores atípicos no se consideran una
 dimensión de calidad intrínseca sino un indicador de diagnóstico.  La clase
 se instancia exclusivamente desde el módulo de perfilado de datos
 (\emph{EDA}), donde los histogramas de \emph{outliers} y los diagramas de
@@ -759,7 +759,7 @@ verifica la ausencia de \emph{tokens} prohibidos (\texttt{import},
 
 \paragraph{Equilibrio de clases (\texttt{class\_balance})}
 Métrica específica para \ac{ML} supervisado.  Utiliza la entropía de
-Shannon~\cite{shannon1948} para cuantificar el equilibrio de la variable
+Shannon~(\citeyear{shannon1948}) para cuantificar el equilibrio de la variable
 objetivo: 100 indica
 distribución uniforme; cercano a~0 indica desequilibrio total.  Se generan
 \emph{issues} cuando la clase dominante supera el 90\,\% o la minoritaria
@@ -899,7 +899,7 @@ de datos (\ac{EDA}).
 \subsubsection{Estructura de la aplicación \emph{frontend}}
 \label{sec:impl-frontend}
 
-La aplicación sigue las convenciones de Next.js~13.3~\cite{nextjs} con
+La aplicación sigue las convenciones de Next.js~13.3~\citep{nextjs} con
 enrutamiento basado en ficheros (\texttt{pages/}) y componentes reutilizables
 (\texttt{components/}).  El estado global se gestiona mediante la Context
 \ac{API} de React con tres contextos: autenticación (\texttt{AuthContext}),
@@ -930,13 +930,13 @@ La interfaz proporciona las siguientes visualizaciones principales:
     matrices de correlación (Pearson y Spearman) y detección interactiva de
     valores atípicos con factor \ac{IQR} configurable.  Las estadísticas
     descriptivas expuestas siguen el catálogo de métricas de perfilado
-    propuesto por Abedjan et~al.~\cite{abedjan2018}.
+    propuesto por Abedjan et~al.~(\citeyear{abedjan2018}).
 
   \item \textbf{Gráficos de tendencia}: evolución de la puntuación de
     calidad a lo largo del tiempo y comparación entre versiones del dataset.
 \end{itemize}
 
-Las visualizaciones se implementan con Chart.js~\cite{chartjs} mediante el
+Las visualizaciones se implementan con Chart.js~\citep{chartjs} mediante el
 \emph{wrapper} \texttt{react-chartjs-2}.
 
 Las figuras~\ref{fig:dashboard}--\ref{fig:eda} muestran las pantallas
@@ -1109,7 +1109,7 @@ se visualizan en la interfaz mediante \emph{badges}.
 \subsubsection{Procesamiento asíncrono}
 \label{sec:impl-async}
 
-\dataqual utiliza Celery~\cite{celery} con Redis~\cite{redis} como
+\dataqual utiliza Celery~\citep{celery} con Redis~\citep{redis} como
 \emph{broker} para ejecutar las evaluaciones de forma asíncrona.  La tarea
 \texttt{run\_evaluation} orquesta el flujo completo: crea el contexto Flask,
 actualiza el estado (\texttt{PENDING} → \texttt{RUNNING} → \texttt{COMPLETED}/

@@ -27,17 +27,17 @@ dirige y describe la estructura del resto del documento.
 El principio conocido como \emph{garbage in, garbage out} resume de forma
 elocuente una verdad ampliamente reconocida en el ámbito de la ciencia de
 datos: la calidad de las salidas de un sistema está intrínsecamente limitada
-por la calidad de sus entradas~\cite{wang1996}.  En el contexto de la \ac{IA}
+por la calidad de sus entradas~\citep{wang1996}.  En el contexto de la \ac{IA}
 y el \ac{ML}, este principio adquiere una relevancia especial, ya que los
 modelos aprenden patrones directamente de los datos de entrenamiento.  Si estos
 datos contienen errores, sesgos o valores ausentes, los modelos resultantes
 heredarán~\textemdash y, con frecuencia, amplificarán~\textemdash dichas
-deficiencias~\cite{redman1998}.
+deficiencias~\citep{redman1998}.
 
 Diversos estudios han demostrado que los problemas de calidad de datos
 constituyen la causa principal de fallos de sistemas de \ac{IA} en
 producción, por encima incluso de los errores algorítmicos.
-Sambasivan et~al.~\cite{sambasivan2021} documentaron, a partir de entrevistas
+Sambasivan et~al.~(\citeyear{sambasivan2021}) documentaron, a partir de entrevistas
 con 53 profesionales de \ac{IA} en múltiples organizaciones, que las
 deficiencias en los datos~\textemdash etiquetado incorrecto, datos
 desactualizados, muestras no representativas~\textemdash son la causa
@@ -45,15 +45,15 @@ predominante de los fracasos en despliegues de \ac{ML}.  A modo ilustrativo,
 se ha estimado que un 10\,\% de etiquetas incorrectas en un conjunto de datos
 de entrenamiento puede reducir la precisión de un clasificador en más de 15
 puntos porcentuales, una degradación que ninguna mejora arquitectónica puede
-compensar de forma fiable~\cite{ng2021datacentric}.
+compensar de forma fiable~\citep{ng2021datacentric}.
 
 Las consecuencias económicas de esta situación son igualmente significativas.
 Según estimaciones de Gartner, las organizaciones pierden una media de 12,9
 millones de dólares anuales como consecuencia directa de datos
-deficientes~\cite{gartner2017}, y el coste de corregir errores crece
+deficientes~\citep{gartner2017}, y el coste de corregir errores crece
 exponencialmente a medida que avanzan por las etapas de un flujo de
-procesamiento~\cite{redman2001}.  Encuestas de referencia como la de
-Kaggle~\cite{kaggle2022} revelan que entre el 60\,\% y el 80\,\% del tiempo
+procesamiento~\citep{redman2001}.  Encuestas de referencia como la de
+Kaggle~(\citeyear{kaggle2022}) revelan que entre el 60\,\% y el 80\,\% del tiempo
 de los profesionales de datos se dedica a tareas de limpieza y preparación,
 en detrimento del tiempo disponible para el análisis y el desarrollo de
 modelos, lo que evidencia la necesidad de herramientas que automaticen la
@@ -63,14 +63,14 @@ La calidad de los datos no es, además, únicamente una cuestión técnica.
 Los datos desequilibrados o no representativos son una fuente frecuente de
 sesgo con consecuencias éticas y sociales: el algoritmo de selección de
 personal de Amazon, descartado en 2018 por discriminar sistemáticamente a las
-candidatas femeninas~\cite{amazon2018}, y los sistemas de reconocimiento
+candidatas femeninas~\citep{amazon2018}, y los sistemas de reconocimiento
 facial con tasas de error desproporcionadas para personas de piel oscura
-documentados por Buolamwini y Gebru~\cite{buolamwini2018} ilustran cómo las
+documentados por Buolamwini y Gebru~(\citeyear{buolamwini2018}) ilustran cómo las
 deficiencias en los datos de entrenamiento se trasladan al comportamiento del
 modelo.  El marco regulatorio refuerza esta dimensión: el Reglamento Europeo
-de \ac{IA}~\cite{aiact2024} establece requisitos explícitos de calidad,
+de \ac{IA}~\citep{aiact2024} establece requisitos explícitos de calidad,
 trazabilidad y documentación de los datos en sistemas de alto riesgo, y el
-\ac{RGPD}~\cite{rgpd2016} exige que los datos personales sean exactos y estén
+\ac{RGPD}~\citep{rgpd2016} exige que los datos personales sean exactos y estén
 actualizados, convirtiendo la evaluación formal de la calidad en una
 obligación legal, no solo una buena práctica.
 
@@ -83,7 +83,7 @@ Para abordar la problemática descrita, se ha diseñado e implementado
 \dataqual, una plataforma web \emph{full-stack} para la evaluación
 automatizada de la calidad de datos en proyectos de \ac{IA}, \ac{ML} y
 minería de datos.  La plataforma combina una interfaz gráfica interactiva con
-una \ac{API} \ac{REST}ful~\cite{fielding2000}, ofreciendo las siguientes capacidades principales:
+una \ac{API} \ac{REST}ful~\citep{fielding2000}, ofreciendo las siguientes capacidades principales:
 
 \begin{itemize}
   \item \textbf{Carga de conjuntos de datos} en múltiples formatos (\ac{CSV},
@@ -92,8 +92,8 @@ una \ac{API} \ac{REST}ful~\cite{fielding2000}, ofreciendo las siguientes capacid
 
   \item \textbf{Configuración de métricas de calidad} adaptadas al tipo de
     proyecto, con parámetros y umbrales personalizables alineados con los
-    estándares \ac{ISO}/IEC~25012~\cite{iso25012} y
-    \ac{ISO}/IEC~5259~\cite{iso5259}.
+    estándares \ac{ISO}/IEC~25012~\citep{iso25012} y
+    \ac{ISO}/IEC~5259~\citep{iso5259}.
 
   \item \textbf{Ejecución asíncrona de evaluaciones}, que analiza los
     conjuntos de datos frente a las métricas configuradas sin bloquear la
@@ -134,8 +134,8 @@ adopción sistemática en entornos profesionales:
   \item \textbf{Falta de estandarización.}  Cada equipo define sus propias
     métricas y umbrales de forma aislada, lo que impide la comparación entre
     proyectos y dificulta la auditoría.  \dataqual implementa un catálogo de
-    métricas alineado con \ac{ISO}/IEC~25012~\cite{iso25012} y la serie
-    \ac{ISO}/IEC~5259~\cite{iso5259}, proporcionando un marco de referencia
+    métricas alineado con \ac{ISO}/IEC~25012~\citep{iso25012} y la serie
+    \ac{ISO}/IEC~5259~\citep{iso5259}, proporcionando un marco de referencia
     común basado en el modelo \ac{SQuaRE}.
 
   \item \textbf{Ausencia de historización.}  Los \emph{scripts} ad~hoc
@@ -145,7 +145,7 @@ adopción sistemática en entornos profesionales:
     detección de degradaciones en la calidad.
 
   \item \textbf{Barrera técnica.}  Las herramientas basadas en código, como
-    Great Expectations~\cite{greatexpectations} o Deequ de Amazon, requieren
+    Great Expectations~\citep{greatexpectations} o Deequ de Amazon, requieren
     conocimientos de programación que no todos los perfiles involucrados en un
     proyecto de datos poseen.  \dataqual proporciona una interfaz web
     accesible que permite a usuarios no técnicos configurar y ejecutar
@@ -160,7 +160,7 @@ adopción sistemática en entornos profesionales:
   \item \textbf{Ausencia de Quality Gates.}  Pocas herramientas proporcionan
     señales claras de aprobación o rechazo sobre la calidad de un conjunto de
     datos.  Inspirándose en el concepto de \emph{Quality Gate} de
-    SonarQube~\cite{sonarqube} para la calidad del código, \dataqual
+    SonarQube~\citep{sonarqube} para la calidad del código, \dataqual
     implementa puertas de calidad configurables con estados
     \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}, ofreciendo
     criterios objetivos y automatizados para la toma de decisiones.

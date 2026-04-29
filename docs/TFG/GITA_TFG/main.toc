@@ -24,7 +24,7 @@
 \contentsline {section}{\numberline {2.3}Alcance metodológico: evaluación algorítmica de la calidad inherente}{10}{section.2.3}%
 \contentsline {subsection}{\numberline {2.3.1}Taxonomía de características de calidad según ISO/IEC 5259-2}{10}{subsection.2.3.1}%
 \contentsline {subsection}{\numberline {2.3.2}Características evaluables algorítmicamente}{11}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}Características fuera del alcance técnico}{12}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.3}Características fuera del alcance técnico}{11}{subsection.2.3.3}%
 \contentsline {paragraph}{Dependencia de infraestructura organizativa.}{12}{subsection.2.3.3}%
 \contentsline {paragraph}{Dependencia de metadatos organizativos y contexto de negocio.}{12}{subsection.2.3.3}%
 \contentsline {subsection}{\numberline {2.3.4}Priorización de características para el MVP}{12}{subsection.2.3.4}%
@@ -72,11 +72,11 @@
 \contentsline {subsection}{\numberline {4.5.2}Pruebas manuales}{31}{subsection.4.5.2}%
 \contentsline {section}{\numberline {4.6}Planificación temporal}{31}{section.4.6}%
 \contentsline {section}{\numberline {4.7}Backlog inicial e historias de usuario}{31}{section.4.7}%
-\contentsline {section}{\numberline {4.8}Estimación de esfuerzo}{32}{section.4.8}%
-\contentsline {subsection}{\numberline {4.8.1}Técnica de estimación}{32}{subsection.4.8.1}%
+\contentsline {section}{\numberline {4.8}Estimación de esfuerzo}{33}{section.4.8}%
+\contentsline {subsection}{\numberline {4.8.1}Técnica de estimación}{33}{subsection.4.8.1}%
 \contentsline {subsection}{\numberline {4.8.2}Estimación inicial vs.\ real}{33}{subsection.4.8.2}%
 \contentsline {section}{\numberline {4.9}Estimación de costes}{33}{section.4.9}%
-\contentsline {section}{\numberline {4.10}Gestión de riesgos}{33}{section.4.10}%
+\contentsline {section}{\numberline {4.10}Gestión de riesgos}{35}{section.4.10}%
 \contentsline {chapter}{\numberline {5}Resultados: desarrollo iterativo por sprints}{36}{chapter.5}%
 \contentsline {section}{\numberline {5.1}Requisitos globales del sistema}{36}{section.5.1}%
 \contentsline {subsection}{\numberline {5.1.1}Historias de usuario}{36}{subsection.5.1.1}%
@@ -87,7 +87,7 @@
 \contentsline {subsection}{\numberline {5.2.2}Trabajo realizado}{38}{subsection.5.2.2}%
 \contentsline {subsection}{\numberline {5.2.3}Cómo se ha hecho}{38}{subsection.5.2.3}%
 \contentsline {subsubsection}{Arquitectura general del sistema}{38}{subsection.5.2.3}%
-\contentsline {subsubsection}{Diagrama de paquetes}{39}{table.5.3}%
+\contentsline {subsubsection}{Diagrama de arquitectura}{39}{table.5.3}%
 \contentsline {subsubsection}{Modelo de datos}{39}{figure.5.2}%
 \contentsline {subsection}{\numberline {5.2.4}Retrospectiva}{41}{subsection.5.2.4}%
 \contentsline {section}{\numberline {5.3}Sprint 2 --- \emph {Backend} core: datasets, \acs {API} \acs {REST}}{42}{section.5.3}%
