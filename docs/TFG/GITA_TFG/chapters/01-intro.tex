@@ -74,6 +74,12 @@ trazabilidad y documentación de los datos en sistemas de alto riesgo, y el
 actualizados, convirtiendo la evaluación formal de la calidad en una
 obligación legal, no solo una buena práctica.
 
+Este trabajo nace del interés personal del autor por el tratamiento y la
+gestión de los datos como disciplina, y de su voluntad de profundizar en el
+ámbito de la inteligencia artificial y la ciencia de datos, campos en los que
+la calidad del dato de entrada resulta, precisamente, el factor más
+determinante.
+
 
 %% ---------------------------------------------------------------------------
 \section{Presentación de la solución}
@@ -210,9 +216,11 @@ del proyecto incluye:
 \begin{itemize}
   \item Gestión de proyectos y conjuntos de datos con versionado y almacenamiento
     seguro en MinIO.
-  \item Motor de evaluación con seis métricas de calidad evaluables alineadas
-    con \ac{ISO}/IEC~25012, más detección de valores atípicos disponible en
-    el módulo de perfilado de datos.
+  \item Motor de evaluación con siete métricas de calidad alineadas con
+    \ac{ISO}/IEC~5259 ---incluyendo la métrica de diversidad, actualmente en
+    desarrollo---, junto con un módulo de perfilado inicial que proporciona
+    estadísticas descriptivas, detección de valores atípicos y análisis de
+    distribuciones.
   \item \ac{API} \ac{REST} documentada con autenticación \ac{JWT}.
   \item Interfaz web interactiva con cuadros de mando, perfilado exploratorio de
     datos y Quality~Gates.

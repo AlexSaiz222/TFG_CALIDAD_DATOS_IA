@@ -235,7 +235,7 @@
 %% -- BIBLIOGRAFÍA -------------------------------------------------------------
 \bibliographystyle{apalike}
 
-\newcommand{\bibfont}{\small}      % Bibliography's font size
+\def\bibfont{\small}      % Bibliography's font size
 %% \setlength{\bibhang}{4ex}       % Indent of Bibliography entries
 %% \setlength{\bibsep}{3pt}
 
@@ -420,7 +420,7 @@
 \newcommand{\@advisorSecond}{}
 \newcommand{\advisorSecond}[1]{%
   \renewcommand{\@advisorSecond}{#1}}
-\newcommand{\@putAdvisorSecond}{Cotutoría: \@advisorSecond\par}
+\newcommand{\@putAdvisorSecond}{\ifx\@advisorSecond\@empty\else Cotutoría: \@advisorSecond\par\fi}
 
 
 \newcommand{\@advisorDepartment}{}

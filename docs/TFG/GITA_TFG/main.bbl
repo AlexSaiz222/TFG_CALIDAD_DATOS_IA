@@ -1,226 +1,263 @@
-\newcommand{\etalchar}[1]{$^{#1}$}
-\begin{thebibliography}{{DQO}24}
+\begin{thebibliography}{}
 
-\bibitem[AGNP18]{abedjan2018}
-Ziawasch Abedjan, Lukasz Golab, Felix Naumann, y Thorsten Papenbrock.
+\bibitem[Abedjan et~al., 2018]{abedjan2018}
+Abedjan, Z., Golab, L., Naumann, F., and Papenbrock, T. (2018).
 \newblock {\em Data Profiling}.
-\newblock Synthesis Lectures on Data Management. Morgan \& Claypool Publishers,
-  2018.
+\newblock Synthesis Lectures on Data Management. Morgan \& Claypool Publishers.
 
-\bibitem[Bay24]{sqlalchemy}
-Mike Bayer.
-\newblock {SQLAlchemy}: The Database Toolkit for {Python}.
-\newblock \url{https://www.sqlalchemy.org/}, 2024.
+\bibitem[{Alteryx, Inc.}, 2024]{alteryx}
+{Alteryx, Inc.} (2024).
+\newblock Alteryx: Data analytics and process automation platform.
+\newblock \url{https://www.alteryx.com/}.
+\newblock Consultado: marzo 2026.
 
-\bibitem[BG18]{buolamwini2018}
-Joy Buolamwini y Timnit Gebru.
-\newblock Gender Shades: Intersectional Accuracy Disparities in Commercial
-  Gender Classification.
-\newblock En {\em Proceedings of the 1st Conference on Fairness, Accountability
+\bibitem[Bayer, 2024]{sqlalchemy}
+Bayer, M. (2024).
+\newblock {SQLAlchemy}: The database toolkit for {Python}.
+\newblock \url{https://www.sqlalchemy.org/}.
+
+\bibitem[Buolamwini and Gebru, 2018]{buolamwini2018}
+Buolamwini, J. and Gebru, T. (2018).
+\newblock Gender shades: Intersectional accuracy disparities in commercial
+  gender classification.
+\newblock In {\em Proceedings of the 1st Conference on Fairness, Accountability
   and Transparency}, volume~81 of {\em Proceedings of Machine Learning
-  Research}, páginas 77--91. PMLR, 2018.
+  Research}, pages 77--91. PMLR.
 
-\bibitem[{Cel}24]{celery}
-{Celery Project}.
-\newblock Celery: Distributed Task Queue.
-\newblock \url{https://docs.celeryq.dev/}, 2024.
+\bibitem[{Celery Project}, 2024]{celery}
+{Celery Project} (2024).
+\newblock Celery: Distributed task queue.
+\newblock \url{https://docs.celeryq.dev/}.
 
-\bibitem[{Cha}24]{chartjs}
-{Chart.js Contributors}.
+\bibitem[{Chart.js Contributors}, 2024]{chartjs}
+{Chart.js Contributors} (2024).
 \newblock Chart.js: Simple yet flexible {JavaScript} charting for designers \&
   developers.
-\newblock \url{https://www.chartjs.org/}, 2024.
+\newblock \url{https://www.chartjs.org/}.
 
-\bibitem[Das18]{amazon2018}
-Jeffrey Dastin.
+\bibitem[Dastin, 2018]{amazon2018}
+Dastin, J. (2018).
 \newblock {Amazon} scraps secret {AI} recruiting tool that showed bias against
   women.
-\newblock {\em Reuters}, October 2018.
+\newblock Reuters.
+\newblock Consultado: 2026.
 
-\bibitem[{Doc}24]{docker}
-{Docker, Inc.}
-\newblock Docker: Accelerated Container Application Development.
-\newblock \url{https://www.docker.com/}, 2024.
+\bibitem[{Docker, Inc.}, 2024]{docker}
+{Docker, Inc.} (2024).
+\newblock Docker: Accelerated container application development.
+\newblock \url{https://www.docker.com/}.
 
-\bibitem[{DQO}24]{dqops}
-{DQOps}.
-\newblock {DQOps} --- Data Quality Operations Center.
-\newblock \url{https://dqops.com/}, 2024.
+\bibitem[{DQOps}, 2024]{dqops}
+{DQOps} (2024).
+\newblock {DQOps} --- data quality operations center.
+\newblock \url{https://dqops.com/}.
 \newblock Consultado: marzo 2026.
 
-\bibitem[Fie00]{fielding2000}
-Roy~Thomas Fielding.
+\bibitem[{Evidently AI}, 2024]{evidentlyai}
+{Evidently AI} (2024).
+\newblock Evidently: Open-source {ML} monitoring and data quality framework.
+\newblock \url{https://www.evidentlyai.com/}.
+\newblock Consultado: marzo 2026.
+
+\bibitem[Fielding, 2000]{fielding2000}
+Fielding, R.~T. (2000).
 \newblock {\em Architectural Styles and the Design of Network-based Software
   Architectures}.
-\newblock PhD thesis, University of California, Irvine, 2000.
+\newblock PhD thesis, University of California, Irvine.
 \newblock Capítulo~5: Representational State Transfer (REST).
 
-\bibitem[{Gar}17]{gartner2017}
-{Gartner}.
-\newblock How to Improve Your Data Quality.
-\newblock {\em Gartner Research}, 2017.
-\newblock Estimación: 12,9 millones de dólares anuales por organización.
-
-\bibitem[GHJV94]{design_patterns}
-Erich Gamma, Richard Helm, Ralph Johnson, y John Vlissides.
+\bibitem[Gamma et~al., 1994]{design_patterns}
+Gamma, E., Helm, R., Johnson, R., and Vlissides, J. (1994).
 \newblock {\em Design Patterns: Elements of Reusable Object-Oriented Software}.
-\newblock Addison-Wesley, 1994.
+\newblock Addison-Wesley.
 
-\bibitem[{Gre}24]{greatexpectations}
-{Great Expectations}.
-\newblock Great Expectations: Always know what to expect from your data.
-\newblock \url{https://greatexpectations.io/}, 2024.
+\bibitem[{Gartner, Inc.}, 2017]{gartner2017}
+{Gartner, Inc.} (2017).
+\newblock How to improve your data quality.
+\newblock Gartner Research.
+\newblock Consultado: 2026. Estimación: 12,9 millones de dólares anuales por
+  organización.
+
+\bibitem[{Great Expectations}, 2024]{greatexpectations}
+{Great Expectations} (2024).
+\newblock Great expectations: Always know what to expect from your data.
+\newblock \url{https://greatexpectations.io/}.
 \newblock Consultado: marzo 2026.
 
-\bibitem[{ISO}08]{iso25012}
-{ISO/IEC}.
-\newblock {ISO/IEC} 25012:2008 --- Software engineering --- Software product
-  Quality Requirements and Evaluation ({SQuaRE}) --- Data quality model.
-\newblock Standard, International Organization for Standardization, 2008.
+\bibitem[{ISO/IEC}, 2008]{iso25012}
+{ISO/IEC} (2008).
+\newblock {ISO/IEC} 25012:2008 --- software engineering --- software product
+  quality requirements and evaluation ({SQuaRE}) --- data quality model.
+\newblock Standard, International Organization for Standardization.
 
-\bibitem[{ISO}15]{iso25024}
-{ISO/IEC}.
-\newblock {ISO/IEC} 25024:2015 --- Systems and software engineering --- Systems
-  and software Quality Requirements and Evaluation ({SQuaRE}) --- Measurement
+\bibitem[{ISO/IEC}, 2015]{iso25024}
+{ISO/IEC} (2015).
+\newblock {ISO/IEC} 25024:2015 --- systems and software engineering --- systems
+  and software quality requirements and evaluation ({SQuaRE}) --- measurement
   of data quality.
-\newblock Standard, International Organization for Standardization, 2015.
+\newblock Standard, International Organization for Standardization.
 
-\bibitem[{ISO}24]{iso5259}
-{ISO/IEC}.
-\newblock {ISO/IEC} 5259 --- Data quality for analytics and machine learning
+\bibitem[{ISO/IEC}, 2024]{iso5259}
+{ISO/IEC} (2024).
+\newblock {ISO/IEC} 5259 --- data quality for analytics and machine learning
   ({ML}).
-\newblock Standard, International Organization for Standardization, 2024.
+\newblock Standard, International Organization for Standardization.
 \newblock Partes~1 y~2 publicadas en 2024; partes~3 y~4 en proceso de
   publicación.
 
-\bibitem[{Kag}22]{kaggle2022}
-{Kaggle}.
-\newblock State of Data Science and Machine Learning 2022.
-\newblock {\em Kaggle Survey}, 2022.
-\newblock 60--80\% del tiempo dedicado a preparación de datos.
+\bibitem[{Kaggle}, 2022]{kaggle2022}
+{Kaggle} (2022).
+\newblock State of data science and machine learning 2022.
+\newblock \url{https://www.kaggle.com/surveys/2022}.
+\newblock Consultado: 2026. El 60--80\% del tiempo dedicado a preparación de
+  datos.
 
-\bibitem[KKH23]{kreuzberger2023}
-Dominik Kreuzberger, Niklas Kühl, y Sebastian Hirschl.
-\newblock Machine Learning Operations ({MLOps}): Overview, Definition, and
-  Architecture.
-\newblock {\em IEEE Access}, 11:31866--31879, 2023.
+\bibitem[Kreuzberger et~al., 2023]{kreuzberger2023}
+Kreuzberger, D., Kühl, N., and Hirschl, S. (2023).
+\newblock Machine learning operations ({MLOps}): Overview, definition, and
+  architecture.
+\newblock {\em IEEE Access}, 11:31866--31879.
 
-\bibitem[{Met}24]{react}
-{Meta Platforms, Inc.}
-\newblock React: A JavaScript library for building user interfaces.
-\newblock \url{https://react.dev/}, 2024.
+\bibitem[{Meta Platforms, Inc.}, 2024]{react}
+{Meta Platforms, Inc.} (2024).
+\newblock React: A javascript library for building user interfaces.
+\newblock \url{https://react.dev/}.
 
-\bibitem[{Mic}24]{typescript}
-{Microsoft}.
-\newblock {TypeScript}: JavaScript With Syntax For Types.
-\newblock \url{https://www.typescriptlang.org/}, 2024.
+\bibitem[{Microsoft}, 2024]{typescript}
+{Microsoft} (2024).
+\newblock {TypeScript}: Javascript with syntax for types.
+\newblock \url{https://www.typescriptlang.org/}.
 
-\bibitem[{Min}24]{minio}
-{MinIO, Inc.}
-\newblock {MinIO}: High Performance Object Storage.
-\newblock \url{https://min.io/}, 2024.
+\bibitem[{MinIO, Inc.}, 2024]{minio}
+{MinIO, Inc.} (2024).
+\newblock {MinIO}: High performance object storage.
+\newblock \url{https://min.io/}.
 
-\bibitem[{MUI}24]{materialui}
-{MUI}.
+\bibitem[{MUI}, 2024]{materialui}
+{MUI} (2024).
 \newblock {Material UI}: React components for faster and easier web
   development.
-\newblock \url{https://mui.com/}, 2024.
+\newblock \url{https://mui.com/}.
 
-\bibitem[Ng21]{ng2021datacentric}
-Andrew Ng.
-\newblock A Chat with {Andrew} on {MLOps}: From Model-centric to Data-centric
+\bibitem[Ng, 2021]{ng2021datacentric}
+Ng, A. (2021).
+\newblock A chat with {Andrew} on {MLOps}: From model-centric to data-centric
   {AI}.
 \newblock
-  \url{https://www.deeplearning.ai/the-batch/andrew-ng-data-centric-ai/}, 2021.
+  \url{https://www.deeplearning.ai/the-batch/andrew-ng-data-centric-ai/}.
 \newblock DeepLearning.AI.
 
-\bibitem[{Par}16]{rgpd2016}
-{Parlamento Europeo y Consejo de la Unión Europea}.
-\newblock Reglamento ({UE}) 2016/679 del Parlamento Europeo y del Consejo
+\bibitem[{Parlamento Europeo y Consejo de la Unión Europea}, 2016]{rgpd2016}
+{Parlamento Europeo y Consejo de la Unión Europea} (2016).
+\newblock Reglamento ({UE}) 2016/679 del parlamento europeo y del consejo
   relativo a la protección de las personas físicas en lo que respecta al
   tratamiento de datos personales ({Reglamento General de Protección de
   Datos}).
-\newblock Diario Oficial de la Unión Europea, L~119, pp.~1--88, 2016.
+\newblock Diario Oficial de la Unión Europea, L~119, pp.~1--88.
 
-\bibitem[{Par}24]{aiact2024}
-{Parlamento Europeo y Consejo de la Unión Europea}.
-\newblock Reglamento ({UE}) 2024/1689 del Parlamento Europeo y del Consejo por
+\bibitem[{Parlamento Europeo y Consejo de la Unión Europea}, 2024]{aiact2024}
+{Parlamento Europeo y Consejo de la Unión Europea} (2024).
+\newblock Reglamento ({UE}) 2024/1689 del parlamento europeo y del consejo por
   el que se establecen normas armonizadas en materia de inteligencia artificial
   ({Reglamento de Inteligencia Artificial}).
-\newblock Diario Oficial de la Unión Europea, 2024.
+\newblock Diario Oficial de la Unión Europea.
 
-\bibitem[Red98]{redman1998}
-Thomas~C. Redman.
-\newblock The Impact of Poor Data Quality on the Typical Enterprise.
-\newblock {\em Communications of the ACM}, 41(2):79--82, 1998.
+\bibitem[{Qlik Technologies, Inc.}, 2024]{talend}
+{Qlik Technologies, Inc.} (2024).
+\newblock Talend: Data integration and integrity platform.
+\newblock \url{https://www.talend.com/}.
+\newblock Consultado: marzo 2026.
 
-\bibitem[Red01]{redman2001}
-Thomas~C. Redman.
-\newblock {\em Data Quality: The Field Guide}.
-\newblock Digital Press, 2001.
-
-\bibitem[{Red}24]{redis}
-{Redis Ltd.}
+\bibitem[{Redis Ltd.}, 2024]{redis}
+{Redis Ltd.} (2024).
 \newblock Redis: In-memory data structure store.
-\newblock \url{https://redis.io/}, 2024.
+\newblock \url{https://redis.io/}.
 
-\bibitem[Ron24]{flask}
-Armin Ronacher.
-\newblock Flask: A Python Microframework.
-\newblock \url{https://flask.palletsprojects.com/}, 2024.
+\bibitem[Redman, 1998]{redman1998}
+Redman, T.~C. (1998).
+\newblock The impact of poor data quality on the typical enterprise.
+\newblock {\em Communications of the ACM}, 41(2):79--82.
 
-\bibitem[Sha48]{shannon1948}
-Claude~E. Shannon.
-\newblock A Mathematical Theory of Communication.
-\newblock {\em Bell System Technical Journal}, 27(3):379--423, 1948.
+\bibitem[Redman, 2001]{redman2001}
+Redman, T.~C. (2001).
+\newblock {\em Data Quality: The Field Guide}.
+\newblock Digital Press.
 
-\bibitem[SKH{\etalchar{+}}21]{sambasivan2021}
-Nithya Sambasivan, Shivani Kapania, Hannah Highfill, Diana Akrong, Praveen
-  Paritosh, y Lora~M. Aroyo.
-\newblock ``Everyone wants to do the model work, not the data work'': Data
-  Cascades in High-Stakes {AI}.
-\newblock En {\em Proceedings of the 2021 CHI Conference on Human Factors in
-  Computing Systems}. ACM, 2021.
+\bibitem[Ronacher, 2024]{flask}
+Ronacher, A. (2024).
+\newblock Flask: A python microframework.
+\newblock \url{https://flask.palletsprojects.com/}.
 
-\bibitem[SLS{\etalchar{+}}18]{schelter2018}
-Sebastian Schelter, Dustin Lange, Philipp Schmidt, Meltem Celikel, Felix
-  Biessmann, y Andreas Grafberger.
-\newblock Automating Large-Scale Data Quality Verification.
-\newblock En {\em Proceedings of the VLDB Endowment}, volume~11, páginas
-  1781--1794, 2018.
+\bibitem[Sambasivan et~al., 2021]{sambasivan2021}
+Sambasivan, N., Kapania, S., Highfill, H., Akrong, D., Paritosh, P., and Aroyo,
+  L.~M. (2021).
+\newblock ``everyone wants to do the model work, not the data work'': Data
+  cascades in high-stakes {AI}.
+\newblock In {\em Proceedings of the 2021 CHI Conference on Human Factors in
+  Computing Systems}. ACM.
+
+\bibitem[Schelter et~al., 2018]{schelter2018}
+Schelter, S., Lange, D., Schmidt, P., Celikel, M., Biessmann, F., and
+  Grafberger, A. (2018).
+\newblock Automating large-scale data quality verification.
+\newblock In {\em Proceedings of the VLDB Endowment}, volume~11, pages
+  1781--1794.
 \newblock Apache Deequ.
 
-\bibitem[{Son}24]{sonarqube}
-{SonarSource}.
-\newblock {SonarQube}: Code Quality and Security.
-\newblock \url{https://www.sonarsource.com/products/sonarqube/}, 2024.
-
-\bibitem[SS20]{scrumguide}
-Ken Schwaber y Jeff Sutherland.
-\newblock The Scrum Guide: The Definitive Guide to Scrum: The Rules of the
-  Game.
-\newblock \url{https://scrumguides.org/scrum-guide.html}, 2020.
+\bibitem[Schwaber and Sutherland, 2020]{scrumguide}
+Schwaber, K. and Sutherland, J. (2020).
+\newblock The scrum guide: The definitive guide to scrum: The rules of the
+  game.
+\newblock \url{https://scrumguides.org/scrum-guide.html}.
 \newblock Versión noviembre 2020.
 
-\bibitem[{The}24]{postgresql}
-{The PostgreSQL Global Development Group}.
-\newblock {PostgreSQL}: The World's Most Advanced Open Source Relational
-  Database.
-\newblock \url{https://www.postgresql.org/}, 2024.
+\bibitem[Shannon, 1948]{shannon1948}
+Shannon, C.~E. (1948).
+\newblock A mathematical theory of communication.
+\newblock {\em Bell System Technical Journal}, 27(3):379--423.
 
-\bibitem[Tuk77]{tukey1977}
-John~W. Tukey.
+\bibitem[{Soda Data, Inc.}, 2024]{sodacore}
+{Soda Data, Inc.} (2024).
+\newblock Soda core: Open-source data quality framework.
+\newblock \url{https://github.com/sodadata/soda-core}.
+\newblock Consultado: marzo 2026.
+
+\bibitem[{SonarSource}, 2024]{sonarqube}
+{SonarSource} (2024).
+\newblock {SonarQube}: Code quality and security.
+\newblock \url{https://www.sonarsource.com/products/sonarqube/}.
+
+\bibitem[{The PostgreSQL Global Development Group}, 2024]{postgresql}
+{The PostgreSQL Global Development Group} (2024).
+\newblock {PostgreSQL}: The world's most advanced open source relational
+  database.
+\newblock \url{https://www.postgresql.org/}.
+
+\bibitem[Tukey, 1977]{tukey1977}
+Tukey, J.~W. (1977).
 \newblock {\em Exploratory Data Analysis}.
-\newblock Addison-Wesley, 1977.
+\newblock Addison-Wesley.
 
-\bibitem[{Ver}24]{nextjs}
-{Vercel}.
-\newblock Next.js: The React Framework for the Web.
-\newblock \url{https://nextjs.org/}, 2024.
+\bibitem[{Union.ai and Pandera Contributors}, 2024]{pandera}
+{Union.ai and Pandera Contributors} (2024).
+\newblock Pandera: A statistical data testing toolkit for {Python}.
+\newblock \url{https://pandera.readthedocs.io/}.
+\newblock Consultado: marzo 2026.
 
-\bibitem[WS96]{wang1996}
-Richard~Y. Wang y Diane~M. Strong.
-\newblock Beyond Accuracy: What Data Quality Means to Data Consumers.
-\newblock {\em Journal of Management Information Systems}, 12(4):5--33, 1996.
+\bibitem[{Vercel}, 2024]{nextjs}
+{Vercel} (2024).
+\newblock Next.js: The react framework for the web.
+\newblock \url{https://nextjs.org/}.
+
+\bibitem[Wang and Strong, 1996]{wang1996}
+Wang, R.~Y. and Strong, D.~M. (1996).
+\newblock Beyond accuracy: What data quality means to data consumers.
+\newblock {\em Journal of Management Information Systems}, 12(4):5--33.
+
+\bibitem[{ydata-ai}, 2024]{ydataprofiling}
+{ydata-ai} (2024).
+\newblock ydata-profiling: Extended pandas profiling.
+\newblock \url{https://github.com/ydataai/ydata-profiling}.
+\newblock Consultado: marzo 2026.
 
 \end{thebibliography}
