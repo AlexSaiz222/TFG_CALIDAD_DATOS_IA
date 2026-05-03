@@ -71,13 +71,6 @@ Gamma, E., Helm, R., Johnson, R., and Vlissides, J. (1994).
 \newblock {\em Design Patterns: Elements of Reusable Object-Oriented Software}.
 \newblock Addison-Wesley.
 
-\bibitem[{Gartner, Inc.}, 2017]{gartner2017}
-{Gartner, Inc.} (2017).
-\newblock How to improve your data quality.
-\newblock Gartner Research.
-\newblock Consultado: 2026. Estimación: 12,9 millones de dólares anuales por
-  organización.
-
 \bibitem[{Great Expectations}, 2024]{greatexpectations}
 {Great Expectations} (2024).
 \newblock Great expectations: Always know what to expect from your data.
@@ -108,9 +101,8 @@ Gamma, E., Helm, R., Johnson, R., and Vlissides, J. (1994).
 \bibitem[{Kaggle}, 2022]{kaggle2022}
 {Kaggle} (2022).
 \newblock State of data science and machine learning 2022.
-\newblock \url{https://www.kaggle.com/surveys/2022}.
-\newblock Consultado: 2026. El 60--80\% del tiempo dedicado a preparación de
-  datos.
+\newblock \url{https://www.kaggle.com/kaggle-survey-2022}.
+\newblock Consultado: 2026.
 
 \bibitem[Kreuzberger et~al., 2023]{kreuzberger2023}
 Kreuzberger, D., Kühl, N., and Hirschl, S. (2023).
@@ -143,9 +135,8 @@ Kreuzberger, D., Kühl, N., and Hirschl, S. (2023).
 Ng, A. (2021).
 \newblock A chat with {Andrew} on {MLOps}: From model-centric to data-centric
   {AI}.
-\newblock
-  \url{https://www.deeplearning.ai/the-batch/andrew-ng-data-centric-ai/}.
-\newblock DeepLearning.AI.
+\newblock DeepLearning.AI, \url{https://www.youtube.com/watch?v=06-AZXmwHjo}.
+\newblock Consultado: 2026.
 
 \bibitem[{Parlamento Europeo y Consejo de la Unión Europea}, 2016]{rgpd2016}
 {Parlamento Europeo y Consejo de la Unión Europea} (2016).

@@ -27,11 +27,11 @@ dirige y describe la estructura del resto del documento.
 El principio conocido como \emph{garbage in, garbage out} resume de forma
 elocuente una verdad ampliamente reconocida en el ámbito de la ciencia de
 datos: la calidad de las salidas de un sistema está intrínsecamente limitada
-por la calidad de sus entradas~\citep{wang1996}.  En el contexto de la \ac{IA}
-y el \ac{ML}, este principio adquiere una relevancia especial, ya que los
-modelos aprenden patrones directamente de los datos de entrenamiento.  Si estos
-datos contienen errores, sesgos o valores ausentes, los modelos resultantes
-heredarán~\textemdash y, con frecuencia, amplificarán~\textemdash dichas
+por la calidad de sus entradas.  En el contexto de la \ac{IA} y el \ac{ML},
+este principio adquiere una relevancia especial, ya que los modelos aprenden
+patrones directamente de los datos de entrenamiento~\citep{wang1996}.  Si
+estos datos contienen errores, sesgos o valores ausentes, los modelos
+resultantes heredarán, y con frecuencia amplificarán, dichas
 deficiencias~\citep{redman1998}.
 
 Diversos estudios han demostrado que los problemas de calidad de datos
@@ -39,25 +39,20 @@ constituyen la causa principal de fallos de sistemas de \ac{IA} en
 producción, por encima incluso de los errores algorítmicos.
 Sambasivan et~al.~(\citeyear{sambasivan2021}) documentaron, a partir de entrevistas
 con 53 profesionales de \ac{IA} en múltiples organizaciones, que las
-deficiencias en los datos~\textemdash etiquetado incorrecto, datos
-desactualizados, muestras no representativas~\textemdash son la causa
-predominante de los fracasos en despliegues de \ac{ML}.  A modo ilustrativo,
-se ha estimado que un 10\,\% de etiquetas incorrectas en un conjunto de datos
-de entrenamiento puede reducir la precisión de un clasificador en más de 15
-puntos porcentuales, una degradación que ninguna mejora arquitectónica puede
-compensar de forma fiable~\citep{ng2021datacentric}.
+deficiencias en los datos (etiquetado incorrecto, datos
+desactualizados, muestras no representativas) son la causa
+predominante de los fracasos en despliegues de \ac{ML}.  La presencia de etiquetas incorrectas en los datos de entrenamiento puede
+degradar significativamente la precisión del modelo resultante, una
+degradación que ninguna mejora arquitectónica puede compensar de forma
+fiable~\citep{ng2021datacentric}.
 
-Las consecuencias económicas de esta situación son igualmente significativas.
-Según estimaciones de Gartner, las organizaciones pierden una media de 12,9
-millones de dólares anuales como consecuencia directa de datos
-deficientes~\citep{gartner2017}, y el coste de corregir errores crece
-exponencialmente a medida que avanzan por las etapas de un flujo de
-procesamiento~\citep{redman2001}.  Encuestas de referencia como la de
-Kaggle~(\citeyear{kaggle2022}) revelan que entre el 60\,\% y el 80\,\% del tiempo
-de los profesionales de datos se dedica a tareas de limpieza y preparación,
-en detrimento del tiempo disponible para el análisis y el desarrollo de
-modelos, lo que evidencia la necesidad de herramientas que automaticen la
-evaluación de la calidad.
+Las consecuencias económicas de esta situación son igualmente significativas:
+el coste de corregir errores crece exponencialmente a medida que avanzan por
+las etapas de un flujo de procesamiento~\citep{redman2001}.  Encuestas a profesionales del sector revelan consistentemente que una
+proporción significativa de su tiempo se dedica a tareas de limpieza y
+preparación de datos~\citep{kaggle2022}, en detrimento del tiempo disponible
+para el análisis y el desarrollo de modelos, lo que evidencia la necesidad de
+herramientas que automaticen la evaluación de la calidad.
 
 La calidad de los datos no es, además, únicamente una cuestión técnica.
 Los datos desequilibrados o no representativos son una fuente frecuente de

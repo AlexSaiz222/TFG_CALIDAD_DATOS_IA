@@ -14,7 +14,16 @@
       "Bash(grep -c \"\\\\\\\\\\\\\\\\citep{\" *.tex)",
       "Bash(grep -c \"\\\\\\\\\\\\\\\\citeyear{\" *.tex)",
       "Bash(grep -rn \"\\\\\\\\\\\\\\\\cite{\" *.tex)",
-      "Bash(grep -c \"\\\\\\\\\\\\\\\\cite{\" *.tex)"
+      "Bash(grep -c \"\\\\\\\\\\\\\\\\cite{\" *.tex)",
+      "WebSearch",
+      "WebFetch(domain:evo-ml.com)",
+      "WebFetch(domain:www.slideshare.net)",
+      "WebFetch(domain:mikel-egana-aranguren.github.io)",
+      "WebFetch(domain:spectrum.ieee.org)",
+      "WebFetch(domain:www.deeplearning.ai)",
+      "WebFetch(domain:web.archive.org)",
+      "WebFetch(domain:www.youtube.com)",
+      "WebFetch(domain:ailab-ua.github.io)"
     ]
   }
 }
