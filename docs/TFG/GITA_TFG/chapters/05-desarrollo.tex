@@ -1100,6 +1100,48 @@ partir de los atributos que definen la identidad del \emph{issue} (tipo,
 columna afectada, regla, parámetros).  El \emph{fingerprint} es
 \textbf{determinista}: el mismo problema produce siempre el mismo \emph{hash}.
 
+La fórmula de construcción es:
+
+\begin{equation*}
+  \mathit{fingerprint} =
+    \mathrm{SHA\text{-}256}\!\bigl(
+      \mathit{tipo} \mathbin{|} \mathit{columna} \mathbin{|}
+      \mathit{id\_fila} \mathbin{|} \mathit{clave\_regla} \mathbin{|}
+      \mathit{params\_ord}
+    \bigr)[{:}16]
+\end{equation*}
+
+\noindent donde cada campo se normaliza antes del \emph{hash}: cadenas en
+minúsculas y sin espacios superfluos, flotantes redondeados a cuatro
+decimales y listas e \emph{extra\_params} ordenados alfabéticamente para
+garantizar el mismo resultado independientemente del orden de inserción.
+Esta normalización fue la corrección clave al bug detectado en las pruebas
+de S6: los umbrales \texttt{0.95} y \texttt{0.950} producían hashes
+distintos hasta que se estandarizó el redondeo.
+
+La Tabla~\ref{tab:fingerprint-inputs} resume los campos concretos que
+cada tipo de \emph{issue} aporta al \emph{hash}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Inputs al \emph{hash} por tipo de \emph{issue}}
+  \label{tab:fingerprint-inputs}
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Métrica} & \textbf{Clave de regla} & \textbf{\emph{Extra\_params}} \\
+    \midrule
+    Completeness    & \texttt{completeness\_column\_check}   & umbral (4 dec.) \\
+    Uniqueness (col.) & \texttt{column\_duplicate\_check}    & --- \\
+    Uniqueness (fila) & \texttt{row\_duplicate\_check}       & --- \\
+    Syntactic accuracy & \texttt{type\_conformance\_check}  & tipo esperado; patrón regex (si aplica) \\
+    Logical consistency & \texttt{cross\_field\_check}      & expresión de la regla \\
+    Class balance   & \texttt{balance\_\{tipo\}}             & --- \\
+    Currentness     & \texttt{staleness\_check}              & umbral en días \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 Al finalizar cada evaluación, el servicio compara los \emph{fingerprints}
 actuales con los de la evaluación anterior (\emph{baseline}):
 
