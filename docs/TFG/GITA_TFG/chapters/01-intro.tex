@@ -41,10 +41,10 @@ Sambasivan et~al.~(\citeyear{sambasivan2021}) documentaron, a partir de entrevis
 con 53 profesionales de \ac{IA} en múltiples organizaciones, que las
 deficiencias en los datos (etiquetado incorrecto, datos
 desactualizados, muestras no representativas) son la causa
-predominante de los fracasos en despliegues de \ac{ML}.  La presencia de etiquetas incorrectas en los datos de entrenamiento puede
-degradar significativamente la precisión del modelo resultante, una
-degradación que ninguna mejora arquitectónica puede compensar de forma
-fiable~\citep{ng2021datacentric}.
+predominante de los fracasos en despliegues de \ac{ML}.  A nivel técnico, la presencia de etiquetas incorrectas en los datos de
+entrenamiento puede degradar significativamente la precisión del modelo
+resultante, una degradación que ninguna mejora arquitectónica puede compensar
+de forma fiable~\citep{ng2021datacentric}.
 
 Las consecuencias económicas de esta situación son igualmente significativas:
 el coste de corregir errores crece exponencialmente a medida que avanzan por
@@ -83,8 +83,14 @@ determinante.
 Para abordar la problemática descrita, se ha diseñado e implementado
 \dataqual, una plataforma web \emph{full-stack} para la evaluación
 automatizada de la calidad de datos en proyectos de \ac{IA}, \ac{ML} y
-minería de datos.  La plataforma combina una interfaz gráfica interactiva con
-una \ac{API} \ac{REST}ful~\citep{fielding2000}, ofreciendo las siguientes capacidades principales:
+minería de datos.  A diferencia de las herramientas existentes, \dataqual
+integra en un único entorno la configuración de métricas, la ejecución de
+evaluaciones y la visualización de resultados, sin requerir conocimientos de
+programación.  La plataforma combina una interfaz gráfica interactiva con
+una \ac{API} \ac{REST}ful~\citep{fielding2000} que permite su integración en
+flujos de trabajo existentes, y se despliega como ocho servicios Docker
+orquestados con Docker~Compose para garantizar portabilidad y soberanía
+sobre los datos.  Sus capacidades principales son:
 
 \begin{itemize}
   \item \textbf{Carga de conjuntos de datos} en múltiples formatos (\ac{CSV},
@@ -115,89 +121,63 @@ una \ac{API} \ac{REST}ful~\citep{fielding2000}, ofreciendo las siguientes capaci
   \item \textbf{Protección de datos sensibles} mediante la detección y
     enmascaramiento automático de información personal identificable
     (\ac{PII}).
-
-  \item \textbf{Despliegue contenerizado} como ocho servicios Docker
-    orquestados con Docker~Compose, garantizando portabilidad,
-    reproducibilidad y soberanía sobre los datos.
 \end{itemize}
 
 
 %% ---------------------------------------------------------------------------
-\section{Por qué una plataforma dedicada}
+\section{Justificación de la solución}
 \label{sec:justificacion}
 
-Los enfoques tradicionales para la evaluación de la calidad de datos~\textemdash
+Los enfoques tradicionales para la evaluación de la calidad de datos,
 \emph{scripts} ad~hoc en Python, consultas \ac{SQL} manuales o cuadernos
-Jupyter~\textemdash presentan limitaciones fundamentales que dificultan su
-adopción sistemática en entornos profesionales:
+Jupyter, presentan limitaciones que dificultan su adopción sistemática en
+entornos profesionales.  La primera de ellas es la falta de estandarización:
+cada equipo define sus propias métricas y umbrales de forma aislada, lo que
+impide la comparación entre proyectos y complica la auditoría.  \dataqual
+aborda esto mediante un catálogo alineado con \ac{ISO}/IEC~25012~\citep{iso25012}
+y la serie \ac{ISO}/IEC~5259~\citep{iso5259}, que proporciona un marco de
+referencia común basado en el modelo \ac{SQuaRE}.  A esto se añade la
+ausencia de historización: los \emph{scripts} evalúan instantáneas puntuales
+sin conservar un registro que permita detectar degradaciones progresivas de
+la calidad, algo que \dataqual resuelve mediante el seguimiento automático
+entre ejecuciones.
 
-\begin{itemize}
-  \item \textbf{Falta de estandarización.}  Cada equipo define sus propias
-    métricas y umbrales de forma aislada, lo que impide la comparación entre
-    proyectos y dificulta la auditoría.  \dataqual implementa un catálogo de
-    métricas alineado con \ac{ISO}/IEC~25012~\citep{iso25012} y la serie
-    \ac{ISO}/IEC~5259~\citep{iso5259}, proporcionando un marco de referencia
-    común basado en el modelo \ac{SQuaRE}.
+Una segunda barrera es de naturaleza técnica.  Herramientas como Great
+Expectations~\citep{greatexpectations} o Deequ de Amazon requieren
+conocimientos de programación que no todos los perfiles involucrados en un
+proyecto de datos poseen, y los \emph{scripts} independientes tampoco se
+integran de forma natural en \emph{pipelines} existentes.  \dataqual ofrece
+una interfaz web accesible para usuarios no técnicos y, simultáneamente, una
+\ac{API} \ac{REST} para la integración programática con flujos de \ac{MLOps}
+y procesos \ac{ETL}.
 
-  \item \textbf{Ausencia de historización.}  Los \emph{scripts} ad~hoc
-    evalúan instantáneas puntuales sin mantener un registro histórico.
-    \dataqual conserva el historial completo de ejecuciones y permite la
-    comparación automática con líneas base anteriores, facilitando la
-    detección de degradaciones en la calidad.
-
-  \item \textbf{Barrera técnica.}  Las herramientas basadas en código, como
-    Great Expectations~\citep{greatexpectations} o Deequ de Amazon, requieren
-    conocimientos de programación que no todos los perfiles involucrados en un
-    proyecto de datos poseen.  \dataqual proporciona una interfaz web
-    accesible que permite a usuarios no técnicos configurar y ejecutar
-    evaluaciones de calidad sin necesidad de escribir código.
-
-  \item \textbf{Falta de integración en flujos de trabajo.}  Los
-    \emph{scripts} independientes no se integran de forma natural en
-    \emph{pipelines} de datos existentes.  La \ac{API} \ac{REST} de \dataqual
-    permite la integración programática con flujos de \ac{MLOps},
-    integración y despliegue continuos, y procesos \ac{ETL}.
-
-  \item \textbf{Ausencia de Quality Gates.}  Pocas herramientas proporcionan
-    señales claras de aprobación o rechazo sobre la calidad de un conjunto de
-    datos.  Inspirándose en el concepto de \emph{Quality Gate} de
-    SonarQube~\citep{sonarqube} para la calidad del código, \dataqual
-    implementa puertas de calidad configurables con estados
-    \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}, ofreciendo
-    criterios objetivos y automatizados para la toma de decisiones.
-\end{itemize}
+Por último, ninguno de estos enfoques proporciona una señal clara de
+aprobación o rechazo sobre la calidad del conjunto de datos.  Esta carencia
+es especialmente crítica en flujos de \ac{MLOps}, donde se necesita un
+criterio objetivo para decidir si los datos son aptos antes de entrenar un
+modelo.  Inspirándose en el concepto de \emph{Quality Gate} de
+SonarQube~\citep{sonarqube}, \dataqual implementa puertas de calidad
+configurables con estados \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}
+que convierten una evaluación cuantitativa en una decisión accionable.
 
 
 %% ---------------------------------------------------------------------------
 \section{Público objetivo}
 \label{sec:publico}
 
-\dataqual ha sido diseñada para ser utilizada por los distintos perfiles
-profesionales que intervienen en el ciclo de vida de un proyecto de datos:
-
-\begin{itemize}
-  \item \textbf{Ingenieros de datos}, responsables de la ingestión,
-    transformación y almacenamiento de los conjuntos de datos, que pueden
-    integrar las evaluaciones de calidad en sus \emph{pipelines} \ac{ETL}
-    mediante la \ac{API} \ac{REST}.
-
-  \item \textbf{Científicos de datos e ingenieros de \ac{ML}}, que necesitan
-    verificar la calidad de los datos de entrenamiento y evaluación antes de
-    construir y desplegar modelos.
-
-  \item \textbf{Analistas de datos}, que requieren una herramienta visual e
-    intuitiva para explorar la calidad de los conjuntos de datos sin depender
-    de conocimientos de programación.
-
-  \item \textbf{Responsables de calidad y cumplimiento normativo}, que
-    necesitan evidencias auditables del estado de la calidad de los datos
-    para satisfacer los requisitos del \ac{RGPD} y el Reglamento Europeo de
-    \ac{IA}.
-
-  \item \textbf{Directores técnicos de proyecto}, que precisan una visión
-    consolidada del estado de la calidad de los datos a través de cuadros de
-    mando y métricas agregadas para la toma de decisiones informadas.
-\end{itemize}
+\dataqual está dirigida a los distintos perfiles profesionales que
+intervienen en el ciclo de vida de un proyecto de datos.  Los ingenieros de
+datos pueden integrar las evaluaciones en sus \emph{pipelines} \ac{ETL}
+mediante la \ac{API} \ac{REST}, mientras que los científicos de datos e
+ingenieros de \ac{ML} disponen de un mecanismo sistemático para verificar la
+calidad de los datos de entrenamiento antes de construir y desplegar modelos.
+Los analistas sin perfil técnico disponen de una interfaz visual para
+explorar la calidad de los conjuntos de datos de forma autónoma.
+Finalmente, los responsables de calidad y cumplimiento normativo encuentran
+en la plataforma evidencias auditables que facilitan la justificación ante
+los requisitos del \ac{RGPD} y el Reglamento Europeo de \ac{IA}, y los
+directores técnicos disponen de cuadros de mando agregados para la toma de
+decisiones informadas.
 
 
 %% ---------------------------------------------------------------------------
@@ -205,26 +185,16 @@ profesionales que intervienen en el ciclo de vida de un proyecto de datos:
 \label{sec:alcance}
 
 \dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
-y \ac{ML} de escala mediana (conjuntos de datos de hasta 100\,MB).  El alcance
-del proyecto incluye:
-
-\begin{itemize}
-  \item Gestión de proyectos y conjuntos de datos con versionado y almacenamiento
-    seguro en MinIO.
-  \item Motor de evaluación con siete métricas de calidad alineadas con
-    \ac{ISO}/IEC~5259 ---incluyendo la métrica de diversidad, actualmente en
-    desarrollo---, junto con un módulo de perfilado inicial que proporciona
-    estadísticas descriptivas, detección de valores atípicos y análisis de
-    distribuciones.
-  \item \ac{API} \ac{REST} documentada con autenticación \ac{JWT}.
-  \item Interfaz web interactiva con cuadros de mando, perfilado exploratorio de
-    datos y Quality~Gates.
-  \item Sistema de \emph{fingerprinting} \ac{SHA}-256 para el seguimiento
-    determinista de problemas entre evaluaciones.
-  \item Protección nativa de datos \ac{PII} con enmascaramiento en todas las
-    métricas.
-  \item Despliegue contenerizado mediante Docker~Compose.
-\end{itemize}
+y \ac{ML} de escala mediana, con soporte para conjuntos de datos tabulares de
+hasta 100\,MB en formatos \ac{CSV}, \ac{XLSX}, \ac{JSON} y Parquet.  La
+plataforma cubre el ciclo completo de evaluación: desde la carga y el
+versionado de los datos hasta la emisión de un veredicto automatizado mediante
+\emph{Quality Gates}, pasando por la ejecución de siete métricas de calidad
+alineadas con \ac{ISO}/IEC~5259, el perfilado exploratorio, el seguimiento de
+incidencias entre evaluaciones y la protección de datos personales.  El
+sistema se despliega en entorno local mediante Docker~Compose y expone una
+\ac{API} \ac{REST} con autenticación \ac{JWT} para su integración en flujos de
+trabajo externos.
 
 Quedan \textbf{fuera del alcance} del presente trabajo: el procesamiento de
 conjuntos de datos superiores a 100\,MB, el análisis de flujos en tiempo real
