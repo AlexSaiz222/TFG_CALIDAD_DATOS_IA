@@ -544,12 +544,101 @@ const SyntacticAccuracyConfig: React.FC<{
 };
 
 // ---------- CLASS BALANCE ----------
+
+const ExpectedDistributionEditor: React.FC<{
+  colName: string;
+  classes: Record<string, [number, number]>;
+  onChangeClasses: (c: Record<string, [number, number]>) => void;
+  loadedColumns: DatasetColumnLite[];
+}> = ({ colName, classes, onChangeClasses, loadedColumns }) => {
+  const { t } = useTranslation();
+  const [newClassName, setNewClassName] = useState('');
+
+  const classEntries = Object.entries(classes);
+  const midpointSum = classEntries.reduce((s, [, [mn, mx]]) => s + (mn + mx) / 2, 0);
+  const sumOk = Math.abs(midpointSum - 100) <= 5;
+
+  const setRange = (cls: string, min: number, max: number) => {
+    onChangeClasses({ ...classes, [cls]: [min, max] });
+  };
+  const removeClass = (cls: string) => {
+    const next = { ...classes };
+    delete next[cls];
+    onChangeClasses(next);
+  };
+  const addClass = () => {
+    const name = newClassName.trim();
+    if (!name || classes[name]) return;
+    onChangeClasses({ ...classes, [name]: [0, 100] });
+    setNewClassName('');
+  };
+
+  return (
+    <Paper variant="outlined" sx={{ p: 1.5, mb: 1.5, borderColor: '#E0E0E0' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Typography variant="subtitle2" fontWeight={600}>{colName}</Typography>
+        {classEntries.length > 0 && (
+          <Chip
+            size="small"
+            label={`Σ ${midpointSum.toFixed(0)}%`}
+            sx={{ fontSize: '0.7rem', bgcolor: sumOk ? '#E8F5E9' : '#FFF3E0', color: sumOk ? '#2E7D32' : '#E65100' }}
+          />
+        )}
+      </Box>
+
+      {classEntries.map(([cls, [mn, mx]]) => (
+        <Box key={cls} display="flex" gap={1} alignItems="center" mb={0.5}>
+          <Typography variant="body2" sx={{ minWidth: 100, fontWeight: 500 }}>{cls}</Typography>
+          <TextField
+            size="small" type="number" inputProps={{ min: 0, max: 100, step: 1 }}
+            value={mn} onChange={e => setRange(cls, Number(e.target.value), mx)}
+            label={t('metricConfig.smartDialog.classBalance.expectedDistMinPct')}
+            sx={{ width: 90 }}
+          />
+          <Typography variant="body2" color="text.secondary">–</Typography>
+          <TextField
+            size="small" type="number" inputProps={{ min: 0, max: 100, step: 1 }}
+            value={mx} onChange={e => setRange(cls, mn, Number(e.target.value))}
+            label={t('metricConfig.smartDialog.classBalance.expectedDistMaxPct')}
+            sx={{ width: 90 }}
+          />
+          <IconButton size="small" onClick={() => removeClass(cls)} sx={{ color: '#E5484D' }}>
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+
+      {classEntries.length > 0 && !sumOk && (
+        <Alert severity="warning" sx={{ mt: 1, mb: 1, fontSize: '0.8rem', py: 0 }}>
+          {t('metricConfig.smartDialog.classBalance.expectedDistSumWarning', { sum: midpointSum.toFixed(0) })}
+        </Alert>
+      )}
+
+      <Box display="flex" gap={1} mt={1}>
+        <TextField
+          size="small"
+          value={newClassName}
+          onChange={e => setNewClassName(e.target.value)}
+          placeholder={t('metricConfig.smartDialog.classBalance.expectedDistClassName')}
+          onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); addClass(); } }}
+          sx={{ flex: 1 }}
+        />
+        <Button size="small" variant="outlined" onClick={addClass} disabled={!newClassName.trim()}
+          sx={{ borderColor: GREEN, color: GREEN, textTransform: 'none', fontSize: '0.8rem' }}>
+          {t('metricConfig.smartDialog.classBalance.expectedDistAddClass')}
+        </Button>
+      </Box>
+    </Paper>
+  );
+};
+
 const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void; loadedColumns: DatasetColumnLite[]; columnsLoading: boolean; missingColumns: string[] }> = ({ params, onChange, loadedColumns, columnsLoading, missingColumns }) => {
   const { t } = useTranslation();
   const autoDetect = params.auto_detect !== false;
   const thresholdHigh = params.imbalance_threshold_high ?? 0.90;
   const thresholdLow = params.imbalance_threshold_low ?? 0.05;
   const columns: string[] = params.columns ?? [];
+  const expectedDist: Record<string, Record<string, [number, number]>> = params.expected_distribution ?? {};
 
   React.useEffect(() => {
     const needsUpdate =
@@ -570,6 +659,12 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void; lo
       });
     }
   }, []);
+
+  const setExpectedDist = (col: string, classes: Record<string, [number, number]>) => {
+    const next = { ...expectedDist, [col]: classes };
+    if (Object.keys(classes).length === 0) delete next[col];
+    onChange({ ...params, expected_distribution: next });
+  };
 
   return (
     <Box>
@@ -615,6 +710,48 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void; lo
         helpText={t('metricConfig.smartDialog.classBalance.thresholdLowHelp')}
       />
 
+      {/* Column selection (visible by default, needed for distribution) */}
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+        {t('metricConfig.smartDialog.classBalance.columnsLabel')}
+      </Typography>
+      {loadedColumns.length > 0 || columnsLoading ? (
+        <ColumnPicker
+          columns={loadedColumns}
+          selectedColumns={columns}
+          onChange={v => onChange({ ...params, columns: v })}
+          missingColumns={missingColumns}
+          loading={columnsLoading}
+        />
+      ) : (
+        <ColumnTagInput label="" value={columns} onChange={v => onChange({ ...params, columns: v })} />
+      )}
+
+      {/* Expected Distribution Section */}
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+        {t('metricConfig.smartDialog.classBalance.expectedDistTitle')}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+        {t('metricConfig.smartDialog.classBalance.expectedDistDescription')}
+      </Typography>
+
+      {columns.length === 0 ? (
+        <Alert severity="info" sx={{ mb: 2, fontSize: '0.85rem' }}>
+          {t('metricConfig.smartDialog.classBalance.expectedDistNoColumns')}
+        </Alert>
+      ) : (
+        columns.map(col => (
+          <ExpectedDistributionEditor
+            key={col}
+            colName={col}
+            classes={expectedDist[col] ?? {}}
+            onChangeClasses={c => setExpectedDist(col, c)}
+            loadedColumns={loadedColumns}
+          />
+        ))
+      )}
+
       <AdvancedSection>
         <Box mb={2}>
           <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.classBalance.maxCardinalityTitle')}</Typography>
@@ -629,18 +766,6 @@ const ClassBalanceConfig: React.FC<{ params: any; onChange: (p: any) => void; lo
             ))}
           </ToggleButtonGroup>
         </Box>
-        <Typography variant="subtitle2" gutterBottom>{t('metricConfig.smartDialog.classBalance.columnsLabel')}</Typography>
-        {loadedColumns.length > 0 || columnsLoading ? (
-          <ColumnPicker
-            columns={loadedColumns}
-            selectedColumns={columns}
-            onChange={v => onChange({ ...params, columns: v })}
-            missingColumns={missingColumns}
-            loading={columnsLoading}
-          />
-        ) : (
-          <ColumnTagInput label="" value={columns} onChange={v => onChange({ ...params, columns: v })} />
-        )}
       </AdvancedSection>
     </Box>
   );

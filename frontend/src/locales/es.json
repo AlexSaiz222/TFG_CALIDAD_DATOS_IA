@@ -1703,7 +1703,16 @@
         "thresholdLowHelp": "Una clase con presencia inferior al X% se considera infrarrepresentada.",
         "maxCardinalityTitle": "Máximo de valores únicos para considerar categórico",
         "valuesLabel": "{{count}} valores",
-        "columnsLabel": "Analizar solo estas columnas (opcional)"
+        "columnsLabel": "Analizar solo estas columnas (opcional)",
+        "expectedDistTitle": "Distribución esperada por clase",
+        "expectedDistDescription": "Define el rango de porcentaje (mín–máx) que esperas para cada clase. Las clases fuera de su rango generarán alertas.",
+        "expectedDistNoColumns": "Selecciona al menos una columna arriba para definir la distribución esperada.",
+        "expectedDistAddClass": "Añadir clase",
+        "expectedDistClassName": "Nombre de clase…",
+        "expectedDistMinPct": "Mín %",
+        "expectedDistMaxPct": "Máx %",
+        "expectedDistSumWarning": "La suma de los puntos medios es {{sum}}% (se recomienda ~100%).",
+        "expectedDistLoadClasses": "Cargar clases del dataset"
       },
       "currentness": {
         "title": "Actualidad de datos (Currentness)",

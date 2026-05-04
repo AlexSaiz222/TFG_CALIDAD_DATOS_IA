@@ -106,6 +106,17 @@ class BaseMetric(ABC):
             else:
                 return "low"
 
+        if metric_type == "class_balance_deviation":
+            # actual_value = absolute deviation in pp from nearest range bound (higher is worse)
+            if actual_value >= 0.20:
+                return "critical"
+            elif actual_value >= 0.10:
+                return "high"
+            elif actual_value >= 0.05:
+                return "medium"
+            else:
+                return "low"
+
         if metric_type == "diversity":
             # actual_value = diversity score [0, 1] (higher is better)
             if actual_value <= 0.20:

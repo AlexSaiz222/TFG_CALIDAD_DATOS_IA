@@ -157,19 +157,22 @@ al modo en que SonarQube~\citep{sonarqube} lo hace para el código fuente.
 \section{Público objetivo}
 \label{sec:publico}
 
-\dataqual está dirigida a los distintos perfiles profesionales que
-intervienen en el ciclo de vida de un proyecto de datos.  Los ingenieros de
-datos pueden integrar las evaluaciones en sus \emph{pipelines} \ac{ETL}
-mediante la \ac{API} \ac{REST}, mientras que los científicos de datos e
-ingenieros de \ac{ML} disponen de un mecanismo sistemático para verificar la
-calidad de los datos de entrenamiento antes de construir y desplegar modelos.
-Los analistas sin perfil técnico disponen de una interfaz visual para
-explorar la calidad de los conjuntos de datos de forma autónoma.
-Finalmente, los responsables de calidad y cumplimiento normativo encuentran
-en la plataforma evidencias auditables que facilitan la justificación ante
-los requisitos del \ac{RGPD} y el Reglamento Europeo de \ac{IA}, y los
-directores técnicos disponen de cuadros de mando agregados para la toma de
-decisiones informadas.
+\dataqual está pensada para equipos multidisciplinares en los que conviven
+perfiles con distinto nivel técnico.  Los ingenieros de datos pueden invocar
+las evaluaciones desde sus propios \emph{scripts} o flujos mediante la
+\ac{API} \ac{REST}; los científicos de datos y los ingenieros de \ac{ML}
+disponen de un mecanismo sistemático para verificar la calidad del dataset
+antes de arrancar el entrenamiento; y los analistas sin perfil técnico pueden
+explorar los resultados directamente desde el navegador sin instalar nada.
+Los responsables de calidad y cumplimiento normativo encuentran en los
+informes de evaluación evidencias auditables que facilitan la justificación
+ante los requisitos del \ac{RGPD}~\citep{rgpd2016} y el Reglamento Europeo
+de \ac{IA}~\citep{aiact2024}.
+
+En todos los casos, la plataforma expone la misma información subyacente a
+través de dos canales complementarios: la interfaz web para exploración
+visual y la \ac{API} \ac{REST} para automatización, sin que el usuario deba
+elegir entre accesibilidad y capacidad de integración.
 
 
 %% ---------------------------------------------------------------------------

@@ -1711,7 +1711,16 @@
         "thresholdLowHelp": "A class with less than X% presence is considered underrepresented.",
         "maxCardinalityTitle": "Maximum unique values to consider categorical",
         "valuesLabel": "{{count}} values",
-        "columnsLabel": "Analyze only these columns (optional)"
+        "columnsLabel": "Analyze only these columns (optional)",
+        "expectedDistTitle": "Expected distribution per class",
+        "expectedDistDescription": "Define the percentage range (min–max) you expect for each class. Classes outside their range will trigger alerts.",
+        "expectedDistNoColumns": "Select at least one column above to define the expected distribution.",
+        "expectedDistAddClass": "Add class",
+        "expectedDistClassName": "Class name…",
+        "expectedDistMinPct": "Min %",
+        "expectedDistMaxPct": "Max %",
+        "expectedDistSumWarning": "Midpoint sum is {{sum}}% (should be ~100%).",
+        "expectedDistLoadClasses": "Load classes from dataset"
       },
       "currentness": {
         "title": "Data currentness",

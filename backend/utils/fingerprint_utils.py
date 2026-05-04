@@ -272,21 +272,28 @@ def generate_logical_consistency_fingerprint(
 
 def generate_class_balance_fingerprint(
     column_name: str,
-    imbalance_type: str = "general"
+    imbalance_type: str = "general",
+    class_name: Optional[str] = None,
 ) -> str:
     """Genera fingerprint para issues de equilibrio de clases.
 
     Args:
         column_name: Nombre de la columna afectada
-        imbalance_type: Tipo de desbalance ('dominant_class' o 'minority_class')
+        imbalance_type: Tipo de desbalance ('dominant_class', 'minority_class',
+                        'distribution_deviation')
+        class_name: Nombre de la clase afectada (solo para distribution_deviation)
 
     Returns:
         str: Fingerprint de 16 caracteres
     """
+    extra: Dict[str, Any] = {}
+    if class_name is not None:
+        extra["class_name"] = class_name
     return generate_issue_fingerprint(
         issue_type="class_balance",
         column_name=column_name,
-        rule_key=f"balance_{imbalance_type}"
+        rule_key=f"balance_{imbalance_type}",
+        extra_params=extra if extra else None,
     )
 
 

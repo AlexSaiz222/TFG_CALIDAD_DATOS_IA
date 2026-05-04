@@ -1,5 +1,6 @@
 """Métrica de equilibrio de clases: distribución de variables categóricas."""
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -19,6 +20,7 @@ class ClassBalanceMetric(BaseMetric):
         max_cardinality = parameters.get("max_cardinality", 50)
         threshold_high = parameters.get("imbalance_threshold_high", 0.90)
         threshold_low = parameters.get("imbalance_threshold_low", 0.05)
+        expected_distribution: dict[str, dict[str, list]] = parameters.get("expected_distribution", {})
 
         # Class balance is opt-in: it only contributes to the Quality Score when
         # the user explicitly selects columns to track. Auto-detected columns
@@ -103,6 +105,16 @@ class ClassBalanceMetric(BaseMetric):
                 lbl = "***" if sensitive else minority_class
                 alerts.append(f"Clase minoritaria '{lbl}' solo ocupa {minority_prop:.2%} del total")
 
+            # --- Expected distribution conformity (new feature) ---
+            col_expected = expected_distribution.get(col, {})
+            conformity_result = None
+            if col_expected:
+                conformity_result, conf_issues = self._evaluate_conformity(
+                    col, value_counts, col_expected, sensitive,
+                    evaluation_id, metrics_map,
+                )
+                issues.extend(conf_issues)
+
             balance_results[col] = {
                 "balance_index": round(balance_index, 2),
                 "entropy": round(entropy_val, 4),
@@ -114,6 +126,8 @@ class ClassBalanceMetric(BaseMetric):
                 "minority_class": {"value": minority_class, "proportion": round(minority_prop, 4)},
                 "alerts": alerts,
             }
+            if conformity_result is not None:
+                balance_results[col]["expected_distribution"] = conformity_result
 
             if dominant_prop >= threshold_high:
                 severity = self.calculate_dynamic_severity(
@@ -166,11 +180,23 @@ class ClassBalanceMetric(BaseMetric):
         # Only the explicitly-selected columns contribute to the score.
         # Auto-detected columns are kept in `results` for visibility and still
         # generate issues, but do not affect the Quality Score.
-        if explicit_mode:
-            explicit_scores = [
-                balance_results[c]["balance_index"] / 100.0
-                for c in target_columns if c in balance_results
-            ]
+        #
+        # Columns with expected_distribution are always treated as explicit,
+        # even if they were auto-detected.
+        dist_columns = set(expected_distribution.keys())
+        effective_explicit = explicit_mode or bool(dist_columns & set(balance_results.keys()))
+
+        if effective_explicit:
+            explicit_cols = set(c for c in user_columns if c in balance_results) | (dist_columns & set(balance_results.keys()))
+            explicit_scores = []
+            for c in explicit_cols:
+                br = balance_results[c]
+                entropy_score = br["balance_index"] / 100.0
+                if "expected_distribution" in br:
+                    conf_score = br["expected_distribution"]["conformity_score"] / 100.0
+                    explicit_scores.append(0.5 * entropy_score + 0.5 * conf_score)
+                else:
+                    explicit_scores.append(entropy_score)
             overall = (
                 sum(explicit_scores) / len(explicit_scores)
                 if explicit_scores else 1.0
@@ -191,7 +217,96 @@ class ClassBalanceMetric(BaseMetric):
                 "overall_balance_index": round(overall * 100, 2),
                 "columns_analyzed": len(balance_results),
                 "columns_with_alerts": sum(1 for r in balance_results.values() if r["alerts"]),
+                "has_expected_distribution": bool(dist_columns & set(balance_results.keys())),
                 "columns": balance_results,
             }},
             issues=issues,
         )
+
+    # ------------------------------------------------------------------
+    # Expected distribution conformity
+    # ------------------------------------------------------------------
+    def _evaluate_conformity(
+        self,
+        col_name: str,
+        value_counts: pd.Series,
+        col_expected: dict[str, list],
+        sensitive: bool,
+        evaluation_id,
+        metrics_map: dict,
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        """Compare actual proportions against user-defined expected ranges.
+
+        Args:
+            col_expected: {"junior": [70, 85], "senior": [10, 20], ...}
+                          Values are [min%, max%] expressed as percentages (0-100).
+        Returns:
+            (result_dict, issues_list)
+        """
+        issues: list[dict[str, Any]] = []
+        class_results: list[dict[str, Any]] = []
+        classes_in_range = 0
+        total_classes = len(col_expected)
+
+        for class_name, expected_range in col_expected.items():
+            if not isinstance(expected_range, list) or len(expected_range) != 2:
+                continue
+            min_pct, max_pct = float(expected_range[0]), float(expected_range[1])
+            actual_prop = float(value_counts.get(class_name, 0.0))
+            actual_pct = actual_prop * 100.0
+
+            in_range = min_pct <= actual_pct <= max_pct
+            if in_range:
+                classes_in_range += 1
+                deviation = 0.0
+            else:
+                deviation = min(abs(actual_pct - min_pct), abs(actual_pct - max_pct))
+
+            label = "***" if sensitive else class_name
+            class_results.append({
+                "class": label,
+                "expected_range": [min_pct, max_pct],
+                "actual_pct": round(actual_pct, 2),
+                "in_range": in_range,
+                "deviation_pp": round(deviation, 2),
+            })
+
+            if not in_range:
+                sev = self.calculate_dynamic_severity(
+                    deviation / 100.0, 0.0, metric_type="class_balance_deviation"
+                )
+                direction = "por debajo" if actual_pct < min_pct else "por encima"
+                issues.append({
+                    "evaluation_id": evaluation_id,
+                    "metric_id": metrics_map.get("class_balance"),
+                    "severity": sev,
+                    "description": (
+                        f"La clase '{label}' en '{col_name}' tiene {actual_pct:.1f}% "
+                        f"({direction} del rango esperado [{min_pct:.0f}%-{max_pct:.0f}%], "
+                        f"desviación: {deviation:.1f}pp)"
+                    ),
+                    "affected_columns": [{
+                        "column": col_name,
+                        "class": label,
+                        "actual_pct": round(actual_pct, 2),
+                        "expected_range": [min_pct, max_pct],
+                        "deviation_pp": round(deviation, 2),
+                    }],
+                    "issue_type": "class_balance",
+                    "actual_value": f"{actual_pct:.1f}%",
+                    "fingerprint": generate_class_balance_fingerprint(
+                        column_name=col_name,
+                        imbalance_type="distribution_deviation",
+                        class_name=class_name,
+                    ),
+                })
+
+        conformity_score = (classes_in_range / total_classes * 100.0) if total_classes > 0 else 100.0
+
+        result: dict[str, Any] = {
+            "conformity_score": round(conformity_score, 2),
+            "classes_in_range": classes_in_range,
+            "total_expected_classes": total_classes,
+            "class_details": class_results,
+        }
+        return result, issues
