@@ -5,7 +5,7 @@
 import React from 'react';
 import {
   FileCheck2, Fingerprint, AlertTriangle, Clock,
-  GitBranch, Scale, Braces, BarChart3,
+  GitBranch, Scale, Braces, BarChart3, Shapes,
 } from 'lucide-react';
 
 export interface IconMeta { icon: any; color: string; bg: string; }
@@ -24,6 +24,7 @@ const ICON_MAP: Record<string, IconMeta> = {
   logical_consistency: { icon: GitBranch,     color: '#0D7377', bg: '#E0F2F1' },
   class_balance:       { icon: Scale,         color: '#2E7D32', bg: '#E8F5E9' },
   syntactic_accuracy:  { icon: Braces,        color: '#C75000', bg: '#FBE9E7' },
+  diversity:           { icon: Shapes,        color: '#0288D1', bg: '#E1F5FE' },
 };
 
 const DEFAULT: IconMeta = { icon: BarChart3, color: '#00B37E', bg: 'rgba(0,179,126,0.1)' };

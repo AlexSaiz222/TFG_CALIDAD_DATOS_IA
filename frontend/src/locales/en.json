@@ -1759,6 +1759,24 @@
           "paidAmount": "If paid, amount positive",
           "paidAmountHint": "If status is \"paid\", the amount must be greater than zero."
         }
+      },
+      "diversity": {
+        "title": "Diversity (ISO 5259-2)",
+        "description": "Checks whether the dataset covers the values and ranges expected by the user. For categorical columns it verifies the presence of defined values; for numeric columns, the coverage of the expected range.",
+        "thresholdLabel": "Minimum diversity required per column",
+        "thresholdHelp": "An alert will be raised if the coverage of expected values falls below this threshold.",
+        "addColumnTitle": "Columns to evaluate",
+        "selectColumn": "— Select column —",
+        "columnNamePlaceholder": "Column name…",
+        "typeCategorical": "Categorical",
+        "typeNumeric": "Numeric",
+        "noColumnsAlert": "Add columns and define the values or ranges you expect in your dataset. Without defined expectations, this metric does not affect the Quality Score.",
+        "expectedValuesLabel": "Expected values",
+        "noExpectedValues": "No values defined — add the values you expect to find",
+        "addValuePlaceholder": "Expected value…",
+        "minRepresentationLabel": "Minimum representation per value",
+        "expectedRangeLabel": "Expected range",
+        "binsLabel": "Number of intervals (bins)"
       }
     }
   },

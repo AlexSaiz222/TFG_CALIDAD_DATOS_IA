@@ -22,6 +22,7 @@ import {
   Bolt as BoltIcon,
   Code as CodeIcon,
   Tune as TuneIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import LogicalConsistencyRuleEditor, { LogicalRule } from './LogicalConsistencyRuleEditor';
@@ -754,6 +755,258 @@ const CurrentnessConfig: React.FC<{ params: any; onChange: (p: any) => void; loa
   );
 };
 
+// ---------- DIVERSITY ----------
+interface DiversityColConfig {
+  type: 'categorical' | 'numeric';
+  expected_values?: string[];
+  expected_range?: [number, number];
+  min_representation?: number;
+  num_bins?: number;
+}
+
+const DiversityConfig: React.FC<{
+  params: any; onChange: (p: any) => void;
+  loadedColumns: DatasetColumnLite[]; columnsLoading: boolean;
+}> = ({ params, onChange, loadedColumns, columnsLoading }) => {
+  const { t } = useTranslation();
+  const columns: Record<string, DiversityColConfig> = params.columns ?? {};
+  const threshold: number = params.threshold ?? 0.60;
+  const [addColName, setAddColName] = useState('');
+  const [addColType, setAddColType] = useState<'categorical' | 'numeric'>('categorical');
+  const [valInputs, setValInputs] = useState<Record<string, string>>({});
+
+  // Ensure defaults are set in JSON
+  React.useEffect(() => {
+    if (params.threshold === undefined || params.columns === undefined) {
+      onChange({ columns: params.columns ?? {}, threshold: params.threshold ?? 0.60 });
+    }
+  }, []);
+
+  const setCol = (name: string, cfg: DiversityColConfig) => {
+    onChange({ ...params, columns: { ...columns, [name]: cfg } });
+  };
+  const removeCol = (name: string) => {
+    const next = { ...columns };
+    delete next[name];
+    onChange({ ...params, columns: next });
+  };
+  const addCol = () => {
+    const name = addColName.trim();
+    if (!name || columns[name]) return;
+    const cfg: DiversityColConfig = addColType === 'categorical'
+      ? { type: 'categorical', expected_values: [], min_representation: 0.01 }
+      : { type: 'numeric', expected_range: [0, 100], num_bins: 10 };
+    setCol(name, cfg);
+    setAddColName('');
+  };
+  const addExpectedValue = (colName: string) => {
+    const v = (valInputs[colName] ?? '').trim();
+    if (!v) return;
+    const cfg = columns[colName];
+    if (!cfg || cfg.type !== 'categorical') return;
+    const existing = cfg.expected_values ?? [];
+    if (!existing.includes(v)) {
+      setCol(colName, { ...cfg, expected_values: [...existing, v] });
+    }
+    setValInputs(prev => ({ ...prev, [colName]: '' }));
+  };
+
+  const colNames = Object.keys(columns);
+  const availableCols = loadedColumns.filter(lc => !columns[lc.name]);
+
+  return (
+    <Box>
+      <SectionBanner
+        metricName="diversity"
+        title={t('metricConfig.smartDialog.diversity.title')}
+        description={t('metricConfig.smartDialog.diversity.description')}
+      />
+
+      {/* Threshold */}
+      <ThresholdSlider
+        label={t('metricConfig.smartDialog.diversity.thresholdLabel')}
+        value={threshold}
+        onChange={v => onChange({ ...params, threshold: v })}
+        presets={[0.50, 0.60, 0.70, 0.80]}
+        helpText={t('metricConfig.smartDialog.diversity.thresholdHelp')}
+      />
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* Add column */}
+      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+        {t('metricConfig.smartDialog.diversity.addColumnTitle')}
+      </Typography>
+      <Box display="flex" gap={1} mb={1} alignItems="center" flexWrap="wrap">
+        {availableCols.length > 0 && !columnsLoading ? (
+          <TextField
+            select
+            size="small"
+            value={addColName}
+            onChange={e => {
+              setAddColName(e.target.value);
+              const colMeta = loadedColumns.find(c => c.name === e.target.value);
+              if (colMeta) {
+                const isNum = ['int64', 'float64', 'int32', 'float32', 'number', 'numeric'].some(t => colMeta.type.toLowerCase().includes(t));
+                setAddColType(isNum ? 'numeric' : 'categorical');
+              }
+            }}
+            sx={{ minWidth: 180 }}
+            SelectProps={{ native: true }}
+          >
+            <option value="">{t('metricConfig.smartDialog.diversity.selectColumn')}</option>
+            {availableCols.map(c => (
+              <option key={c.name} value={c.name}>{c.name}</option>
+            ))}
+          </TextField>
+        ) : (
+          <TextField
+            size="small"
+            value={addColName}
+            onChange={e => setAddColName(e.target.value)}
+            placeholder={t('metricConfig.smartDialog.diversity.columnNamePlaceholder')}
+            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); addCol(); } }}
+            sx={{ minWidth: 180 }}
+          />
+        )}
+        <ToggleButtonGroup
+          exclusive size="small"
+          value={addColType}
+          onChange={(_, v) => { if (v) setAddColType(v); }}
+        >
+          <ToggleButton value="categorical" sx={{ fontSize: '0.75rem', textTransform: 'none', '&.Mui-selected': { bgcolor: GREEN_LIGHT, color: GREEN, fontWeight: 600 } }}>
+            {t('metricConfig.smartDialog.diversity.typeCategorical')}
+          </ToggleButton>
+          <ToggleButton value="numeric" sx={{ fontSize: '0.75rem', textTransform: 'none', '&.Mui-selected': { bgcolor: GREEN_LIGHT, color: GREEN, fontWeight: 600 } }}>
+            {t('metricConfig.smartDialog.diversity.typeNumeric')}
+          </ToggleButton>
+        </ToggleButtonGroup>
+        <Button size="small" variant="outlined" onClick={addCol} disabled={!addColName.trim()}
+          sx={{ borderColor: GREEN, color: GREEN, textTransform: 'none' }}>
+          {t('metricConfig.smartDialog.addButton')}
+        </Button>
+      </Box>
+
+      {colNames.length === 0 && (
+        <Alert severity="info" sx={{ mt: 1, mb: 2, fontSize: '0.85rem' }}>
+          {t('metricConfig.smartDialog.diversity.noColumnsAlert')}
+        </Alert>
+      )}
+
+      {/* Per-column configs */}
+      {colNames.map(colName => {
+        const cfg = columns[colName];
+        return (
+          <Paper key={colName} variant="outlined" sx={{ p: 2, mb: 1.5, borderColor: '#E0E0E0' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography variant="subtitle2" fontWeight={600}>{colName}</Typography>
+                <Chip
+                  label={cfg.type === 'categorical'
+                    ? t('metricConfig.smartDialog.diversity.typeCategorical')
+                    : t('metricConfig.smartDialog.diversity.typeNumeric')}
+                  size="small"
+                  sx={{ height: 20, fontSize: '0.7rem', bgcolor: cfg.type === 'categorical' ? '#E3F2FD' : '#FFF3E0', color: cfg.type === 'categorical' ? '#1976D2' : '#E08C00' }}
+                />
+              </Box>
+              <IconButton size="small" onClick={() => removeCol(colName)} sx={{ color: '#E5484D' }}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Box>
+
+            {cfg.type === 'categorical' ? (
+              <>
+                {/* Expected values */}
+                <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                  {t('metricConfig.smartDialog.diversity.expectedValuesLabel')}
+                </Typography>
+                <Box display="flex" gap={0.5} flexWrap="wrap" mb={1}>
+                  {(cfg.expected_values ?? []).map(v => (
+                    <Chip key={v} label={v} size="small"
+                      onDelete={() => setCol(colName, { ...cfg, expected_values: (cfg.expected_values ?? []).filter(x => x !== v) })}
+                    />
+                  ))}
+                  {(cfg.expected_values ?? []).length === 0 && (
+                    <Typography variant="caption" color="text.disabled">
+                      {t('metricConfig.smartDialog.diversity.noExpectedValues')}
+                    </Typography>
+                  )}
+                </Box>
+                <Box display="flex" gap={1}>
+                  <TextField size="small" fullWidth
+                    value={valInputs[colName] ?? ''}
+                    placeholder={t('metricConfig.smartDialog.diversity.addValuePlaceholder')}
+                    onChange={e => setValInputs(prev => ({ ...prev, [colName]: e.target.value }))}
+                    onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); addExpectedValue(colName); } }}
+                  />
+                  <Button size="small" variant="outlined" onClick={() => addExpectedValue(colName)}
+                    sx={{ borderColor: GREEN, color: GREEN, minWidth: 48, textTransform: 'none' }}>
+                    {t('metricConfig.smartDialog.addButton')}
+                  </Button>
+                </Box>
+
+                {/* Min representation */}
+                <Box mt={1.5}>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('metricConfig.smartDialog.diversity.minRepresentationLabel')}
+                  </Typography>
+                  <Box display="flex" gap={0.5} mt={0.5} flexWrap="wrap">
+                    {[0.01, 0.02, 0.05, 0.10].map(v => (
+                      <Chip key={v} label={`${(v * 100).toFixed(0)}%`} size="small"
+                        onClick={() => setCol(colName, { ...cfg, min_representation: v })}
+                        variant={(cfg.min_representation ?? 0.01) === v ? 'filled' : 'outlined'}
+                        sx={(cfg.min_representation ?? 0.01) === v
+                          ? { bgcolor: GREEN, color: '#fff', fontWeight: 600, cursor: 'pointer' }
+                          : { cursor: 'pointer' }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              </>
+            ) : (
+              <>
+                {/* Numeric: expected range */}
+                <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                  {t('metricConfig.smartDialog.diversity.expectedRangeLabel')}
+                </Typography>
+                <Box display="flex" gap={1} alignItems="center" mb={1.5}>
+                  <TextField size="small" type="number" label="Min"
+                    value={cfg.expected_range?.[0] ?? 0}
+                    onChange={e => setCol(colName, { ...cfg, expected_range: [parseFloat(e.target.value) || 0, cfg.expected_range?.[1] ?? 100] })}
+                    sx={{ width: 100 }}
+                  />
+                  <Typography variant="body2" color="text.secondary">—</Typography>
+                  <TextField size="small" type="number" label="Max"
+                    value={cfg.expected_range?.[1] ?? 100}
+                    onChange={e => setCol(colName, { ...cfg, expected_range: [cfg.expected_range?.[0] ?? 0, parseFloat(e.target.value) || 100] })}
+                    sx={{ width: 100 }}
+                  />
+                </Box>
+
+                {/* Bins */}
+                <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                  {t('metricConfig.smartDialog.diversity.binsLabel')}
+                </Typography>
+                <Box display="flex" gap={0.5} flexWrap="wrap">
+                  {[5, 10, 15, 20].map(n => (
+                    <Chip key={n} label={`${n} bins`} size="small"
+                      onClick={() => setCol(colName, { ...cfg, num_bins: n })}
+                      variant={(cfg.num_bins ?? 10) === n ? 'filled' : 'outlined'}
+                      sx={(cfg.num_bins ?? 10) === n
+                        ? { bgcolor: GREEN, color: '#fff', fontWeight: 600, cursor: 'pointer' }
+                        : { cursor: 'pointer' }}
+                    />
+                  ))}
+                </Box>
+              </>
+            )}
+          </Paper>
+        );
+      })}
+    </Box>
+  );
+};
+
 // ---------- LOGICAL CONSISTENCY ----------
 // Static rule template data (expressions/conditions don't change with language)
 const RULE_TEMPLATES_DATA = [
@@ -971,6 +1224,8 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
         return <ClassBalanceConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingStringCols} />;
       case 'currentness':
         return <CurrentnessConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} missingColumns={missingStringCols} />;
+      case 'diversity':
+        return <DiversityConfig params={params} onChange={setParams} loadedColumns={loadedColumns} columnsLoading={columnsLoading} />;
       case 'logical_consistency':
         return <LogicalConsistencyConfig params={params} onChange={setParams} />;
       default:

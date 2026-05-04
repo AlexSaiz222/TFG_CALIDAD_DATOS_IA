@@ -311,6 +311,34 @@ def generate_currentness_fingerprint(
     )
 
 
+def generate_diversity_fingerprint(
+    column_name: str,
+    diversity_type: str = "general",
+    expected_value: Optional[str] = None,
+) -> str:
+    """Genera fingerprint para issues de diversidad (ISO 5259-2).
+
+    Args:
+        column_name: Nombre de la columna afectada
+        diversity_type: Tipo de issue ('missing_value', 'underrepresented',
+                        'low_range_coverage', 'constant_column')
+        expected_value: Valor esperado ausente o sub-representado (opcional)
+
+    Returns:
+        str: Fingerprint de 16 caracteres
+    """
+    extra: Dict[str, Any] = {"diversity_type": diversity_type}
+    if expected_value is not None:
+        extra["expected_value"] = expected_value
+
+    return generate_issue_fingerprint(
+        issue_type="diversity",
+        column_name=column_name,
+        rule_key=f"diversity_{diversity_type}",
+        extra_params=extra,
+    )
+
+
 def generate_outlier_issue_fingerprint(
     column_name: str,
     method: str = "iqr",

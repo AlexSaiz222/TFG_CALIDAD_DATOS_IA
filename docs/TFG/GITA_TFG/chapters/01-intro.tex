@@ -1,58 +1,48 @@
 \chapter{Introducción}
 \label{chap:intro}
 
-\drop{L}{a} calidad de los datos constituye uno de los pilares fundamentales sobre
-los que se sustenta el éxito de cualquier proyecto de \ac{IA} o \ac{ML}.
-A medida que las organizaciones adoptan sistemas basados en datos para la toma
-de decisiones estratégicas, la necesidad de garantizar que dichos datos sean
-completos, precisos, consistentes y oportunos se ha convertido en un requisito
-ineludible.  Sin embargo, la realidad de la industria muestra que la calidad de
-los datos sigue siendo un problema generalizado y costoso, tanto en términos
-económicos como en sus consecuencias sobre la fiabilidad de los modelos
-resultantes.  El presente \ac{TFG} aborda esta problemática mediante el diseño
-e implementación de \dataqual, una plataforma web integral para la evaluación
-automatizada de la calidad de datos en proyectos de \ac{IA}.
+\drop{U}{n} modelo de \ac{IA} es, en última instancia, tan fiable como los
+datos con los que fue entrenado.  Esta dependencia, evidente en teoría, tiene
+consecuencias prácticas graves y documentadas: sistemas que discriminan,
+predicciones que fallan en producción, auditorías imposibles de realizar
+porque nadie registró el estado de los datos en el momento del entrenamiento.
+El presente \ac{TFG} responde a esta realidad con el diseño e implementación
+de \dataqual, una plataforma web para la evaluación automatizada de la calidad
+de datos en proyectos de \ac{IA}.
 
-Este capítulo introductorio ofrece una visión general del problema que motiva
-el desarrollo de la plataforma, presenta la solución propuesta y sus
-principales capacidades, justifica la necesidad de una herramienta dedicada
-frente a los enfoques tradicionales, identifica el público objetivo al que se
-dirige y describe la estructura del resto del documento.
+Este capítulo introductorio presenta el problema que motiva el desarrollo de
+la plataforma, describe la solución propuesta y sus capacidades principales,
+justifica su necesidad frente a los enfoques existentes, identifica el público
+al que se dirige y describe la estructura del documento.
 
 
 %% ---------------------------------------------------------------------------
 \section{Motivación}
 \label{sec:motivacion}
 
-El principio conocido como \emph{garbage in, garbage out} resume de forma
-elocuente una verdad ampliamente reconocida en el ámbito de la ciencia de
-datos: la calidad de las salidas de un sistema está intrínsecamente limitada
-por la calidad de sus entradas.  En el contexto de la \ac{IA} y el \ac{ML},
-este principio adquiere una relevancia especial, ya que los modelos aprenden
-patrones directamente de los datos de entrenamiento~\citep{wang1996}.  Si
-estos datos contienen errores, sesgos o valores ausentes, los modelos
-resultantes heredarán, y con frecuencia amplificarán, dichas
-deficiencias~\citep{redman1998}.
+El principio conocido como \emph{garbage in, garbage out} lleva décadas
+resumiendo una verdad incómoda para la industria del dato: la calidad de las
+salidas de un sistema está limitada por la calidad de sus entradas.  En
+\ac{IA} y \ac{ML}, esta dependencia es especialmente directa porque los
+modelos aprenden patrones de los propios datos de entrenamiento~\citep{wang1996}; si esos datos contienen errores, sesgos o valores ausentes, el
+modelo los hereda y, con frecuencia, los amplifica~\citep{redman1998}.
 
-Diversos estudios han demostrado que los problemas de calidad de datos
-constituyen la causa principal de fallos de sistemas de \ac{IA} en
-producción, por encima incluso de los errores algorítmicos.
-Sambasivan et~al.~(\citeyear{sambasivan2021}) documentaron, a partir de entrevistas
-con 53 profesionales de \ac{IA} en múltiples organizaciones, que las
-deficiencias en los datos (etiquetado incorrecto, datos
-desactualizados, muestras no representativas) son la causa
-predominante de los fracasos en despliegues de \ac{ML}.  A nivel técnico, la presencia de etiquetas incorrectas en los datos de
-entrenamiento puede degradar significativamente la precisión del modelo
-resultante, una degradación que ninguna mejora arquitectónica puede compensar
-de forma fiable~\citep{ng2021datacentric}.
+Los estudios más citados sobre el tema confirman que los problemas de calidad
+de datos superan a los errores algorítmicos como causa de fallos en producción.
+Sambasivan et~al.~(\citeyear{sambasivan2021}), a partir de entrevistas con
+53 profesionales de \ac{IA} en múltiples organizaciones, identificaron el
+etiquetado incorrecto, los datos desactualizados y las muestras no
+representativas como las causas predominantes de fracaso en despliegues de
+\ac{ML}.  Ng~(\citeyear{ng2021datacentric}) demostró que mejorar la calidad
+del dataset de entrenamiento produce ganancias de precisión que ningún ajuste
+arquitectónico puede igualar cuando los datos son defectuosos.
 
-Las consecuencias económicas de esta situación son igualmente significativas:
-el coste de corregir errores crece exponencialmente a medida que avanzan por
-las etapas de un flujo de procesamiento~\citep{redman2001}.  Encuestas a profesionales del sector revelan consistentemente que una
-proporción significativa de su tiempo se dedica a tareas de limpieza y
-preparación de datos~\citep{kaggle2022}, en detrimento del tiempo disponible
-para el análisis y el desarrollo de modelos, lo que evidencia la necesidad de
-herramientas que automaticen la evaluación de la calidad.
+El coste económico es proporcional: Redman~(\citeyear{redman2001}) estimó que
+corregir un error se vuelve entre diez y cien veces más caro conforme avanza
+por las etapas de un proyecto.  Encuestas recientes al sector cifran en torno
+al 60--80\% el tiempo que los profesionales de datos dedican a limpieza y
+preparación~\citep{kaggle2022}, tiempo que no se invierte en construir ni
+mejorar modelos.
 
 La calidad de los datos no es, además, únicamente una cuestión técnica.
 Los datos desequilibrados o no representativos son una fuente frecuente de
@@ -80,16 +70,16 @@ determinante.
 \section{Presentación de la solución}
 \label{sec:solucion}
 
-Para abordar la problemática descrita, se ha diseñado e implementado
-\dataqual, una plataforma web \emph{full-stack} para la evaluación
-automatizada de la calidad de datos en proyectos de \ac{IA}.  A diferencia de las herramientas existentes, \dataqual
-integra en un único entorno la configuración de métricas, la ejecución de
-evaluaciones y la visualización de resultados, sin necesidad de escribir
-código.  La plataforma combina una interfaz gráfica interactiva con
-una \ac{API} \ac{REST}ful~\citep{fielding2000} que permite su integración en
-flujos de trabajo existentes, y se despliega como ocho servicios Docker
-orquestados con Docker~Compose para garantizar portabilidad y soberanía
-sobre los datos.  Sus capacidades principales son:
+\dataqual es una plataforma web \emph{full-stack} para la evaluación
+automatizada de la calidad de datos en proyectos de \ac{IA}, concebida para
+que cualquier equipo pueda auditar sus datos sin necesidad de escribir código.
+Unifica en un mismo entorno la carga de datos, la configuración de métricas,
+la ejecución de evaluaciones y la consulta de resultados, y expone además una
+\ac{API} \ac{REST}ful~\citep{fielding2000} para integrarse con herramientas
+externas.  El despliegue se realiza mediante ocho servicios Docker orquestados
+con Docker~Compose, lo que permite ejecutar la plataforma completa en
+cualquier máquina con un único comando y sin depender de servicios en la nube.
+Sus capacidades principales son:
 
 \begin{itemize}
   \item \textbf{Carga de conjuntos de datos} en formato \ac{CSV}, con
@@ -134,37 +124,33 @@ sobre los datos.  Sus capacidades principales son:
 \section{Justificación de la solución}
 \label{sec:justificacion}
 
-Los enfoques tradicionales para la evaluación de la calidad de datos,
-\emph{scripts} ad~hoc en Python, consultas \ac{SQL} manuales o cuadernos
-Jupyter, presentan limitaciones que dificultan su adopción sistemática en
-entornos profesionales.  La primera de ellas es la falta de estandarización:
-cada equipo define sus propias métricas y umbrales de forma aislada, lo que
-impide la comparación entre proyectos y complica la auditoría.  \dataqual
-aborda esto mediante un catálogo alineado con \ac{ISO}/IEC~25012~\citep{iso25012}
-y la serie \ac{ISO}/IEC~5259~\citep{iso5259}, que proporciona un marco de
-referencia común basado en el modelo \ac{SQuaRE}.  A esto se añade la
-ausencia de historización: los \emph{scripts} evalúan instantáneas puntuales
-sin conservar un registro que permita detectar degradaciones progresivas de
-la calidad, algo que \dataqual resuelve mediante el seguimiento automático
-entre ejecuciones.
+Evaluar la calidad de un dataset con \emph{scripts} de Python o consultas
+\ac{SQL} ad~hoc es viable para una exploración puntual, pero se vuelve
+insostenible cuando el número de proyectos crece o el equipo incorpora
+perfiles no técnicos.  Cada equipo termina definiendo sus propias métricas
+con sus propios umbrales, sin posibilidad de comparar resultados entre
+proyectos ni de detectar si la calidad se degrada de una ejecución a la
+siguiente.  \dataqual aborda ambas carencias con un catálogo de métricas
+alineado con \ac{ISO}/IEC~25012~\citep{iso25012} e
+\ac{ISO}/IEC~5259~\citep{iso5259} y un sistema de seguimiento entre
+ejecuciones basado en \emph{fingerprinting}.
 
-Una segunda barrera es de naturaleza técnica.  Herramientas como Great
-Expectations~\citep{greatexpectations} o Deequ de Amazon requieren
-conocimientos de programación que no todos los perfiles involucrados en un
-proyecto de datos poseen, y los \emph{scripts} independientes tampoco se
-integran de forma natural en \emph{pipelines} existentes.  \dataqual ofrece
-una interfaz web accesible para usuarios no técnicos y, simultáneamente, una
-\ac{API} \ac{REST} para la integración programática con flujos de \ac{MLOps}
-y procesos \ac{ETL}.
+Herramientas más maduras como Great
+Expectations~\citep{greatexpectations} o Deequ de Amazon resuelven el
+problema de la estandarización, pero exigen que quien las configure sepa
+programar, lo que excluye a analistas y responsables de negocio.  \dataqual
+invierte esta restricción: la interfaz web permite configurar y lanzar
+evaluaciones sin instalar nada ni escribir una línea de código, mientras que
+la \ac{API} \ac{REST} queda disponible para los perfiles técnicos que
+prefieran integrar las evaluaciones en sus propios flujos.
 
-Por último, ninguno de estos enfoques proporciona una señal clara de
-aprobación o rechazo sobre la calidad del conjunto de datos.  Esta carencia
-es especialmente crítica en flujos de \ac{MLOps}, donde se necesita un
-criterio objetivo para decidir si los datos son aptos antes de entrenar un
-modelo.  Inspirándose en el concepto de \emph{Quality Gate} de
-SonarQube~\citep{sonarqube}, \dataqual implementa puertas de calidad
-configurables con estados \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}
-que convierten una evaluación cuantitativa en una decisión accionable.
+El tercer problema, compartido por todos los enfoques anteriores, es la
+ausencia de un veredicto claro: un \emph{script} puede detectar que el 12\%
+de una columna es nulo, pero no indica si eso es aceptable para el proyecto
+concreto.  \dataqual incorpora \emph{Quality Gates} configurables
+---puntuación mínima, límite de issues críticos y límite de issues nuevos---
+que producen un estado \texttt{PASSED}, \texttt{WARNING} o \texttt{FAILED},
+al modo en que SonarQube~\citep{sonarqube} lo hace para el código fuente.
 
 
 %% ---------------------------------------------------------------------------

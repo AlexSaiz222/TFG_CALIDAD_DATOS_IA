@@ -8,7 +8,7 @@ Database file #1: main.bib
 Warning--can't use both volume and number fields in schelter2018
 You've used 42 entries,
             1935 wiz_defined-function locations,
-            668 strings with 9613 characters,
+            668 strings with 9572 characters,
 and the built_in function-call counts, 12401 in all, are:
 = -- 1288
 > -- 407

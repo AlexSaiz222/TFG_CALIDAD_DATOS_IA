@@ -1751,6 +1751,24 @@
           "paidAmount": "Si pagado, importe positivo",
           "paidAmountHint": "Si el estado es \"pagado\", el importe debe ser mayor que cero."
         }
+      },
+      "diversity": {
+        "title": "Diversidad (ISO 5259-2)",
+        "description": "Verifica que el dataset cubra los valores y rangos esperados por el usuario. Para columnas categóricas comprueba la presencia de valores definidos; para numéricas, la cobertura del rango esperado.",
+        "thresholdLabel": "Diversidad mínima requerida por columna",
+        "thresholdHelp": "Se emitirá una alerta si la cobertura de valores esperados cae por debajo de este umbral.",
+        "addColumnTitle": "Columnas a evaluar",
+        "selectColumn": "— Seleccionar columna —",
+        "columnNamePlaceholder": "Nombre de la columna…",
+        "typeCategorical": "Categórica",
+        "typeNumeric": "Numérica",
+        "noColumnsAlert": "Añade columnas y define los valores o rangos que esperas en tu dataset. Sin expectativas definidas, la métrica no afecta al Quality Score.",
+        "expectedValuesLabel": "Valores esperados",
+        "noExpectedValues": "Sin valores definidos — añade los valores que esperas encontrar",
+        "addValuePlaceholder": "Valor esperado…",
+        "minRepresentationLabel": "Representación mínima por valor",
+        "expectedRangeLabel": "Rango esperado",
+        "binsLabel": "Número de intervalos (bins)"
       }
     }
   },

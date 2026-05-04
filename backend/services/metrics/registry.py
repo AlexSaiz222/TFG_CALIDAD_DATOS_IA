@@ -11,6 +11,7 @@ from .syntactic_accuracy import SyntacticAccuracyMetric
 from .logical_consistency import LogicalConsistencyMetric
 from .class_balance import ClassBalanceMetric
 from .currentness import CurrentnessMetric
+from .diversity import DiversityMetric
 
 METRIC_REGISTRY: dict = {
     "completeness": CompletenessMetric,
@@ -19,6 +20,7 @@ METRIC_REGISTRY: dict = {
     "logical_consistency": LogicalConsistencyMetric,
     "class_balance": ClassBalanceMetric,
     "currentness": CurrentnessMetric,
+    "diversity": DiversityMetric,
 }
 
 

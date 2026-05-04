@@ -84,10 +84,10 @@ evidencia de su cumplimiento.
     \toprule
     \textbf{Obj.} & \textbf{Evidencia} & \textbf{Estado} \\
     \midrule
-    OE1 & Módulo de ingesta con soporte para \ac{CSV}, \ac{XLSX}, \ac{JSON}
-      y Parquet; parseo robusto con matriz de \emph{fallback};
+    OE1 & Módulo de ingesta en formato \ac{CSV} con parseo robusto mediante
+      matriz de \emph{fallback} (codificaciones $\times$ separadores);
       almacenamiento en MinIO; extracción automática de esquema;
-      versionado padre-hijo. & Cumplido \\
+      versionado padre-hijo con etiquetas personalizables. & Cumplido \\
     OE2 & Siete métricas implementadas como \emph{plugins}; parametrización
       completa; sistema de pesos; plantillas reutilizables; ejecución
       asíncrona con Celery. & Cumplido \\

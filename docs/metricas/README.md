@@ -14,6 +14,7 @@ El catálogo está alineado con las dimensiones de calidad definidas en **ISO/IE
 | `logical_consistency` | [logical_consistency.md](logical_consistency.md) | Reglas IF-THEN entre columnas |
 | `class_balance` | [class_balance.md](class_balance.md) | Distribución equilibrada de categorías (opt-in) |
 | `currentness` | [currentness.md](currentness.md) | Frescura y antigüedad de fechas (ISO 5259-2 Cur-ML-1) |
+| `diversity` | [diversity.md](diversity.md) | Cobertura de valores esperados por columna (ISO 5259-2) |
 
 ### Herramientas de profiling (no métricas de score)
 
@@ -33,7 +34,8 @@ BaseMetric (base.py)
     ├── SyntacticAccuracyMetric
     ├── LogicalConsistencyMetric
     ├── ClassBalanceMetric
-    └── CurrentnessMetric
+    ├── CurrentnessMetric
+    └── DiversityMetric
             │
             ▼
     MetricRegistry (registry.py)
