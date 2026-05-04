@@ -82,20 +82,24 @@ determinante.
 
 Para abordar la problemática descrita, se ha diseñado e implementado
 \dataqual, una plataforma web \emph{full-stack} para la evaluación
-automatizada de la calidad de datos en proyectos de \ac{IA}, \ac{ML} y
-minería de datos.  A diferencia de las herramientas existentes, \dataqual
+automatizada de la calidad de datos en proyectos de \ac{IA}.  A diferencia de las herramientas existentes, \dataqual
 integra en un único entorno la configuración de métricas, la ejecución de
-evaluaciones y la visualización de resultados, sin requerir conocimientos de
-programación.  La plataforma combina una interfaz gráfica interactiva con
+evaluaciones y la visualización de resultados, sin necesidad de escribir
+código.  La plataforma combina una interfaz gráfica interactiva con
 una \ac{API} \ac{REST}ful~\citep{fielding2000} que permite su integración en
 flujos de trabajo existentes, y se despliega como ocho servicios Docker
 orquestados con Docker~Compose para garantizar portabilidad y soberanía
 sobre los datos.  Sus capacidades principales son:
 
 \begin{itemize}
-  \item \textbf{Carga de conjuntos de datos} en múltiples formatos (\ac{CSV},
-    \ac{XLSX}, \ac{JSON} y Parquet), con almacenamiento seguro y
-    versionado.
+  \item \textbf{Carga de conjuntos de datos} en formato \ac{CSV}, con
+    almacenamiento seguro en MinIO y versionado gestionado mediante
+    una jerarquía de versiones con etiquetas personalizables.
+
+  \item \textbf{Perfilado exploratorio del dataset}: análisis estadístico
+    automático por columna que incluye distribuciones, valores nulos,
+    tipos de datos, estadísticos descriptivos e histogramas, para facilitar
+    la comprensión del dato antes de configurar las métricas formales.
 
   \item \textbf{Configuración de métricas de calidad} adaptadas al tipo de
     proyecto, con parámetros y umbrales personalizables alineados con los
@@ -116,11 +120,13 @@ sobre los datos.  Sus capacidades principales son:
 
   \item \textbf{Quality Gates} (puertas de calidad): umbrales mínimos
     configurables que determinan si un conjunto de datos es apto para su uso,
-    con estados \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED}.
+    con estados \texttt{PASSED}, \texttt{WARNING} y \texttt{FAILED},
+    inspirados en el concepto homónimo de SonarQube~\citep{sonarqube}.
 
-  \item \textbf{Protección de datos sensibles} mediante la detección y
-    enmascaramiento automático de información personal identificable
-    (\ac{PII}).
+  \item \textbf{Protección de datos sensibles}: el usuario marca las columnas
+    que contienen información sensible al cargar el dataset, y la plataforma
+    enmascara automáticamente sus valores en todos los resultados y muestras
+    de la evaluación, evitando su exposición en los informes.
 \end{itemize}
 
 
@@ -186,10 +192,10 @@ decisiones informadas.
 
 \dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
 y \ac{ML} de escala mediana, con soporte para conjuntos de datos tabulares de
-hasta 100\,MB en formatos \ac{CSV}, \ac{XLSX}, \ac{JSON} y Parquet.  La
+hasta 100\,MB en formato \ac{CSV}.  La
 plataforma cubre el ciclo completo de evaluación: desde la carga y el
 versionado de los datos hasta la emisión de un veredicto automatizado mediante
-\emph{Quality Gates}, pasando por la ejecución de siete métricas de calidad
+\emph{Quality Gates}, pasando por la ejecución de seis métricas de calidad
 alineadas con \ac{ISO}/IEC~5259, el perfilado exploratorio, el seguimiento de
 incidencias entre evaluaciones y la protección de datos personales.  El
 sistema se despliega en entorno local mediante Docker~Compose y expone una
