@@ -1,22 +1,18 @@
 \chapter{Antecedentes y estado del arte}
 \label{chap:antecedentes}
 
-\drop{L}{a} calidad de datos se ha consolidado como un campo de estudio fundamental
-dentro de la informática y la gestión de la información. A lo largo de las
-últimas tres décadas, la comunidad científica ha producido marcos conceptuales,
-estándares internacionales y herramientas especializadas que buscan
-sistematizar la evaluación y la mejora de los datos utilizados en sistemas de
-información. En el contexto de la \ac{IA} y el \ac{ML}, la calidad de los datos
-de entrenamiento condiciona directamente la fiabilidad de los modelos
-resultantes, lo que ha impulsado una línea de investigación conocida como
-\emph{data-centric AI}. Este capítulo examina los fundamentos teóricos, el marco
-normativo, las herramientas existentes y la justificación académica que
-sustentan el desarrollo de \dataqual como plataforma de evaluación de calidad de
-datos para proyectos de \ac{IA}.
+\drop{S}{aber} que los datos condicionan la calidad de un modelo de \ac{IA} no
+basta si no se dispone de una forma sistemática de medirlo.  Durante las
+últimas décadas, la investigación ha producido dos tipos de respuesta: marcos
+conceptuales y estándares internacionales que definen qué es la calidad de
+datos, y herramientas que permiten medirla de forma automatizada.  Este capítulo
+revisa ambos frentes para situar \dataqual en su contexto: qué se sabe sobre
+la calidad de datos en \ac{IA}, qué normas la regulan, qué herramientas ya
+existen y por qué ninguna cubre exactamente el espacio que \dataqual ocupa.
 
 
 %% =========================================================================
-\section{La importancia de la calidad de datos en proyectos de IA}
+\section{La importancia de la calidad de datos en proyectos de~\ac{IA}}
 \label{sec:importancia-calidad}
 %% =========================================================================
 
@@ -37,23 +33,21 @@ conceptual para la calidad de datos basado en cuatro categorías fundamentales:
     acceso a los mismos.
 \end{itemize}
 
-Este marco ha sido ampliamente adoptado tanto en la investigación como en la
-industria, y constituye la base sobre la que se han construido estándares
-internacionales como \ac{ISO}/IEC 25012.
+El estándar \ac{ISO}/IEC~25012 toma directamente este marco como punto de
+partida para su modelo de calidad de datos.
 
 \subsection{Impacto económico de la mala calidad de datos}
 
 Redman (\citeyear{redman1998}, \citeyear{redman2001}) cuantificó por primera vez el impacto
 económico de la mala calidad de datos en las organizaciones, estableciendo que
 las empresas gastan entre el 10\% y el 25\% de sus ingresos en gestionar
-problemas derivados de datos de baja calidad. Estos hallazgos han sido
-corroborados y ampliados por estudios posteriores del MIT Information Quality
-Program y del \ac{DMBOK}.
+problemas derivados de datos de baja calidad. Estudios posteriores del MIT Information Quality Program y del \ac{DMBOK} han
+reproducido estas cifras con resultados similares.
 
-En el contexto específico de proyectos de \ac{IA}, este coste se amplifica de
-forma considerable: un modelo entrenado con datos defectuosos no solo produce
-resultados incorrectos, sino que las decisiones basadas en esas predicciones
-pueden tener consecuencias financieras, legales y reputacionales significativas.
+En proyectos de \ac{IA}, el coste se multiplica: un modelo entrenado con datos
+defectuosos no solo produce resultados incorrectos, sino que las decisiones
+tomadas a partir de esas predicciones pueden tener consecuencias financieras,
+legales y reputacionales difíciles de revertir.
 Sambasivan et al.~(\citeyear{sambasivan2021}) demostraron, en un estudio realizado en
 Google Research, que los problemas de calidad de datos constituyen la causa
 principal de fallos en sistemas de \ac{IA} en producción, superando incluso a
@@ -69,14 +63,13 @@ agilicen el diagnóstico.
 
 \subsection{El paradigma data-centric AI}
 
-Ng~(\citeyear{ng2021datacentric}), uno de los investigadores más influyentes
-en \ac{IA}, ha popularizado el concepto de \emph{data-centric AI} como
-contraposición al enfoque tradicional \emph{model-centric}. Mientras que el
-enfoque \emph{model-centric} se centra en mejorar los algoritmos manteniendo
-los datos fijos, el enfoque \emph{data-centric} propone mantener los modelos
-fijos y mejorar sistemáticamente los datos. Este cambio de paradigma reconoce
-que, para la mayoría de aplicaciones prácticas de \ac{IA}, la mejora de los
-datos produce un impacto mayor que la mejora de los algoritmos.
+Ng~(\citeyear{ng2021datacentric}) acuñó el término \emph{data-centric AI}
+para describir un giro metodológico respecto al enfoque tradicional
+\emph{model-centric}: en lugar de mantener los datos fijos y mejorar el
+algoritmo, se mantiene el modelo fijo y se mejora sistemáticamente el dataset.
+La tesis es directa: en la mayoría de proyectos reales de \ac{IA}, invertir
+esfuerzo en los datos produce ganancias de rendimiento mayores que afinar la
+arquitectura del modelo.
 
 Diversas iniciativas han consolidado este paradigma en la comunidad:
 
@@ -97,10 +90,8 @@ herramientas de evaluación de calidad. Los datos desequilibrados o no
 representativos son la raíz de muchos casos documentados de sesgo en sistemas de
 \ac{IA}: desde algoritmos de contratación que discriminan por
 género~\citep{amazon2018} hasta sistemas de reconocimiento facial con tasas de
-error desproporcionadas para minorías étnicas~\citep{buolamwini2018}. La calidad
-de los datos \textemdash en particular, el equilibrio de clases y la
-representatividad\textemdash~es un factor determinante en la equidad de los
-sistemas inteligentes.
+error desproporcionadas para minorías étnicas~\citep{buolamwini2018}. El equilibrio de clases y la representatividad de los datos son factores
+determinantes en la equidad de los sistemas inteligentes.
 
 
 %% =========================================================================
@@ -155,6 +146,7 @@ características de \ac{ISO}/IEC 25012 y las métricas implementadas en
     \midrule
     ---             & \texttt{outliers}             & Detección de valores atípicos (\ac{IQR}, Z-score) \\
     ---             & \texttt{class\_balance}       & Equilibrio de clases (entropía de Shannon) \\
+    ---             & \texttt{diversity}            & Diversidad del conjunto de datos respecto a columnas clave \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -395,11 +387,18 @@ aplicable:
     buolamwini2018} y su corrección tiene un impacto directo en la equidad y
     fiabilidad de los modelos de clasificación.
 
-  \item \textbf{Identificabilidad de \ac{PII}} mediante enmascaramiento
-    automático de columnas sensibles. Su inclusión en el \ac{MVP} responde a
-    la obligación legal establecida por el \ac{RGPD}~\citep{rgpd2016} y por el
-    Reglamento Europeo de \ac{IA}~\citep{aiact2024} de proteger los datos
-    personales utilizados en el entrenamiento de modelos.
+  \item \textbf{Diversidad del dataset} (\texttt{diversity}): evalúa la
+    variabilidad del conjunto de datos respecto a columnas relevantes,
+    detectando conjuntos homogéneos que pueden comprometer la capacidad de
+    generalización del modelo.
+
+  \item \textbf{Identificabilidad de \ac{PII}}: el usuario designa las
+    columnas sensibles al cargar el dataset, y la plataforma enmascara
+    automáticamente sus valores en todos los resultados de evaluación.
+    Su inclusión en el \ac{MVP} responde a la obligación legal establecida
+    por el \ac{RGPD}~\citep{rgpd2016} y por el Reglamento Europeo de
+    \ac{IA}~\citep{aiact2024} de proteger los datos personales utilizados
+    en el entrenamiento de modelos.
 \end{enumerate}
 
 Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado como
@@ -422,10 +421,10 @@ organizativos de la entidad propietaria.
 \label{sec:estado-arte}
 %% =========================================================================
 
-En el ecosistema actual existen diversas herramientas orientadas a la
-evaluación y validación de la calidad de datos. Esta sección analiza las más
-relevantes, examinando sus fortalezas y limitaciones para contextualizar la
-contribución de \dataqual.
+Para contextualizar la contribución de \dataqual es necesario conocer qué
+existe ya. Las herramientas descritas a continuación representan el estado
+del arte en evaluación de calidad de datos; sus fortalezas y sus límites
+definen el espacio en el que \dataqual opera.
 
 \subsection{Great Expectations}
 \label{sec:great-expectations}
@@ -489,9 +488,9 @@ automatizadas ante degradaciones de calidad.
 
 \paragraph{Limitaciones.}
 Está orientado fundamentalmente a bases de datos y no a ficheros de datos
-(datasets en formatos \ac{CSV}, \ac{XLSX} o Parquet). Su configuración es
-compleja, no ha sido diseñado específicamente para proyectos de \ac{IA}/\ac{ML}
-y carece de métricas como el equilibrio de clases o la detección de outliers.
+planos (como \ac{CSV}). Su configuración es compleja, no ha sido diseñado
+específicamente para proyectos de \ac{IA}/\ac{ML} y carece de métricas como
+el equilibrio de clases, la diversidad o la detección de outliers.
 
 \subsection{Soda Core}
 \label{sec:soda-core}
@@ -567,6 +566,7 @@ operativos.
     \textbf{Característica} & \textbf{\dataqual} & \textbf{Gr. Exp.} & \textbf{Deequ} & \textbf{DQOps} & \textbf{Soda} \\
     \midrule
     Interfaz web                  & Sí      & No      & No      & Sí      & Parcial$^a$ \\
+    Interfaz multiidioma          & Sí      & ---     & ---     & No      & No \\
     Requiere programación         & No      & Sí      & Sí      & Parcial & No \\
     Métricas predefinidas         & 7       & 300+    & 20+     & 150+    & 30+ \\
     Detección automática de tipos & Sí      & No      & No      & Parcial & Parcial \\
@@ -589,9 +589,9 @@ operativos.
 
 Como se puede observar, \dataqual ocupa un nicho diferenciado al combinar una
 interfaz web completa, de uso libre, con métricas específicas para
-\ac{IA}/\ac{ML}, \emph{fingerprinting} de issues y versionado de datasets, un
-conjunto de capacidades que ninguna de las herramientas analizadas ofrece en su
-totalidad.  Great Expectations supera ampliamente a \dataqual en número de
+\ac{IA}/\ac{ML}, \emph{fingerprinting} de issues, versionado de datasets e
+interfaz multiidioma (español e inglés), un conjunto de capacidades que
+ninguna de las herramientas analizadas ofrece en su totalidad.  Great Expectations supera ampliamente a \dataqual en número de
 métricas predefinidas, pero su naturaleza \emph{code-first} limita su
 accesibilidad.  Apache Deequ ofrece escalabilidad masiva, pero a costa de una
 complejidad operativa que lo hace inviable para conjuntos de datos de tamaño
@@ -606,8 +606,9 @@ relegan la interfaz web al nivel de pago.
 \label{sec:diferenciacion}
 %% =========================================================================
 
-A partir del análisis comparativo anterior, se identifican siete factores
-clave que diferencian a \dataqual de las herramientas existentes:
+El análisis anterior revela un espacio concreto que ninguna herramienta cubre
+en su totalidad. \dataqual lo ocupa a través de ocho capacidades que, tomadas
+en conjunto, no tienen equivalente directo en el ecosistema \emph{open source}:
 
 \begin{enumerate}
   \item \textbf{Solución \emph{full-stack} con interfaz integrada y gratuita.}
@@ -620,9 +621,13 @@ clave que diferencian a \dataqual de las herramientas existentes:
 
   \item \textbf{Diseño centrado en IA/ML.} \dataqual incorpora métricas
     específicas para proyectos de aprendizaje automático que no se encuentran
-    en las herramientas generalistas: equilibrio de clases medido mediante
-    entropía de Shannon y evaluación de la actualidad temporal de los datos
-    (\emph{currentness}).
+    en las herramientas generalistas: equilibrio de clases (\texttt{class\_balance},
+    entropía de Shannon), diversidad del dataset (\texttt{diversity}) y
+    evaluación de la actualidad temporal (\texttt{currentness}).
+
+  \item \textbf{Interfaz multiidioma.} La plataforma soporta español e inglés
+    con cambio de idioma en tiempo real, lo que amplía su accesibilidad a
+    equipos internacionales sin coste adicional de configuración.
 
   \item \textbf{Sistema de fingerprinting SHA-256.} Inspirado en
     SonarQube~\citep{sonarqube}, \dataqual genera un hash \ac{SHA}-256 para cada
@@ -658,15 +663,17 @@ clave que diferencian a \dataqual de las herramientas existentes:
 \label{sec:justificacion-academica}
 %% =========================================================================
 
-El desarrollo de \dataqual integra de manera transversal múltiples áreas del
-plan de estudios del Grado en Ingeniería Informática, lo que le confiere un
-carácter integrador propio de un \ac{TFG}.
+\dataqual no es un ejercicio de una sola disciplina.  Su desarrollo ha
+requerido aplicar de forma integrada conocimientos de varias áreas del Grado
+en Ingeniería Informática:
 
 El proyecto aplica principios de arquitectura de software a gran escala
 (microservicios orquestados con Docker Compose~\citep{docker}, patrón \ac{MVC}
 en Flask~\citep{flask}, patrones de diseño clásicos~\citep{design_patterns} como
-Abstract Factory en el registro de métricas y Observer en el sistema de
-eventos), procesamiento asíncrono mediante colas de mensajes con
+Strategy en el motor de métricas ---clase abstracta \texttt{BaseMetric} con
+implementaciones intercambiables--- y Registry en \texttt{METRIC\_REGISTRY},
+que aplica el principio abierto-cerrado permitiendo añadir métricas sin
+modificar el código existente), procesamiento asíncrono mediante colas de mensajes con
 Celery~\citep{celery} y Redis~\citep{redis} como \emph{broker}, y una gestión
 de datos que combina PostgreSQL~\citep{postgresql} con campos \texttt{JSONB}
 para configuraciones flexibles, SQLAlchemy~\citep{sqlalchemy} como \ac{ORM} y
@@ -685,10 +692,8 @@ todo ello desplegado con un único comando mediante Docker~Compose con
 configuración basada en variables de entorno y monitorización de
 \emph{workers} a través de Flower.
 
-En conjunto, el desarrollo de \dataqual demuestra la capacidad de integrar
-conocimientos de múltiples disciplinas informáticas en un producto de software
-funcional, cohesionado y alineado con estándares internacionales, lo que
-constituye el objetivo fundamental de un \ac{TFG} en Ingeniería Informática.
+El resultado es un sistema funcional, cohesionado y alineado con estándares
+internacionales que ninguna de sus partes podría producir por separado.
 
 
 % Local Variables:

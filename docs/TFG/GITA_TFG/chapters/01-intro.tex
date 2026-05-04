@@ -117,6 +117,10 @@ Sus capacidades principales son:
     que contienen información sensible al cargar el dataset, y la plataforma
     enmascara automáticamente sus valores en todos los resultados y muestras
     de la evaluación, evitando su exposición en los informes.
+
+  \item \textbf{Interfaz multiidioma}: la plataforma soporta español e inglés,
+    con cambio de idioma en tiempo real sin necesidad de recargar la
+    aplicación.
 \end{itemize}
 
 
@@ -180,22 +184,19 @@ elegir entre accesibilidad y capacidad de integración.
 \label{sec:alcance}
 
 \dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
-y \ac{ML} de escala mediana, con soporte para conjuntos de datos tabulares de
-hasta 100\,MB en formato \ac{CSV}.  La
-plataforma cubre el ciclo completo de evaluación: desde la carga y el
-versionado de los datos hasta la emisión de un veredicto automatizado mediante
-\emph{Quality Gates}, pasando por la ejecución de seis métricas de calidad
-alineadas con \ac{ISO}/IEC~5259, el perfilado exploratorio, el seguimiento de
-incidencias entre evaluaciones y la protección de datos personales.  El
-sistema se despliega en entorno local mediante Docker~Compose y expone una
-\ac{API} \ac{REST} con autenticación \ac{JWT} para su integración en flujos de
-trabajo externos.
+y \ac{ML}, con soporte para conjuntos de datos tabulares de hasta 100\,MB en
+formato \ac{CSV}.  Cubre el ciclo completo de evaluación: carga y versionado
+de datasets, perfilado exploratorio, ejecución de siete métricas de calidad
+alineadas con \ac{ISO}/IEC~5259, seguimiento de incidencias entre
+evaluaciones, \emph{Quality Gates} con veredicto automatizado y protección de
+datos personales.  El sistema se despliega en entorno local mediante
+Docker~Compose y expone una \ac{API} \ac{REST} con autenticación \ac{JWT}
+para su integración en flujos de trabajo externos.
 
 Quedan \textbf{fuera del alcance} del presente trabajo: el procesamiento de
 conjuntos de datos superiores a 100\,MB, el análisis de flujos en tiempo real
-(\emph{streaming}), la corrección automática de errores, la integración nativa
-con plataformas \emph{cloud} propietarias (AWS, Azure, GCP) y la
-internacionalización de la interfaz.
+(\emph{streaming}), la corrección automática de errores y la integración
+nativa con plataformas \emph{cloud} propietarias (AWS, Azure, GCP).
 
 %% ---------------------------------------------------------------------------
 \section{Estructura del documento}
