@@ -11,6 +11,10 @@ Abedjan, Z., Golab, L., Naumann, F., and Papenbrock, T. (2018).
 \newblock \url{https://www.alteryx.com/}.
 \newblock Consultado: marzo 2026.
 
+\bibitem[{Anaconda, Inc.}, 2022]{anaconda2022}
+{Anaconda, Inc.} (2022).
+\newblock State of data science 2022.
+
 \bibitem[Bayer, 2024]{sqlalchemy}
 Bayer, M. (2024).
 \newblock {SQLAlchemy}: The database toolkit for {Python}.
@@ -34,6 +38,15 @@ Buolamwini, J. and Gebru, T. (2018).
 \newblock Chart.js: Simple yet flexible {JavaScript} charting for designers \&
   developers.
 \newblock \url{https://www.chartjs.org/}.
+
+\bibitem[{CrowdFlower}, 2016]{crowdflower2016}
+{CrowdFlower} (2016).
+\newblock 2016 data science report.
+
+\bibitem[{DAMA International}, 2017]{dmbok2017}
+{DAMA International} (2017).
+\newblock {\em {DAMA-DMBOK}: Data Management Body of Knowledge}.
+\newblock Technics Publications, 2 edition.
 
 \bibitem[Dastin, 2018]{amazon2018}
 Dastin, J. (2018).

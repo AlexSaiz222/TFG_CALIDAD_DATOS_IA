@@ -12,7 +12,7 @@ existen y por qué ninguna cubre exactamente el espacio que \dataqual ocupa.
 
 
 %% =========================================================================
-\section{La importancia de la calidad de datos en proyectos de~\ac{IA}}
+\section[Importancia de la calidad de datos en IA]{La importancia de la calidad de datos en proyectos de~\ac{IA}}
 \label{sec:importancia-calidad}
 %% =========================================================================
 
@@ -33,33 +33,51 @@ conceptual para la calidad de datos basado en cuatro categorías fundamentales:
     acceso a los mismos.
 \end{itemize}
 
-El estándar \ac{ISO}/IEC~25012 toma directamente este marco como punto de
-partida para su modelo de calidad de datos.
+El estándar \ac{ISO}/IEC~25012 recoge el vocabulario conceptual de este
+marco (completitud, exactitud, consistencia y accesibilidad) rearticulándolo
+en un modelo orientado a sistemas informáticos que distingue entre
+características inherentes al dato y características dependientes del entorno
+tecnológico que lo aloja.
 
 \subsection{Impacto económico de la mala calidad de datos}
 
-Redman (\citeyear{redman1998}, \citeyear{redman2001}) cuantificó por primera vez el impacto
-económico de la mala calidad de datos en las organizaciones, estableciendo que
-las empresas gastan entre el 10\% y el 25\% de sus ingresos en gestionar
-problemas derivados de datos de baja calidad. Estudios posteriores del MIT Information Quality Program y del \ac{DMBOK} han
-reproducido estas cifras con resultados similares.
+Redman~(\citeyear{redman1998}) estimó que los errores en datos consumen entre
+el 8\,\% y el 12\,\% de los ingresos de una organización, pudiendo alcanzar
+entre el 40\,\% y el 60\,\% de los gastos operativos en empresas de servicios;
+investigaciones posteriores del mismo autor~(\citeyear{redman2001}) elevaron
+ese rango hasta el 25\,\% en sectores con mayor dependencia de datos. Estudios posteriores del MIT Information Quality Program y del
+\ac{DMBOK}~\citep{dmbok2017} han reproducido estas cifras con resultados
+similares.
 
 En proyectos de \ac{IA}, el coste se multiplica: un modelo entrenado con datos
 defectuosos no solo produce resultados incorrectos, sino que las decisiones
 tomadas a partir de esas predicciones pueden tener consecuencias financieras,
 legales y reputacionales difíciles de revertir.
-Sambasivan et al.~(\citeyear{sambasivan2021}) demostraron, en un estudio realizado en
-Google Research, que los problemas de calidad de datos constituyen la causa
-principal de fallos en sistemas de \ac{IA} en producción, superando incluso a
-los errores algorítmicos. Su trabajo, titulado «Everyone wants to do the model
-work, not the data work», evidenció la brecha entre la atención que reciben los
-modelos y la que reciben los datos que los alimentan.
+Sambasivan et al.~(\citeyear{sambasivan2021}) demostraron, en un estudio con
+53 equipos de \ac{IA} de países en desarrollo realizado en Google Research,
+que el comportamiento de los sistemas de \ac{IA} está determinado
+críticamente por los datos, en mayor medida que por el código. Su
+contribución teórica central es el concepto de \emph{Data Cascades}
+(cascadas de datos): eventos compuestos originados por problemas de calidad
+que se propagan y amplifican a lo largo del \emph{pipeline}, causando fallos
+en etapas posteriores difíciles de trazar hasta su origen. El estudio reveló
+que el 92\,\% de los profesionales encuestados había experimentado al menos
+una cascada de datos. Su trabajo, titulado «Everyone wants to do the model
+work, not the data work», evidenció la paradoja central del campo: los datos
+son el factor más determinante del rendimiento y, al mismo tiempo, el aspecto
+menos valorado del proceso.
 
-Múltiples encuestas en la industria~\citep{kaggle2022} coinciden en que los
-profesionales de datos dedican entre el 60\% y el 80\% de su tiempo a tareas
-de limpieza y preparación de datos, lo que refleja tanto la prevalencia de los
-problemas de calidad como la ausencia de herramientas automatizadas que
-agilicen el diagnóstico.
+Según el \emph{Data Science Report} de CrowdFlower~\citep{crowdflower2016},
+los científicos de datos dedicaban en 2016 hasta el 60\,\% de su tiempo a
+limpiar y organizar datos y un 19\,\% adicional a recopilarlos, sumando cerca
+del 80\,\% en preparación. Encuestas más recientes~\citep{anaconda2022}
+muestran que ese porcentaje ha descendido hasta aproximadamente el 38\,\%,
+pero la preparación y limpieza sigue siendo con diferencia la tarea que más
+tiempo consume, por encima de la visualización (13\,\%) y el entrenamiento
+de modelos (9\,\%). La tendencia revela un problema estructural que,
+aunque ha mejorado, sigue siendo el principal cuello de botella del trabajo
+con datos y refuerza la necesidad de herramientas automatizadas de diagnóstico
+de calidad.
 
 \subsection{El paradigma data-centric AI}
 
@@ -67,9 +85,9 @@ Ng~(\citeyear{ng2021datacentric}) acuñó el término \emph{data-centric AI}
 para describir un giro metodológico respecto al enfoque tradicional
 \emph{model-centric}: en lugar de mantener los datos fijos y mejorar el
 algoritmo, se mantiene el modelo fijo y se mejora sistemáticamente el dataset.
-La tesis es directa: en la mayoría de proyectos reales de \ac{IA}, invertir
-esfuerzo en los datos produce ganancias de rendimiento mayores que afinar la
-arquitectura del modelo.
+La premisa es contundente: en la mayoría de proyectos reales de \ac{IA},
+invertir esfuerzo en los datos produce ganancias de rendimiento mayores que
+afinar la arquitectura del modelo.
 
 Diversas iniciativas han consolidado este paradigma en la comunidad:
 
@@ -80,15 +98,15 @@ Diversas iniciativas han consolidado este paradigma en la comunidad:
   \item \emph{DataPerf}, una iniciativa de MLCommons que proporciona
     \emph{benchmarks} centrados en la calidad de datos para sistemas de
     \ac{ML}.
-  \item El área de investigación \emph{Data Quality for AI} (DQAI), que
-    explora métricas de calidad específicas para conjuntos de datos destinados
-    al entrenamiento de modelos.
+  \item El área de investigación \emph{Data Quality for AI}, que explora
+    métricas de calidad específicas para conjuntos de datos destinados al
+    entrenamiento de modelos.
 \end{itemize}
 
-Además, la problemática del sesgo algorítmico refuerza la necesidad de
-herramientas de evaluación de calidad. Los datos desequilibrados o no
-representativos son la raíz de muchos casos documentados de sesgo en sistemas de
-\ac{IA}: desde algoritmos de contratación que discriminan por
+El paradigma data-centric cobra especial relevancia cuando se considera que
+los propios datos pueden ser fuente de sesgo sistemático. Los datos
+desequilibrados o no representativos son la raíz de muchos casos documentados
+de sesgo en sistemas de \ac{IA}: desde algoritmos de contratación que discriminan por
 género~\citep{amazon2018} hasta sistemas de reconocimiento facial con tasas de
 error desproporcionadas para minorías étnicas~\citep{buolamwini2018}. El equilibrio de clases y la representatividad de los datos son factores
 determinantes en la equidad de los sistemas inteligentes.
@@ -100,26 +118,30 @@ determinantes en la equidad de los sistemas inteligentes.
 %% =========================================================================
 
 La evaluación de la calidad de datos se enmarca dentro de un conjunto de
-estándares internacionales publicados por la \ac{ISO}. \dataqual ha sido
-diseñado para alinearse con tres estándares clave: \ac{ISO}/IEC~25012,
-\ac{ISO}/IEC~25024 e \ac{ISO}/IEC~5259.
+estándares internacionales publicados por la \ac{ISO}. \dataqual toma como
+referencia conceptual los estándares \ac{ISO}/IEC~25012 e
+\ac{ISO}/IEC~25024, que definen respectivamente el modelo de calidad de datos
+y sus métricas de medición, y se alinea de forma explícita con
+\ac{ISO}/IEC~5259, el estándar específico para calidad de datos en analítica
+e \ac{IA}, cuya taxonomía de características estructura las decisiones de
+alcance del proyecto.
 
 \subsection{ISO/IEC 25012: Modelo de calidad de datos}
 \label{sec:iso25012}
 
 El estándar \ac{ISO}/IEC 25012~\citep{iso25012} forma parte de la familia
 \ac{SQuaRE} y define un modelo de calidad de datos que comprende 15
-características organizadas en dos categorías principales:
-
-\begin{itemize}
-  \item \textbf{Calidad inherente:} propiedades que pertenecen a los datos
-    en sí mismos, independientemente del sistema que los almacena. Incluye
-    exactitud, completitud, consistencia, credibilidad y actualidad
-    (\emph{currentness}).
-  \item \textbf{Calidad dependiente del sistema:} propiedades que dependen
-    del contexto tecnológico en el que se utilizan los datos. Incluye
-    disponibilidad, portabilidad y recuperabilidad.
-\end{itemize}
+características distribuidas en tres agrupaciones. La \textbf{calidad
+inherente} recoge cinco propiedades intrínsecas del dato (exactitud,
+completitud, consistencia, credibilidad y actualidad, \emph{currentness})
+evaluables con independencia del sistema que los almacena. La
+\textbf{calidad dependiente del sistema} comprende tres propiedades
+(disponibilidad, portabilidad y recuperabilidad) determinadas por el contexto
+tecnológico. Una tercera agrupación engloba siete características a la vez
+inherentes y dependientes del sistema (accesibilidad, conformidad,
+confidencialidad, eficiencia, precisión, trazabilidad y comprensibilidad),
+cuya evaluación requiere tanto el análisis del dato como el conocimiento del
+entorno que lo gestiona.
 
 \dataqual implementa métricas que cubren las principales características
 inherentes del estándar, añadiendo además métricas específicas para proyectos
@@ -132,11 +154,12 @@ características de \ac{ISO}/IEC 25012 y las métricas implementadas en
   \centering
   \caption{Correspondencia entre características de ISO/IEC 25012 y métricas de \dataqual}
   \label{tab:iso25012-dataqual}
-  \begin{tabularx}{\textwidth}{l l X}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright}p{3.8cm} >{\raggedright}p{3.8cm} X}
     \toprule
     \textbf{Característica ISO 25012} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
     \midrule
-    Completitud              & \texttt{completeness}        & Ratio de valores no nulos por columna \\
+    Completitud              & \texttt{completeness}         & Ratio de valores no nulos por columna \\
     Exactitud                & \texttt{syntactic\_accuracy}  & Conformidad con patrones de formato \\
     Consistencia (Con-ML-4)  & \texttt{logical\_consistency} & Reglas IF-THEN entre columnas \\
     Consistencia (Con-ML-1)  & \texttt{uniqueness}           & Detección de registros duplicados \\
@@ -144,9 +167,9 @@ características de \ac{ISO}/IEC 25012 y las métricas implementadas en
     \midrule
     \multicolumn{3}{l}{\emph{Métricas adicionales específicas para IA/ML}} \\
     \midrule
-    ---             & \texttt{outliers}             & Detección de valores atípicos (\ac{IQR}, Z-score) \\
-    ---             & \texttt{class\_balance}       & Equilibrio de clases (entropía de Shannon) \\
-    ---             & \texttt{diversity}            & Diversidad del conjunto de datos respecto a columnas clave \\
+                    & \texttt{outliers}             & Detección de valores atípicos (\ac{IQR}, Z-score) \\
+                    & \texttt{class\_balance}       & Equilibrio de clases (entropía de Shannon) \\
+                    & \texttt{diversity}            & Diversidad del conjunto de datos respecto a columnas clave \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -159,16 +182,16 @@ calidad de datos en contextos de analítica e \ac{IA}, con sus cinco partes
 publicadas en 2024:
 
 \begin{enumerate}
-  \item \textbf{Parte 1 \textemdash~Visión general:} establece los conceptos
+  \item \textbf{Parte 1. Visión general:} establece los conceptos
     fundamentales y el vocabulario común.
-  \item \textbf{Parte 2 \textemdash~Métricas de calidad de datos:} define
+  \item \textbf{Parte 2. Métricas de calidad de datos:} define
     métricas cuantitativas estandarizadas para evaluar la calidad de datos
     destinados a sistemas de \ac{IA}.
-  \item \textbf{Parte 3 \textemdash~Gestión de datos:} cubre la gestión de
+  \item \textbf{Parte 3. Gestión de datos:} cubre la gestión de
     conjuntos de datos, incluyendo versionado y trazabilidad.
-  \item \textbf{Parte 4 \textemdash~Marco de procesos:} describe el flujo de
+  \item \textbf{Parte 4. Marco de procesos:} describe el flujo de
     evaluación integrado en el ciclo de vida de un proyecto de \ac{IA}.
-  \item \textbf{Parte 5 \textemdash~Verificación y validación:} establece
+  \item \textbf{Parte 5. Verificación y validación:} establece
     los requisitos para verificar y validar los procesos y resultados de
     evaluación de calidad de datos.
 \end{enumerate}
@@ -196,18 +219,14 @@ proporcionando métricas concretas y fórmulas de medición para cada
 característica de calidad. De este modo, se pasa de un modelo conceptual
 abstracto a un conjunto de indicadores cuantificables.
 
-\dataqual implementa directamente varias de las métricas definidas en este
-estándar:
-
-\begin{itemize}
-  \item \textbf{Ratio de completitud:} proporción de valores no nulos sobre
-    el total de valores esperados en una columna o dataset.
-  \item \textbf{Ratio de unicidad:} proporción de valores únicos respecto al
-    total de registros, utilizada para detectar duplicados.
-  \item \textbf{Ratio de conformidad sintáctica:} proporción de valores que
-    se ajustan a un patrón o formato predefinido (expresiones regulares,
-    rangos numéricos, conjuntos de valores permitidos).
-\end{itemize}
+\dataqual implementa directamente tres de las métricas definidas en este
+estándar: el \textbf{ratio de completitud} (proporción de valores no nulos
+sobre el total de valores esperados en una columna o dataset), el
+\textbf{ratio de unicidad} (proporción de valores únicos respecto al total de
+registros, utilizada para detectar duplicados) y el \textbf{ratio de
+conformidad sintáctica} (proporción de valores que se ajustan a un patrón o
+formato predefinido mediante expresiones regulares, rangos numéricos o
+conjuntos de valores permitidos).
 
 La adopción de estas fórmulas estandarizadas garantiza que los resultados de
 \dataqual sean comparables con los obtenidos por otras herramientas que
@@ -222,7 +241,7 @@ sino también de cumplimiento normativo.
 
 
 %% =========================================================================
-\section{Alcance metodológico: evaluación algorítmica de la calidad inherente}
+\section[Alcance metodológico]{Alcance metodológico: evaluación algorítmica de la calidad inherente}
 \label{sec:alcance-metodologico}
 %% =========================================================================
 
@@ -298,11 +317,12 @@ respecto a las cuatro categorías anteriores.
       & ---~Fuera de alcance
       & Determinadas por la infraestructura TI de la organización \\[4pt]
     Adicionales (MVP)
-      & Equilibrio (\texttt{class\_balance}), Identificabilidad (enmascaramiento \ac{PII})
+      & Equilibrio (\texttt{class\_balance}), Diversidad (\texttt{diversity}),
+        Identificabilidad (enmascaramiento \ac{PII})
       & \checkmark~Implementadas
       & Impacto directo en fiabilidad y cumplimiento normativo de modelos de \ac{IA} \\[4pt]
     Adicionales (resto)
-      & Diversidad, Efectividad, Relevancia, Representatividad, Similitud,
+      & Efectividad, Relevancia, Representatividad, Similitud,
         Puntualidad, Auditabilidad
       & ---~Fuera de alcance
       & Requieren metadatos organizativos o definición de la población objetivo \\
@@ -339,8 +359,8 @@ Dos categorías de características quedan fuera del alcance técnico de
 implementación.
 
 \paragraph{Dependencia de infraestructura organizativa.}
-Las características dependientes del sistema ---disponibilidad, portabilidad
-y recuperabilidad--- no describen propiedades del dato en sí, sino de la
+Las características dependientes del sistema (disponibilidad, portabilidad
+y recuperabilidad) no describen propiedades del dato en sí, sino de la
 infraestructura que lo almacena y sirve. La \emph{disponibilidad} mide si el
 dataset puede ser recuperado por usuarios autorizados dentro de un plazo
 acordado, lo que remite a acuerdos de nivel de servicio (\ac{SLA}) y
@@ -360,9 +380,9 @@ necesita la definición de la población objetivo del modelo, que es un
 requisito de negocio no inscrito en el dato. La \emph{relevancia} y la
 \emph{efectividad} requieren un diccionario de datos y políticas de gobernanza
 privadas para determinar si el dataset es adecuado para la tarea prevista.
-La \emph{diversidad} y la \emph{similitud} presuponen un conocimiento del
-espacio de características del dominio que, desde una posición de análisis
-externo, no resulta accesible sin la colaboración directa de la organización propietaria.
+La \emph{similitud} presupone un conocimiento del espacio de características
+del dominio que, desde una posición de análisis externo, no resulta accesible
+sin la colaboración directa de la organización propietaria.
 
 \subsection{Priorización de características para el MVP}
 \label{sec:priorizacion-mvp}
@@ -374,7 +394,7 @@ aplicable:
 
 \begin{enumerate}
   \item \textbf{Las características inherentes de \ac{ISO}/IEC~25012}
-    ---completitud, exactitud, consistencia y actualidad--- implementadas a
+    (completitud, exactitud, consistencia y actualidad) implementadas a
     través de cuatro métricas (\texttt{completeness}, \texttt{syntactic\_accuracy},
     \texttt{logical\_consistency} y \texttt{currentness}) y de la detección de
     duplicados (\texttt{uniqueness}, sub-dimensión Con-ML-1 de consistencia
@@ -387,10 +407,12 @@ aplicable:
     buolamwini2018} y su corrección tiene un impacto directo en la equidad y
     fiabilidad de los modelos de clasificación.
 
-  \item \textbf{Diversidad del dataset} (\texttt{diversity}): evalúa la
-    variabilidad del conjunto de datos respecto a columnas relevantes,
-    detectando conjuntos homogéneos que pueden comprometer la capacidad de
-    generalización del modelo.
+  \item \textbf{Diversidad del dataset} (\texttt{diversity}): evalúa, de
+    forma \emph{opt-in} con expectativas definidas por el usuario, si el
+    dataset cubre los valores y rangos esperados por columna, detectando
+    valores ausentes, categorías sub-representadas e intervalos numéricos
+    sin datos, lo que puede comprometer la capacidad de generalización de
+    los modelos entrenados con ese conjunto.
 
   \item \textbf{Identificabilidad de \ac{PII}}: el usuario designa las
     columnas sensibles al cargar el dataset, y la plataforma enmascara
@@ -429,7 +451,7 @@ definen el espacio en el que \dataqual opera.
 \subsection{Great Expectations}
 \label{sec:great-expectations}
 
-Great Expectations~(\citeyear{greatexpectations}) es una biblioteca de código abierto
+Great Expectations~\citep{greatexpectations} es una biblioteca de código abierto
 escrita en Python para la definición y validación de «expectativas»
 (\emph{expectations}) sobre conjuntos de datos. Las expectativas son
 aserciones declarativas que describen las propiedades que se esperan de los
@@ -474,7 +496,7 @@ específicas para \ac{ML} como el equilibrio de clases.
 \subsection{DQOps}
 \label{sec:dqops}
 
-DQOps~(\citeyear{dqops}) es una herramienta de calidad de datos de código abierto
+DQOps~\citep{dqops} es una herramienta de calidad de datos de código abierto
 inspirada en la filosofía de SonarQube~\citep{sonarqube}. Proporciona un enfoque
 sistemático a la calidad de datos con monitorización continua y alertas
 automatizadas.
@@ -551,7 +573,7 @@ calidad, pero sin motor de evaluación configurable ni Quality Gates.
 
 El Cuadro~\ref{tab:comparativa} presenta una comparación sistemática de
 \dataqual con las cuatro herramientas de código abierto analizadas. Se han
-seleccionado quince características que cubren la funcionalidad, la
+seleccionado dieciséis características que cubren la funcionalidad, la
 accesibilidad, las capacidades específicas para \ac{IA}/\ac{ML} y los aspectos
 operativos.
 
@@ -667,30 +689,29 @@ en conjunto, no tienen equivalente directo en el ecosistema \emph{open source}:
 requerido aplicar de forma integrada conocimientos de varias áreas del Grado
 en Ingeniería Informática:
 
-El proyecto aplica principios de arquitectura de software a gran escala
-(microservicios orquestados con Docker Compose~\citep{docker}, patrón \ac{MVC}
-en Flask~\citep{flask}, patrones de diseño clásicos~\citep{design_patterns} como
-Strategy en el motor de métricas ---clase abstracta \texttt{BaseMetric} con
-implementaciones intercambiables--- y Registry en \texttt{METRIC\_REGISTRY},
-que aplica el principio abierto-cerrado permitiendo añadir métricas sin
-modificar el código existente), procesamiento asíncrono mediante colas de mensajes con
-Celery~\citep{celery} y Redis~\citep{redis} como \emph{broker}, y una gestión
-de datos que combina PostgreSQL~\citep{postgresql} con campos \texttt{JSONB}
-para configuraciones flexibles, SQLAlchemy~\citep{sqlalchemy} como \ac{ORM} y
-almacenamiento de objetos compatible con S3 mediante MinIO~\citep{minio} con
-migraciones gestionadas por Alembic.  El \emph{frontend} construido con
-React~\citep{react}, Next.js~\citep{nextjs}, TypeScript~\citep{typescript} y
-Material \ac{UI}~\citep{materialui} se comunica con el \emph{backend} mediante
-una \ac{API} \ac{REST} protegida con \ac{JWT}.  El motor de métricas recurre
-a técnicas estadísticas aplicadas~\textemdash rango intercuartílico (\ac{IQR}),
-Z-score y entropía de Shannon~\textemdash junto con un módulo de \ac{EDA}
-interactivo que incluye histogramas, diagramas de caja y matrices de
-correlación.  La seguridad abarca autenticación y autorización \ac{JWT},
-derivación de contraseñas con \ac{PBKDF2}, limitación de tasa, validación de
-entradas en el servidor y enmascaramiento de \ac{PII} conforme al \ac{RGPD},
-todo ello desplegado con un único comando mediante Docker~Compose con
-configuración basada en variables de entorno y monitorización de
-\emph{workers} a través de Flower.
+En cuanto a arquitectura de software, el proyecto despliega microservicios
+orquestados con Docker Compose~\citep{docker}, aplica el patrón \ac{MVC} en
+Flask~\citep{flask} y hace uso de patrones de diseño clásicos~\citep{design_patterns}
+(Strategy en el motor de métricas con la clase abstracta \texttt{BaseMetric}
+y Registry en \texttt{METRIC\_REGISTRY} siguiendo el principio abierto-cerrado),
+complementados con procesamiento asíncrono mediante Celery~\citep{celery} y
+Redis~\citep{redis} como \emph{broker}, y una capa de datos que combina
+PostgreSQL~\citep{postgresql} con campos \texttt{JSONB}, SQLAlchemy~\citep{sqlalchemy}
+como \ac{ORM} y MinIO~\citep{minio} para el almacenamiento de objetos compatible
+con S3, con migraciones gestionadas por Alembic.
+El \emph{frontend}, construido con React~\citep{react}, Next.js~\citep{nextjs},
+TypeScript~\citep{typescript} y Material~\ac{UI}~\citep{materialui}, se comunica
+con el \emph{backend} mediante una \ac{API} \ac{REST} protegida con \ac{JWT}.
+El motor de métricas recurre a técnicas estadísticas aplicadas, como el
+rango intercuartílico (\ac{IQR}), el Z-score y la entropía de Shannon, junto con un
+módulo de \ac{EDA} interactivo que incluye histogramas, diagramas de caja y
+matrices de correlación.
+La seguridad abarca autenticación y autorización \ac{JWT}, derivación de
+contraseñas con \ac{PBKDF2}, limitación de tasa, validación de entradas en el
+servidor y enmascaramiento de \ac{PII} conforme al \ac{RGPD}, todo ello
+desplegado con un único comando mediante Docker Compose con configuración
+basada en variables de entorno y monitorización de \emph{workers} a través de
+Flower.
 
 El resultado es un sistema funcional, cohesionado y alineado con estándares
 internacionales que ninguna de sus partes podría producir por separado.
