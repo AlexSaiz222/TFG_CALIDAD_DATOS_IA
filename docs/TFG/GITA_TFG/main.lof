@@ -8,12 +8,12 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{38}{figure.5.1}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura lógica por capas de \textsc {DataQual}\xspace , mostrando las dependencias \emph {depends-on} (flecha discontinua de punta abierta). El directorio \texttt {services/metrics/} ($\star $) constituye el núcleo extensible del motor de evaluación, alineado con el principio abierto--cerrado~\citep {design_patterns}}}{41}{figure.5.2}%
-\contentsline {figure}{\numberline {5.3}{\ignorespaces Cuadro de mando principal de \textsc {DataQual}\xspace : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{52}{figure.5.3}%
-\contentsline {figure}{\numberline {5.4}{\ignorespaces Página de resultados de evaluación: indicador circular de puntuación de calidad (\emph {gauge}), tabla de métricas por columna y listado de \emph {issues} con severidad y columna afectada}}{52}{figure.5.4}%
-\contentsline {figure}{\numberline {5.5}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): histogramas de distribución, diagramas de caja y matriz de correlación Pearson/Spearman para columnas numéricas}}{53}{figure.5.5}%
-\contentsline {figure}{\numberline {5.6}{\ignorespaces \emph {Quality Gate} de \textsc {DataQual}\xspace : estado global con código de color (PASSED/WARNING/FAILED), desglose de condiciones configuradas y \emph {badges} de trazabilidad de \emph {issues} por \emph {fingerprinting}}}{56}{figure.5.6}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{39}{figure.5.1}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura lógica por capas de \textsc {DataQual}\xspace , mostrando las dependencias \emph {depends-on} (flecha discontinua de punta abierta). El directorio \texttt {services/metrics/} ($\star $) constituye el núcleo extensible del motor de evaluación, alineado con el principio abierto--cerrado~\citep {design_patterns}}}{42}{figure.5.2}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Cuadro de mando principal de \textsc {DataQual}\xspace : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{53}{figure.5.3}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Página de resultados de evaluación: indicador circular de puntuación de calidad (\emph {gauge}), tabla de métricas por columna y listado de \emph {issues} con severidad y columna afectada}}{53}{figure.5.4}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): histogramas de distribución, diagramas de caja y matriz de correlación Pearson/Spearman para columnas numéricas}}{54}{figure.5.5}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces \emph {Quality Gate} de \textsc {DataQual}\xspace : estado global con código de color (PASSED/WARNING/FAILED), desglose de condiciones configuradas y \emph {badges} de trazabilidad de \emph {issues} por \emph {fingerprinting}}}{57}{figure.5.6}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

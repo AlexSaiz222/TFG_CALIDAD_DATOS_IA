@@ -145,41 +145,46 @@ entorno que lo gestiona.
 
 \dataqual implementa métricas que cubren las principales características
 inherentes del estándar, añadiendo además métricas específicas para proyectos
-de \ac{IA} y \ac{ML} que no están contempladas en la norma. El
+de \ac{IA} que no están contempladas en la norma. El
 Cuadro~\ref{tab:iso25012-dataqual} muestra la correspondencia entre las
-características de \ac{ISO}/IEC 25012 y las métricas implementadas en
-\dataqual.
+características normativas y las métricas implementadas en \dataqual.
 
 \begin{table}[htbp]
   \centering
-  \caption{Correspondencia entre características de ISO/IEC 25012 y métricas de \dataqual}
+  \caption{Métricas de \dataqual y su base normativa}
   \label{tab:iso25012-dataqual}
-  \small
-  \begin{tabularx}{\textwidth}{>{\raggedright}p{3.8cm} >{\raggedright}p{3.8cm} X}
+  \footnotesize
+  \newcommand{\tblnote}{\textsuperscript{a}}%
+  \begin{tabularx}{\textwidth}{l l l >{\raggedright\arraybackslash}X}
     \toprule
-    \textbf{Característica ISO 25012} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
+    \textbf{Característica} & \textbf{Norma} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
     \midrule
-    Completitud              & \texttt{completeness}         & Ratio de valores no nulos por columna \\
-    Exactitud                & \texttt{syntactic\_accuracy}  & Conformidad con patrones de formato \\
-    Consistencia (Con-ML-4)  & \texttt{logical\_consistency} & Reglas IF-THEN entre columnas \\
-    Consistencia (Con-ML-1)  & \texttt{uniqueness}           & Detección de registros duplicados \\
-    Actualidad               & \texttt{currentness}          & Antigüedad del dato más reciente \\
+    Completitud          & ISO 25012 + 25024  & \texttt{completeness}          & Ratio de valores no nulos por columna \\[10pt]
+    Exactitud            & ISO 25012 + 25024  & \texttt{syntactic\_accuracy}    & Conformidad con patrones de formato \\[10pt]
+    Consistencia\tblnote & ISO 5259-2          & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
+    Consistencia\tblnote & ISO 5259-2 + 25024  & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
+    Actualidad           & ISO 5259-2          & \texttt{currentness}            & Antigüedad del dato más reciente \\
     \midrule
-    \multicolumn{3}{l}{\emph{Métricas adicionales específicas para IA/ML}} \\
+    \multicolumn{4}{l}{\emph{Características adicionales para \ac{IA} (ISO/IEC 5259-2)}} \\
     \midrule
-                    & \texttt{outliers}             & Detección de valores atípicos (\ac{IQR}, Z-score) \\
-                    & \texttt{class\_balance}       & Equilibrio de clases (entropía de Shannon) \\
-                    & \texttt{diversity}            & Diversidad del conjunto de datos respecto a columnas clave \\
+    Equilibrio (Balance) & ISO 5259-2          & \texttt{class\_balance}         & Entropía de Shannon \\[10pt]
+    Diversidad           & ISO 5259-2          & \texttt{diversity}              & Cobertura de valores esperados por columna \\
     \bottomrule
   \end{tabularx}
+  \medskip\par\footnotesize\raggedright
+  \textsuperscript{a}~La consistencia se operacionaliza en dos métricas: coherencia lógica
+  entre columnas y ausencia de duplicados, siguiendo las sub-dimensiones
+  Con-ML-4 y Con-ML-1 de \ac{ISO}/IEC~5259-2 respectivamente.
 \end{table}
 
 \subsection{ISO/IEC 5259: Calidad de datos para analítica e IA}
 \label{sec:iso5259}
 
 El estándar \ac{ISO}/IEC 5259~\citep{iso5259} aborda específicamente la
-calidad de datos en contextos de analítica e \ac{IA}, con sus cinco partes
-publicadas en 2024:
+calidad de datos en contextos de analítica e inteligencia artificial y
+aprendizaje automático. La serie consta de cinco partes, de las cuales la
+Parte~2 (medidas de calidad de datos) fue publicada en noviembre de
+2024~\citep{iso5259}:
 
 \begin{enumerate}
   \item \textbf{Parte 1. Visión general:} establece los conceptos
@@ -230,31 +235,33 @@ conjuntos de valores permitidos).
 
 La adopción de estas fórmulas estandarizadas garantiza que los resultados de
 \dataqual sean comparables con los obtenidos por otras herramientas que
-implementen el mismo estándar, facilitando la interoperabilidad y la
-auditoría.
+implementen el mismo estándar, facilitando la comparabilidad entre
+herramientas y la auditoría de resultados.
 
-Además, el Reglamento Europeo de Inteligencia
-Artificial~\citep{aiact2024} exige que las organizaciones puedan demostrar la
-calidad y trazabilidad de los datos utilizados en sus modelos, lo que convierte
-la evaluación estandarizada de calidad de datos en una necesidad no solo técnica,
-sino también de cumplimiento normativo.
+El Reglamento Europeo de Inteligencia Artificial~\citep{aiact2024} refuerza
+la relevancia del conjunto de estándares descrito en esta sección: exige que
+las organizaciones puedan demostrar la calidad y trazabilidad de los datos
+utilizados en sus modelos, lo que convierte la evaluación estandarizada de
+calidad de datos en una necesidad no solo técnica, sino también de
+cumplimiento normativo.
 
 
 %% =========================================================================
-\section[Alcance metodológico]{Alcance metodológico: evaluación algorítmica de la calidad inherente}
+\section[Alcance metodológico]{Alcance metodológico: selección y priorización de características en el \ac{MVP}}
 \label{sec:alcance-metodologico}
 %% =========================================================================
 
-El marco normativo descrito en la sección anterior permite delimitar con
-precisión qué dimensiones de calidad de datos son evaluables mediante el
-análisis estático de un fichero de datos y cuáles dependen de factores externos
-al propio dato. Esta distinción no es una limitación arbitraria de \dataqual,
-sino una consecuencia directa de la naturaleza de las características definidas
-por \ac{ISO}/IEC 5259-2~\citep{iso5259}. La presente sección justifica las
-decisiones de alcance adoptadas en el proyecto a partir del marco conceptual
-de dicho estándar.
+El marco normativo descrito en la sección anterior permite estructurar las
+decisiones de alcance de \dataqual en dos niveles. El primero distingue qué
+características son evaluables sobre el fichero de datos y cuáles requieren
+acceso a infraestructura o metadatos externos, criterio derivado directamente
+de la taxonomía de \ac{ISO}/IEC 5259-2~\citep{iso5259}. El segundo nivel
+responde a decisiones de priorización del \ac{MVP}: algunas características
+técnicamente evaluables no fueron incluidas en esta versión por razones de
+alcance del proyecto, quedando como trabajo futuro. La presente sección
+detalla ambos criterios.
 
-\subsection{Taxonomía de características de calidad según ISO/IEC 5259-2}
+\subsection{Taxonomía de características de calidad según \mbox{ISO/IEC 5259-2}}
 \label{sec:taxonomia-iso5259}
 
 \ac{ISO}/IEC 5259-2 organiza las características de calidad de datos para
@@ -298,34 +305,39 @@ respecto a las cuatro categorías anteriores.
   \centering
   \caption{Cobertura de \dataqual respecto al modelo de calidad de \ac{ISO}/IEC 5259-2}
   \label{tab:iso5259-cobertura}
-  \small
-  \begin{tabularx}{\textwidth}{l X l X}
+  \footnotesize
+  \renewcommand{\arraystretch}{2.0}%
+  \begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{5cm} l >{\raggedright\arraybackslash}X}
     \toprule
     \textbf{Categoría} & \textbf{Características} & \textbf{\dataqual} & \textbf{Motivo} \\
     \midrule
     Inherentes
-      & Exactitud, Completitud, Consistencia, Credibilidad, Actualidad
-      & \checkmark~Implementadas
-      & Extraíbles del dataset sin contexto externo \\[4pt]
+      & Exactitud, Completitud, Consistencia, Actualidad
+      & Implementadas
+      & Extraíbles del dataset sin contexto externo \\
+      & Credibilidad
+      & Fuera de alcance
+      & No priorizada en el \ac{MVP}; candidata para versiones futuras \\
     Mixtas
-      & Accesibilidad, Conformidad, Eficiencia, Precisión, Trazabilidad,
-        Confidencialidad, Comprensibilidad
-      & Parcial
-      & Requieren información del sistema que aloja el dato \\[4pt]
+      & Accesibilidad, Conformidad, Eficiencia, Precisión, Trazabilidad, Confidencialidad, Comprensibilidad
+      & Fuera de alcance
+      & Requieren información del sistema que aloja el dato \\
     Dep.\ del sistema
       & Disponibilidad, Portabilidad, Recuperabilidad
-      & ---~Fuera de alcance
-      & Determinadas por la infraestructura TI de la organización \\[4pt]
-    Adicionales (MVP)
-      & Equilibrio (\texttt{class\_balance}), Diversidad (\texttt{diversity}),
-        Identificabilidad (enmascaramiento \ac{PII})
-      & \checkmark~Implementadas
-      & Impacto directo en fiabilidad y cumplimiento normativo de modelos de \ac{IA} \\[4pt]
-    Adicionales (resto)
-      & Efectividad, Relevancia, Representatividad, Similitud,
-        Puntualidad, Auditabilidad
-      & ---~Fuera de alcance
-      & Requieren metadatos organizativos o definición de la población objetivo \\
+      & Fuera de alcance
+      & Determinadas por la infraestructura TI de la organización \\
+    Adicionales (impl.)
+      & Equilibrio (\texttt{class\_balance}), Diversidad (\texttt{diversity})
+      & Implementadas
+      & Impacto directo en fiabilidad y cumplimiento normativo de modelos de \ac{IA} \\
+    Adicionales (técn.)
+      & Efectividad, Relevancia, Representatividad, Similitud
+      & Fuera de alcance
+      & Requieren metadatos organizativos externos al fichero de datos \\
+    Adicionales (futuro)
+      & Identificabilidad, Auditabilidad, Puntualidad
+      & Fuera de alcance
+      & No priorizadas en el \ac{MVP}; candidatas para versiones futuras \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -341,22 +353,28 @@ nulos; la exactitud sintáctica, como la conformidad con patrones de formato
 definidos; la consistencia, como la ausencia de contradicciones lógicas entre columnas
 (sub-dimensión Con-ML-4 de \ac{ISO}/IEC 5259-2) y como la ausencia de registros
 duplicados (sub-dimensión Con-ML-1); y la actualidad, como la antigüedad del valor
-más reciente en columnas temporales.
+más reciente en columnas temporales. Del grupo de características adicionales,
+el equilibrio de clases (\emph{balance}) y la diversidad (\emph{diversity})
+son también evaluables algorítmicamente: el primero se cuantifica mediante la
+entropía de Shannon sobre los valores de la columna objetivo, y el segundo mide
+la cobertura de los valores y rangos esperados definidos por el usuario.
 
 Esta propiedad de \emph{auto-contención} es lo que hace posible desarrollar
-una herramienta de auditoría que opera exclusivamente sobre el fichero de datos
-sin requerir integración con los sistemas de la organización. El motor de
+una herramienta de análisis y evaluación que opera exclusivamente sobre el
+fichero de datos sin requerir integración con los sistemas de la organización. El motor de
 métricas de \dataqual explota esta característica al procesar cada
 \texttt{AnalysisRun} de forma asíncrona y aislada, leyendo el dataset
-almacenado en MinIO y calculando las métricas configuradas sin ninguna
-conexión a los sistemas transaccionales del cliente.
+almacenado en MinIO y calculando las métricas configuradas sin acceso a los sistemas propios de
+la organización propietaria del dataset.
 
-\subsection{Características fuera del alcance técnico}
+\subsection{Características fuera del alcance del proyecto}
 \label{sec:caracteristicas-fuera-alcance}
 
-Dos categorías de características quedan fuera del alcance técnico de
-\dataqual por razones de naturaleza estructural, no de elección de
-implementación.
+Las características no implementadas en \dataqual responden a dos motivos
+distintos: imposibilidad técnica estructural y decisiones de priorización
+del \ac{MVP}. Los tres primeros párrafos describen características técnicamente
+inviables sin acceso a infraestructura o metadatos externos; el último recoge
+las que quedaron fuera por decisión de alcance del proyecto.
 
 \paragraph{Dependencia de infraestructura organizativa.}
 Las características dependientes del sistema (disponibilidad, portabilidad
@@ -367,39 +385,55 @@ acordado, lo que remite a acuerdos de nivel de servicio (\ac{SLA}) y
 arquitecturas de almacenamiento. La \emph{portabilidad} evalúa la capacidad
 de mover el dato entre sistemas preservando su calidad, lo que requiere acceso
 a los conectores y formatos de exportación propietarios de la organización.
-La \emph{recuperabilidad} depende de las políticas de copia de seguridad y los mecanismos
-de restauración de datos. Ninguna de estas métricas puede calcularse analizando
-el contenido de un fichero: exigen acceso al entorno operativo de la
-organización, del que una herramienta de análisis de datos externo no dispone
-por definición.
+La \emph{recuperabilidad} depende de las políticas de copia de seguridad y los
+mecanismos de restauración de datos. Ninguna de estas características puede
+evaluarse analizando el contenido de un fichero: exigen acceso al entorno
+operativo de la organización, del que una herramienta de análisis externa
+no dispone por definición.
+
+\paragraph{Características mixtas con dependencia del sistema.}
+Las siete características mixtas (accesibilidad, conformidad, eficiencia,
+precisión, trazabilidad, confidencialidad y comprensibilidad) dependen tanto
+de las propiedades del dato como del entorno tecnológico que lo gestiona.
+Su evaluación requiere información sobre el sistema que aloja el dato: los
+controles de acceso para la accesibilidad, los estándares aplicables para
+la conformidad, o las políticas de uso para la comprensibilidad. Sin acceso
+a esa capa de contexto organizativo, su medición no puede realizarse sobre
+el fichero de datos de forma aislada.
 
 \paragraph{Dependencia de metadatos organizativos y contexto de negocio.}
-Un subconjunto de las características adicionales para \ac{IA}/\ac{ML} requiere
-información que trasciende el fichero de datos. La \emph{representatividad}
-necesita la definición de la población objetivo del modelo, que es un
-requisito de negocio no inscrito en el dato. La \emph{relevancia} y la
-\emph{efectividad} requieren un diccionario de datos y políticas de gobernanza
-privadas para determinar si el dataset es adecuado para la tarea prevista.
-La \emph{similitud} presupone un conocimiento del espacio de características
-del dominio que, desde una posición de análisis externo, no resulta accesible
-sin la colaboración directa de la organización propietaria.
+Un subconjunto de las características adicionales requiere información que
+trasciende el fichero de datos. La \emph{representatividad} necesita la
+definición de la población objetivo del modelo, que es un requisito de negocio
+no inscrito en el dato. La \emph{relevancia} y la \emph{efectividad} requieren
+un diccionario de datos y políticas de gobernanza privadas para determinar si
+el dataset es adecuado para la tarea prevista. La \emph{similitud} presupone
+un conocimiento del espacio de características del dominio que no resulta
+accesible sin la colaboración directa de la organización propietaria.
+
+\paragraph{Decisiones de priorización del \ac{MVP}.}
+Algunas características técnicamente evaluables no fueron incluidas en esta
+versión por razones de alcance del proyecto. La \emph{credibilidad} requiere
+la verificación de la procedencia de los datos, lo que, aunque factible,
+no se consideró prioritario para el caso de uso objetivo. La
+\emph{identificabilidad}, la \emph{auditabilidad} y la \emph{puntualidad}
+son candidatas a implementarse en versiones futuras de \dataqual.
 
 \subsection{Priorización de características para el MVP}
 \label{sec:priorizacion-mvp}
 
 Entre las características algorítmicamente evaluables, el desarrollo del
 \ac{MVP} de \dataqual ha priorizado aquellas con mayor impacto en la fiabilidad
-de los modelos de \ac{IA}/\ac{ML} y en el cumplimiento del marco normativo
-aplicable:
+de los modelos de \ac{IA} y en el cumplimiento del marco normativo aplicable:
 
 \begin{enumerate}
   \item \textbf{Las características inherentes de \ac{ISO}/IEC~25012}
-    (completitud, exactitud, consistencia y actualidad) implementadas a
-    través de cuatro métricas (\texttt{completeness}, \texttt{syntactic\_accuracy},
-    \texttt{logical\_consistency} y \texttt{currentness}) y de la detección de
-    duplicados (\texttt{uniqueness}, sub-dimensión Con-ML-1 de consistencia
-    según \ac{ISO}/IEC~5259-2). Esto proporciona cobertura directa de los
-    requisitos de \ac{ISO}/IEC~5259-2~\citep{iso5259} e \ac{ISO}/IEC~25024~\citep{iso25024}.
+    (completitud, exactitud, consistencia y actualidad) implementadas a través
+    de cinco métricas: \texttt{completeness}, \texttt{syntactic\_accuracy},
+    \texttt{logical\_consistency}, \texttt{currentness} y \texttt{uniqueness},
+    siendo esta última la sub-dimensión Con-ML-1 de consistencia definida en
+    \ac{ISO}/IEC~5259-2. Esto proporciona cobertura directa de los requisitos
+    de \ac{ISO}/IEC~5259-2~\citep{iso5259} e \ac{ISO}/IEC~25024~\citep{iso25024}.
 
   \item \textbf{Equilibrio de clases} (\texttt{class\_balance}), medido
     mediante la entropía de Shannon. El desequilibrio de clases es uno de los
@@ -412,15 +446,8 @@ aplicable:
     dataset cubre los valores y rangos esperados por columna, detectando
     valores ausentes, categorías sub-representadas e intervalos numéricos
     sin datos, lo que puede comprometer la capacidad de generalización de
-    los modelos entrenados con ese conjunto.
+    los modelos entrenados con ese conjunto~\citep{iso5259}.
 
-  \item \textbf{Identificabilidad de \ac{PII}}: el usuario designa las
-    columnas sensibles al cargar el dataset, y la plataforma enmascara
-    automáticamente sus valores en todos los resultados de evaluación.
-    Su inclusión en el \ac{MVP} responde a la obligación legal establecida
-    por el \ac{RGPD}~\citep{rgpd2016} y por el Reglamento Europeo de
-    \ac{IA}~\citep{aiact2024} de proteger los datos personales utilizados
-    en el entrenamiento de modelos.
 \end{enumerate}
 
 Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado como
@@ -430,12 +457,14 @@ la recomendación de \ac{ISO}/IEC~5259-2~\citep{iso5259}, que no considera los
 \emph{outliers} una dimensión de calidad inherente, sino un indicador diagnóstico cuya
 relevancia depende del dominio de aplicación.
 
-El resultado es una delimitación deliberada del alcance del proyecto en la
-frontera donde el dato pasa a depender del sistema que lo aloja: \dataqual
-ofrece una auditoría algorítmica y estadística de la calidad intrínseca del
-dato para proyectos de \ac{IA}, y deja fuera de su ámbito las dimensiones
-cuya evaluación requiere acceso a la infraestructura o a los metadatos
-organizativos de la entidad propietaria.
+El resultado es una delimitación deliberada del alcance del proyecto:
+\dataqual proporciona una evaluación algorítmica y estadística de las
+características de calidad priorizadas para proyectos de \ac{IA},
+aquellas medibles directamente sobre el fichero de datos con mayor impacto
+en la fiabilidad de los modelos. Las características que requieren
+infraestructura externa, metadatos organizativos o que no fueron priorizadas
+en el \ac{MVP} quedan fuera de su ámbito actual, configurándose como líneas
+de trabajo futuro.
 
 
 %% =========================================================================
@@ -467,11 +496,12 @@ genera automáticamente documentación visual de los resultados de validación
 
 \paragraph{Limitaciones.}
 Se trata de una herramienta \emph{code-first} que requiere conocimientos de
-Python para su configuración y uso. No dispone de una interfaz gráfica
-integrada, lo que excluye a usuarios no técnicos. No ofrece Quality Gates
-nativos, no implementa un sistema de rastreo de issues entre ejecuciones
-sucesivas y presenta una curva de aprendizaje pronunciada para equipos sin
-experiencia en programación.
+Python para su configuración y uso. La versión de código abierto no dispone
+de interfaz gráfica integrada; GX Cloud ofrece una interfaz web gestionada
+pero como servicio externo (\emph{SaaS}), sin posibilidad de autoalojamiento.
+No ofrece Quality Gates nativos con estado global configurable, no implementa
+un sistema de rastreo de issues entre ejecuciones sucesivas y presenta una
+curva de aprendizaje pronunciada para equipos sin experiencia en programación.
 
 \subsection{Apache Deequ}
 \label{sec:apache-deequ}
@@ -491,7 +521,7 @@ temporales.
 Requiere un entorno JVM y un clúster de Spark para su ejecución, lo que supone
 una barrera de entrada considerable. No dispone de interfaz web, resulta
 desproporcionado para datasets de tamaño medio y no implementa métricas
-específicas para \ac{ML} como el equilibrio de clases.
+específicas para proyectos de \ac{IA} como el equilibrio de clases.
 
 \subsection{DQOps}
 \label{sec:dqops}
@@ -509,10 +539,12 @@ para la configuración y visualización de resultados, y permite definir alertas
 automatizadas ante degradaciones de calidad.
 
 \paragraph{Limitaciones.}
-Está orientado fundamentalmente a bases de datos y no a ficheros de datos
-planos (como \ac{CSV}). Su configuración es compleja, no ha sido diseñado
-específicamente para proyectos de \ac{IA}/\ac{ML} y carece de métricas como
-el equilibrio de clases, la diversidad o la detección de outliers.
+Su configuración es compleja dado el elevado número de checks disponibles.
+Aunque incorpora soporte para ficheros planos (\ac{CSV}, Parquet) a través
+de DuckDB, su enfoque principal es la monitorización continua de fuentes de
+datos conectadas. No ha sido diseñado específicamente para proyectos de
+\ac{IA} y carece de métricas específicas como el equilibrio de clases o
+la diversidad de los datos de entrenamiento.
 
 \subsection{Soda Core}
 \label{sec:soda-core}
@@ -535,10 +567,10 @@ resultados y \emph{Quality Gates} con notificaciones automatizadas.
 \paragraph{Limitaciones.}
 La interfaz web está disponible únicamente en el nivel comercial (Soda Cloud),
 por lo que el uso puramente \emph{open source} se limita a la línea de
-comandos.  Soda Core carece de métricas específicas para \ac{IA}/\ac{ML}
+comandos.  Soda Core carece de métricas específicas para \ac{IA}
 (equilibrio de clases, detección de valores atípicos orientada a modelos) y
 no implementa \emph{fingerprinting} de issues entre ejecuciones ni
-enmascaramiento nativo de datos sensibles (\ac{PII}).
+ocultación nativa de datos sensibles (\ac{PII}).
 
 \subsection{Otras herramientas relevantes}
 \label{sec:herramientas-comerciales}
@@ -552,7 +584,7 @@ para el caso de uso de \dataqual: coste de licenciamiento elevado,
 dependencia del proveedor (\emph{vendor lock-in}) y operación mayoritaria
 como \ac{SaaS}, lo que compromete la soberanía de los datos.  Además, su
 foco es la transformación de datos, no la evaluación de calidad para
-\ac{IA}/\ac{ML}.
+proyectos de \ac{IA}.
 
 \paragraph{Herramientas orientadas a \ac{ML}.}
 Evidently~AI~\citep{evidentlyai} es una biblioteca \emph{open source}
@@ -574,7 +606,7 @@ calidad, pero sin motor de evaluación configurable ni Quality Gates.
 El Cuadro~\ref{tab:comparativa} presenta una comparación sistemática de
 \dataqual con las cuatro herramientas de código abierto analizadas. Se han
 seleccionado dieciséis características que cubren la funcionalidad, la
-accesibilidad, las capacidades específicas para \ac{IA}/\ac{ML} y los aspectos
+accesibilidad, las capacidades específicas para \ac{IA} y los aspectos
 operativos.
 
 \begin{table}[htbp]
@@ -587,10 +619,10 @@ operativos.
     \toprule
     \textbf{Característica} & \textbf{\dataqual} & \textbf{Gr. Exp.} & \textbf{Deequ} & \textbf{DQOps} & \textbf{Soda} \\
     \midrule
-    Interfaz web                  & Sí      & No      & No      & Sí      & Parcial$^a$ \\
+    Interfaz web                  & Sí      & Parcial\textsuperscript{b} & No      & Sí      & Parcial\textsuperscript{a} \\
     Interfaz multiidioma          & Sí      & ---     & ---     & No      & No \\
     Requiere programación         & No      & Sí      & Sí      & Parcial & No \\
-    Métricas predefinidas         & 7       & 300+    & 20+     & 150+    & 30+ \\
+    Métricas predefinidas         & 7       & 300+    & 20+     & 260+    & 30+ \\
     Detección automática de tipos & Sí      & No      & No      & Parcial & Parcial \\
     Quality Gates                 & Sí      & No      & No      & Sí      & Sí \\
     Fingerprinting de issues      & Sí      & No      & No      & No      & No \\
@@ -602,25 +634,36 @@ operativos.
     Procesamiento asíncrono       & Sí      & No      & Sí      & Sí      & Sí \\
     Autoalojable                  & Sí      & Sí      & Sí      & Sí      & Sí \\
     Específico para IA/ML         & Sí      & No      & No      & No      & No \\
-    Coste                         & Libre   & Libre   & Libre   & Freemium & Freemium \\
+    Coste                         & Libre   & Freemium & Libre   & Freemium & Freemium \\
     \bottomrule
   \end{tabularx}
   \medskip\par\footnotesize\raggedright
-  $^a$~La interfaz web de Soda (Soda Cloud) está disponible únicamente en el nivel comercial.
+  \textsuperscript{a}~La interfaz web de Soda (Soda Cloud) está disponible únicamente en el nivel comercial.
+  \textsuperscript{b}~GX Cloud proporciona una interfaz web gestionada (\emph{SaaS}) con nivel gratuito para desarrolladores y planes de pago para equipos.
 \end{table}
 
 Como se puede observar, \dataqual ocupa un nicho diferenciado al combinar una
 interfaz web completa, de uso libre, con métricas específicas para
-\ac{IA}/\ac{ML}, \emph{fingerprinting} de issues, versionado de datasets e
+\ac{IA}, \emph{fingerprinting} de issues, versionado de datasets e
 interfaz multiidioma (español e inglés), un conjunto de capacidades que
-ninguna de las herramientas analizadas ofrece en su totalidad.  Great Expectations supera ampliamente a \dataqual en número de
-métricas predefinidas, pero su naturaleza \emph{code-first} limita su
-accesibilidad.  Apache Deequ ofrece escalabilidad masiva, pero a costa de una
+ninguna de las herramientas analizadas ofrece en su totalidad.  La cifra de métricas predefinidas no es directamente comparable entre
+herramientas: Great Expectations y DQOps contabilizan aserciones atómicas
+individuales (una por cada regla o patrón sobre una columna concreta),
+mientras que \dataqual implementa siete dimensiones de calidad de alto nivel
+alineadas con \ac{ISO}/IEC 5259-2, cada una configurable para evaluar
+cualquier número de columnas y reglas. Este enfoque basado en dimensiones
+normalizadas produce resultados comparables entre proyectos y equipos;
+las aserciones atómicas son, por el contrario, específicas de cada dataset
+y requieren definición manual por parte del desarrollador. Además, Great
+Expectations presenta una naturaleza \emph{code-first} que limita su
+accesibilidad a usuarios no técnicos.  Apache Deequ ofrece escalabilidad masiva, pero a costa de una
 complejidad operativa que lo hace inviable para conjuntos de datos de tamaño
-moderado.  DQOps y Soda Core comparten la filosofía de calidad continua y
-disponen de \emph{Quality Gates}, pero ambos orientan su análisis a bases de
-datos conectadas en lugar de ficheros, carecen de métricas ML específicas y
-relegan la interfaz web al nivel de pago.
+moderado.  DQOps y Soda Core comparten la filosofía de calidad continua y disponen de
+\emph{Quality Gates}, pero ambos orientan su análisis principalmente a fuentes
+de datos conectadas y carecen de métricas específicas para \ac{IA}. Soda Core
+relega además su interfaz web al nivel comercial de pago, mientras que DQOps
+sí ofrece una interfaz web gratuita en local, aunque sin las capacidades de
+colaboración en equipo de su versión en la nube.
 
 
 %% =========================================================================
@@ -635,17 +678,18 @@ en conjunto, no tienen equivalente directo en el ecosistema \emph{open source}:
 \begin{enumerate}
   \item \textbf{Solución \emph{full-stack} con interfaz integrada y gratuita.}
     Mientras que Great Expectations y Apache Deequ son herramientas
-    \emph{code-only}, y DQOps y Soda Core reservan su interfaz web al nivel
-    comercial de pago, \dataqual proporciona una interfaz web completa
-    construida con React~\citep{react} y Next.js~\citep{nextjs} disponible sin
-    coste de licencia, que permite a usuarios no técnicos configurar métricas,
-    lanzar evaluaciones y consultar resultados sin escribir código.
+    \emph{code-only} y Soda Core reserva su interfaz web al nivel comercial
+    de pago, \dataqual proporciona una interfaz web completa construida con
+    React~\citep{react} y Next.js~\citep{nextjs} disponible sin coste de
+    licencia y autoalojable, que permite a usuarios no técnicos configurar
+    métricas, lanzar evaluaciones y consultar resultados sin escribir código.
 
-  \item \textbf{Diseño centrado en IA/ML.} \dataqual incorpora métricas
+  \item \textbf{Diseño centrado en \ac{IA}.} \dataqual incorpora métricas
     específicas para proyectos de aprendizaje automático que no se encuentran
     en las herramientas generalistas: equilibrio de clases (\texttt{class\_balance},
-    entropía de Shannon), diversidad del dataset (\texttt{diversity}) y
-    evaluación de la actualidad temporal (\texttt{currentness}).
+    entropía de Shannon) y diversidad del dataset (\texttt{diversity}),
+    orientada a detectar subrepresentación de valores o rangos esperados por
+    columna.
 
   \item \textbf{Interfaz multiidioma.} La plataforma soporta español e inglés
     con cambio de idioma en tiempo real, lo que amplía su accesibilidad a
@@ -661,10 +705,10 @@ en conjunto, no tienen equivalente directo en el ecosistema \emph{open source}:
     basado en umbrales configurables, proporcionando una señal inequívoca
     sobre la aptitud del dataset para su uso.
 
-  \item \textbf{Protección de \ac{PII} integrada.} El enmascaramiento de
-    columnas sensibles es una funcionalidad nativa de la plataforma, no un
-    complemento externo. Esto facilita el cumplimiento del \ac{RGPD} y
-    otras normativas de protección de datos.
+  \item \textbf{Protección de \ac{PII} integrada.} La ocultación de los
+    valores de columnas sensibles en todos los outputs de la plataforma es
+    una funcionalidad nativa, no un complemento externo. Esto facilita el
+    cumplimiento del \ac{RGPD} y otras normativas de protección de datos.
 
   \item \textbf{Arquitectura de plugins extensible.} El motor de métricas se
     basa en una clase abstracta \texttt{BaseMetric} y un registro global
@@ -708,7 +752,7 @@ módulo de \ac{EDA} interactivo que incluye histogramas, diagramas de caja y
 matrices de correlación.
 La seguridad abarca autenticación y autorización \ac{JWT}, derivación de
 contraseñas con \ac{PBKDF2}, limitación de tasa, validación de entradas en el
-servidor y enmascaramiento de \ac{PII} conforme al \ac{RGPD}, todo ello
+servidor y ocultación de datos sensibles (\ac{PII}) conforme al \ac{RGPD}, todo ello
 desplegado con un único comando mediante Docker Compose con configuración
 basada en variables de entorno y monitorización de \emph{workers} a través de
 Flower.

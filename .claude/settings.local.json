@@ -23,7 +23,11 @@
       "WebFetch(domain:www.deeplearning.ai)",
       "WebFetch(domain:web.archive.org)",
       "WebFetch(domain:www.youtube.com)",
-      "WebFetch(domain:ailab-ua.github.io)"
+      "WebFetch(domain:ailab-ua.github.io)",
+      "Bash(xargs grep -l \"minio\\\\|MinIO\\\\|mask\\\\|sensitive\")",
+      "WebFetch(domain:dqops.com)",
+      "WebFetch(domain:greatexpectations.io)",
+      "WebFetch(domain:docs.greatexpectations.io)"
     ]
   }
 }
