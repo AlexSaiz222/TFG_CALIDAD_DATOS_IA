@@ -185,8 +185,7 @@ elegir entre accesibilidad y capacidad de integración.
 \label{sec:alcance-intro}
 
 \dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
-y \ac{ML}, con soporte para conjuntos de datos tabulares de hasta 100\,MB en
-formato \ac{CSV}.  Cubre el ciclo completo de evaluación: carga y versionado
+y \ac{ML}, con soporte para conjuntos de datos tabulares en formato \ac{CSV}.  Cubre el ciclo completo de evaluación: carga y versionado
 de datasets, perfilado exploratorio, ejecución de siete métricas de calidad
 alineadas con \ac{ISO}/IEC~25012~\citep{iso25012},
 \ac{ISO}/IEC~25024~\citep{iso25024} e
@@ -197,9 +196,9 @@ Docker~Compose y expone una \ac{API} \ac{REST} con autenticación \ac{JWT}
 para su integración en flujos de trabajo externos.
 
 Quedan \textbf{fuera del alcance} del presente trabajo: el procesamiento de
-conjuntos de datos superiores a 100\,MB, el análisis de flujos en tiempo real
-(\emph{streaming}), la corrección automática de errores y la integración
-nativa con plataformas \emph{cloud} propietarias (AWS, Azure, GCP).
+conjuntos de datos que excedan la memoria disponible en la máquina de
+despliegue, la corrección automática de errores y la integración nativa con
+plataformas \emph{cloud} propietarias (AWS, Azure, GCP).
 
 %% ---------------------------------------------------------------------------
 \section{Estructura del documento}

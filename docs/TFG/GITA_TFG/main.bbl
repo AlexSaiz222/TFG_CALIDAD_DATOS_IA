@@ -1,10 +1,5 @@
 \begin{thebibliography}{}
 
-\bibitem[Abedjan et~al., 2018]{abedjan2018}
-Abedjan, Z., Golab, L., Naumann, F., and Papenbrock, T. (2018).
-\newblock {\em Data Profiling}.
-\newblock Synthesis Lectures on Data Management. Morgan \& Claypool Publishers.
-
 \bibitem[{Alteryx, Inc.}, 2024]{alteryx}
 {Alteryx, Inc.} (2024).
 \newblock Alteryx: Data analytics and process automation platform.
@@ -206,18 +201,6 @@ Schelter, S., Lange, D., Schmidt, P., Celikel, M., Biessmann, F., and
 \newblock In {\em Proceedings of the VLDB Endowment}, volume~11, pages
   1781--1794.
 \newblock Apache Deequ.
-
-\bibitem[Schwaber and Sutherland, 2020]{scrumguide}
-Schwaber, K. and Sutherland, J. (2020).
-\newblock The scrum guide: The definitive guide to scrum: The rules of the
-  game.
-\newblock \url{https://scrumguides.org/scrum-guide.html}.
-\newblock Versión noviembre 2020.
-
-\bibitem[Shannon, 1948]{shannon1948}
-Shannon, C.~E. (1948).
-\newblock A mathematical theory of communication.
-\newblock {\em Bell System Technical Journal}, 27(3):379--423.
 
 \bibitem[{Soda Data, Inc.}, 2024]{sodacore}
 {Soda Data, Inc.} (2024).

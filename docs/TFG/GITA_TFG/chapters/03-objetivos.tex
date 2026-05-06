@@ -104,9 +104,10 @@ generalización.  Este objetivo cubre ambos frentes: las dimensiones estándar
 definidas por los organismos normativos y las dimensiones propias del contexto
 de \ac{ML}.
 
-El motor debe cubrir las principales dimensiones de calidad definidas en
-\ac{ISO}/IEC~25012~\citep{iso25012} y \ac{ISO}/IEC~5259~\citep{iso5259},
-complementadas con métricas específicas para \ac{IA}.  Las \textbf{siete
+El motor debe cubrir las dimensiones de calidad de
+\ac{ISO}/IEC~25012~\citep{iso25012}, aplicando las fórmulas de medición
+definidas en \ac{ISO}/IEC~25024~\citep{iso25024}, y añadir las métricas
+específicas para \ac{IA} de \ac{ISO}/IEC~5259~\citep{iso5259}.  Las \textbf{siete
 métricas evaluables} que contribuyen al \emph{Quality Score} son:
 
 \begin{enumerate}
@@ -349,7 +350,9 @@ condicionan las decisiones arquitectónicas y tecnológicas del proyecto:
   \item[Usabilidad]  Interfaz de usuario basada en Material Design con
     formularios dotados de validación en tiempo real, notificaciones
     \emph{toast}, migas de pan (\emph{breadcrumbs}) de navegación y estados
-    de carga y error claramente diferenciados.
+    de carga y error claramente diferenciados.  La plataforma soporta
+    español e inglés con cambio de idioma en tiempo real, sin necesidad de
+    recargar la aplicación.
 
   \item[Portabilidad]  Despliegue del \emph{stack} completo mediante Docker
     Compose, con configuración por variables de entorno y sin dependencias de
@@ -382,7 +385,7 @@ y PostgreSQL en el \emph{backend}, React con Next.js y TypeScript en el
 alineación explícita con los estándares \ac{ISO}/IEC~25012~\citep{iso25012}
 e \ac{ISO}/IEC~5259~\citep{iso5259}.
 
-Fuera de este alcance quedan cuatro aspectos que, si bien son relevantes en
+Fuera de este alcance quedan tres aspectos que, si bien son relevantes en
 un contexto de producción real, no forman parte del presente trabajo.
 
 El primero es el \textbf{procesamiento de grandes volúmenes de datos}.  El
@@ -392,20 +395,14 @@ permita procesar sin degradación.  La evaluación distribuida sobre datasets
 masivos mediante Apache Spark o Dask requiere una arquitectura diferente y
 queda como línea de trabajo futuro.
 
-El segundo es la \textbf{evaluación en tiempo real sobre flujos de datos}.
-\dataqual opera sobre datasets estáticos que el usuario carga explícitamente.
-La evaluación continua de \emph{streams} de datos requiere integración con
-infraestructuras de mensajería (Kafka, Kinesis) que exceden el alcance de
-este proyecto.
-
-El tercero es la \textbf{corrección automática de datos}.  La plataforma
+El segundo es la \textbf{corrección automática de datos}.  La plataforma
 diagnostica y clasifica los problemas de calidad, pero la decisión y
 ejecución de las acciones correctoras (limpieza, imputación, deduplicación)
 corresponde al usuario.  Incorporar sugerencias de corrección automatizadas
 es una de las líneas de trabajo futuro identificadas en el
 capítulo~\ref{chap:conclusiones}.
 
-El cuarto es la \textbf{integración directa con fuentes de datos externas}.
+El tercero es la \textbf{integración directa con fuentes de datos externas}.
 La arquitectura de almacenamiento basada en MinIO es compatible con el
 protocolo S3, pero no se desarrollan conectores específicos para bases de
 datos (MySQL, BigQuery, Snowflake) ni para servicios de almacenamiento en la nube

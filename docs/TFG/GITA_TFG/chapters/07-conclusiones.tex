@@ -18,7 +18,7 @@ de cumplimiento de cada uno.
 
 \begin{description}
   \item[OE1 — Módulo de ingesta y almacenamiento] \textbf{Cumplido.}
-    Se implementó soporte para CSV, XLSX, JSON y Parquet con estrategia de
+    Se implementó soporte para \ac{CSV} con estrategia de
     \emph{fallback} múltiple (4 codificaciones $\times$ 5 delimitadores),
     almacenamiento seguro en MinIO, extracción automática de esquema y
     versionado padre-hijo con indicador \texttt{is\_latest}.
@@ -33,7 +33,7 @@ de cumplimiento de cada uno.
     disponible en el módulo de perfilado, sin participar en el
     \emph{Quality Score} (alineado con \ac{ISO}/IEC~5259).
 
-  \item[OE3 — \acs{API} \acs{REST} documentada] \textbf{Cumplido y superado.}
+  \item[OE3 — \acs{API} \acs{REST}ful con especificación formal] \textbf{Cumplido y superado.}
     Se implementaron los seis módulos funcionales definidos como
     \emph{blueprints} Flask principales (\texttt{auth}, \texttt{projects},
     \texttt{datasets}, \texttt{metrics}, \texttt{evaluations},
