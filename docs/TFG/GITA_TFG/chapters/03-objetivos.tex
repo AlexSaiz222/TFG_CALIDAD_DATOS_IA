@@ -1,15 +1,11 @@
 \chapter{Objetivos}
 \label{chap:objetivos}
 
-\drop{U}{na} vez analizado el contexto teórico, el marco normativo y las
-herramientas existentes en el capítulo~\ref{chap:antecedentes}, es posible
-delimitar con precisión los objetivos que guían el desarrollo de \dataqual.
-Este capítulo define, en primer lugar, el objetivo general del \ac{TFG} y, a
-continuación, lo descompone en cinco objetivos específicos que abordan las
-principales dimensiones funcionales de la plataforma.  Se describen, además,
-los objetivos transversales de calidad del software que condicionan las
-decisiones arquitectónicas y, por último, se establece el alcance del proyecto
-junto con sus limitaciones.
+\drop{E}{l} análisis del capítulo~\ref{chap:antecedentes} permite delimitar
+los objetivos que guían el desarrollo de \dataqual: el objetivo general, cinco
+objetivos específicos que cubren las principales dimensiones funcionales, los
+objetivos transversales de calidad del software y el alcance del proyecto con
+sus limitaciones.
 
 
 %% =========================================================================
@@ -20,22 +16,19 @@ junto con sus limitaciones.
 El objetivo general de este \ac{TFG} consiste en \textbf{diseñar, implementar
 y validar una plataforma web interactiva y una \ac{API} \ac{REST}ful que
 permitan evaluar de forma automatizada la calidad de los datos empleados en
-proyectos de \ac{IA}, \ac{ML} y minería de datos}, proporcionando métricas
-cuantitativas, visualizaciones interactivas y mecanismos de diagnóstico que
-faciliten la identificación y corrección de problemas de calidad en los
-conjuntos de datos.
+proyectos de \ac{IA}}, proporcionando métricas cuantitativas, visualizaciones
+interactivas y mecanismos de diagnóstico que faciliten la identificación y
+corrección de problemas de calidad en los conjuntos de datos.
 
 Este objetivo responde a la necesidad, identificada en la
 sección~\ref{sec:motivacion}, de disponer de herramientas que superen las
-limitaciones de los enfoques ad~hoc~\textemdash \emph{scripts} puntuales,
-consultas \ac{SQL} manuales o inspecciones en cuadernos
-Jupyter~\textemdash y que, al mismo tiempo, no impongan la barrera técnica
-que presentan las bibliotecas basadas exclusivamente en
-código~(sección~\ref{sec:estado-arte}).  \dataqual aspira a
-ofrecer una solución \emph{full-stack}, alineada con los estándares
+limitaciones de los enfoques ad~hoc (\emph{scripts} puntuales, consultas
+\ac{SQL} manuales o inspecciones en cuadernos Jupyter) y que, al mismo
+tiempo, no impongan la barrera técnica que presentan las bibliotecas basadas
+exclusivamente en código~(sección~\ref{sec:estado-arte}).  \dataqual ofrece una solución \emph{full-stack}, alineada con los estándares
 \ac{ISO}/IEC~25012~\citep{iso25012} e \ac{ISO}/IEC~5259~\citep{iso5259}, que
-democratice la evaluación de calidad de datos haciéndola accesible tanto a
-perfiles técnicos como a usuarios de negocio.
+hace accesible la evaluación de calidad de datos sin necesidad de escribir
+código.
 
 
 %% =========================================================================
@@ -53,36 +46,46 @@ funcional diferenciada de la plataforma.
 \label{sec:oe1}
 %% -------------------------------------------------------------------------
 
-\textbf{Enunciado.}  Desarrollar un módulo de ingesta y almacenamiento que
-permita la carga, validación de formato y persistencia segura de conjuntos de
-datos.
+Antes de evaluar la calidad de un dataset, la plataforma debe ser capaz de
+recibirlo, interpretarlo y custodiarlo de forma fiable.  Este requisito,
+aparentemente sencillo, esconde una dificultad práctica recurrente: los
+ficheros \ac{CSV} del mundo real presentan combinaciones heterogéneas de
+codificaciones, delimitadores y convenciones de formato que los analizadores
+estándar no resuelven sin configuración explícita.  Ignorar este problema
+implica que una fracción significativa de los datasets reales sería rechazada
+en la entrada, invalidando la utilidad de cualquier análisis posterior.
 
-Este objetivo abarca los siguientes requisitos funcionales:
+El objetivo consiste en desarrollar un módulo de ingesta y almacenamiento que
+resuelva este problema de forma transparente para el usuario, sin requerir
+conocimiento técnico sobre el formato del fichero.  Los requisitos que lo
+concretan son los siguientes:
 
 \begin{itemize}
-  \item \textbf{Soporte multiformato.}  La plataforma debe aceptar conjuntos
-    de datos en los formatos más utilizados en proyectos de \ac{IA}:
-    \ac{CSV}, \ac{XLSX}, \ac{JSON} y Parquet.
+  \item \textbf{Soporte \ac{CSV}.}  La plataforma acepta conjuntos de datos
+    en formato \ac{CSV}, el formato tabular más extendido en proyectos de
+    \ac{IA} y ciencia de datos.
 
-  \item \textbf{Parseo robusto.}  Para archivos \ac{CSV}, el módulo debe
-    implementar una estrategia de \emph{fallback} que combine múltiples
-    codificaciones (UTF-8, UTF-8-BOM, CP1252, Latin-1), separadores (coma,
-    punto y coma, tabulador, \emph{pipe}) y motores de lectura, garantizando
-    la ingesta correcta del mayor número posible de archivos reales.
+  \item \textbf{Parseo robusto.}  El módulo implementa una estrategia de
+    \emph{fallback} que combina múltiples codificaciones (UTF-8, UTF-8-BOM,
+    CP1252, Latin-1), separadores (coma, punto y coma, tabulador,
+    \emph{pipe}) y motores de lectura, garantizando la ingesta correcta del
+    mayor número posible de archivos reales sin intervención del usuario.
 
-  \item \textbf{Almacenamiento seguro.}  Los archivos originales deben
-    almacenarse en un sistema de almacenamiento de objetos compatible con S3
-    (MinIO), mientras que los metadatos~\textemdash esquema, estadísticas
-    descriptivas, conteos~\textemdash se persisten en PostgreSQL.
+  \item \textbf{Almacenamiento seguro.}  Los archivos originales se
+    almacenan en un sistema de objetos compatible con S3 (MinIO) para
+    garantizar su integridad y disponibilidad; los metadatos (esquema,
+    estadísticas descriptivas y conteos) se persisten en PostgreSQL para
+    permitir consultas eficientes.
 
-  \item \textbf{Extracción automática de esquema.}  El sistema debe inferir
+  \item \textbf{Extracción automática de esquema.}  El sistema infiere
     automáticamente los nombres de columna, los tipos de dato y las
-    estadísticas descriptivas básicas (media, mediana, desviación estándar,
-    mínimo, máximo) de cada conjunto de datos cargado.
+    estadísticas descriptivas básicas de cada dataset cargado, eliminando
+    la necesidad de configuración manual previa a la evaluación.
 
-  \item \textbf{Versionado de conjuntos de datos.}  El módulo debe soportar
-    la carga de nuevas versiones de un mismo conjunto de datos, manteniendo
-    la trazabilidad entre versiones mediante una relación padre-hijo.
+  \item \textbf{Versionado de conjuntos de datos.}  El módulo soporta la
+    carga de nuevas versiones de un mismo dataset, manteniendo la
+    trazabilidad entre versiones mediante una relación padre-hijo y un
+    indicador de versión activa.
 \end{itemize}
 
 
@@ -91,16 +94,20 @@ Este objetivo abarca los siguientes requisitos funcionales:
 \label{sec:oe2}
 %% -------------------------------------------------------------------------
 
-\textbf{Enunciado.}  Implementar un motor de evaluación que calcule métricas
-de calidad estándar sobre los conjuntos de datos cargados, permitiendo su
-parametrización según la tipología del proyecto.
+El núcleo funcional de \dataqual es su motor de evaluación.  Las herramientas
+generalistas de calidad de datos ofrecen métricas orientadas a bases de datos
+transaccionales (completitud, unicidad, conformidad de formato), pero carecen
+de las dimensiones específicas que condicionan el rendimiento de un modelo de
+\ac{IA}: el desequilibrio entre clases introduce sesgo sistemático, y la falta
+de representatividad de ciertos valores o rangos compromete la capacidad de
+generalización.  Este objetivo cubre ambos frentes: las dimensiones estándar
+definidas por los organismos normativos y las dimensiones propias del contexto
+de \ac{ML}.
 
-Las métricas implementadas deben cubrir las principales dimensiones de calidad
-definidas en \ac{ISO}/IEC~25012~\citep{iso25012} y en
-\ac{ISO}/IEC~5259~\citep{iso5259}, complementadas con métricas específicas
-para el contexto de \ac{IA} y \ac{ML}.  En concreto, el motor debe incluir
-las siguientes \textbf{seis métricas evaluables} (que contribuyen al
-\emph{Quality Score}):
+El motor debe cubrir las principales dimensiones de calidad definidas en
+\ac{ISO}/IEC~25012~\citep{iso25012} y \ac{ISO}/IEC~5259~\citep{iso5259},
+complementadas con métricas específicas para \ac{IA}.  Las \textbf{siete
+métricas evaluables} que contribuyen al \emph{Quality Score} son:
 
 \begin{enumerate}
   \item \textbf{Completitud} (\texttt{completeness}): ratio de valores no
@@ -125,18 +132,23 @@ las siguientes \textbf{seis métricas evaluables} (que contribuyen al
 
   \item \textbf{Equilibrio de clases} (\texttt{class\_balance}): evaluación
     del balance de la variable objetivo mediante la entropía de Shannon,
-    métrica específica para proyectos de \ac{ML} que permite detectar
+    métrica específica para proyectos de \ac{IA} que permite detectar
     desequilibrios que sesgan los modelos~\citep{ng2021datacentric}.
+
+  \item \textbf{Diversidad del dataset} (\texttt{diversity}): evaluación,
+    de forma \emph{opt-in} con expectativas definidas por el usuario, de si
+    el dataset cubre los valores y rangos esperados por columna, detectando
+    subrepresentación que puede comprometer la capacidad de generalización
+    de los modelos~\citep{iso5259}.
 \end{enumerate}
 
 Adicionalmente, el motor debe incluir una clase de \textbf{detección de
-valores atípicos} (\texttt{outliers}) basada en \ac{IQR}~\citep{tukey1977}
-y Z-score.
+valores atípicos} (\texttt{outliers}) basada en el \ac{IQR}~\citep{tukey1977}.
 Siguiendo la recomendación de \ac{ISO}/IEC~5259~\citep{iso5259} de no tratar
-los \emph{outliers} como una dimensión de calidad per~se, esta clase
-\textbf{no participará en el \emph{Quality Score}} sino que se utilizará
-exclusivamente como herramienta de diagnóstico en el módulo de perfilado
-de datos (\emph{EDA}).
+los \emph{outliers} como una dimensión de calidad per~se (su relevancia
+depende del dominio de aplicación), esta clase \textbf{no participará en
+el \emph{Quality Score}} sino que se utilizará exclusivamente como
+herramienta de diagnóstico en el módulo de perfilado de datos (\ac{EDA}).
 
 El motor debe adoptar una arquitectura de \emph{plugins}, de modo que cada
 métrica se implemente como una clase independiente que herede de una clase
@@ -152,21 +164,30 @@ reutilizar configuraciones entre proyectos.
 
 
 %% -------------------------------------------------------------------------
-\subsection{OE3.\ \acs{API} \acs{REST}ful documentada}
+\subsection{OE3.\ \acs{API} \acs{REST}ful con especificación formal}
 \label{sec:oe3}
 %% -------------------------------------------------------------------------
 
-\textbf{Enunciado.}  Diseñar e implementar una \ac{API} \ac{REST}ful que
-exponga \emph{endpoints} para la carga de datos, configuración de
-evaluaciones, ejecución de análisis y consulta de resultados, permitiendo la
-integración con flujos de trabajo externos.
+Una plataforma de evaluación de calidad de datos no debería ser un sistema
+cerrado: su valor aumenta cuando puede integrarse en \emph{pipelines} de
+\ac{MLOps}, en procesos de integración continua o en herramientas externas
+que consuman sus resultados de forma programática.  Para ello es necesario
+que la \ac{API} esté bien estructurada y cuente con una especificación
+explícita que permita a terceros integrarla sin necesidad de leer el código
+fuente.
 
-La \ac{API} debe organizarse en módulos funcionales cohesivos, siguiendo el
+El objetivo consiste en diseñar e implementar una \ac{API} \ac{REST}ful que
+exponga \emph{endpoints} para la carga de datos, configuración de evaluaciones,
+ejecución de análisis y consulta de resultados.  La especificación completa de
+rutas, parámetros y formatos de respuesta se recoge en el Anexo~A; este
+objetivo define el alcance funcional que dicha especificación debe cubrir.
+
+La \ac{API} se organiza en seis módulos funcionales cohesivos, siguiendo el
 patrón \emph{Blueprint} de Flask:
 
 \begin{definitionlist}
   \item[\texttt{auth}] Registro de usuarios, inicio de sesión, refresco de
-    \emph{tokens} \ac{JWT} y cierre de sesión.
+    \emph{tokens} \ac{JWT} y consulta del perfil del usuario autenticado.
 
   \item[\texttt{projects}] Operaciones \ac{CRUD} sobre proyectos, incluyendo
     la asignación de conjuntos de datos y la configuración de métricas.
@@ -184,14 +205,13 @@ patrón \emph{Blueprint} de Flask:
     un \emph{endpoint} de comprobación de salud (\emph{health check}).
 \end{definitionlist}
 
-Todos los \emph{endpoints} protegidos deben requerir autenticación mediante
-\ac{JWT}.  El formato de respuesta debe ser uniforme y predecible, siguiendo
-la estructura \texttt{\{success, data, message\}}, con soporte de paginación
-en los listados.  Estos seis módulos funcionales se implementan como
-\emph{blueprints} Flask principales; la convención REST de rutas anidadas
-puede requerir \emph{blueprints} adicionales de organización técnica
-(sub-rutas de proyecto y vistas de agregación) sin que ello amplíe el
-alcance funcional del módulo.
+Todos los \emph{endpoints} protegidos requieren autenticación mediante
+\ac{JWT}.  El formato de respuesta es uniforme y predecible, con la estructura
+\texttt{\{success, data, message\}} y soporte de paginación en los listados.
+La convención REST de rutas anidadas añade \emph{blueprints} técnicos
+adicionales (\texttt{project\_metrics}, \texttt{project\_datasets},
+\texttt{dashboard}, \texttt{patterns}) que no amplían el alcance funcional
+pero sí el número total de \emph{blueprints} registrados.
 
 
 %% -------------------------------------------------------------------------
@@ -199,12 +219,18 @@ alcance funcional del módulo.
 \label{sec:oe4}
 %% -------------------------------------------------------------------------
 
-\textbf{Enunciado.}  Desarrollar una aplicación web para la gestión de
-proyectos y conjuntos de datos, que permita configurar evaluaciones y umbrales
-de calidad personalizados, consultar el historial de evaluaciones realizadas
-y visualizar las métricas obtenidas mediante cuadros de mando interactivos.
+Una \ac{API} potente pero sin interfaz gráfica reproduce exactamente la
+barrera de acceso que \dataqual pretende eliminar: limita el uso a perfiles
+con conocimientos de programación.  La interfaz web no es un complemento
+estético del sistema sino una decisión de diseño central: permite que analistas
+de datos, gestores de proyectos o auditores de calidad operen la plataforma
+sin escribir una sola línea de código, configurando métricas, interpretando
+resultados y tomando decisiones directamente desde el navegador.
 
-La interfaz de usuario debe proporcionar las siguientes capacidades:
+El objetivo consiste en desarrollar una aplicación web que cubra el ciclo
+completo de trabajo sobre un dataset: gestión de proyectos y versiones,
+configuración de evaluaciones, visualización de resultados y exploración
+exploratoria de los datos.  Las capacidades concretas que debe ofrecer son:
 
 \begin{itemize}
   \item \textbf{Cuadro de mando principal} con resumen de proyectos,
@@ -219,9 +245,18 @@ La interfaz de usuario debe proporcionar las siguientes capacidades:
     \emph{issues} detectados.
 
   \item \textbf{Exploración interactiva de datos} (\ac{EDA}): histogramas,
-    diagramas de caja, gráficos de barras, matrices de correlación (Pearson
-    y Spearman) y detección visual de valores atípicos con factor \ac{IQR}
-    configurable.
+    diagramas de caja, gráficos de barras, gráficos de dispersión,
+    matrices de correlación (Pearson y Spearman) y detección visual de
+    valores atípicos con factor \ac{IQR} configurable.
+
+  \item \textbf{Comparación entre versiones de un dataset}: página dedicada
+    que muestra las diferencias en número de filas, columnas, puntuación
+    de calidad, columnas añadidas o eliminadas e \emph{issues} nuevos,
+    resueltos y comunes entre dos versiones.
+
+  \item \textbf{Canvas de linaje de versiones}: árbol visual interactivo
+    que representa la genealogía completa de versiones de un dataset,
+    permitiendo navegar por la historia de cambios.
 
   \item \textbf{Gráficos de tendencia} que muestren la evolución de la
     calidad a lo largo de las sucesivas evaluaciones.
@@ -240,12 +275,16 @@ La interfaz de usuario debe proporcionar las siguientes capacidades:
 \label{sec:oe5}
 %% -------------------------------------------------------------------------
 
-\textbf{Enunciado.}  Desarrollar mecanismos de identificación y diagnóstico
-de problemas de calidad que permitan localizar registros defectuosos en los
-conjuntos de datos, clasificar las incidencias por severidad y rastrear su
-evolución entre evaluaciones sucesivas.
+Detectar que un dataset tiene un 15\,\% de valores nulos en una columna es
+útil; saber si ese porcentaje ha empeorado respecto a la semana pasada, si el
+problema es recurrente o si ya se corrigió una vez, es lo que permite tomar
+decisiones informadas.  La mayoría de las herramientas de calidad de datos
+producen un informe por ejecución pero no conservan memoria entre ejecuciones:
+cada análisis es un snapshot aislado sin conexión con el anterior.
 
-Este objetivo se materializa en tres componentes principales:
+Este objetivo resuelve ese problema introduciendo tres mecanismos que,
+combinados, convierten la evaluación puntual en un proceso de seguimiento
+continuo:
 
 \begin{enumerate}
   \item \textbf{Sistema de \emph{issues}.}  Cada problema de calidad
@@ -253,8 +292,8 @@ Este objetivo se materializa en tres componentes principales:
     severidad (\emph{critical}, \emph{high}, \emph{medium}, \emph{low}),
     calculada dinámicamente en función de la distancia al umbral configurado.
     Cada \emph{issue} debe incluir muestras de los datos afectados (hasta
-    cinco filas de ejemplo), con enmascaramiento automático de columnas
-    marcadas como \ac{PII}.
+    cinco filas de ejemplo), con ocultación automática de los valores de
+    columnas marcadas como \ac{PII}.
 
   \item \textbf{\emph{Fingerprinting} determinista.}  Cada \emph{issue} debe
     recibir un identificador único generado mediante \ac{SHA}-256 a partir de
@@ -267,13 +306,15 @@ Este objetivo se materializa en tres componentes principales:
 
   \item \textbf{\emph{Quality Gates}.}  Umbrales mínimos configurables que
     determinan si un conjunto de datos es apto para su uso, con tres estados
-    posibles: \texttt{PASSED} (todos los umbrales superados),
-    \texttt{WARNING} (margen estrecho respecto a algún umbral) y
-    \texttt{FAILED} (al menos un umbral incumplido).  Las \emph{Quality
-    Gates} proporcionan una señal clara y automatizable que puede integrarse
-    en \emph{pipelines} de \ac{MLOps}~\citep{kreuzberger2023} o de
-    integración continua para bloquear el uso de conjuntos de datos de
-    calidad insuficiente.
+    posibles: \texttt{PASSED} (score por encima del umbral y sin exceso de
+    issues críticos ni nuevos), \texttt{WARNING} (score dentro del margen de
+    advertencia configurable por encima del umbral mínimo, o número de issues
+    nuevos superior al límite configurado) y \texttt{FAILED} (score por debajo
+    del umbral mínimo o issues críticos por encima del máximo permitido).
+    Las \emph{Quality Gates} proporcionan una señal clara y automatizable
+    que puede integrarse en \emph{pipelines} de
+    \ac{MLOps}~\citep{kreuzberger2023} o de integración continua para
+    bloquear el uso de conjuntos de datos de calidad insuficiente.
 \end{enumerate}
 
 
@@ -289,10 +330,10 @@ condicionan las decisiones arquitectónicas y tecnológicas del proyecto:
 \begin{definitionlist}
   \item[Seguridad]  Autenticación basada en \ac{JWT} con \emph{tokens} de
     acceso y refresco, \emph{hashing} de contraseñas mediante \ac{PBKDF2},
-    limitación de tasa de peticiones (\emph{rate limiting}), validación
-    exhaustiva de las entradas del usuario, protección contra inyección de
-    código en las reglas de consistencia lógica y enmascaramiento automático
-    de columnas marcadas como \ac{PII}.
+    limitación de tasa de peticiones (\emph{rate limiting}), validación de
+    entradas en los puntos críticos mediante esquemas Marshmallow, protección
+    contra inyección de código en las reglas de consistencia lógica y
+    enmascaramiento automático de columnas marcadas como \ac{PII}.
 
   \item[Escalabilidad]  Procesamiento asíncrono de evaluaciones mediante
     Celery y Redis como \emph{broker} de mensajes, lo que permite escalar
@@ -313,90 +354,63 @@ condicionan las decisiones arquitectónicas y tecnológicas del proyecto:
   \item[Portabilidad]  Despliegue del \emph{stack} completo mediante Docker
     Compose, con configuración por variables de entorno y sin dependencias de
     servicios en la nube propietarios.  Los ocho servicios que componen la
-    plataforma~\textemdash \emph{frontend}, \emph{backend}, PostgreSQL,
-    MinIO, Redis, Celery \emph{worker}, Celery Beat y
-    Flower~\textemdash se orquestan de forma conjunta, garantizando la
-    reproducibilidad del entorno y la soberanía sobre los datos.
+    plataforma (\emph{frontend}, \emph{backend}, PostgreSQL, MinIO, Redis,
+    Celery \emph{worker}, Celery Beat y Flower) se orquestan conjuntamente,
+    lo que garantiza la reproducibilidad del entorno y que los datos no
+    salgan de la infraestructura propia.
 \end{definitionlist}
 
 
 %% =========================================================================
 \section{Alcance y limitaciones}
-\label{sec:alcance}
+\label{sec:alcance-objetivos}
 %% =========================================================================
 
-El proyecto comprende los siguientes elementos:
+El alcance del proyecto abarca el diseño, la implementación y la validación
+de \dataqual como plataforma \emph{full-stack}, cubriendo los cinco objetivos
+específicos descritos en la sección~\ref{sec:objetivos-especificos}: el módulo
+de ingesta con parseo robusto y versionado, el motor de evaluación con siete
+métricas parametrizables, la \ac{API} \ac{REST}ful con los módulos funcionales
+planificados, la aplicación web con cuadros de mando interactivos, y los
+mecanismos de identificación y seguimiento de problemas.  El sistema se
+despliega íntegramente mediante Docker Compose, se valida con conjuntos de
+datos reales y se documenta en los anexos de la presente memoria
+(especificación de la \ac{API} y catálogo de métricas).  La pila tecnológica
+queda fijada por las decisiones de arquitectura adoptadas: Python con Flask
+y PostgreSQL en el \emph{backend}, React con Next.js y TypeScript en el
+\emph{frontend}, Celery con Redis para el procesamiento asíncrono, y
+alineación explícita con los estándares \ac{ISO}/IEC~25012~\citep{iso25012}
+e \ac{ISO}/IEC~5259~\citep{iso5259}.
 
-\begin{itemize}
-  \item Diseño e implementación de la plataforma \dataqual como aplicación
-    web \emph{full-stack} con \emph{frontend} en Next.js y \emph{backend} en
-    Flask.
+Fuera de este alcance quedan cuatro aspectos que, si bien son relevantes en
+un contexto de producción real, no forman parte del presente trabajo.
 
-  \item Implementación de las siete métricas de calidad descritas en el
-    objetivo~OE2 (sección~\ref{sec:oe2}), con parametrización completa y
-    sistema de pesos.
+El primero es el \textbf{procesamiento de grandes volúmenes de datos}.  El
+motor de evaluación carga el dataset completo en memoria mediante Pandas, lo
+que limita el tamaño práctico de los ficheros a lo que la memoria RAM disponible
+permita procesar sin degradación.  La evaluación distribuida sobre datasets
+masivos mediante Apache Spark o Dask requiere una arquitectura diferente y
+queda como línea de trabajo futuro.
 
-  \item Desarrollo de la \ac{API} \ac{REST}ful con los seis módulos
-    definidos en el objetivo~OE3 (sección~\ref{sec:oe3}).
+El segundo es la \textbf{evaluación en tiempo real sobre flujos de datos}.
+\dataqual opera sobre datasets estáticos que el usuario carga explícitamente.
+La evaluación continua de \emph{streams} de datos requiere integración con
+infraestructuras de mensajería (Kafka, Kinesis) que exceden el alcance de
+este proyecto.
 
-  \item Despliegue contenerizado del \emph{stack} completo mediante Docker
-    Compose.
+El tercero es la \textbf{corrección automática de datos}.  La plataforma
+diagnostica y clasifica los problemas de calidad, pero la decisión y
+ejecución de las acciones correctoras (limpieza, imputación, deduplicación)
+corresponde al usuario.  Incorporar sugerencias de corrección automatizadas
+es una de las líneas de trabajo futuro identificadas en el
+capítulo~\ref{chap:conclusiones}.
 
-  \item Validación de la plataforma con conjuntos de datos reales,
-    verificando el correcto funcionamiento de las métricas, las
-    \emph{Quality Gates} y el sistema de \emph{fingerprinting}.
-
-  \item Documentación técnica: especificación de la \ac{API} y catálogo de
-    métricas (anexos del presente documento).
-\end{itemize}
-
-Quedan fuera del alcance del presente trabajo los siguientes aspectos:
-
-\begin{itemize}
-  \item \textbf{Procesamiento de \emph{big data}.}  La plataforma está
-    diseñada para conjuntos de datos de tamaño moderado (hasta 100\,MB por
-    archivo).  La evaluación de conjuntos de datos masivos que requieran
-    procesamiento distribuido (Apache Spark, Dask) queda fuera del alcance.
-
-  \item \textbf{Evaluación en tiempo real} (\emph{streaming}).  \dataqual
-    opera sobre conjuntos de datos estáticos cargados por el usuario.  La
-    evaluación continua de flujos de datos en tiempo real no forma parte del
-    alcance actual.
-
-  \item \textbf{Corrección automática de datos.}  La plataforma identifica y
-    diagnostica problemas de calidad, pero no implementa mecanismos de
-    corrección automática de los datos (limpieza, imputación, deduplicación).
-
-  \item \textbf{Integración nativa con plataformas en la nube.}  Aunque la
-    arquitectura basada en MinIO es compatible con S3, no se desarrollan
-    conectores específicos para servicios como AWS, Google Cloud o Azure.
-
-  \item \textbf{Internacionalización.}  La interfaz de usuario se desarrolla
-    únicamente en español, sin soporte multiidioma.
-\end{itemize}
-
-El desarrollo está sujeto, además, a restricciones tecnológicas derivadas de
-requisitos académicos y de las decisiones de arquitectura adoptadas:
-
-\begin{itemize}
-  \item El \emph{backend} se implementa en Python con el \emph{framework}
-    Flask, utilizando PostgreSQL como sistema de gestión de bases de datos
-    relacional.
-
-  \item El \emph{frontend} se desarrolla con React y Next.js, utilizando
-    TypeScript como lenguaje principal.
-
-  \item El procesamiento asíncrono se delega en Celery con Redis como
-    \emph{broker} de mensajes.
-
-  \item Todo el sistema debe poder desplegarse mediante Docker Compose en
-    una única máquina, sin requerir infraestructura distribuida.
-
-  \item El proyecto debe alinearse con los estándares
-    \ac{ISO}/IEC~25012~\citep{iso25012} e
-    \ac{ISO}/IEC~5259~\citep{iso5259} en lo relativo a las dimensiones
-    y métricas de calidad de datos implementadas.
-\end{itemize}
+El cuarto es la \textbf{integración directa con fuentes de datos externas}.
+La arquitectura de almacenamiento basada en MinIO es compatible con el
+protocolo S3, pero no se desarrollan conectores específicos para bases de
+datos (MySQL, BigQuery, Snowflake) ni para servicios de almacenamiento en la nube
+(AWS S3, Azure Blob, Google Cloud Storage).  El usuario interactúa con la
+plataforma a través de ficheros \ac{CSV} cargados manualmente.
 
 
 % Local Variables:

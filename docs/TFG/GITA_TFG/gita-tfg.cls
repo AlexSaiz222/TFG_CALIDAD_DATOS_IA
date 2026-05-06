@@ -663,8 +663,6 @@
     La clase \textbf{gita-tfg} está basada en la clase \textbf{esi-tfg}:\\
     \url{https://github.com/UCLM-ESI/esi-tfg}
 
-    \bigskip
-    {\scriptsize [respeta esta atribución de autoría]}
   \end{center}
   \end{singlespacing}
   \cleardoublepage

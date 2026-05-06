@@ -24,9 +24,9 @@ de cumplimiento de cada uno.
     versionado padre-hijo con indicador \texttt{is\_latest}.
 
   \item[OE2 — Motor de métricas parametrizables] \textbf{Cumplido.}
-    Se implementaron seis métricas de calidad evaluables (completitud,
-    unicidad, exactitud sintáctica, consistencia lógica, equilibrio de clases
-    y actualidad) mediante arquitectura de \emph{plugins}
+    Se implementaron siete métricas de calidad evaluables (completitud,
+    unicidad, exactitud sintáctica, consistencia lógica, actualidad,
+    equilibrio de clases y diversidad) mediante arquitectura de \emph{plugins}
     (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY}), con parametrización
     completa, sistema de pesos y plantillas reutilizables.  La clase
     \texttt{OutliersMetric} se implementó como herramienta de diagnóstico
@@ -85,7 +85,7 @@ limitada a un nodo y cobertura de pruebas del \emph{frontend} insuficiente.
 
 El presente \ac{TFG} ha abordado el diseño, la implementación y la validación
 de \dataqual, una plataforma web integral para la evaluación automatizada de
-la calidad de datos en proyectos de \ac{IA}, \ac{ML} y minería de datos.
+la calidad de datos en proyectos de \ac{IA}.
 A lo largo de los seis sprints descritos en el capítulo~\ref{chap:desarrollo},
 se ha logrado construir un sistema funcional de extremo a extremo que cumple
 los cinco objetivos específicos establecidos en el
@@ -130,8 +130,8 @@ Las principales conclusiones que se extraen del trabajo son las siguientes:
 
   \item \textbf{La contenerización garantiza la portabilidad.}  El despliegue
     mediante Docker Compose~\citep{docker} asegura que la plataforma pueda
-    reproducirse en cualquier entorno sin dependencias externas, respetando
-    la soberanía de los datos.
+    reproducirse en cualquier entorno sin enviar datos a servicios
+    externos.
 \end{enumerate}
 
 

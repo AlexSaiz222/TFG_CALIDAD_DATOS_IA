@@ -552,9 +552,8 @@ sección~\ref{sec:trabajo-futuro}.
 \subsubsection{Módulo de ingesta y almacenamiento}
 \label{sec:impl-ingesta}
 
-Los usuarios pueden cargar archivos en los formatos \ac{CSV}, \ac{XLSX},
-\ac{JSON} y Parquet, con un límite de tamaño configurable (por defecto,
-100\,MB).
+Los usuarios pueden cargar archivos en formato \ac{CSV}, con un límite de
+tamaño configurable (por defecto, 100\,MB).
 
 El servicio \texttt{DatasetService} implementa una estrategia de
 \emph{fallback} múltiple para archivos \ac{CSV}:

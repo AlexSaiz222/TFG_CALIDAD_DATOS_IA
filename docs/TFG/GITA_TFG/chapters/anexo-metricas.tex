@@ -74,14 +74,9 @@ recomendación de \ac{ISO}/IEC~5259~\citep{iso5259} de no tratar los
 \textbf{Fundamento.}  Detecta valores que se desvían significativamente del
 resto del conjunto de datos.
 
-\textbf{Algoritmos.}
-\begin{itemize}
-  \item \textbf{\ac{IQR}:} un valor es atípico si
-    $x < Q_1 - f \cdot \mathrm{IQR}$ o
-    $x > Q_3 + f \cdot \mathrm{IQR}$, donde $f$ es el factor configurable.
-  \item \textbf{Z-score:} un valor es atípico si
-    $|z| = |(x - \mu) / \sigma| > f$.
-\end{itemize}
+\textbf{Algoritmo.}
+Un valor es atípico si $x < Q_1 - f \cdot \mathrm{IQR}$ o
+$x > Q_3 + f \cdot \mathrm{IQR}$, donde $f$ es el factor configurable.
 
 El resultado tiene \texttt{score = None}: la clase genera \emph{issues}
 informativos (uno por columna con valores atípicos), pero no computa
@@ -89,9 +84,7 @@ ninguna puntuación.
 
 \textbf{Parámetros:}
 \begin{definitionlist}
-  \item[\texttt{method}]  Método de detección: \texttt{"iqr"} o
-    \texttt{"zscore"} (por defecto, \texttt{"iqr"}).
-  \item[\texttt{factor}]  Factor del método (por defecto, 1,5).
+  \item[\texttt{factor}]  Factor del \ac{IQR} (por defecto, 1,5).
   \item[\texttt{columns}]  Columnas numéricas a evaluar (por defecto, todas).
 \end{definitionlist}
 

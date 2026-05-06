@@ -42,10 +42,59 @@ magnitudes del sistema implementado.
     Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
     Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
     Migraciones de base de datos                    & 8+    \\
-    Suites de pruebas automatizadas                 & 3     \\
+    Ficheros de pruebas automatizadas               & 5     \\
     \bottomrule
   \end{tabularx}
 \end{table}
+
+Los cinco ficheros de prueba cubren las áreas de mayor riesgo del sistema:
+\texttt{test\_auth.py} verifica el registro, el inicio de sesión y el refresco
+de \emph{tokens} JWT; \texttt{test\_projects\_api.py} cubre el \ac{CRUD} de
+proyectos; \texttt{test\_dataset\_versioning.py} y
+\texttt{test\_dataset\_versioning\_api.py} comprueban la creación de versiones
+y la trazabilidad padre-hijo; \texttt{test\_quality\_gate.py} valida la lógica
+de umbrales y los tres estados del \emph{Quality Gate}.  El flujo completo de
+evaluación de extremo a extremo no está cubierto por pruebas automatizadas y
+constituye una limitación reconocida (sección~\ref{sec:limitaciones}).
+
+\subsection{Esfuerzo y desviaciones}
+\label{sec:esfuerzo}
+
+El Cuadro~\ref{tab:esfuerzo} consolida la estimación inicial de horas frente
+al esfuerzo real invertido en cada sprint.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Esfuerzo estimado vs.\ real por sprint}
+  \label{tab:esfuerzo}
+  \begin{tabularx}{\textwidth}{l c c r r r}
+    \toprule
+    \textbf{Sprint} & \textbf{Período} & \textbf{SP} &
+      \textbf{H.\ est.} & \textbf{H.\ real} & \textbf{Desv.} \\
+    \midrule
+    S1 — Arquitectura y setup   & oct.--nov.\ 2025 & 13 & 52  & 60  & +15,4\,\% \\
+    S2 — Backend core           & dic.\ 2025--ene.\ 2026 & 18 & 72  & 85  & +18,1\,\% \\
+    S3 — Motor de métricas      & feb.\ 2026       & 16 & 64  & 70  & +9,4\,\%  \\
+    S4 — Frontend y dashboard   & mar.\ 2026       & 14 & 56  & 65  & +16,1\,\% \\
+    S5 — Quality Gate y cierre  & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
+    S6 — Documentación          & may.--jun.\ 2026 & — & 80  & 90  & +12,5\,\% \\
+    \midrule
+    \textbf{Total}              &                  & \textbf{71} &
+      \textbf{364} & \textbf{425} & \textbf{+16,8\,\%} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La desviación global del +16,8\,\% se mantiene dentro del rango habitual para
+proyectos de software individuales.  El sprint con mayor desviación fue el S5
+(+37,5\,\%), causado por problemas de integración entre el sistema de
+\emph{fingerprinting} y el módulo de comparación con la línea base que no
+fueron detectados en la planificación.  El sprint con menor desviación fue
+el S3 (+9,4\,\%), cuyo motor de métricas aprovechó la arquitectura de
+\emph{plugins} establecida en S2, reduciendo el esfuerzo de integración
+previsto.  La tendencia a subestimar el esfuerzo es consistente en todos los
+sprints y refleja la dificultad de estimar tareas de integración entre
+servicios distribuidos.
 
 \subsection{Resultados cualitativos}
 
@@ -106,6 +155,15 @@ evidencia de su cumplimiento.
 \end{table}
 
 
+Los cinco objetivos se cumplen con el sistema tal como está desplegado.  El
+único objetivo superado es OE3: la \ac{API} creció de seis a siete
+\emph{blueprints} funcionales durante el desarrollo, y los \emph{blueprints}
+de organización técnica elevaron el total a diez.  Los objetivos transversales
+de seguridad, escalabilidad, mantenibilidad y portabilidad se cumplen; la
+internacionalización completa del \emph{frontend} y las pruebas
+\emph{end-to-end} quedan como trabajo futuro
+(sección~\ref{sec:trabajo-futuro}).
+
 %% =========================================================================
 \section{Fortalezas de la plataforma}
 \label{sec:fortalezas}
@@ -133,7 +191,7 @@ fortalezas de \dataqual:
   \item \textbf{Solución \emph{full-stack} autoalojada.}  Todo el
     \emph{stack} se despliega con un único comando
     (\texttt{docker-compose~up}), sin dependencias de servicios en la nube
-    propietarios, garantizando la soberanía de los datos.
+    propietarios, manteniendo los datos bajo el control del usuario.
 
   \item \textbf{Protección nativa de \ac{PII}.}  El enmascaramiento de datos
     sensibles no es una funcionalidad opcional sino un comportamiento
@@ -187,8 +245,9 @@ limitaciones:
     disponible no pueden procesarse.
 
   \item \textbf{Sin detección de anomalías basada en \ac{ML}.}  Solo se
-    emplean métodos estadísticos clásicos (\ac{IQR}, Z-score).  No se han
-    implementado algoritmos como \emph{Isolation Forest} o DBSCAN.
+    emplea el método estadístico clásico \ac{IQR} para la detección de
+    valores atípicos.  No se han implementado algoritmos como
+    \emph{Isolation Forest} o DBSCAN.
 
   \item \textbf{Cobertura de pruebas limitada.}  Las pruebas automatizadas
     cubren \emph{Quality Gates} y versionado, pero no el flujo completo de

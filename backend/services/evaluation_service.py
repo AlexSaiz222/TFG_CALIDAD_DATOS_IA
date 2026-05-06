@@ -115,35 +115,63 @@ class EvaluationService:
 
         # Extract threshold values (stored as 0-100 scale in DB)
         threshold_min_score = thresholds.get('min_score', 70) / 100.0
+        warning_margin = thresholds.get('warning_margin', 10) / 100.0
         max_critical_issues = thresholds.get('max_critical_issues', 0)
-        
+        max_new_issues = thresholds.get('max_new_issues', 10)
+
         gate_status = QualityGateStatus.PASSED
         gate_reasons = []
-        
-        # CRITERIO 1: Check for critical/blocker issues
+
+        # CRITERIO 1: Issues críticos — FAILED inmediato
         critical_count = 0
         for issue in issues:
             severity = issue.get('severity', '').lower()
-            if severity in {'critical', 'blocker'} or (severity == 'high' and 'critical' in issue.get('description', '').lower()):
+            if severity in {'critical', 'blocker'} or (
+                severity == 'high' and 'critical' in issue.get('description', '').lower()
+            ):
                 critical_count += 1
-        
+
         if critical_count > max_critical_issues:
             gate_status = QualityGateStatus.FAILED
             gate_reasons.append(
                 f"Critical issues ({critical_count}) exceed maximum allowed ({max_critical_issues})"
             )
             logger.info(f"[QUALITY_GATE] FAILED - {critical_count} critical issues > max {max_critical_issues}")
-        
-        # CRITERIO 2: Check minimum quality score (only if not already failed)
+
+        # CRITERIO 2: Quality Score — FAILED si está por debajo del umbral mínimo
         if gate_status != QualityGateStatus.FAILED:
             if quality_score < threshold_min_score:
                 gate_status = QualityGateStatus.FAILED
-                gate_reasons.append(f"Quality score {quality_score:.2%} is below minimum threshold {threshold_min_score:.0%}")
+                gate_reasons.append(
+                    f"Quality score {quality_score:.2%} is below minimum threshold {threshold_min_score:.0%}"
+                )
                 logger.info(f"[QUALITY_GATE] FAILED - Score {quality_score:.2%} < {threshold_min_score:.0%}")
-        
-        # Log final decision
-        logger.info(f"[QUALITY_GATE] Final status: {gate_status.value} | Score: {quality_score:.2%} | Issues: {len(issues)} | Reasons: {gate_reasons}")
-        
+
+        # CRITERIO 3: WARNING — score pasa el umbral mínimo pero está dentro del margen de advertencia
+        if gate_status == QualityGateStatus.PASSED:
+            warning_threshold = threshold_min_score + warning_margin
+            if quality_score < warning_threshold:
+                gate_status = QualityGateStatus.WARNING
+                gate_reasons.append(
+                    f"Quality score {quality_score:.2%} is within warning margin "
+                    f"({threshold_min_score:.0%}–{warning_threshold:.0%})"
+                )
+                logger.info(f"[QUALITY_GATE] WARNING - Score {quality_score:.2%} within warning margin")
+
+        # CRITERIO 4: WARNING — exceso de issues nuevos respecto a la línea base
+        if gate_status == QualityGateStatus.PASSED:
+            new_issues_count = getattr(analysis_run, 'new_issues_count', 0) or 0
+            if new_issues_count > max_new_issues:
+                gate_status = QualityGateStatus.WARNING
+                gate_reasons.append(
+                    f"New issues ({new_issues_count}) exceed warning threshold ({max_new_issues})"
+                )
+                logger.info(f"[QUALITY_GATE] WARNING - {new_issues_count} new issues > max {max_new_issues}")
+
+        logger.info(
+            f"[QUALITY_GATE] Final status: {gate_status.value} | Score: {quality_score:.2%} "
+            f"| Issues: {len(issues)} | Reasons: {gate_reasons}"
+        )
         return gate_status
     
     def _compare_issues_with_baseline(self, analysis_run, baseline_run):

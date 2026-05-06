@@ -216,8 +216,8 @@ Estas cifras han sido verificadas directamente contra el código fuente. Usarlas
 
 | Concepto | Valor correcto |
 |----------|---------------|
-| Métricas evaluables (Quality Score) | 6 |
-| Clases de métricas totales | 7 (6 evaluables + outliers EDA) |
+| Métricas evaluables (Quality Score) | 7 |
+| Clases de métricas totales | 8 (7 evaluables + outliers EDA) |
 | Blueprints Flask | 10 |
 | Tablas PostgreSQL | 10 |
 | Migraciones DB | 8+ |
@@ -237,6 +237,6 @@ Antes de reportar cualquiera de estos pendientes como hallazgo, **verificar prim
 | Pendiente | Cómo verificar |
 |-----------|----------------|
 | Marcadores `\fbox{...}` en Sprint 4–5 (fig:dashboard, fig:evaluation-results, fig:eda, fig:quality-gate) deben sustituirse por `\includegraphics` | Buscar `\fbox` en `chapters/05-desarrollo.tex` |
-| ISO 25024 en cap. 02: revisar si la cita es correcta o debe ser ISO 5259 | Leer la sección correspondiente en `chapters/02-antecedentes.tex` |
+| ISO 25024 en cap. 02: la cita es correcta (25024 = métricas de medición, complementa a 25012). El pendiente ahora es que cap. 01 no lo menciona y debería anticiparlo brevemente. | Leer sección solucion/alcance en `chapters/01-intro.tex` |
 | Conteo de blueprints en `tab:resultados-cuantitativos` (cap. 06): el código tiene 9, puede decir 6 | Leer `chapters/06-resultados.tex` y buscar la tabla |
 | Conteo de tablas PostgreSQL en cap. 06: el código tiene 10 | Leer `chapters/06-resultados.tex` |

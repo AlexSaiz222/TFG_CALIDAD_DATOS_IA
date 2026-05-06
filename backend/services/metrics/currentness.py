@@ -68,10 +68,14 @@ class CurrentnessMetric(BaseMetric):
         freshness_scores = []
         issues = []
 
+        sensitive_columns = getattr(dataset, "sensitive_columns", None) or []
+
         for col_name, parsed_series in date_columns.items():
             valid_dates = parsed_series.dropna()
             if len(valid_dates) == 0:
                 continue
+
+            sensitive = col_name in sensitive_columns
 
             parse_success_rate = float(
                 parsed_series.notna().sum() / len(df)
@@ -99,8 +103,8 @@ class CurrentnessMetric(BaseMetric):
             age_human = self._format_age(age_days)
 
             currentness_results[col_name] = {
-                "max_date": max_date.isoformat() if pd.notna(max_date) else None,
-                "min_date": min_date.isoformat() if pd.notna(min_date) else None,
+                "max_date": "***" if sensitive else (max_date.isoformat() if pd.notna(max_date) else None),
+                "min_date": "***" if sensitive else (min_date.isoformat() if pd.notna(min_date) else None),
                 "age_days": int(age_days) if age_days is not None else None,
                 "age_human": age_human,
                 "date_range_days": int(date_range_days) if date_range_days is not None else None,
@@ -133,7 +137,7 @@ class CurrentnessMetric(BaseMetric):
                     "affected_columns": [{
                         "column": col_name,
                         "age_days": int(age_days),
-                        "max_date": max_date.isoformat(),
+                        "max_date": "***" if sensitive else max_date.isoformat(),
                         "freshness_score": round(col_freshness, 4),
                     }],
                     "issue_type": "currentness",

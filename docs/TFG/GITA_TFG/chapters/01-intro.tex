@@ -93,7 +93,8 @@ Sus capacidades principales son:
 
   \item \textbf{Configuración de métricas de calidad} adaptadas al tipo de
     proyecto, con parámetros y umbrales personalizables alineados con los
-    estándares \ac{ISO}/IEC~25012~\citep{iso25012} y
+    estándares \ac{ISO}/IEC~25012~\citep{iso25012},
+    \ac{ISO}/IEC~25024~\citep{iso25024} e
     \ac{ISO}/IEC~5259~\citep{iso5259}.
 
   \item \textbf{Ejecución asíncrona de evaluaciones}, que analiza los
@@ -181,13 +182,15 @@ elegir entre accesibilidad y capacidad de integración.
 
 %% ---------------------------------------------------------------------------
 \section{Alcance del proyecto}
-\label{sec:alcance}
+\label{sec:alcance-intro}
 
 \dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
 y \ac{ML}, con soporte para conjuntos de datos tabulares de hasta 100\,MB en
 formato \ac{CSV}.  Cubre el ciclo completo de evaluación: carga y versionado
 de datasets, perfilado exploratorio, ejecución de siete métricas de calidad
-alineadas con \ac{ISO}/IEC~5259, seguimiento de incidencias entre
+alineadas con \ac{ISO}/IEC~25012~\citep{iso25012},
+\ac{ISO}/IEC~25024~\citep{iso25024} e
+\ac{ISO}/IEC~5259~\citep{iso5259}, seguimiento de incidencias entre
 evaluaciones, \emph{Quality Gates} con veredicto automatizado y protección de
 datos personales.  El sistema se despliega en entorno local mediante
 Docker~Compose y expone una \ac{API} \ac{REST} con autenticación \ac{JWT}
@@ -209,10 +212,10 @@ restantes:
 \begin{definitionlist}
 \item[Capítulo~\ref{chap:antecedentes}: \nameref{chap:antecedentes}]
   Revisa los fundamentos teóricos de la calidad de datos, los principales
-  estándares internacionales (\ac{ISO}/IEC~25012, \ac{ISO}/IEC~5259), las
-  dimensiones de calidad relevantes y las herramientas existentes en el
-  mercado, identificando las carencias que justifican el desarrollo de
-  \dataqual.
+  estándares internacionales (\ac{ISO}/IEC~25012, \ac{ISO}/IEC~25024
+  e \ac{ISO}/IEC~5259), las dimensiones de calidad relevantes y las
+  herramientas existentes en el mercado, identificando las carencias que
+  justifican el desarrollo de \dataqual.
 
 \item[Capítulo~\ref{chap:objetivos}: \nameref{chap:objetivos}]
   Define el objetivo general y los objetivos específicos del proyecto,
