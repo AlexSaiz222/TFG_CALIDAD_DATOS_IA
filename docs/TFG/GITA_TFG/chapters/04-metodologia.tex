@@ -5,7 +5,7 @@
 para el desarrollo de \dataqual: la metodología de gestión del proyecto
 (Scrum adaptado), la metodología de desarrollo software, la pila tecnológica,
 la planificación temporal con diagrama de Gantt, la estimación de esfuerzo,
-el análisis de costes y la gestión de riesgos del proyecto.
+la estimación de costes y la gestión de riesgos del proyecto.
 
 
 %% =========================================================================
@@ -15,35 +15,39 @@ el análisis de costes y la gestión de riesgos del proyecto.
 
 \subsection{Metodología ágil adoptada: Scrum adaptado}
 
-Para la gestión del proyecto se ha adoptado \textbf{Scrum adaptado a un TFG
-individual}~\citep{scrumguide}, metodología ágil iterativa e incremental que
-estructura el trabajo en sprints de duración fija y favorece la entrega
-continua de valor.
-La justificación de esta elección se apoya en tres argumentos principales:
+Para la gestión del proyecto se adoptó \textbf{Scrum adaptado a un entorno
+individual}~\citep{scrumguide}, una metodología ágil que organiza el trabajo
+en sprints de duración acotada y favorece la entrega incremental de valor.
+La elección se justifica por tres razones:
 
 \begin{itemize}
-  \item \textbf{Adecuación al tipo de proyecto.}  \dataqual es un proyecto de
-    desarrollo de software con requisitos que evolucionan conforme se profundiza
-    en el dominio (calidad de datos, estándares ISO).  Scrum permite incorporar
-    aprendizajes del dominio en el backlog de forma natural.
+  \item \textbf{Adecuación al tipo de proyecto.}  Los requisitos de \dataqual
+    no estaban completamente definidos desde el inicio: a medida que se
+    profundizaba en el dominio de la calidad de datos y los estándares ISO,
+    surgían nuevas necesidades que había que incorporar al backlog.  Scrum
+    encaja bien con este tipo de proyectos exploratorios.
 
-  \item \textbf{Retroalimentación periódica de tutores.}  Las reuniones
-    quincenales con los tutores actúan como sprint reviews, proporcionando
-    retroalimentación continua sobre dirección técnica y calidad del trabajo.
+  \item \textbf{Retroalimentación de tutores.}  Tras uno o dos sprints
+    completos, se acordaba una reunión con los tutores para revisar el
+    incremento funcional, discutir las decisiones técnicas adoptadas y
+    ajustar las prioridades del backlog.  La convocatoria era bajo demanda,
+    sin una cadencia fija, lo que permitió adaptarla al ritmo real del
+    proyecto.
 
-  \item \textbf{Trazabilidad del avance.}  El uso de GitHub Issues como
-    herramienta de backlog permite mantener un historial auditado del progreso,
-    esencial para la redacción de la memoria.
+  \item \textbf{Trazabilidad del avance.}  Registrar cada historia de usuario
+    y tarea en Trello dejó un histórico claro del trabajo realizado en cada
+    sprint, facilitando tanto la inspección del progreso como la redacción
+    de las retrospectivas de la memoria.
 \end{itemize}
 
 \subsection{Adaptación de Scrum al TFG individual}
 
-La metodología Scrum estándar ha sido adaptada a la naturaleza unipersonal y
-académica del proyecto de la siguiente forma:
+Scrum se adaptó a la naturaleza unipersonal del proyecto de la siguiente
+forma:
 
 \begin{definitionlist}
-  \item[Sprints]  El proyecto se divide en \textbf{6 sprints} de entre dos y
-    cuatro semanas de duración, cada uno orientado a un conjunto coherente de
+  \item[Sprints]  El proyecto se divide en \textbf{6 sprints} de entre cuatro y
+    ocho semanas de duración, cada uno orientado a un conjunto coherente de
     funcionalidades (véase la planificación en la
     Sección~\ref{sec:planificacion}).
 
@@ -52,23 +56,25 @@ académica del proyecto de la siguiente forma:
     \begin{itemize}
       \item \emph{Product Owner}: define y prioriza el backlog en función de
         los objetivos del TFG y de la retroalimentación de los tutores.
-      \item \emph{Scrum Master}: vela por la aplicación de la metodología y
-        elimina impedimentos técnicos.
+      \item \emph{Scrum Master}: asegura que la metodología se aplica de
+        forma coherente y gestiona los bloqueos técnicos o de planificación
+        que puedan surgir.
       \item \emph{Developer}: implementa las historias de usuario seleccionadas
         para cada sprint.
     \end{itemize}
 
   \item[Sprint planning]  Al inicio de cada sprint se define el objetivo,
     se seleccionan las historias de usuario del backlog y se descomponen en
-    tareas concretas registradas en GitHub Issues.
+    tareas concretas registradas en Trello.
 
   \item[Daily standup]  Sustituido por una \textbf{revisión personal diaria}
-    informal: el desarrollador evalúa el progreso del día anterior y planifica
-    las tareas del día.
+    informal: al comenzar cada sesión de trabajo se repasaba el estado de las
+    tareas en curso y se decidía en qué centrarse durante esa jornada.
 
-  \item[Sprint review]  Reunión quincenal con los tutores en la que se
-    presenta el incremento funcional, se obtiene retroalimentación y se ajusta
-    el backlog si procede.
+  \item[Sprint review]  Tras uno o dos sprints completos, se acordaba una
+    reunión con los tutores para revisar el incremento funcional, discutir
+    las decisiones técnicas adoptadas y ajustar las prioridades del backlog.
+    La convocatoria era bajo demanda, sin cadencia fija.
 
   \item[Sprint retrospective]  Reflexión escrita al final de cada sprint sobre
     qué ha ido bien, qué ha ido mal y qué mejorar, documentada en la memoria
@@ -78,15 +84,12 @@ académica del proyecto de la siguiente forma:
 \subsection{Herramientas de gestión}
 
 \begin{definitionlist}
-  \item[GitHub Issues]  Herramienta principal de gestión del backlog.  Cada
-    historia de usuario y tarea técnica se registra como una \emph{issue} con
-    etiquetas de prioridad, estimación en horas y sprint asignado.  Los
-    \emph{milestones} de GitHub corresponden a los sprints del proyecto.
-
-  \item[GitHub Projects (Kanban board)]  Tablero Kanban con columnas
-    \textit{Backlog}, \textit{Sprint activo}, \textit{En progreso},
-    \textit{En revisión} y \textit{Cerrado}, utilizado para visualizar el
-    flujo de trabajo dentro de cada sprint.
+  \item[Trello]  Herramienta principal de gestión del backlog y seguimiento
+    de sprints.  Cada historia de usuario y tarea técnica se representa como
+    una tarjeta con prioridad y estimación en horas.  El tablero Kanban
+    organiza las tarjetas en columnas (\textit{Backlog}, \textit{Sprint
+    activo}, \textit{En progreso}, \textit{Hecho}) para visualizar el flujo
+    de trabajo dentro de cada sprint y entre sprints.
 
   \item[Git + GitHub]  Control de versiones con ramas de funcionalidad
     (\emph{feature branches}) por historia de usuario y \emph{merges} a
@@ -109,7 +112,7 @@ proceso de desarrollo.
 \subsection{Desarrollo iterativo}
 
 El proyecto se ha organizado en \textbf{iteraciones} de duración variable
-(entre una y tres semanas), cada una de las cuales ha producido un incremento
+(entre cuatro y ocho semanas), cada una de las cuales ha producido un incremento
 funcional desplegable.  Cada iteración ha comprendido las siguientes
 actividades:
 
@@ -219,6 +222,9 @@ Las herramientas que componen la lógica de negocio y la \ac{API} del sistema se
     Python    & 3.10 & Lenguaje estándar en ciencia de datos e \ac{IA}, con
       excelente integración con Pandas y NumPy para el cálculo de
       métricas. \\
+    NumPy     & 1.24 & Cálculo numérico de alto rendimiento sobre arrays.
+      Se emplea en el motor de métricas para operaciones vectorizadas sobre
+      columnas del conjunto de datos. \\
     Flask     & 2.2  & \emph{Framework} web minimalista y flexible, ideal
       para \ac{API}s \ac{REST}.  No impone una estructura fija, lo que
       permite una arquitectura a medida. \\
@@ -392,15 +398,17 @@ durante diciembre~2025 y enero~2026, se implementó el núcleo del
 multiformato con almacenamiento en MinIO y esqueleto de la \ac{API}
 \ac{REST}ful.  Durante febrero~2026 se diseñó e implementó el motor de
 métricas con arquitectura de \emph{plugins} (clase base abstracta y registro
-dinámico) y las seis métricas de calidad evaluables.  En marzo~2026 se
+dinámico) y las siete métricas de calidad evaluables.  En marzo~2026 se
 desarrolló el \emph{frontend} con Next.js y React: cuadros de mando,
 páginas de gestión y el módulo de exploración de datos (\ac{EDA}).  Abril~2026
 se dedicó a las funcionalidades avanzadas: \emph{fingerprinting} de
 \emph{issues}, \emph{Quality Gates}, comparación con línea base y
 enmascaramiento de \ac{PII}.  La última fase (mayo--junio~2026) abarca la
 redacción de la memoria, la validación final con datos reales y la preparación
-de la defensa.  La Tabla~\ref{tab:gantt} muestra la distribución mensual de
-estas fases a lo largo del curso.
+de la defensa.
+
+La Tabla~\ref{tab:gantt} muestra la distribución mensual de estas fases a lo
+largo del curso.
 
 \begin{table}[htbp]
   \centering
@@ -504,14 +512,14 @@ La estimación del esfuerzo se ha realizado combinando dos técnicas:
     aproximadamente a 4~horas de trabajo efectivo.
 
   \item \textbf{Descomposición en tareas y estimación en horas} para las
-    tareas técnicas más granulares registradas en GitHub Issues.
+    tareas técnicas más granulares registradas en Trello.
 \end{itemize}
 
 \subsection{Estimación inicial vs.\ real}
 
 La Tabla~\ref{tab:estimacion-sprints} compara la estimación inicial de cada
 sprint con el tiempo real invertido, registrado mediante el seguimiento de
-horas en GitHub Issues.
+horas en Trello.
 
 \begin{table}[htbp]
   \centering
