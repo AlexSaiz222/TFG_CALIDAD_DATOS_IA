@@ -80,12 +80,12 @@
 \contentsline {subsection}{\numberline {4.3.4}Procesamiento asíncrono y orquestación}{35}{subsection.4.3.4}%
 \contentsline {section}{\numberline {4.4}Entorno de desarrollo}{35}{section.4.4}%
 \contentsline {section}{\numberline {4.5}Planificación temporal}{36}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Backlog inicial e historias de usuario}{37}{section.4.6}%
-\contentsline {section}{\numberline {4.7}Estimación de esfuerzo}{39}{section.4.7}%
-\contentsline {subsection}{\numberline {4.7.1}Técnica de estimación}{39}{subsection.4.7.1}%
-\contentsline {subsection}{\numberline {4.7.2}Estimación inicial vs.\ real}{39}{subsection.4.7.2}%
-\contentsline {section}{\numberline {4.8}Estimación de costes}{39}{section.4.8}%
-\contentsline {section}{\numberline {4.9}Gestión de riesgos}{41}{section.4.9}%
+\contentsline {section}{\numberline {4.6}Backlog inicial e historias de usuario}{38}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Estimación de esfuerzo}{38}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}Técnica de estimación}{38}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}Estimación inicial vs.\ real}{40}{subsection.4.7.2}%
+\contentsline {section}{\numberline {4.8}Estimación de costes}{40}{section.4.8}%
+\contentsline {section}{\numberline {4.9}Gestión de riesgos}{42}{section.4.9}%
 \contentsline {chapter}{\numberline {5}Desarrollo iterativo por sprints}{43}{chapter.5}%
 \contentsline {section}{\numberline {5.1}Requisitos globales del sistema}{43}{section.5.1}%
 \contentsline {subsection}{\numberline {5.1.1}Historias de usuario}{43}{subsection.5.1.1}%

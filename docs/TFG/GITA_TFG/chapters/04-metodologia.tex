@@ -420,23 +420,31 @@ habituales de incompatibilidad entre plataformas.
 %% =========================================================================
 
 El desarrollo del proyecto se ha distribuido a lo largo del curso académico
-2025--2026 en seis fases encadenadas.  La primera (octubre--noviembre~2025)
-cubrió el estudio del estado del arte, el análisis de los estándares
-\ac{ISO}/IEC~25012~\citep{iso25012} e \ac{ISO}/IEC~5259~\citep{iso5259} y el
-diseño de la arquitectura general del sistema.  A continuación,
-durante diciembre~2025 y enero~2026, se implementó el núcleo del
+2025--2026 en seis fases encadenadas.  Las dos primeras sentaron las bases del
+sistema: entre octubre y noviembre~2025 se estudió el estado del arte y se
+analizaron los estándares \ac{ISO}/IEC~25012~\citep{iso25012} e
+\ac{ISO}/IEC~5259~\citep{iso5259}, lo que permitió diseñar la arquitectura
+general; durante diciembre~2025 y enero~2026 se implementó el núcleo del
 \emph{backend}: modelos de datos, autenticación \ac{JWT}, módulo de ingesta
 multiformato con almacenamiento en MinIO y esqueleto de la \ac{API}
-\ac{REST}ful.  Durante febrero~2026 se diseñó e implementó el motor de
-métricas con arquitectura de \emph{plugins} (clase base abstracta y registro
-dinámico) y las siete métricas de calidad evaluables.  En marzo~2026 se
-desarrolló el \emph{frontend} con Next.js y React: cuadros de mando,
-páginas de gestión y el módulo de exploración de datos (\ac{EDA}).  Abril~2026
-se dedicó a las funcionalidades avanzadas: \emph{fingerprinting} de
+\ac{REST}ful.
+
+Las fases centrales construyeron el núcleo funcional. En febrero~2026 se
+diseñó e implementó el motor de métricas con arquitectura de \emph{plugins}
+(clase base abstracta y registro dinámico) y las tres primeras métricas de
+calidad.  En marzo~2026 se concentró el desarrollo del \emph{frontend} con
+Next.js y React: cuadros de mando, páginas de gestión y el módulo de
+exploración de datos (\ac{EDA}), si bien desde las fases anteriores ya
+existía una interfaz básica operativa; paralelamente se incorporaron nuevas
+métricas al catálogo.
+
+Las dos últimas fases elevaron la madurez del sistema y cerraron el proyecto.
+Abril~2026 se dedicó a las funcionalidades avanzadas: \emph{fingerprinting} de
 \emph{issues}, \emph{Quality Gates}, comparación con línea base y
-enmascaramiento de \ac{PII}.  La última fase (mayo--junio~2026) abarca la
-redacción de la memoria, la validación final con datos reales y la preparación
-de la defensa.
+enmascaramiento de \ac{PII}; en este mismo sprint se completó el catálogo de
+métricas con las restantes, incluida la métrica de diversidad.  La fase final
+(mayo--junio~2026) abarca la redacción de la memoria, la validación con datos
+reales y la preparación de la defensa.
 
 La Figura~\ref{fig:roadmap} resume los hitos principales entregados en
 cada sprint, y la Figura~\ref{fig:gantt} muestra su distribución temporal
@@ -457,19 +465,18 @@ a lo largo del curso.
 \end{figure}
 
 El diagrama de Gantt refleja el \emph{cuándo} de cada sprint, pero no la
-intensidad relativa del trabajo en cada área del proyecto.  La
-Figura~\ref{fig:effort} muestra la distribución de esfuerzo por disciplinas
-a lo largo de los seis sprints.  En ella se observa que el proyecto no siguió
-un modelo en cascada (donde cada disciplina ocupa una fase exclusiva)
-sino un modelo \textbf{iterativo e incremental}: los
-requisitos se concentran en el sprint inicial pero permanecen activos a lo
-largo de todo el desarrollo; el diseño y la arquitectura dominan los dos
-primeros sprints pero decaen progresivamente; la implementación alcanza su
-pico en los sprints centrales; las pruebas crecen de forma sostenida a medida
-que el sistema gana complejidad; y la documentación, presente desde el inicio
-con un nivel de base, experimenta un salto significativo en el sprint final.
-Este patrón de solapamiento es característico de los procesos ágiles e
-iterativos y contrasta con la distribución secuencial del modelo en
+intensidad relativa del trabajo en cada área.  La
+Figura~\ref{fig:effort} muestra esa distribución de esfuerzo por disciplinas
+y revela un patrón característico de los procesos ágiles: las actividades no
+se suceden en fases estancas, sino que se solapan a lo largo del proyecto.
+
+Los requisitos se concentran en el sprint inicial pero permanecen activos
+durante todo el desarrollo.  El diseño y la arquitectura dominan los dos
+primeros sprints y decaen progresivamente.  La implementación alcanza su pico
+en los sprints centrales, mientras las pruebas crecen de forma sostenida a
+medida que el sistema gana complejidad.  La documentación, presente desde el
+inicio con un nivel de base, experimenta un salto significativo en el sprint
+final.  Este patrón contrasta con la distribución secuencial del modelo en
 cascada~\citep{sommerville2016}.
 
 \begin{figure}[htbp]

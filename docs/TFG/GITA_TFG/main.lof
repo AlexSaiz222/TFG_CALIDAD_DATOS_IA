@@ -7,8 +7,9 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Diagrama de Gantt del proyecto (curso académico 2025--2026)}}{37}{figure.4.1}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Distribución de esfuerzo por disciplinas a lo largo de los sprints}}{37}{figure.4.2}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Roadmap del proyecto: hitos entregados por sprint}}{37}{figure.4.1}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Diagrama de Gantt del proyecto (curso académico 2025--2026)}}{37}{figure.4.2}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Distribución de esfuerzo por disciplinas a lo largo de los sprints}}{38}{figure.4.3}%
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {5.1}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{44}{figure.5.1}%
 \contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura lógica por capas de \textsc {DataQual}\xspace , mostrando las dependencias \emph {depends-on} (flecha discontinua de punta abierta). El directorio \texttt {services/metrics/} ($\star $) constituye el núcleo extensible del motor de evaluación, alineado con el principio abierto--cerrado~\citep {design_patterns}}}{47}{figure.5.2}%
