@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Esfuerzo por Disciplinas — DataQualAI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #fff;
+    padding: 28px 40px 24px;
+    width: 1100px;
+  }
+  h2 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1A237E;
+    text-align: center;
+    margin-bottom: 14px;
+    letter-spacing: 0.01em;
+  }
+</style>
+</head>
+<body>
+
+<h2>Distribución de Esfuerzo por Disciplinas — DataQualAI (curso académico 2025–2026)</h2>
+<svg id="chart" width="1020" height="395" style="display:block; margin:0 auto;"></svg>
+
+<script>
+// ── Configuración ─────────────────────────────────────────────────────────────
+const ML = 68, MR = 12, MT = 28, MB = 88;
+const SVG_W = 1020, SVG_H = 395;
+const W = SVG_W - ML - MR;   // 940
+const H = SVG_H - MT - MB;   // 279
+
+const sprints = [
+  { label: 'S1', sub: 'Oct–Nov 2025' },
+  { label: 'S2', sub: 'Dic–Ene 2026' },
+  { label: 'S3', sub: 'Feb 2026' },
+  { label: 'S4', sub: 'Mar 2026' },
+  { label: 'S5', sub: 'Abr 2026' },
+  { label: 'S6', sub: 'May–Jun 2026' },
+];
+
+// Esfuerzo relativo por disciplina en cada sprint (0–100)
+// Narrativa: Requisitos pico S1 → Diseño pico S1-S2 → Impl. domina S3-S5 → Pruebas crece → Doc. explota en S6
+const disciplines = [
+  { name: 'Requisitos y análisis', color: '#E53935', data: [80, 35, 15, 10,  8,  5] },
+  { name: 'Diseño y arquitectura', color: '#F57C00', data: [65, 55, 25, 12,  8,  5] },
+  { name: 'Implementación',        color: '#1565C0', data: [15, 60, 80, 85, 72, 15] },
+  { name: 'Pruebas y validación',  color: '#2E7D32', data: [ 5, 12, 25, 38, 52, 42] },
+  { name: 'Documentación',         color: '#6A1B9A', data: [18, 15, 15, 18, 22, 78] },
+];
+
+const n = sprints.length;
+const sw = W / n;   // ancho de cada sprint ≈ 156.67
+
+// Centros de sprints
+const sprintXs = sprints.map((_, i) => ML + sw * i + sw / 2);
+
+const baseline = MT + H;           // y de 0%
+const yScale   = v => MT + H - (v / 100) * H;
+
+// ── Utilidades SVG ────────────────────────────────────────────────────────────
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('chart');
+
+function el(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// Spline cardinal → cubic Bézier (tension 0–1)
+function splinePath(xs, ys, tension = 0.42) {
+  const n = xs.length;
+  let d = `M ${f(xs[0])} ${f(ys[0])}`;
+  for (let i = 0; i < n - 1; i++) {
+    const x0 = xs[Math.max(0, i-1)], y0 = ys[Math.max(0, i-1)];
+    const x1 = xs[i],     y1 = ys[i];
+    const x2 = xs[i+1],   y2 = ys[i+1];
+    const x3 = xs[Math.min(n-1, i+2)], y3 = ys[Math.min(n-1, i+2)];
+    const cp1x = x1 + tension * (x2 - x0);
+    const cp1y = y1 + tension * (y2 - y0);
+    const cp2x = x2 - tension * (x3 - x1);
+    const cp2y = y2 - tension * (y3 - y1);
+    d += ` C ${f(cp1x)} ${f(cp1y)}, ${f(cp2x)} ${f(cp2y)}, ${f(x2)} ${f(y2)}`;
+  }
+  return d;
+}
+const f = v => v.toFixed(2);
+
+// ── Fondo ─────────────────────────────────────────────────────────────────────
+svg.appendChild(el('rect', { x:0, y:0, width:SVG_W, height:SVG_H, fill:'#fff' }));
+
+// ── Zona de gráfico (fondo sutil) ─────────────────────────────────────────────
+svg.appendChild(el('rect', {
+  x: ML, y: MT, width: W, height: H,
+  fill: '#F8F9FC', stroke: 'none'
+}));
+
+// ── Líneas de cuadrícula horizontales ─────────────────────────────────────────
+[25, 50, 75, 100].forEach(pct => {
+  const y = yScale(pct);
+  svg.appendChild(el('line', {
+    x1: ML, y1: y, x2: ML + W, y2: y,
+    stroke: '#CFD8DC', 'stroke-width': 1,
+    'stroke-dasharray': '5 4'
+  }));
+  svg.appendChild(el('text', {
+    x: ML - 7, y: y + 4,
+    'text-anchor': 'end', 'font-size': '11',
+    fill: '#78909C', 'font-family': 'Segoe UI,Arial,sans-serif'
+  }, pct + '%'));
+});
+svg.appendChild(el('text', {
+  x: ML - 7, y: baseline + 4,
+  'text-anchor': 'end', 'font-size': '11',
+  fill: '#78909C', 'font-family': 'Segoe UI,Arial,sans-serif'
+}, '0%'));
+
+// ── Divisores verticales de sprint ────────────────────────────────────────────
+for (let i = 0; i <= n; i++) {
+  const x = ML + i * sw;
+  svg.appendChild(el('line', {
+    x1: x, y1: MT, x2: x, y2: baseline,
+    stroke: i === 0 || i === n ? '#90A4AE' : '#CFD8DC',
+    'stroke-width': i === 0 || i === n ? 1.5 : 1,
+    'stroke-dasharray': i === 0 || i === n ? '' : '3 4'
+  }));
+}
+
+// ── Ejes ──────────────────────────────────────────────────────────────────────
+svg.appendChild(el('line', { x1: ML, y1: MT,       x2: ML,      y2: baseline, stroke: '#546E7A', 'stroke-width': 1.5 }));
+svg.appendChild(el('line', { x1: ML, y1: baseline, x2: ML + W, y2: baseline,  stroke: '#546E7A', 'stroke-width': 1.5 }));
+
+// Título eje Y
+const yLbl = el('text', {
+  x: 15, y: MT + H / 2,
+  transform: `rotate(-90,15,${MT + H / 2})`,
+  'text-anchor': 'middle',
+  'font-size': '12', 'font-weight': '600',
+  fill: '#37474F', 'font-family': 'Segoe UI,Arial,sans-serif'
+}, 'Esfuerzo relativo (%)');
+svg.appendChild(yLbl);
+
+// ── Curvas por disciplina ─────────────────────────────────────────────────────
+// Anclamos cada curva en los bordes laterales (valor 0 → baseline)
+const extXs = [ML,          ...sprintXs,           ML + W];
+const blY   = [baseline];   // pares para los extremos
+
+disciplines.forEach(d => {
+  const ys        = d.data.map(v => yScale(v));
+  const extYs     = [baseline, ...ys, baseline];
+  const linePath  = splinePath(extXs, extYs);
+
+  // Área rellena
+  svg.appendChild(el('path', {
+    d:    linePath + ` L ${f(ML + W)} ${f(baseline)} L ${f(ML)} ${f(baseline)} Z`,
+    fill: d.color, 'fill-opacity': '0.13'
+  }));
+
+  // Línea de contorno
+  svg.appendChild(el('path', {
+    d: linePath,
+    fill: 'none', stroke: d.color,
+    'stroke-width': '2.5',
+    'stroke-linejoin': 'round', 'stroke-linecap': 'round'
+  }));
+
+  // Puntos de datos
+  sprintXs.forEach((x, i) => {
+    svg.appendChild(el('circle', {
+      cx: f(x), cy: f(ys[i]), r: 4.5,
+      fill: '#fff', stroke: d.color, 'stroke-width': '2.2'
+    }));
+  });
+});
+
+// ── Etiquetas de sprint ───────────────────────────────────────────────────────
+sprints.forEach((s, i) => {
+  const x = sprintXs[i];
+  svg.appendChild(el('text', {
+    x: f(x), y: baseline + 17,
+    'text-anchor': 'middle', 'font-size': '12.5',
+    'font-weight': '700', fill: '#263238',
+    'font-family': 'Segoe UI,Arial,sans-serif'
+  }, s.label));
+  svg.appendChild(el('text', {
+    x: f(x), y: baseline + 31,
+    'text-anchor': 'middle', 'font-size': '10.5',
+    fill: '#607D8B', 'font-family': 'Segoe UI,Arial,sans-serif'
+  }, s.sub));
+});
+
+// ── Leyenda ───────────────────────────────────────────────────────────────────
+const LEG_ITEM_W = 190;
+const totalLegW  = disciplines.length * LEG_ITEM_W;
+let legX = (SVG_W - totalLegW) / 2;
+const legY = baseline + 58;
+
+disciplines.forEach(d => {
+  svg.appendChild(el('rect', {
+    x: f(legX), y: legY - 9, width: 14, height: 14,
+    rx: 3, fill: d.color, 'fill-opacity': '0.85'
+  }));
+  svg.appendChild(el('text', {
+    x: f(legX + 20), y: legY + 2,
+    'font-size': '11.5', fill: '#37474F',
+    'font-family': 'Segoe UI,Arial,sans-serif'
+  }, d.name));
+  legX += LEG_ITEM_W;
+});
+</script>
+</body>
+</html>

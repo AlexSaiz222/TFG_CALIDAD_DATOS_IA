@@ -53,9 +53,21 @@ de \emph{tokens} JWT; \texttt{test\_projects\_api.py} cubre el \ac{CRUD} de
 proyectos; \texttt{test\_dataset\_versioning.py} y
 \texttt{test\_dataset\_versioning\_api.py} comprueban la creación de versiones
 y la trazabilidad padre-hijo; \texttt{test\_quality\_gate.py} valida la lógica
-de umbrales y los tres estados del \emph{Quality Gate}.  El flujo completo de
-evaluación de extremo a extremo no está cubierto por pruebas automatizadas y
-constituye una limitación reconocida (sección~\ref{sec:limitaciones}).
+de umbrales y los tres estados del \emph{Quality Gate}.  La ejecución de las
+pruebas se realiza mediante \texttt{pytest} desde el directorio
+\texttt{backend/}, pudiendo generar informes de cobertura con la opción
+\texttt{-{}-cov}.
+
+Complementariamente, se realizaron pruebas manuales sobre los flujos
+completos de la plataforma: registro de usuario, creación de proyecto, carga
+de conjunto de datos, configuración de métricas, ejecución de evaluaciones y
+consulta de resultados.  Estas pruebas verificaron la integración de todos
+los componentes del sistema en un escenario realista, comprobando la
+corrección de la interfaz de usuario en cada caso de uso principal.
+
+El flujo completo de evaluación de extremo a extremo no está cubierto por
+pruebas automatizadas y constituye una limitación reconocida
+(sección~\ref{sec:limitaciones}).
 
 \subsection{Esfuerzo y desviaciones}
 \label{sec:esfuerzo}
