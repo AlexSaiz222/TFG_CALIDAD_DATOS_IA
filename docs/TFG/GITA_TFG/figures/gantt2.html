@@ -6,112 +6,132 @@
 <title>Diagrama de Gantt — DataQualAI</title>
 <style>
   :root {
-    --primary: #1E293B;      /* Azul marino oscuro */
-    --accent: #0EA5E9;       /* Azul claro */
-    --accent-dark: #0284C7;  /* Azul oscuro */
-    --review: #10B981;       /* Verde esmeralda */
-    --review-dark: #059669;  /* Verde oscuro */
-    --border: #E2E8F0;       /* Gris claro para bordes */
-    --bg-alt: #F8FAFC;       /* Fondo alternativo */
-    --text-main: #334155;    /* Gris oscuro texto */
-    --today: #EF4444;        /* Rojo marcador */
+    --primary:   #1E293B;
+    --border:    #E2E8F0;
+    --bg-cat:    #F1F5F9;
+    --text-main: #334155;
+    --today:     #EF4444;
+    --lw:        240px;   /* label width */
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #fff;
     color: var(--text-main);
-    padding: 40px;
+    padding: 36px;
     display: flex;
     justify-content: center;
   }
 
-  .gantt-container {
-    width: 100%;
-    max-width: 1200px;
-  }
+  .gantt-container { width: 100%; max-width: 1240px; }
 
   .gantt-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary);
-    margin-bottom: 24px;
+    margin-bottom: 18px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
   }
 
   .gantt-wrapper {
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #ffffff;
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
   }
 
-  /* ── Cabecera ── */
+  /* ── Header ── */
   .gantt-header {
     display: flex;
     background: var(--primary);
-    color: #ffffff;
-    border-bottom: 3px solid var(--accent);
+    color: #fff;
+    border-bottom: 3px solid #0EA5E9;
   }
-
   .header-label {
-    width: 280px;
+    width: var(--lw);
     flex-shrink: 0;
-    padding: 16px 20px;
-    font-size: 0.85rem;
+    padding: 13px 16px;
+    font-size: 0.78rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
+    letter-spacing: 0.06em;
+    border-right: 1px solid rgba(255,255,255,0.1);
   }
-
   .header-months {
-    flex-grow: 1;
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(9, 1fr);
   }
-
   .month-cell {
-    padding: 16px 8px;
+    padding: 13px 4px;
     text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255,255,255,0.1);
   }
   .month-cell:last-child { border-right: none; }
 
-  /* ── Cuerpo y Cuadrícula de Fondo ── */
-  .gantt-body {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
+  /* ── Body ── */
+  .gantt-body { position: relative; }
 
-  .grid-background {
+  .grid-bg {
     position: absolute;
-    top: 0; right: 0; bottom: 0;
-    left: 280px; /* Evita la columna de etiquetas */
+    top: 0; left: var(--lw); right: 0; bottom: 0;
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     pointer-events: none;
     z-index: 1;
   }
+  .grid-col { border-right: 1px dashed var(--border); }
+  .grid-col:nth-child(even) { background: rgba(248,250,252,0.65); }
+  .grid-col:last-child { border-right: none; }
 
-  .grid-column {
-    border-right: 1px dashed var(--border);
+  /* Today marker — May 13 ≈ month index 7.42 (0=Oct … 8=Jun) */
+  .today-marker {
+    position: absolute;
+    top: 0; bottom: 0; width: 2px;
+    background: var(--today);
+    left: calc(var(--lw) + (100% - var(--lw)) / 9 * 7.42);
+    z-index: 10;
+    box-shadow: 0 0 6px rgba(239,68,68,0.45);
   }
-  .grid-column:nth-child(even) {
-    background-color: rgba(248, 250, 252, 0.6);
+  .today-marker::before {
+    content: 'Hoy';
+    position: absolute;
+    top: 6px; left: 4px;
+    background: var(--today);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
   }
-  .grid-column:last-child { border-right: none; }
 
-  /* ── Filas de Tareas ── */
+  /* ── Category rows ── */
+  .cat-row {
+    display: flex;
+    background: var(--bg-cat);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    z-index: 2;
+  }
+  .cat-label {
+    width: var(--lw);
+    flex-shrink: 0;
+    padding: 7px 16px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #64748B;
+    border-right: 1px solid var(--border);
+  }
+  .cat-track { flex: 1; }
+
+  /* ── Task rows ── */
   .gantt-row {
     display: flex;
     border-bottom: 1px solid var(--border);
@@ -121,244 +141,297 @@
   .gantt-row:last-child { border-bottom: none; }
 
   .task-name {
-    width: 280px;
+    width: var(--lw);
     flex-shrink: 0;
-    padding: 18px 20px;
-    font-size: 0.9rem;
+    padding: 0 16px;
+    font-size: 0.82rem;
     font-weight: 500;
-    background: #ffffff;
+    background: #fff;
     border-right: 1px solid var(--border);
     display: flex;
     align-items: center;
-  }
-  .task-name.review {
-    color: var(--review);
-    font-weight: 600;
+    min-height: 42px;
+    line-height: 1.3;
   }
 
   .task-track {
-    flex-grow: 1;
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    padding: 12px 0;
-    align-items: center;
+    flex: 1;
+    position: relative;
+    height: 42px;
   }
 
-  /* ── Barras de Progreso ── */
+  /* ── Bars ── */
+  /* Positioned with inline style: left and width use calc(N/9*100% ± margin) */
   .bar {
-    height: 28px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    margin: 0 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: transform 0.2s ease;
-  }
-  .bar:hover {
-    transform: scaleY(1.05);
-  }
-
-  .bar-dev {
-    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
-    border-left: 4px solid #0369A1;
-  }
-
-  .bar-rev {
-    background: repeating-linear-gradient(45deg, var(--review), var(--review) 10px, var(--review-dark) 10px, var(--review-dark) 20px);
-    height: 18px;
-    border-radius: 10px;
-  }
-
-  /* Ubicaciones de Grid (Inicio / Fin de columna) */
-  .s1  { grid-column: 1 / 3; }  /* Oct - Nov */
-  .s2  { grid-column: 3 / 5; }  /* Dic - Ene */
-  .s3  { grid-column: 5 / 6; }  /* Feb */
-  .s4  { grid-column: 6 / 7; }  /* Mar */
-  .s5  { grid-column: 7 / 8; }  /* Abr */
-  .s6  { grid-column: 8 / 10; } /* May - Jun */
-  .rev { grid-column: 1 / 10; } /* Oct - Jun */
-
-  /* ── Marcador Hoy ── */
-  .today-marker {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: var(--today);
-    /* Posición: 280px (etiquetas) + 7 columnas completas + ~40% de mayo (mes 8) */
-    left: calc(280px + (100% - 280px) / 9 * 7.4);
-    z-index: 10;
-    box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
-  }
-
-  .today-marker::before {
-    content: 'Hoy';
-    position: absolute;
-    top: -26px;
-    left: -14px;
-    background: var(--today);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 3px 8px;
+    height: 22px;
+    top: 50%;
+    transform: translateY(-50%);
     border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.13);
+    transition: filter 0.15s;
+  }
+  .bar:hover { filter: brightness(1.08); }
+
+  /* Color schemes */
+  .c-analysis { background: linear-gradient(90deg,#7C3AED,#6D28D9); border-left: 3px solid #5B21B6; }
+  .c-backend   { background: linear-gradient(90deg,#0EA5E9,#0284C7); border-left: 3px solid #0369A1; }
+  .c-frontend  { background: linear-gradient(90deg,#F59E0B,#D97706); border-left: 3px solid #B45309; }
+  .c-quality   { background: linear-gradient(90deg,#10B981,#059669); border-left: 3px solid #047857; }
+  .c-docs      { background: linear-gradient(90deg,#64748B,#475569); border-left: 3px solid #334155; }
+  .c-review    {
+    background: repeating-linear-gradient(45deg,#EF4444,#EF4444 8px,#DC2626 8px,#DC2626 16px);
+    height: 14px; border-radius: 8px; border: none;
   }
 
-  /* ── Leyenda ── */
+  /* Secondary / residual bar helper classes */
+  .faded { opacity: 0.38; height: 12px; border-radius: 6px; border: none !important; }
+  .mid   { opacity: 0.62; height: 16px; }
+
+  /* ── Legend ── */
   .legend {
     display: flex;
-    gap: 32px;
-    margin-top: 24px;
-    padding-top: 16px;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+    margin-top: 18px;
+    padding-top: 14px;
     border-top: 1px solid var(--border);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-main);
     justify-content: flex-end;
   }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-  }
-
-  .legend-line {
-    width: 20px;
-    height: 2px;
-    background-color: var(--today);
-    position: relative;
-  }
-  .legend-line::after {
-    content: '';
-    position: absolute;
-    top: -3px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--today);
-  }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .l-swatch { width: 26px; height: 13px; border-radius: 3px; }
+  .l-line { width: 2px; height: 14px; background: var(--today); border-radius: 1px; }
 </style>
 </head>
 <body>
 
 <div class="gantt-container">
-  <h2 class="gantt-title">Planificación Temporal — DataQualAI (2025/2026)</h2>
+  <h2 class="gantt-title">Planificación Temporal — DataQualAI (2025 / 2026)</h2>
 
   <div class="gantt-wrapper">
+
+    <!-- Header -->
     <div class="gantt-header">
-      <div class="header-label">Fases y Tareas</div>
+      <div class="header-label">Actividad</div>
       <div class="header-months">
-        <div class="month-cell">Oct 2025</div>
-        <div class="month-cell">Nov 2025</div>
-        <div class="month-cell">Dic 2025</div>
-        <div class="month-cell">Ene 2026</div>
-        <div class="month-cell">Feb 2026</div>
-        <div class="month-cell">Mar 2026</div>
-        <div class="month-cell">Abr 2026</div>
-        <div class="month-cell">May 2026</div>
-        <div class="month-cell">Jun 2026</div>
+        <div class="month-cell">Oct '25</div>
+        <div class="month-cell">Nov '25</div>
+        <div class="month-cell">Dic '25</div>
+        <div class="month-cell">Ene '26</div>
+        <div class="month-cell">Feb '26</div>
+        <div class="month-cell">Mar '26</div>
+        <div class="month-cell">Abr '26</div>
+        <div class="month-cell">May '26</div>
+        <div class="month-cell">Jun '26</div>
       </div>
     </div>
 
     <div class="gantt-body">
-      
+      <div class="grid-bg">
+        <div class="grid-col"></div><div class="grid-col"></div><div class="grid-col"></div>
+        <div class="grid-col"></div><div class="grid-col"></div><div class="grid-col"></div>
+        <div class="grid-col"></div><div class="grid-col"></div><div class="grid-col"></div>
+      </div>
       <div class="today-marker"></div>
 
-      <div class="grid-background">
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-        <div class="grid-column"></div>
-      </div>
+      <!-- ═══ ANÁLISIS Y DISEÑO ═══ -->
+      <div class="cat-row"><div class="cat-label">Análisis y Diseño</div><div class="cat-track"></div></div>
 
       <div class="gantt-row">
-        <div class="task-name">S1 — Análisis y arquitectura</div>
+        <div class="task-name">Estado del arte y estándares ISO</div>
         <div class="task-track">
-          <div class="bar bar-dev s1"></div>
+          <!-- Oct–Nov principal, Dic residual -->
+          <div class="bar c-analysis" style="left:calc(0/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-analysis faded" style="left:calc(2/9*100% + 4px); width:calc(0.8/9*100% - 4px);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
-        <div class="task-name">S2 — Backend core</div>
+        <div class="task-name">Diseño de arquitectura del sistema</div>
         <div class="task-track">
-          <div class="bar bar-dev s2"></div>
+          <!-- Oct–Nov principal, Dic–Ene residual -->
+          <div class="bar c-analysis" style="left:calc(0/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-analysis faded" style="left:calc(2/9*100% + 4px); width:calc(1.8/9*100% - 4px);"></div>
+        </div>
+      </div>
+
+      <!-- ═══ BACKEND ═══ -->
+      <div class="cat-row"><div class="cat-label">Backend</div><div class="cat-track"></div></div>
+
+      <div class="gantt-row">
+        <div class="task-name">Modelos de datos + API RESTful + JWT</div>
+        <div class="task-track">
+          <!-- Dic–Ene principal, Feb residual -->
+          <div class="bar c-backend" style="left:calc(2/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-backend faded" style="left:calc(4/9*100% + 4px); width:calc(0.6/9*100%);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
-        <div class="task-name">S3 — Motor de métricas</div>
+        <div class="task-name">Ingesta multiformato + MinIO</div>
         <div class="task-track">
-          <div class="bar bar-dev s3"></div>
+          <!-- Dic–Feb (con cola en Feb) -->
+          <div class="bar c-backend" style="left:calc(2/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-backend faded" style="left:calc(4/9*100% + 4px); width:calc(0.5/9*100%);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
-        <div class="task-name">S4 — Frontend y dashboards</div>
+        <div class="task-name">Motor de métricas (plugins)</div>
         <div class="task-track">
-          <div class="bar bar-dev s4"></div>
+          <!-- Feb principal, inicio de Mar residual -->
+          <div class="bar c-backend" style="left:calc(4/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
+          <div class="bar c-backend faded" style="left:calc(5/9*100% + 4px); width:calc(0.4/9*100%);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
-        <div class="task-name">S5 — Features avanzadas</div>
+        <div class="task-name">Métricas de calidad (3 base → 7)</div>
         <div class="task-track">
-          <div class="bar bar-dev s5"></div>
+          <!-- Feb: 3 métricas base (principal) -->
+          <div class="bar c-backend" style="left:calc(4/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
+          <!-- Mar–Abr: 4 métricas adicionales (media intensidad) -->
+          <div class="bar c-backend mid" style="left:calc(5/9*100% + 4px); width:calc(2/9*100% - 8px); border-left:3px solid #0369A1;"></div>
         </div>
       </div>
 
       <div class="gantt-row">
-        <div class="task-name">S6 — Documentación y defensa</div>
+        <div class="task-name">Quality Gates + fingerprinting issues</div>
         <div class="task-track">
-          <div class="bar bar-dev s6"></div>
+          <!-- Abr principal -->
+          <div class="bar c-backend" style="left:calc(6/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
-        <div class="task-name review">Revisiones con tutores</div>
+        <div class="task-name">Enmascaramiento PII + comparación base</div>
         <div class="task-track">
-          <div class="bar bar-rev rev"></div>
+          <!-- Abr–May -->
+          <div class="bar c-backend" style="left:calc(6/9*100% + 4px); width:calc(1.4/9*100% - 8px);"></div>
         </div>
       </div>
 
-    </div>
-  </div>
+      <!-- ═══ FRONTEND ═══ -->
+      <div class="cat-row"><div class="cat-label">Frontend</div><div class="cat-track"></div></div>
+
+      <div class="gantt-row">
+        <div class="task-name">Interfaz básica operativa</div>
+        <div class="task-track">
+          <!-- Nov–Feb residual (siempre presente pero baja intensidad) -->
+          <div class="bar c-frontend faded" style="left:calc(1/9*100% + 4px); width:calc(3.2/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="task-name">Frontend principal (Next.js / React)</div>
+        <div class="task-track">
+          <!-- Mar principal, Abr residual -->
+          <div class="bar c-frontend" style="left:calc(5/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
+          <div class="bar c-frontend faded" style="left:calc(6/9*100% + 4px); width:calc(0.6/9*100%);"></div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="task-name">Dashboards y módulo EDA</div>
+        <div class="task-track">
+          <!-- Mar–Abr -->
+          <div class="bar c-frontend" style="left:calc(5/9*100% + 4px); width:calc(1.6/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+      <!-- ═══ CALIDAD Y TESTING ═══ -->
+      <div class="cat-row"><div class="cat-label">Calidad y Testing</div><div class="cat-track"></div></div>
+
+      <div class="gantt-row">
+        <div class="task-name">Tests unitarios e integración</div>
+        <div class="task-track">
+          <!-- Feb incipiente, Mar creciendo, Abr–May pleno -->
+          <div class="bar c-quality faded" style="left:calc(4/9*100% + 4px); width:calc(0.9/9*100%); height:10px;"></div>
+          <div class="bar c-quality mid" style="left:calc(5/9*100% + 4px); width:calc(1/9*100% - 4px); border-left:3px solid #047857;"></div>
+          <div class="bar c-quality" style="left:calc(6/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="task-name">Validación con datos reales</div>
+        <div class="task-track">
+          <!-- May–Jun -->
+          <div class="bar c-quality" style="left:calc(7/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+      <!-- ═══ DOCUMENTACIÓN ═══ -->
+      <div class="cat-row"><div class="cat-label">Documentación</div><div class="cat-track"></div></div>
+
+      <div class="gantt-row">
+        <div class="task-name">Documentación técnica base</div>
+        <div class="task-track">
+          <!-- Oct–Abr (baja intensidad continua) -->
+          <div class="bar c-docs faded" style="left:calc(0/9*100% + 4px); width:calc(7/9*100% - 8px); height:11px;"></div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="task-name">Redacción memoria TFG</div>
+        <div class="task-track">
+          <!-- Abr arranque, May–Jun principal -->
+          <div class="bar c-docs faded" style="left:calc(6/9*100% + 4px); width:calc(0.9/9*100%); height:12px;"></div>
+          <div class="bar c-docs" style="left:calc(7/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="task-name">Preparación defensa</div>
+        <div class="task-track">
+          <!-- May–Jun -->
+          <div class="bar c-docs" style="left:calc(7/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+      <!-- ═══ TRANSVERSAL ═══ -->
+      <div class="gantt-row" style="background:#FEF2F2;">
+        <div class="task-name" style="color:#B91C1C; font-weight:600; font-size:0.8rem;">Revisiones con tutores</div>
+        <div class="task-track">
+          <div class="bar c-review" style="left:calc(0/9*100% + 4px); width:calc(9/9*100% - 8px);"></div>
+        </div>
+      </div>
+
+    </div><!-- /gantt-body -->
+  </div><!-- /gantt-wrapper -->
 
   <div class="legend">
     <div class="legend-item">
-      <div class="legend-color" style="background: linear-gradient(90deg, var(--accent), var(--accent-dark)); border-left: 3px solid #0369A1;"></div>
-      <span>Sprint de desarrollo</span>
+      <div class="l-swatch" style="background:linear-gradient(90deg,#7C3AED,#6D28D9);"></div>
+      <span>Análisis y Diseño</span>
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="background: repeating-linear-gradient(45deg, var(--review), var(--review) 4px, var(--review-dark) 4px, var(--review-dark) 8px);"></div>
-      <span>Hito de revisión continua</span>
+      <div class="l-swatch" style="background:linear-gradient(90deg,#0EA5E9,#0284C7);"></div>
+      <span>Backend</span>
     </div>
     <div class="legend-item">
-      <div class="legend-line"></div>
-      <span>Fecha actual (Progreso)</span>
+      <div class="l-swatch" style="background:linear-gradient(90deg,#F59E0B,#D97706);"></div>
+      <span>Frontend</span>
+    </div>
+    <div class="legend-item">
+      <div class="l-swatch" style="background:linear-gradient(90deg,#10B981,#059669);"></div>
+      <span>Calidad y Testing</span>
+    </div>
+    <div class="legend-item">
+      <div class="l-swatch" style="background:linear-gradient(90deg,#64748B,#475569);"></div>
+      <span>Documentación</span>
+    </div>
+    <div class="legend-item">
+      <div class="l-swatch" style="background:repeating-linear-gradient(45deg,#EF4444,#EF4444 4px,#DC2626 4px,#DC2626 8px);"></div>
+      <span>Revisiones tutores</span>
+    </div>
+    <div class="legend-item">
+      <div class="l-line"></div>
+      <span>Fecha actual</span>
     </div>
   </div>
 
 </div>
-
 </body>
 </html>
