@@ -104,10 +104,7 @@ equipo.
 
 La gestión del proyecto se apoyó en dos herramientas complementarias:
 Trello para el seguimiento ágil del backlog y Git + GitHub para el
-control de versiones del código fuente.  La combinación de ambas
-proporcionó trazabilidad completa: cada tarea de Trello se correspondía
-con una o varias ramas de trabajo en el repositorio, lo que permitía
-relacionar el avance funcional con los cambios técnicos introducidos.
+control de versiones del código fuente.
 
 \begin{definitionlist}
   \item[Trello]  Herramienta principal de gestión del backlog y
@@ -121,18 +118,16 @@ relacionar el avance funcional con los cambios técnicos introducidos.
     entre sprints.
 
   \item[Git + GitHub]  Sistema de control de versiones distribuido con
-    repositorio remoto en GitHub.  Se siguió una estrategia de
-    ramificación basada en \emph{feature branches}: cada historia de
-    usuario de cierta entidad se desarrolla en una rama propia
-    (\texttt{feature/<nombre>}), que se integra en \texttt{main}
-    mediante \emph{merge} una vez validada.  Los mensajes de
-    \emph{commit} siguen una convención descriptiva que facilita la
-    trazabilidad de los cambios y la redacción de las retrospectivas.
+    repositorio remoto en GitHub.  El desarrollo se realizó
+    principalmente sobre la rama \texttt{main}, creando ramas de
+    funcionalidad (\emph{feature branches}) únicamente para las tareas
+    de mayor envergadura o riesgo.  Los mensajes de \emph{commit}
+    siguen una convención descriptiva que facilita la trazabilidad de
+    los cambios y la redacción de las retrospectivas.
 \end{definitionlist}
 
-Ambas herramientas son de uso libre y no suponen coste adicional
-para el proyecto, lo que se refleja en la estimación de costes de la
-Sección~\ref{sec:costes}.
+Ambas herramientas son de acceso libre y gratuito, lo que se refleja
+en la estimación de costes de la Sección~\ref{sec:costes}.
 
 
 %% =========================================================================
@@ -142,17 +137,17 @@ Sección~\ref{sec:costes}.
 
 El desarrollo de \dataqual ha seguido una \textbf{metodología iterativa e
 incremental}, donde cada sprint produce un incremento funcional desplegable
-que amplía las capacidades de la plataforma.  Los principios
-subyacentes~\textemdash entrega frecuente, retroalimentación continua y
-adaptación del plan ante nuevos requisitos~\textemdash han guiado todo el
-proceso de desarrollo.
+que amplía las capacidades de la plataforma.  Los principios que han guiado
+todo el proceso (entrega frecuente, retroalimentación continua y adaptación
+del plan ante nuevos requisitos) son coherentes con los valores del
+\emph{Agile Manifesto}~\citep{agilemanifesto}.
 
 \subsection{Desarrollo iterativo}
 
 El proyecto se ha organizado en \textbf{iteraciones} de duración variable
-(entre cuatro y ocho semanas), cada una de las cuales ha producido un incremento
-funcional desplegable.  Cada iteración ha comprendido las siguientes
-actividades:
+(entre cuatro y ocho semanas), cada una de las cuales ha producido un
+incremento funcional desplegable.  Cada iteración ha comprendido las
+siguientes actividades:
 
 \begin{enumerate}
   \item \textbf{Planificación:} selección de las funcionalidades a
@@ -172,29 +167,30 @@ actividades:
   \item \textbf{Verificación:} ejecución de pruebas manuales y automatizadas
     para validar el correcto funcionamiento del incremento.
 
-  \item \textbf{Revisión con los tutores:} presentación del avance a los
-    tutores del \ac{TFG} para obtener retroalimentación y ajustar la
-    dirección del desarrollo en caso necesario.
+  \item \textbf{Revisión con los tutores:} presentación del avance para
+    obtener retroalimentación y ajustar la dirección del desarrollo en caso
+    necesario.
 \end{enumerate}
+
+Este ciclo se repite en cada sprint y puede observarse con detalle en las
+secciones de planificación y retrospectiva del
+Capítulo~\ref{chap:desarrollo}.
 
 \subsection{Prototipado}
 
 La interfaz de usuario se ha desarrollado siguiendo un enfoque de
-\textbf{prototipado evolutivo}: cada pantalla se ha construido inicialmente
-con la funcionalidad mínima necesaria y se ha refinado en iteraciones
-sucesivas, incorporando mejoras de usabilidad, visualizaciones adicionales
-y tratamiento de casos extremos.  Este enfoque ha permitido obtener
-retroalimentación temprana sobre la experiencia de usuario sin invertir
-tiempo excesivo en el diseño visual previo a la validación funcional.
+\textbf{prototipado evolutivo}: cada pantalla se construyó inicialmente
+con la funcionalidad mínima necesaria y se refinó en iteraciones sucesivas,
+incorporando mejoras de usabilidad, visualizaciones adicionales y tratamiento
+de casos extremos.  Este enfoque permitió validar la experiencia de usuario
+de forma temprana sin invertir tiempo excesivo en el diseño visual antes de
+confirmar la utilidad funcional.
 
-\subsection{Control de versiones}
-
-El código fuente del proyecto se gestiona en un repositorio Git alojado en
-GitHub.  Se ha seguido una estrategia de ramificación basada en una rama
-principal (\texttt{main}) y ramas de funcionalidad (\emph{feature branches})
-para el desarrollo de cada módulo o característica significativa.  Los
-\emph{commits} siguen una convención de mensajes descriptivos que facilita la
-trazabilidad de los cambios.
+Un ejemplo representativo es el módulo de exploración de datos (\ac{EDA}):
+en su primera versión solo mostraba un recuento de nulos y estadísticas
+básicas por columna; en iteraciones posteriores se incorporaron histogramas
+interactivos, diagramas de caja y una matriz de correlación, a medida que
+las pruebas con datos reales revelaban la necesidad de cada visualización.
 
 
 %% =========================================================================
@@ -202,17 +198,25 @@ trazabilidad de los cambios.
 \label{sec:pila-tecnologica}
 %% =========================================================================
 
-La selección de las tecnologías que componen la plataforma responde a tres
-criterios principales: (1)~adecuación al tipo de problema~\textemdash
-evaluación de calidad de datos, procesamiento asíncrono, visualización
-interactiva~\textemdash; (2)~madurez y soporte comunitario de las
-herramientas; y (3)~coherencia con las competencias adquiridas a lo largo del
-grado en Ingeniería Informática.
+La pila tecnológica de \dataqual se estructura en cuatro capas
+independientes pero integradas: presentación (\emph{frontend}), lógica de
+negocio (\emph{backend}), persistencia de datos y orquestación asíncrona.
+La selección de cada tecnología responde a tres criterios: adecuación al
+tipo de problema (evaluación de calidad de datos, procesamiento asíncrono,
+visualización interactiva), madurez y soporte comunitario, y coherencia con
+las competencias adquiridas durante el grado en Ingeniería Informática.
 
 \subsection{\emph{Frontend}}
 \label{sec:tech-frontend}
 
-La Tabla~\ref{tab:tech-frontend} detalla las tecnologías seleccionadas para la capa de presentación o \emph{frontend}.
+La capa de presentación se construyó sobre Next.js y React, combinación que
+ofrece enrutamiento basado en ficheros, reescritura de rutas para actuar
+como \emph{proxy} hacia el \emph{backend} y generación de contenido
+estático.  Se descartó Vue.js por su ecosistema de componentes de
+visualización menos maduro en el momento del desarrollo.  TypeScript se
+incorporó desde el inicio para garantizar la seguridad de tipos en un
+\emph{frontend} con más de cuarenta componentes reutilizables.
+La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
 
 
 \begin{table}[htbp]
@@ -246,7 +250,16 @@ La Tabla~\ref{tab:tech-frontend} detalla las tecnologías seleccionadas para la 
 \subsection{\emph{Backend}}
 \label{sec:tech-backend}
 
-Las herramientas que componen la lógica de negocio y la \ac{API} del sistema se recogen en la Tabla~\ref{tab:tech-backend}.
+El \emph{backend} se implementó en Python con Flask como \emph{framework}
+web.  Python fue la elección natural por su integración nativa con las
+bibliotecas de análisis de datos (Pandas, NumPy) que sustentan el motor de
+métricas.  Flask se prefirió frente a Django porque no impone una estructura
+monolítica, lo que permitió diseñar una arquitectura modular basada en
+\emph{blueprints} a medida de los requisitos del sistema; además, el
+autor contaba con experiencia previa con este \emph{framework}, lo que
+redujo la curva de aprendizaje y aceleró el desarrollo inicial.
+La Tabla~\ref{tab:tech-backend} recoge el detalle de cada biblioteca y
+herramienta empleada.
 
 
 \begin{table}[htbp]
@@ -286,7 +299,14 @@ Las herramientas que componen la lógica de negocio y la \ac{API} del sistema se
 \subsection{Base de datos y almacenamiento}
 \label{sec:tech-bbdd}
 
-Para la persistencia de datos y la gestión de archivos, se emplean las tecnologías descritas en la Tabla~\ref{tab:tech-bbdd}.
+La capa de persistencia separa deliberadamente dos tipos de datos con
+naturaleza distinta: los datos relacionales (proyectos, usuarios, métricas,
+resultados) se almacenan en PostgreSQL, mientras que los ficheros binarios
+subidos por los usuarios se delegan a MinIO.  Esta separación evita saturar
+la base de datos relacional con objetos de gran tamaño y simplifica el
+escalado independiente de cada almacén.  Redis actúa además como
+intermediario de mensajes para el sistema de colas asíncronas.
+La Tabla~\ref{tab:tech-bbdd} detalla cada componente de esta capa.
 
 
 \begin{table}[htbp]
@@ -315,7 +335,16 @@ Para la persistencia de datos y la gestión de archivos, se emplean las tecnolog
 \subsection{Procesamiento asíncrono y orquestación}
 \label{sec:tech-async}
 
-La ejecución de evaluaciones en segundo plano se apoya en las herramientas de orquestación presentadas en la Tabla~\ref{tab:tech-async}.
+La ejecución de evaluaciones de calidad puede tardar varios segundos en
+conjuntos de datos de tamaño medio, por lo que realizarla de forma síncrona
+bloquearía la interfaz de usuario.  Celery resuelve este problema
+desacoplando la petición del usuario de la ejecución real de la tarea: el
+\emph{frontend} lanza la evaluación, recibe un identificador de tarea y
+consulta el estado periódicamente hasta que finaliza.  Docker y Docker
+Compose unifican todos los servicios en un entorno reproducible que se
+despliega con un único comando.
+La Tabla~\ref{tab:tech-async} detalla las herramientas que componen esta
+capa.
 
 
 \begin{table}[htbp]
@@ -343,36 +372,46 @@ La ejecución de evaluaciones en segundo plano se apoya en las herramientas de o
   \end{tabularx}
 \end{table}
 
+El conjunto de estas cuatro capas forma una arquitectura desacoplada en la
+que cada componente puede sustituirse o escalarse de forma independiente.
+Todas las tecnologías seleccionadas son de código abierto, lo que elimina
+costes de licencia y garantiza la reproducibilidad del entorno de desarrollo
+y despliegue.
+
 
 %% =========================================================================
 \section{Entorno de desarrollo}
 \label{sec:entorno-desarrollo}
 %% =========================================================================
 
-El desarrollo del proyecto se ha llevado a cabo en el siguiente entorno:
+El entorno de desarrollo está íntegramente basado en herramientas de
+código abierto y gratuitas, lo que garantiza que cualquier colaborador
+pueda reproducir el entorno sin coste adicional.
 
 \begin{definitionlist}
-  \item[Editor de código]  Visual Studio Code, con extensiones para Python,
-    TypeScript, Docker y \LaTeX.
+  \item[Editor de código]  Visual Studio Code, con extensiones para
+    Python (Pylance), TypeScript, Docker y \LaTeX{} (LaTeX Workshop).
 
-  \item[Control de versiones]  Git 2.x con repositorio remoto en GitHub.
-
-  \item[Entorno de ejecución local]  Docker Desktop sobre Windows~11, con
-    Docker Compose para levantar los ocho servicios de forma simultánea.
+  \item[Entorno de ejecución local]  Docker Desktop sobre Windows~11,
+    con Docker Compose para levantar los ocho servicios de forma
+    simultánea.  Este enfoque elimina la necesidad de instalar
+    dependencias directamente en el sistema operativo anfitrión.
 
   \item[Gestor de paquetes \emph{frontend}]  pnpm, seleccionado por su
-    eficiencia en el uso de disco y su velocidad de instalación frente a npm.
+    eficiencia en el uso de disco y su velocidad de instalación frente
+    a npm.
 
   \item[Gestor de paquetes \emph{backend}]  pip con fichero
     \texttt{requirements.txt} para la gestión de dependencias Python.
 
-  \item[Base de datos de desarrollo]  Instancia local de PostgreSQL~14
-    ejecutada en contenedor Docker, con volumen persistente para preservar
-    los datos entre reinicios.
-
   \item[Pruebas]  pytest como \emph{framework} de pruebas del
     \emph{backend}, con soporte para pruebas unitarias y de integración.
 \end{definitionlist}
+
+El conjunto de estas herramientas, combinado con la contenedorización de
+todos los servicios, permite que el entorno de desarrollo sea
+indistinguible del entorno de producción, reduciendo los problemas
+habituales de incompatibilidad entre plataformas.
 
 
 %% =========================================================================
@@ -399,8 +438,16 @@ enmascaramiento de \ac{PII}.  La última fase (mayo--junio~2026) abarca la
 redacción de la memoria, la validación final con datos reales y la preparación
 de la defensa.
 
-La Figura~\ref{fig:gantt} muestra la distribución temporal de estas fases a lo
-largo del curso.
+La Figura~\ref{fig:roadmap} resume los hitos principales entregados en
+cada sprint, y la Figura~\ref{fig:gantt} muestra su distribución temporal
+a lo largo del curso.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/roadmap}
+  \caption{Roadmap del proyecto: hitos entregados por sprint}
+  \label{fig:roadmap}
+\end{figure}
 
 \begin{figure}[htbp]
   \centering
@@ -413,8 +460,8 @@ El diagrama de Gantt refleja el \emph{cuándo} de cada sprint, pero no la
 intensidad relativa del trabajo en cada área del proyecto.  La
 Figura~\ref{fig:effort} muestra la distribución de esfuerzo por disciplinas
 a lo largo de los seis sprints.  En ella se observa que el proyecto no siguió
-un modelo en cascada~\textemdash donde cada disciplina ocupa una fase
-exclusiva~\textemdash sino un modelo \textbf{iterativo e incremental}: los
+un modelo en cascada (donde cada disciplina ocupa una fase exclusiva)
+sino un modelo \textbf{iterativo e incremental}: los
 requisitos se concentran en el sprint inicial pero permanecen activos a lo
 largo de todo el desarrollo; el diseño y la arquitectura dominan los dos
 primeros sprints pero decaen progresivamente; la implementación alcanza su
@@ -462,7 +509,7 @@ con la asignación a sprints se incluye en el Anexo~C.
       conjuntos de datos relacionados. & Alta & 3 \\
     HU-04 & Proyectos & Como usuario, quiero ver el resumen de calidad de mi
       proyecto en un cuadro de mando. & Alta & 5 \\
-    HU-05 & Datasets  & Como usuario, quiero cargar un fichero CSV/XLSX/JSON
+    HU-05 & Datasets  & Como usuario, quiero cargar un fichero CSV
       para evaluarlo. & Alta & 5 \\
     HU-06 & Datasets  & Como usuario, quiero ver el versionado de mis datasets
       para rastrear cambios. & Media & 3 \\
@@ -490,6 +537,13 @@ con la asignación a sprints se incluye en el Anexo~C.
   \end{tabularx}
 \end{table}
 
+El backlog inicial suma \textbf{71 puntos de historia}, distribuidos
+principalmente en las épicas de mayor valor funcional: Evaluación,
+\emph{Fingerprinting} y \ac{EDA}.  Las historias de prioridad baja
+(HU-15) se planificaron para los últimos sprints y se implementaron
+condicionadas a la disponibilidad de tiempo tras completar el núcleo
+del sistema.
+
 
 %% =========================================================================
 \section{Estimación de esfuerzo}
@@ -498,23 +552,30 @@ con la asignación a sprints se incluye en el Anexo~C.
 
 \subsection{Técnica de estimación}
 
-La estimación del esfuerzo se ha realizado combinando dos técnicas:
+La estimación del esfuerzo combinó dos técnicas complementarias con
+distinto nivel de granularidad.  A nivel de historia de usuario se
+emplearon \emph{story points} para capturar la complejidad relativa
+sin comprometerse con una duración absoluta; a nivel de tarea técnica
+se estimó directamente en horas para facilitar el seguimiento diario
+en Trello.
 
 \begin{itemize}
   \item \textbf{\emph{Story Points} con escala de Fibonacci} para la
     estimación relativa de las historias de usuario (véase
-    Tabla~\ref{tab:backlog-hu}).  Un \emph{story point} equivale
-    aproximadamente a 4~horas de trabajo efectivo.
+    Tabla~\ref{tab:backlog-hu}).  Se estableció una equivalencia
+    orientativa de 4~horas por punto, lo que arroja una estimación
+    base de 284~horas para las 71~SP del backlog.
 
-  \item \textbf{Descomposición en tareas y estimación en horas} para las
-    tareas técnicas más granulares registradas en Trello.
+  \item \textbf{Descomposición en tareas y estimación en horas} para
+    las tareas técnicas más granulares registradas en Trello, así como
+    para el sprint de documentación (S6), que no tiene historias de
+    usuario asociadas y se estimó íntegramente en horas.
 \end{itemize}
 
-\subsection{Estimación inicial vs.\ real}
+La Tabla~\ref{tab:estimacion-sprints} recoge la comparación entre la
+estimación inicial y el tiempo real invertido en cada sprint.
 
-La Tabla~\ref{tab:estimacion-sprints} compara la estimación inicial de cada
-sprint con el tiempo real invertido, registrado de forma manual al cierre
-de cada sprint mediante revisión de las tarjetas completadas en Trello.
+\subsection{Estimación inicial vs.\ real}
 
 \begin{table}[htbp]
   \centering
@@ -569,7 +630,7 @@ se estima el coste que tendría el proyecto en un entorno profesional real.
     Python, Flask, Next.js, PostgreSQL\ldots &
       Todo el stack es \emph{open source} & --- & 0~€ & 0~€ \\
     GitHub (plan Free)                       &
-      Repositorio + Issues + Projects        &  1  & 0~€ & 0~€ \\
+      Repositorio de código y control de versiones  &  1  & 0~€ & 0~€ \\
     \midrule
     \multicolumn{5}{l}{\textit{Infraestructura}} \\
     Hardware de desarrollo &
@@ -598,9 +659,16 @@ unos 150--300~€/mes según el volumen de uso.
 \label{sec:riesgos}
 %% =========================================================================
 
-La Tabla~\ref{tab:riesgos} recoge los principales riesgos identificados al
-inicio del proyecto, con su probabilidad de ocurrencia (Alta/Media/Baja),
-impacto (Alto/Medio/Bajo) y las acciones preventivas y correctivas definidas.
+La gestión de riesgos se realizó de forma proactiva al inicio del
+proyecto, identificando los principales factores de riesgo y definiendo
+acciones preventivas y correctivas para cada uno.  El seguimiento se
+llevó a cabo en las retrospectivas de cada sprint, donde se evaluaba si
+algún riesgo se había materializado y si las acciones aplicadas habían
+sido efectivas.
+
+La Tabla~\ref{tab:riesgos} recoge los riesgos identificados con su
+probabilidad de ocurrencia (Alta/Media/Baja), impacto (Alto/Medio/Bajo)
+y las acciones definidas.
 
 \begin{table}[htbp]
   \centering
@@ -626,15 +694,15 @@ impacto (Alto/Medio/Bajo) y las acciones preventivas y correctivas definidas.
       & Repriorizar el backlog y mover HU a sprints siguientes \\
     R-04 & Pérdida de datos o código por accidente
       & Baja  & Alto
-      & Repositorio en GitHub con \emph{push} diario
+      & Repositorio en GitHub con \emph{push} frecuente
       & Restaurar desde el último \emph{commit} \\
     R-05 & Cambios de requisitos por retroalimentación de tutores
       & Media & Medio
-      & Revisiones quincenales para detectar desviaciones pronto
+      & Revisiones bajo demanda con los tutores para detectar desviaciones
       & Incorporar cambios al backlog en la siguiente sprint planning \\
     R-06 & Problemas de rendimiento con ficheros grandes
       & Media & Medio
-      & Establecer límite de 100\,MB; procesar con Pandas \emph{chunking}
+      & Establecer límite de 100\,MB configurado en el servidor
       & Añadir endpoint de estado y aviso al usuario \\
     R-07 & Fallos en la autenticación JWT en producción
       & Baja  & Alto
@@ -648,10 +716,13 @@ impacto (Alto/Medio/Bajo) y las acciones preventivas y correctivas definidas.
   \end{tabularx}
 \end{table}
 
-El riesgo de mayor exposición (R-03, probabilidad Alta) se materializó
-parcialmente en los sprints S2 y S5 (véanse las retrospectivas del
-Capítulo~\ref{chap:desarrollo}), aunque fue mitigado mediante la
-repriorización del backlog.
+De los ocho riesgos identificados, tres se materializaron durante el
+desarrollo: R-03 (desvío temporal) en los sprints S2 y S5, R-02
+(integración Docker) en S5 con el sistema Celery+Redis, y R-08
+(incompatibilidad de versiones) durante la migración de SQLAlchemy
+1.x a 2.0 en S2.  Los cinco riesgos restantes no llegaron a
+producirse, lo que valida en parte las acciones preventivas adoptadas.
+El análisis detallado de ocurrencia se recoge en el Anexo~D.
 
 
 % Local Variables:

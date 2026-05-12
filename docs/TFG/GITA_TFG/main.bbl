@@ -20,6 +20,15 @@ Bayer, M. (2024).
 \newblock {SQLAlchemy}: The database toolkit for {Python}.
 \newblock \url{https://www.sqlalchemy.org/}.
 
+\bibitem[Beck et~al., 2001]{agilemanifesto}
+Beck, K., Beedle, M., van Bennekum, A., Cockburn, A., Cunningham, W., Fowler,
+  M., Grenning, J., Highsmith, J., Hunt, A., Jeffries, R., Kern, J., Marick,
+  B., Martin, R.~C., Mellor, S., Schwaber, K., Sutherland, J., and Thomas, D.
+  (2001).
+\newblock Manifesto for agile software development.
+\newblock \url{https://agilemanifesto.org}.
+\newblock Consultado el 12 de mayo de 2026.
+
 \bibitem[Buolamwini and Gebru, 2018]{buolamwini2018}
 Buolamwini, J. and Gebru, T. (2018).
 \newblock Gender shades: Intersectional accuracy disparities in commercial
@@ -224,6 +233,11 @@ Shannon, C.~E. (1948).
 \newblock Soda core: Open-source data quality framework.
 \newblock \url{https://github.com/sodadata/soda-core}.
 \newblock Consultado: marzo 2026.
+
+\bibitem[Sommerville, 2016]{sommerville2016}
+Sommerville, I. (2016).
+\newblock {\em Software Engineering}.
+\newblock Pearson Education, 10 edition.
 
 \bibitem[{SonarSource}, 2024]{sonarqube}
 {SonarSource} (2024).
