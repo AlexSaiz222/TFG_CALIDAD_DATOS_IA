@@ -7,9 +7,9 @@ de gestión del proyecto (Scrum adaptado a un entorno individual), junto con
 su justificación y adaptación práctica.  A continuación se describe la
 metodología de desarrollo de software adoptada, el stack tecnológico
 seleccionado y el entorno de trabajo.  El capítulo concluye con la
-planificación temporal del proyecto mediante un diagrama de Gantt, la
-estimación del esfuerzo, el análisis de costes y el plan de gestión de
-riesgos.
+planificación temporal del proyecto mediante un diagrama de Gantt, el
+backlog inicial con las historias de usuario, la estimación del
+esfuerzo, el análisis de costes y el plan de gestión de riesgos.
 
 
 %% =========================================================================
@@ -406,6 +406,10 @@ pueda reproducir el entorno sin coste adicional.
 
   \item[Pruebas]  pytest como \emph{framework} de pruebas del
     \emph{backend}, con soporte para pruebas unitarias y de integración.
+
+  \item[Asistente de \ac{IA}]  Claude Pro (Anthropic), utilizado como
+    herramienta de apoyo para la resolución de dudas técnicas y de
+    implementación durante el desarrollo.
 \end{definitionlist}
 
 El conjunto de estas herramientas, combinado con la contenedorización de
@@ -501,8 +505,12 @@ cascada~\citep{sommerville2016}.
 La Tabla~\ref{tab:backlog-hu} recoge el backlog inicial del proyecto,
 organizado por épicas.  Cada historia de usuario sigue el formato
 \textit{«Como [rol], quiero [acción] para [beneficio]»} y se estima en
-\emph{story points} (SP) usando la escala de Fibonacci.  El backlog completo
-con la asignación a sprints se incluye en el Anexo~C.
+\emph{story points} (SP) usando la escala de Fibonacci.  Las historias
+de usuario se formalizaron al inicio del proyecto como marco de
+planificación; las estimaciones en SP se ajustaron retrospectivamente
+al cierre de cada sprint con los tiempos aproximados de cada tarea.
+El backlog completo con la asignación a sprints se incluye en el
+Anexo~C.
 
 \begin{table}[htbp]
   \centering
@@ -550,12 +558,12 @@ con la asignación a sprints se incluye en el Anexo~C.
   \end{tabularx}
 \end{table}
 
-El backlog inicial suma \textbf{71 puntos de historia}, distribuidos
-principalmente en las épicas de mayor valor funcional: Evaluación,
-\emph{Fingerprinting} y \ac{EDA}.  Las historias de prioridad baja
-(HU-15) se planificaron para los últimos sprints y se implementaron
-condicionadas a la disponibilidad de tiempo tras completar el núcleo
-del sistema.
+El backlog inicial suma \textbf{71 puntos de historia}.  Las épicas de
+mayor peso son Evaluación (13~SP) y, en segundo lugar, Proyectos,
+Datasets, Métricas, \emph{Fingerprinting} y \ac{EDA} (8~SP cada una).
+La historia de prioridad baja (HU-15) se planificó para los últimos
+sprints y se implementó condicionada a la disponibilidad de tiempo
+tras completar el núcleo del sistema.
 
 
 %% =========================================================================
@@ -570,19 +578,21 @@ distinto nivel de granularidad.  A nivel de historia de usuario se
 emplearon \emph{story points} para capturar la complejidad relativa
 sin comprometerse con una duración absoluta; a nivel de tarea técnica
 se estimó directamente en horas para facilitar el seguimiento diario
-en Trello.
+de cada tarea.
 
 \begin{itemize}
   \item \textbf{\emph{Story Points} con escala de Fibonacci} para la
     estimación relativa de las historias de usuario (véase
     Tabla~\ref{tab:backlog-hu}).  Se estableció una equivalencia
     orientativa de 4~horas por punto, lo que arroja una estimación
-    base de 284~horas para las 71~SP del backlog.
+    base de 284~horas para las 71~SP del backlog.  Esta cifra no
+    incluye las tareas técnicas adicionales ni el sprint de
+    documentación (S6), que se estimaron directamente en horas.
 
   \item \textbf{Descomposición en tareas y estimación en horas} para
-    las tareas técnicas más granulares registradas en Trello, así como
-    para el sprint de documentación (S6), que no tiene historias de
-    usuario asociadas y se estimó íntegramente en horas.
+    las tareas técnicas más granulares, así como para el sprint de
+    documentación (S6), que no tiene historias de usuario asociadas y
+    se estimó íntegramente en horas.
 \end{itemize}
 
 La Tabla~\ref{tab:estimacion-sprints} recoge la comparación entre la
@@ -601,7 +611,7 @@ estimación inicial y el tiempo real invertido en cada sprint.
     \midrule
     S1 & Análisis, arquitectura y setup inicial  & 13 &  52 &  60 \\
     S2 & Backend core (auth, datasets, API REST) & 18 &  72 &  85 \\
-    S3 & Motor de métricas (7 métricas)          & 16 &  64 &  70 \\
+    S3 & Motor de métricas (3 métricas iniciales) & 16 &  64 &  70 \\
     S4 & Frontend y visualizaciones              & 14 &  56 &  65 \\
     S5 & Features avanzadas (fingerprinting, QG, PII) & 10 & 40 & 55 \\
     S6 & Documentación, pruebas y defensa        &  0 &  80 &  90 \\
@@ -612,10 +622,15 @@ estimación inicial y el tiempo real invertido en cada sprint.
 \end{table}
 
 La desviación media del \textbf{+16,8\,\%} sobre la estimación inicial es
-consistente con la literatura sobre proyectos de software de tamaño similar,
-y se explica principalmente por la subestimación del tiempo de configuración
-de la infraestructura Docker (S1), la complejidad del parseo robusto de CSV
-(S2) y la implementación del sistema de fingerprinting (S5).
+consistente con la literatura sobre proyectos de software de tamaño similar.
+Los sprints con mayor desviación fueron S5~(+38\,\%), S2~(+18\,\%) y
+S1~(+15\,\%), causados respectivamente por la complejidad del sistema de
+\emph{fingerprinting}, el parseo robusto de CSV y la configuración de la
+infraestructura Docker.  S6 registró una desviación del~+12,5\,\%, atribuible
+al mayor volumen de documentación respecto a lo estimado inicialmente.  S3 fue
+el sprint más ajustado (~9\,\%), mientras que S4 se situó en torno al~+16\,\%,
+próximo a la media global, dentro del margen de incertidumbre habitual en
+proyectos de este tipo.
 
 
 %% =========================================================================
@@ -628,43 +643,50 @@ se estima el coste que tendría el proyecto en un entorno profesional real.
 
 \begin{table}[htbp]
   \centering
+  \small
   \caption{Estimación de costes del proyecto}
   \label{tab:costes}
-  \begin{tabularx}{\textwidth}{l X c c c}
+  \begin{tabularx}{\textwidth}{%
+    >{\raggedright\arraybackslash}p{3.3cm}
+    >{\raggedright\arraybackslash}X
+    >{\centering\arraybackslash}p{1.5cm}
+    >{\centering\arraybackslash}p{2.0cm}
+    >{\raggedleft\arraybackslash}p{1.8cm}}
     \toprule
     \textbf{Concepto} & \textbf{Detalle} &
       \textbf{Cantidad} & \textbf{Precio unit.} & \textbf{Total} \\
     \midrule
-    \multicolumn{5}{l}{\textit{Recursos humanos}} \\
+    \multicolumn{5}{l}{\textbf{\textit{Recursos humanos}}} \\[2pt]
     Desarrollador \emph{full-stack} (junior) &
-      425 h de desarrollo real & 425~h & 25~€/h & 10\,625~€ \\
-    \midrule
-    \multicolumn{5}{l}{\textit{Licencias de software}} \\
+      425~h de desarrollo real & 425~h & 25~€/h & 10\,625~€ \\
+    Supervisión de tutores &
+      2~tutores $\times$ 10~h de reuniones y revisiones & 20~h & 60~€/h & 1\,200~€ \\[4pt]
+    \multicolumn{5}{l}{\textbf{\textit{Licencias de software}}} \\[2pt]
     Python, Flask, Next.js, PostgreSQL\ldots &
       Todo el stack es \emph{open source} & --- & 0~€ & 0~€ \\
-    GitHub (plan Free)                       &
-      Repositorio de código y control de versiones  &  1  & 0~€ & 0~€ \\
-    \midrule
-    \multicolumn{5}{l}{\textit{Infraestructura}} \\
+    GitHub (plan Free) &
+      Repositorio de código y control de versiones & 1 & 0~€ & 0~€ \\[4pt]
+    \multicolumn{5}{l}{\textbf{\textit{Infraestructura}}} \\[2pt]
     Hardware de desarrollo &
-      Amortización del equipo propio (1\,000~€ / 36 meses $\times$ 9 meses)
-      & 1 & 250~€ & 250~€ \\
-    Servicios cloud        &
-      Despliegue local con Docker Compose    & --- & 0~€ & 0~€ \\
+      Amortización equipo propio (1\,000~€, vida útil 3~años) & 9~meses & 28~€/mes & 252~€ \\
+    Electricidad &
+      50~W $\times$ 8~h/día $\times$ 270~días & 108~kWh & 0{,}20~€/kWh & 22~€ \\
+    Servicios cloud &
+      Despliegue local con Docker Compose & --- & 0~€ & 0~€ \\
     \midrule
-    \multicolumn{4}{r}{\textbf{Coste total estimado}} & \textbf{10\,875~€} \\
+    \multicolumn{4}{r}{\textbf{Coste total estimado}} & \textbf{12\,099~€} \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-El coste total estimado de \textbf{10\,875~€} se desglosa en 10\,625~€ de
-mano de obra a tarifa de desarrollador junior y 250~€ de amortización del
-equipo de desarrollo (portátil valorado en 1\,000~€, vida útil de 3~años,
-uso durante 9~meses).  Dado que todas las tecnologías utilizadas son de
-código abierto y el despliegue es local, el coste de licencias es nulo.  Para un escenario de
-producción con despliegue en nube (AWS, Azure), debería añadirse el coste de
-los servicios equivalentes (RDS, S3, ElastiCache, ECS), estimado en
-unos 150--300~€/mes según el volumen de uso.
+El coste total estimado de \textbf{12\,099~€} se desglosa en 11\,825~€ de
+recursos humanos (10\,625~€ de desarrollo y 1\,200~€ de supervisión de
+tutores) y 274~€ de infraestructura (252~€ de amortización del equipo y
+22~€ de electricidad).  Dado que todas las tecnologías utilizadas son de
+código abierto y el despliegue es local, el coste de licencias es nulo.
+Para un escenario de producción con despliegue en nube, el Anexo~E estima
+un coste adicional de aproximadamente 90~€/mes con servicios equivalentes
+de AWS (RDS, S3, ElastiCache, ECS).
 
 
 %% =========================================================================
@@ -685,9 +707,9 @@ y las acciones definidas.
 
 \begin{table}[htbp]
   \centering
-  \small
   \caption{Plan de gestión de riesgos}
   \label{tab:riesgos}
+  \small
   \begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}X c c >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
     \toprule
     \textbf{ID} & \textbf{Riesgo} & \textbf{Prob.} & \textbf{Imp.} &
@@ -711,13 +733,13 @@ y las acciones definidas.
       & Restaurar desde el último \emph{commit} \\
     R-05 & Cambios de requisitos por retroalimentación de tutores
       & Media & Medio
-      & Revisiones bajo demanda con los tutores para detectar desviaciones
+      & Revisiones periódicas con los tutores para detectar desviaciones
       & Incorporar cambios al backlog en la siguiente sprint planning \\
     R-06 & Problemas de rendimiento con ficheros grandes
       & Media & Medio
       & Establecer límite de 100\,MB configurado en el servidor
       & Añadir endpoint de estado y aviso al usuario \\
-    R-07 & Fallos en la autenticación JWT en producción
+    R-07 & Fallos en la autenticación JWT
       & Baja  & Alto
       & Pruebas de integración del flujo auth completo
       & Revisión de configuración de expiración y \emph{blacklisting} \\
@@ -729,13 +751,18 @@ y las acciones definidas.
   \end{tabularx}
 \end{table}
 
-De los ocho riesgos identificados, tres se materializaron durante el
-desarrollo: R-03 (desvío temporal) en los sprints S2 y S5, R-02
+De los ocho riesgos identificados, tres se materializaron de forma
+significativa: R-03 (desvío temporal) en los sprints S2 y S5, R-02
 (integración Docker) en S5 con el sistema Celery+Redis, y R-08
 (incompatibilidad de versiones) durante la migración de SQLAlchemy
-1.x a 2.0 en S2.  Los cinco riesgos restantes no llegaron a
-producirse, lo que valida en parte las acciones preventivas adoptadas.
-El análisis detallado de ocurrencia se recoge en el Anexo~D.
+1.x a 2.0 en S2.  R-05 (cambios de requisitos por tutores) se
+materializó de forma menor, con ajustes puntuales al backlog en S5.
+R-01 tuvo una incidencia positiva: la complejidad del motor de
+métricas impulsó la ampliación del catálogo más allá de lo planificado
+inicialmente.  Los tres riesgos restantes (R-04, R-06, R-07) no
+llegaron a producirse, lo que valida en parte las acciones preventivas
+adoptadas.  El análisis detallado de ocurrencia se recoge en el
+Anexo~D.
 
 
 % Local Variables:

@@ -29,7 +29,8 @@
       "WebFetch(domain:greatexpectations.io)",
       "WebFetch(domain:docs.greatexpectations.io)",
       "Bash(Get-Content \"C:\\\\Users\\\\aleja\\\\Documents\\\\GitHub\\\\TFG_CALIDAD_DATOS_IA\\\\docs\\\\TFG\\\\GITA_TFG\\\\main.bib\")",
-      "Bash(Select-Object -Last 10)"
+      "Bash(Select-Object -Last 10)",
+      "Skill(tfg-review)"
     ]
   }
 }

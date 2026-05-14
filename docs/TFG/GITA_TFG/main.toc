@@ -85,7 +85,7 @@
 \contentsline {subsection}{\numberline {4.7.1}Técnica de estimación}{40}{subsection.4.7.1}%
 \contentsline {subsection}{\numberline {4.7.2}Estimación inicial vs.\ real}{40}{subsection.4.7.2}%
 \contentsline {section}{\numberline {4.8}Estimación de costes}{41}{section.4.8}%
-\contentsline {section}{\numberline {4.9}Gestión de riesgos}{41}{section.4.9}%
+\contentsline {section}{\numberline {4.9}Gestión de riesgos}{42}{section.4.9}%
 \contentsline {chapter}{\numberline {5}Desarrollo iterativo por sprints}{44}{chapter.5}%
 \contentsline {section}{\numberline {5.1}Requisitos globales del sistema}{44}{section.5.1}%
 \contentsline {subsection}{\numberline {5.1.1}Historias de usuario}{44}{subsection.5.1.1}%
@@ -177,8 +177,8 @@
 \contentsline {section}{\numberline {B.6}Equilibrio de clases (\texttt {class\_balance})}{86}{section.Alph2.6}%
 \contentsline {section}{\numberline {B.7}Actualidad (\texttt {currentness})}{87}{section.Alph2.7}%
 \contentsline {chapter}{\numberline {C}Backlog completo del proyecto}{88}{appendix.Alph3}%
-\contentsline {chapter}{\numberline {D}Plan de riesgos detallado}{90}{appendix.Alph4}%
-\contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{92}{appendix.Alph5}%
-\contentsline {chapter}{\numberline {F}Manual de usuario}{94}{appendix.Alph6}%
-\contentsline {chapter}{\numberline {G}Diagramas UML del sistema}{97}{appendix.Alph7}%
-\contentsline {chapter}{Referencias}{100}{appendix*.46}%
+\contentsline {chapter}{\numberline {D}Plan de riesgos detallado}{91}{appendix.Alph4}%
+\contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{93}{appendix.Alph5}%
+\contentsline {chapter}{\numberline {F}Manual de usuario}{95}{appendix.Alph6}%
+\contentsline {chapter}{\numberline {G}Diagramas UML del sistema}{98}{appendix.Alph7}%
+\contentsline {chapter}{Referencias}{101}{appendix*.46}%
