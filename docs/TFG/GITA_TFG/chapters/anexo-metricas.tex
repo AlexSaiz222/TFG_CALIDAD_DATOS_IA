@@ -1,15 +1,49 @@
 \chapter{Catálogo de métricas de calidad}
 \label{chap:anexo-metricas}
 
-Este anexo recoge el catálogo completo de las métricas implementadas en
-\dataqual.  El sistema implementa \textbf{siete clases de métricas}: seis
-son \textbf{métricas evaluables} que contribuyen al \emph{Quality Score}
-(completitud, unicidad, exactitud sintáctica, consistencia lógica, equilibrio
-de clases y actualidad), y una (\texttt{outliers}) es una \textbf{clase de
-diagnóstico} disponible en el módulo de perfilado de datos pero excluida del
-\emph{Quality Score}, en línea con \ac{ISO}/IEC~5259~\citep{iso5259}.  Para
-cada métrica se detalla su fundamento, los parámetros de configuración
-disponibles y los \emph{issues} que genera.
+Este anexo recoge el catálogo completo de las métricas de calidad de datos
+implementadas en \dataqual.  El sistema define \textbf{ocho clases de métricas}
+organizadas en tres categorías:
+
+\begin{itemize}
+  \item \textbf{Métricas fundamentales} (siempre puntuables): completitud,
+        unicidad, exactitud sintáctica y actualidad.
+  \item \textbf{Métricas condicionales} (\emph{opt-in}): equilibrio de clases
+        y diversidad ---solo contribuyen al \emph{Quality Score} cuando el
+        usuario configura explícitamente las columnas a evaluar.
+  \item \textbf{Consistencia lógica}: puntuable solo si se definen reglas de
+        negocio; devuelve \texttt{score\,=\,None} en caso contrario.
+  \item \textbf{Diagnóstico} (no puntuable): detección de valores atípicos,
+        disponible exclusivamente desde el módulo de perfilado de datos.
+\end{itemize}
+
+Todas las métricas evaluables heredan de la clase abstracta
+\texttt{BaseMetric} e implementan el método \texttt{evaluate()}, que recibe
+un \texttt{DataFrame} de Pandas y devuelve un objeto \texttt{MetricResult}
+con tres campos: \texttt{score} (puntuación $[0,\!1]$ o \texttt{None}),
+\texttt{results} (diccionario con datos detallados) e \texttt{issues} (lista
+de incidencias detectadas).
+
+\medskip
+\noindent\textbf{Cálculo del \emph{Quality Score} global.}\quad
+El \emph{Quality Score} \textbf{no} es la media de las puntuaciones
+individuales de cada métrica.  En su lugar, parte de $100$\,\% y se reduce
+mediante una penalización acumulada basada en el \emph{número y severidad}
+de las incidencias detectadas:
+
+\[
+  \text{QS} = \max\!\Bigl(0,\;
+    1 - \min\!\bigl(0{,}97,\;\tfrac{\text{penalización bruta}}
+                                    {\text{factor de escala}}\bigr)\Bigr)
+\]
+
+donde la penalización bruta es
+$\sum_s n_s \cdot w_s$
+con pesos $w_{\text{critical}}=0{,}12$, $w_{\text{high}}=0{,}05$,
+$w_{\text{medium}}=0{,}01$ y $w_{\text{low}}=0{,}003$; y el factor de escala
+$\sqrt{\max(10,\, C) / 10}$ normaliza por el número de columnas~$C$ del
+dataset para que la misma densidad de incidencias produzca la misma
+calificación independientemente del ancho del conjunto de datos.
 
 
 %% =========================================================================
@@ -17,23 +51,47 @@ disponibles y los \emph{issues} que genera.
 \label{sec:met-completitud}
 %% =========================================================================
 
-\textbf{Fundamento.}  Mide el grado en que los datos esperados están
-presentes en el conjunto de datos, alineada con la dimensión de completitud
-de \ac{ISO}/IEC~25012~\citep{iso25012}.
+\textbf{Objetivo.}\quad
+Mide el grado en que los valores esperados están presentes en el conjunto de
+datos, alineada con la dimensión de completitud de
+\ac{ISO}/IEC~25012~\citep{iso25012}.
 
-\textbf{Algoritmo.}  Ratio de valores no nulos por columna.  Si se
-especifican columnas, la puntuación es la media de sus ratios; en caso
-contrario, se usa la media global.
+\textbf{Algoritmo.}\quad
+Para cada columna se calcula la ratio de valores no nulos:
+$\text{completitud}_c = 1 - \overline{\text{nulos}}_c$.
+La puntuación global es la media aritmética de las ratios de las columnas
+seleccionadas (o de todas, si no se especifican).
 
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{columns}]  Lista de columnas a evaluar (por defecto, todas).
-  \item[\texttt{threshold}]  Umbral mínimo de completitud (por defecto, 0,95).
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
-\end{definitionlist}
+Antes del cálculo, se aplican los \textbf{patrones de nulidad}
+configurados (\texttt{null\_patterns}): cadenas vacías, literales como
+\texttt{"null"}, \texttt{"N/A"}, \texttt{"nan"}, \texttt{"none"}, guiones
+y espacios en blanco se convierten a \texttt{NaN} para que no inflen
+artificialmente la completitud.  El usuario puede definir patrones
+\emph{preset} (7 predefinidos) o expresiones regulares personalizadas.
 
-\textbf{\emph{Issues}.}  Global (completitud por debajo del umbral) y por
-columna (más del 2\,\% de valores nulos).
+\textbf{Generación de incidencias.}\quad
+Se emiten dos tipos de \emph{issues}:
+\begin{enumerate}
+  \item \textbf{Global}: si la completitud media del dataset cae por debajo
+        del umbral configurado.
+  \item \textbf{Por columna}: cada columna individual cuya completitud
+        esté por debajo del umbral genera su propia incidencia.
+\end{enumerate}
+
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{columns}        & lista   & todas & Columnas a evaluar. \\
+\texttt{threshold}      & float   & 0,95  & Umbral mínimo de completitud. \\
+\texttt{null\_patterns}  & dict    & ---   & \texttt{\{presets:~[...], custom:~[...]\}}: patrones de nulidad adicionales. \\
+\texttt{weight}         & float   & 1,0   & Peso de la métrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 %% =========================================================================
@@ -41,52 +99,61 @@ columna (más del 2\,\% de valores nulos).
 \label{sec:met-unicidad}
 %% =========================================================================
 
-\textbf{Fundamento.}  Evalúa la ausencia de duplicados a nivel de fila y la
-variabilidad por columna.
+\textbf{Objetivo.}\quad
+Evalúa la ausencia de registros duplicados a nivel de fila y la variabilidad
+por columna individual.
 
-\textbf{Algoritmo.}  Unicidad de filas =
-$\text{filas\_únicas} / \text{total\_filas}$.  Variabilidad por columna con
-umbrales adaptativos: 0,95 para columnas de identificador, 0,05 para
-categóricas y 0,30 para el resto.
+\textbf{Algoritmo.}\quad
+La evaluación opera en dos niveles simultáneos:
 
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{threshold}]  Umbral mínimo de unicidad (por defecto, 1,0).
-  \item[\texttt{columns}]  Columnas que deben ser únicas.
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
-\end{definitionlist}
+\begin{enumerate}
+  \item \textbf{Unicidad de filas}: $U_{\text{filas}} =
+        \text{filas\_únicas} / \text{total\_filas}$.
+  \item \textbf{Variabilidad por columna}: para cada columna se calcula
+        $V_c = \text{valores\_únicos}_c / \text{valores\_no\_nulos}_c$
+        y se compara con un \textbf{umbral adaptativo} que depende del tipo
+        inferido de la columna:
+        \begin{itemize}
+          \item Columnas de identificador (\texttt{*\_id}, \texttt{*\_uuid},
+                \texttt{*\_key}): umbral = 0,95.
+          \item Columnas categóricas ($\leq 20$ valores únicos, no numéricas):
+                umbral = 0,05.
+          \item Resto de columnas: umbral = 0,30.
+        \end{itemize}
+\end{enumerate}
 
-\textbf{\emph{Issues}.}  Baja variabilidad, filas duplicadas (con muestras
-enmascaradas si contienen \ac{PII}) y columna de identificador no única.
+La \textbf{puntuación combinada} pondera ambos niveles cuando existen
+columnas de identificador:
+$S = 0{,}7 \cdot U_{\text{filas}} + 0{,}3 \cdot \overline{V_{\text{ID}}}$;
+si no las hay, $S = U_{\text{filas}}$.
 
+\textbf{Generación de incidencias.}\quad
+Se emiten tres tipos de \emph{issues}:
+\begin{enumerate}
+  \item \textbf{Baja variabilidad}: columnas cuya variabilidad está por debajo
+        de su umbral adaptativo.  La severidad para columnas no-ID se calcula
+        con distancia relativa al umbral (no absoluta) para evitar falsos
+        críticos en columnas categóricas legítimas.
+  \item \textbf{Filas duplicadas}: si $U_{\text{filas}} < \text{threshold}$, se
+        adjuntan hasta 5 filas de ejemplo (con enmascaramiento de columnas
+        sensibles).
+  \item \textbf{Identificador no único}: columnas que el usuario marca como
+        únicas pero contienen valores repetidos.
+\end{enumerate}
 
-%% =========================================================================
-\section{Valores atípicos (\texttt{outliers})}
-\label{sec:met-outliers}
-%% =========================================================================
-
-\textbf{Nota.}  Esta clase \textbf{no es una métrica evaluable}: no produce
-puntuación ni contribuye al \emph{Quality Score}.  Se invoca exclusivamente
-desde el módulo de perfilado de datos (\emph{EDA}), en línea con la
-recomendación de \ac{ISO}/IEC~5259~\citep{iso5259} de no tratar los
-\emph{outliers} como una dimensión de calidad per~se.
-
-\textbf{Fundamento.}  Detecta valores que se desvían significativamente del
-resto del conjunto de datos.
-
-\textbf{Algoritmo.}
-Un valor es atípico si $x < Q_1 - f \cdot \mathrm{IQR}$ o
-$x > Q_3 + f \cdot \mathrm{IQR}$, donde $f$ es el factor configurable.
-
-El resultado tiene \texttt{score = None}: la clase genera \emph{issues}
-informativos (uno por columna con valores atípicos), pero no computa
-ninguna puntuación.
-
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{factor}]  Factor del \ac{IQR} (por defecto, 1,5).
-  \item[\texttt{columns}]  Columnas numéricas a evaluar (por defecto, todas).
-\end{definitionlist}
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{threshold} & float & 1,0  & Umbral mínimo de unicidad de filas. \\
+\texttt{columns}   & lista & ---  & Columnas que deben ser estrictamente únicas. \\
+\texttt{weight}    & float & 1,0  & Peso de la métrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 %% =========================================================================
@@ -94,27 +161,66 @@ ninguna puntuación.
 \label{sec:met-exactitud}
 %% =========================================================================
 
-\textbf{Fundamento.}  Verifica la conformidad de los valores con patrones de
-formato predefinidos, alineada con la dimensión de exactitud de
-\ac{ISO}/IEC~25012~\citep{iso25012}.
+\textbf{Objetivo.}\quad
+Verifica que los valores de cada columna se ajustan a patrones de formato
+predefinidos (correo electrónico, teléfono, DNI, etc.), alineada con la
+dimensión de exactitud de \ac{ISO}/IEC~25012~\citep{iso25012}.
 
-\textbf{Catálogo de tipos.}  13 tipos predefinidos: \emph{email},
-\emph{url}, teléfono (español e internacional), DNI, fechas (ISO y europea),
-entero, decimal, UUID, IPv4, código postal y tarjeta de crédito.
+\textbf{Catálogo de patrones integrados.}\quad
+El sistema incluye 13~expresiones regulares predefinidas:
 
-\textbf{Auto-detección.}  Para columnas sin configuración explícita, se
-muestrea hasta 100 valores y se asigna el tipo con mayor tasa de coincidencia
-si supera el 60\,\%.
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\tabhead{Tipo} & \tabhead{Ejemplo / Descripción} \\
+\midrule
+\texttt{email}           & \texttt{user@example.com} \\
+\texttt{url}             & \texttt{https://...} \\
+\texttt{phone\_es}       & Teléfono español: \texttt{+34 6XXXXXXXX} \\
+\texttt{phone\_intl}     & Teléfono internacional genérico \\
+\texttt{dni\_es}          & DNI español: 8 dígitos + letra \\
+\texttt{date\_iso}        & Fecha ISO: \texttt{AAAA-MM-DD} \\
+\texttt{date\_eu}         & Fecha europea: \texttt{DD/MM/AAAA} \\
+\texttt{integer}         & Número entero (con signo) \\
+\texttt{decimal}         & Número decimal (coma o punto) \\
+\texttt{uuid}            & Identificador UUID v4 \\
+\texttt{ip\_v4}           & Dirección IPv4 \\
+\texttt{postal\_code\_es} & Código postal español (5 dígitos) \\
+\texttt{credit\_card}    & Tarjeta de crédito (4 grupos de 4 dígitos) \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{columns}]  Lista de \texttt{\{column, expected\_type,
-    pattern\}}.
-  \item[\texttt{auto\_detect\_types}]  Activar auto-detección (por defecto,
-    \texttt{true}).
-  \item[\texttt{threshold}]  Umbral de conformidad (por defecto, 0,95).
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
-\end{definitionlist}
+Además, los usuarios pueden definir \textbf{patrones personalizados}
+almacenados en la base de datos (\texttt{ValidationPattern}), que se cargan
+en tiempo de ejecución y sobrescriben los predefinidos cuando comparten la
+misma clave.
+
+\textbf{Auto-detección de tipos.}\quad
+Para columnas de tipo \texttt{object} sin configuración explícita, se
+muestrea hasta 100~valores y se prueban todos los patrones del catálogo.
+Se asigna el tipo con mayor tasa de coincidencia \textbf{si y solo si}
+supera el 85\,\%.  Si dos o más tipos superan el umbral simultáneamente,
+la columna se marca como \textbf{formato mixto} (\texttt{mixed\_format})
+y se emite un \emph{issue} de severidad media en lugar de asignar
+arbitrariamente un tipo.
+
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{columns}           & lista & --- & Lista de \texttt{\{column, expected\_type, pattern\}}. \\
+\texttt{auto\_detect\_types} & bool  & true & Activar auto-detección para columnas sin tipo. \\
+\texttt{custom\_patterns}   & dict  & \{\} & Mapa \texttt{\{columna: regex\}} adicional. \\
+\texttt{threshold}         & float & 0,95 & Umbral mínimo de conformidad. \\
+\texttt{weight}            & float & 1,0  & Peso de la métrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 %% =========================================================================
@@ -122,22 +228,52 @@ si supera el 60\,\%.
 \label{sec:met-consistencia}
 %% =========================================================================
 
-\textbf{Fundamento.}  Valida reglas de negocio entre columnas, expresadas
-como reglas \texttt{IF\,--\,THEN}.
+\textbf{Objetivo.}\quad
+Valida reglas de negocio entre columnas del dataset, expresadas como
+expresiones de consulta o reglas condicionales \texttt{IF--THEN}.
 
-\textbf{Algoritmo.}  Cada regla se evalúa mediante
-\texttt{pandas.DataFrame.query()}.  La tasa de cumplimiento se calcula como
-$1 - (\text{violaciones} / \text{total\_filas})$.  Antes de ejecutar
-cualquier regla, se verifica que no contenga \emph{tokens} prohibidos
-(\texttt{import}, \texttt{exec}, \texttt{eval}, etc.) para prevenir la
-inyección de código.
+\textbf{Tipos de reglas soportados:}
+\begin{enumerate}
+  \item \textbf{Violación directa} (\texttt{type:~"violation"}):
+        la expresión selecciona las filas que violan la regla.  Tasa de
+        cumplimiento:
+        $1 - \text{violaciones} / \text{total\_filas}$.
+  \item \textbf{Condicional} (\texttt{type:~"if\_then"}):
+        se evalúa \texttt{condition} para seleccionar el ámbito y después
+        se verifica \texttt{assertion} sobre ese subconjunto.  La tasa de
+        cumplimiento se normaliza sobre las filas que cumplen la condición,
+        no sobre el total del dataset, para que una regla selectiva con
+        100\,\% de violaciones en su ámbito se refleje como un problema
+        grave.
+\end{enumerate}
 
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{rules}]  Lista de reglas: \texttt{\{name, type, expression,
-    condition, assertion\}}.
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
-\end{definitionlist}
+Las reglas también se pueden expresar en lenguaje natural con la sintaxis
+\texttt{IF <condición> THEN <aserción>} (o sus equivalentes en español
+\texttt{Si... Entonces}), que el motor parsea automáticamente mediante
+expresión regular.
+
+\textbf{Seguridad.}\quad
+Antes de ejecutar cualquier regla, el sistema verifica que no contenga
+\emph{tokens} prohibidos (\texttt{import}, \texttt{exec}, \texttt{eval},
+\texttt{os.}, \texttt{subprocess}, \texttt{lambda}, etc.) para prevenir
+inyección de código.  Las reglas bloqueadas generan un \emph{issue} de
+severidad alta.
+
+Si no se configuran reglas, la métrica devuelve \texttt{score\,=\,None}
+y no contribuye al \emph{Quality Score}.
+
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{rules}  & lista & --- & Lista de reglas: \texttt{\{name, type, expression, condition, assertion\}}. \\
+\texttt{weight} & float & 1,0 & Peso de la métrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 %% =========================================================================
@@ -145,34 +281,55 @@ inyección de código.
 \label{sec:met-balance}
 %% =========================================================================
 
-\textbf{Fundamento.}  Métrica específica para \ac{ML} supervisado.  Utiliza
-la entropía de Shannon~(\citeyear{shannon1948}) para cuantificar el
-equilibrio de la variable objetivo:
+\textbf{Objetivo.}\quad
+Cuantifica el equilibrio de la distribución de variables categóricas,
+especialmente relevante para la variable objetivo en tareas de \ac{ML}
+supervisado.
 
+\textbf{Algoritmo.}\quad
+Se utiliza la entropía de Shannon~(\citeyear{shannon1948}):
 \[
   H = -\sum_{i} p_i \cdot \log_2(p_i), \qquad
   H_{\max} = \log_2(n_{\text{clases}}), \qquad
-  \text{Balance} = \frac{H}{H_{\max}} \times 100
+  \text{Índice de equilibrio} = \frac{H}{H_{\max}} \times 100
 \]
 
-\textbf{Auto-detección.}  Se analizan automáticamente las columnas de tipo
-\texttt{object} o \texttt{category} con hasta 50 valores únicos, y las
-columnas enteras con hasta 20 valores únicos.
+La métrica distingue dos modos de operación:
+\begin{itemize}
+  \item \textbf{Modo explícito} (columnas configuradas por el usuario):
+        la puntuación contribuye al \emph{Quality Score}.
+  \item \textbf{Modo auto-detectado}: se analizan automáticamente las
+        columnas categóricas con hasta 50~valores únicos (y ratio de
+        unicidad $\leq 25\,$\% para excluir identificadores), pero sus
+        resultados son solo informativos y \textbf{no} penalizan la
+        calificación global, ya que el desequilibrio natural (p.~ej.,
+        97/3 en detección de fraude) no es un defecto de calidad per~se
+        según \ac{ISO}/IEC~5259~\citep{iso5259}.
+\end{itemize}
 
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{columns}]  Columnas objetivo.
-  \item[\texttt{auto\_detect}]  Activar auto-detección (por defecto,
-    \texttt{true}).
-  \item[\texttt{imbalance\_threshold\_high}]  Umbral de clase dominante (por
-    defecto, 0,90).
-  \item[\texttt{imbalance\_threshold\_low}]  Umbral de clase minoritaria (por
-    defecto, 0,05).
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
-\end{definitionlist}
+\textbf{Conformidad con distribución esperada.}\quad
+Opcionalmente, el usuario puede definir rangos porcentuales esperados para
+cada clase (p.~ej., \texttt{junior:~[70,~85]}, \texttt{senior:~[10,~20]}).
+Se calcula una puntuación de conformidad basada en cuántas clases caen dentro
+de su rango, y la puntuación final combina entropía y conformidad al 50\,\%.
 
-\textbf{\emph{Issues}.}  Clase dominante ($\geq$ 90\,\%) y clase minoritaria
-($\leq$ 5\,\%).
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{columns}             & lista & ---  & Columnas objetivo (modo explícito). \\
+\texttt{auto\_detect}         & bool  & true & Activar auto-detección. \\
+\texttt{max\_cardinality}     & int   & 50   & Máx.\ valores únicos para auto-detección. \\
+\texttt{imbalance\_threshold\_high} & float & 0,90 & Umbral de clase dominante. \\
+\texttt{imbalance\_threshold\_low}  & float & 0,05 & Umbral de clase minoritaria. \\
+\texttt{expected\_distribution} & dict & \{\} & Rangos esperados por clase: \texttt{\{clase: [min\%, max\%]\}}. \\
+\texttt{weight}              & float & 1,0  & Peso de la métrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 %% =========================================================================
@@ -180,36 +337,177 @@ columnas enteras con hasta 20 valores únicos.
 \label{sec:met-actualidad}
 %% =========================================================================
 
-\textbf{Fundamento.}  Mide la frescura de los datos calculando la antigüedad
-del valor de fecha más reciente de cada columna temporal, alineada con la
-dimensión de actualidad (\emph{currentness}) de
-\ac{ISO}/IEC~25012~\citep{iso25012}.
+\textbf{Objetivo.}\quad
+Mide la frescura de los datos calculando la antigüedad del registro de fecha
+más reciente de cada columna temporal.  Implementa la dimensión
+\emph{Currentness} ($\Delta T_2$) de ISO/IEC~5259-2:2024 §6.2.5, medida
+Cur-ML-1 (\emph{Feature currentness}).  No debe confundirse con
+\emph{Timeliness} ($\Delta T_1$), que mide la latencia de ingesta y requiere
+\emph{timestamps} externos.
 
-\textbf{Algoritmo de frescura.}  La degradación es lineal entre el umbral de
-obsolescencia y el doble de dicho umbral:
+\textbf{Algoritmo de frescura.}\quad
+La puntuación de frescura por columna sigue una degradación lineal con
+factor de escala configurable (\texttt{DECAY\_SCALE\,=\,3}):
 
 \[
   \text{frescura} =
   \begin{cases}
-    1{,}0 & \text{si } \text{días} \leq \text{umbral} \\
-    \max\bigl(0,\; 1 - \frac{\text{días} - \text{umbral}}{\text{umbral}}\bigr)
-      & \text{en caso contrario}
+    1{,}0 & \text{si } d \leq U \\[4pt]
+    \max\!\bigl(0,\; 1 - \frac{d - U}{U \cdot k}\bigr)
+      & \text{si } d > U
   \end{cases}
 \]
 
-\textbf{Auto-detección.}  Columnas con \texttt{dtype=datetime64} se
-incluyen directamente; para columnas de texto, se parsea una muestra de 50
-valores y se incluyen si al menos el 50\,\% se reconoce como fecha.
+donde $d$ son los días de antigüedad, $U$ el umbral de obsolescencia
+y $k = 3$ el factor de escala.  Con el umbral por defecto de 30~días,
+la puntuación alcanza 0 a los 120~días.
 
-\textbf{Parámetros:}
-\begin{definitionlist}
-  \item[\texttt{columns}]  Columnas temporales a evaluar.
-  \item[\texttt{auto\_detect}]  Activar auto-detección (por defecto,
-    \texttt{true}).
-  \item[\texttt{staleness\_threshold\_days}]  Umbral de obsolescencia en
-    días (por defecto, 30).
-  \item[\texttt{weight}]  Peso de la métrica (por defecto, 1,0).
-\end{definitionlist}
+\textbf{Auto-detección.}\quad
+Columnas con \texttt{dtype=datetime64} se incluyen directamente.
+Para columnas de texto, se parsea una muestra de 50~valores y se incluyen
+si al menos el 50\,\% se reconoce como fecha.  Si la tasa de parseo de una
+columna incluida es inferior al 80\,\%, se genera un \emph{issue}
+informativo adicional.
+
+\textbf{Severidad de obsolescencia.}\quad
+La severidad se determina por la ratio $d / U$:
+\emph{medium} ($\geq 1\times$), \emph{high} ($\geq 3\times$) y
+\emph{critical} ($\geq 10\times$).
+
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{columns}                  & lista & ---  & Columnas temporales a evaluar. \\
+\texttt{auto\_detect}              & bool  & true & Activar auto-detección. \\
+\texttt{staleness\_threshold\_days} & int   & 30   & Umbral de obsolescencia en días. \\
+\texttt{weight}                   & float & 1,0  & Peso de la métrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Diversidad (\texttt{diversity})}
+\label{sec:met-diversidad}
+%% =========================================================================
+
+\textbf{Objetivo.}\quad
+Mide si el dataset cubre adecuadamente los valores o rangos que el usuario
+espera encontrar en cada columna, alineada con la dimensión de diversidad
+de ISO/IEC~5259-2~\citep{iso5259}.
+
+Esta métrica es \textbf{opt-in por columna}: solo se evalúan las columnas
+para las que el usuario define expectativas.  Si no hay expectativas
+definidas, devuelve \texttt{score\,=\,None} y queda excluida del
+\emph{Quality Score}.
+
+\textbf{Evaluación categórica.}\quad
+Para columnas de tipo \texttt{categorical}, se calcula la ratio de
+valores esperados presentes en el dataset.  Cada valor presente con
+representación adecuada ($\geq$ \texttt{min\_representation}) recibe
+crédito completo; los presentes pero subrepresentados reciben medio
+crédito; los ausentes, cero.
+
+\textbf{Evaluación numérica.}\quad
+Para columnas de tipo \texttt{numeric}, se divide el rango esperado
+$[\min, \max]$ en $n$~bins uniformes y se calcula la cobertura como
+la ratio de bins con al menos un dato:
+$S = \text{bins\_con\_datos} / \text{total\_bins}$.
+
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{columns}            & dict  & \{\} & Mapa de columnas con sus expectativas. \\
+\texttt{threshold}          & float & 0,60 & Umbral mínimo de diversidad. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Para cada columna el usuario especifica el tipo (\texttt{categorical}
+o \texttt{numeric}) junto con \texttt{expected\_values} (lista de valores
+esperados) o \texttt{expected\_range} ($[\min, \max]$) y opcionalmente
+\texttt{min\_representation} (defecto:~1\,\%) o \texttt{num\_bins}
+(defecto:~10).
+
+
+%% =========================================================================
+\section{Valores atípicos (\texttt{outliers})}
+\label{sec:met-outliers}
+%% =========================================================================
+
+\textbf{Nota.}\quad
+Esta clase \textbf{no es una métrica evaluable}: no produce puntuación
+ni contribuye al \emph{Quality Score}.  No está registrada en el
+\texttt{METRIC\_REGISTRY} y se invoca exclusivamente desde el módulo
+de perfilado de datos (\emph{Data Profiling}), en línea con la
+recomendación de \ac{ISO}/IEC~5259~\citep{iso5259}.
+
+\textbf{Métodos de detección.}\quad
+El sistema soporta dos métodos:
+
+\begin{enumerate}
+  \item \textbf{IQR} (por defecto): un valor~$x$ es atípico si
+    $x < Q_1 - f \cdot \mathrm{IQR}$ o
+    $x > Q_3 + f \cdot \mathrm{IQR}$, donde $f$ es el factor
+    configurable.
+  \item \textbf{Z-score}: un valor es atípico si
+    $|z| > f$, donde $z = (x - \mu) / \sigma$.
+\end{enumerate}
+
+Cada incidencia reporta la proporción de valores atípicos, hasta
+5~valores de ejemplo (enmascarados si la columna es sensible) y las
+estadísticas de la distribución ($Q_1$, $Q_3$, IQR o $\mu$, $\sigma$).
+
+\textbf{Parámetros de configuración:}
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{llcX}
+\toprule
+\tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
+\midrule
+\texttt{columns} & lista  & todas las numéricas & Columnas a evaluar. \\
+\texttt{method}  & string & \texttt{iqr}        & Método: \texttt{iqr} o \texttt{zscore}. \\
+\texttt{factor}  & float  & 1,5                 & Factor multiplicador ($f$). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Modelo de severidad dinámica}
+\label{sec:met-severidad}
+%% =========================================================================
+
+Todas las métricas comparten un modelo de \textbf{severidad dinámica}
+implementado en \texttt{BaseMetric.calculate\_dynamic\_severity()}.
+La severidad de cada incidencia se calcula automáticamente en función de
+la distancia entre el valor real y el umbral configurado, y varía según
+el tipo de métrica.  El Cuadro~\ref{tab:severidad} resume los criterios.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Criterios de severidad dinámica por tipo de métrica.}
+\label{tab:severidad}
+\begin{tabularx}{\linewidth}{lXXXX}
+\toprule
+\tabhead{Tipo de métrica} & \tabhead{Critical} & \tabhead{High} & \tabhead{Medium} & \tabhead{Low} \\
+\midrule
+Completitud / Unicidad & $< 50\,$\% & $< 70\,$\% o dist.\,$> 15$\,pp & dist.\,$> 5$\,pp & dist.\,$\leq 5$\,pp \\
+Outliers (proporción) & $\geq 20\,$\% & $\geq 10\,$\% & $\geq 5\,$\% & $< 5\,$\% \\
+Clase dominante & $\geq 99\,$\% & $\geq 95\,$\% & $\geq 90\,$\% & $< 90\,$\% \\
+Actualidad (ratio $d/U$) & $\geq 10\times$ & $\geq 3\times$ & $\geq 1\times$ & $< 1\times$ \\
+Diversidad & $\leq 20\,$\% & $\leq 40\,$\% & $<$ umbral & $\geq$ umbral \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 % Local Variables:

@@ -30,7 +30,9 @@
       "WebFetch(domain:docs.greatexpectations.io)",
       "Bash(Get-Content \"C:\\\\Users\\\\aleja\\\\Documents\\\\GitHub\\\\TFG_CALIDAD_DATOS_IA\\\\docs\\\\TFG\\\\GITA_TFG\\\\main.bib\")",
       "Bash(Select-Object -Last 10)",
-      "Skill(tfg-review)"
+      "Skill(tfg-review)",
+      "Bash(awk '{printf \"%.1f KB\\\\n\", $1/1024}')",
+      "Bash(pdflatex -interaction=nonstopmode main.tex)"
     ]
   }
 }

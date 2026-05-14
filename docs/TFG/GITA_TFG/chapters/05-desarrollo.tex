@@ -1,4 +1,5 @@
 \chapter{Desarrollo iterativo por sprints}
+\chaptermark{Desarrollo iterativo}
 \label{chap:desarrollo}
 
 \drop{E}{ste} capítulo constituye el núcleo del trabajo y describe el proceso
@@ -48,12 +49,12 @@ mayor relevancia son:
 \subsection{Burndown global del proyecto}
 \label{sec:burndown-global}
 
-La Figura~\ref{fig:burndown-global} muestra el \emph{burndown} del proyecto
-(gráfico que representa los \emph{story points} pendientes en función del
-tiempo, indicando si el ritmo de avance es suficiente para completar el
-alcance previsto) en \emph{story points}, comparando la línea ideal de
-progreso con el avance real sprint a sprint (S1--S5; el Sprint~6 es de documentación y no consume
-\emph{story points}).
+La Figura~\ref{fig:burndown-global} muestra el \emph{burndown chart} del
+proyecto, representación gráfica de los \emph{story points} pendientes en
+función del tiempo que permite evaluar si el ritmo de avance es suficiente
+para completar el alcance previsto.  La figura compara la línea ideal de
+progreso con el avance real sprint a sprint (S1--S5; el Sprint~6 es de
+documentación y no consume \emph{story points}).
 
 \begin{figure}[htbp]
   \centering
@@ -91,15 +92,20 @@ progreso con el avance real sprint a sprint (S1--S5; el Sprint~6 es de documenta
 \end{figure}
 
 El progreso real se mantuvo próximo a la línea ideal en todos los sprints,
-con convergencia perfecta en S5.  La pequeña ventaja en SP de S2 y S3
-refleja que el motor de métricas (S3) consumió menos SP de los planificados,
-aunque las horas reales superaron las estimadas, poniendo de manifiesto que
-los \emph{story points} subestiman la complejidad de las tareas técnicas de
+con convergencia total en S5.  La posición favorable de la línea real
+respecto a la ideal desde S2 en adelante se debe a que los sprints centrales
+tenían más puntos asignados que la media uniforme (S2:~18~SP, S3:~16~SP,
+frente a los 14{,}2~SP/sprint de la distribución lineal), no a que se
+completara menos trabajo del planificado.  Esta diferencia se mantiene en S4
+y se anula en S5, donde ambas líneas convergen.  Sin embargo, registrar un avance superior al estimado en SP no implica
+menor carga de trabajo: las horas reales superaron las
+estimadas en todos los sprints, poniendo de manifiesto que los
+\emph{story points} subestiman la complejidad de las tareas técnicas de
 infraestructura.
 
 
 %% =========================================================================
-\section{Sprint 1 --- Análisis, arquitectura y setup inicial}
+\section{Sprint 1: Análisis, arquitectura y setup inicial}
 \label{sec:sprint1}
 \textit{Período: octubre--noviembre 2025 \quad Duración: 6 semanas \quad SP: 13}
 %% =========================================================================
@@ -113,7 +119,7 @@ Docker con todos los servicios básicos operativos.
 \begin{table}[htbp]
   \centering
   \small
-  \caption{Sprint 1 --- Historias de usuario y estimación}
+  \caption{Sprint 1: Historias de usuario y estimación}
   \label{tab:sprint1-hu}
   \begin{tabularx}{\textwidth}{l X c c}
     \toprule
@@ -124,6 +130,7 @@ Docker con todos los servicios básicos operativos.
     --    & Setup Docker Compose (8 servicios) & 3 & 14 \\
     --    & Diseño del modelo de datos (ERD) & 3 & 12 \\
     --    & Migraciones iniciales (Flask-Migrate) & 2 & 16 \\
+    --    & Prueba de concepto: subida de dataset CSV & 0 & --- \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{13 SP} & \textbf{60 h} \\
     \bottomrule
@@ -141,10 +148,16 @@ Se completaron los ítems del sprint con las siguientes observaciones:
 \begin{itemize}
   \item El entorno Docker Compose quedó completamente operativo con los ocho
     servicios, \emph{healthchecks}, red interna y volúmenes persistentes.
-  \item Se diseñó el modelo relacional de once tablas con campos JSONB para
-    flexibilidad futura.
+  \item Se diseñó el modelo de datos inicial con campos JSONB para
+    flexibilidad futura.  El esquema evolucionó en sprints posteriores hasta
+    alcanzar las once tablas del sistema final.
   \item Se implementó el módulo de autenticación JWT completo con registro,
-    login, refresco de token y revocación por JTI.
+    login, refresco de token y revocación por JTI (en memoria; los tokens
+    revocados no persisten entre reinicios del servidor).
+  \item Se realizó una prueba de concepto de subida de archivo CSV al sistema:
+    el endpoint básico de carga almacena el fichero en MinIO y registra los
+    metadatos en la tabla \texttt{datasets}.  La implementación completa del
+    módulo de ingesta se completó en el Sprint~2.
   \item \textbf{Cambio respecto a lo planificado}: la configuración de
     \emph{healthchecks} en Docker Compose requirió más tiempo del estimado
     (+4h) debido a los tiempos de arranque de PostgreSQL y MinIO.
@@ -176,8 +189,8 @@ propósito.
     \texttt{postgres}      & 5432 & Base de datos relacional (PostgreSQL~14) \\
     \texttt{minio}         & 9000/9001 & Almacenamiento de objetos S3 \\
     \texttt{redis}         & 6379 & \emph{Broker} de mensajes y caché \\
-    \texttt{celery-worker} & ---  & Ejecución asíncrona de evaluaciones \\
-    \texttt{celery-beat}   & ---  & Programación de tareas periódicas \\
+    \texttt{celery-worker} & --- & Ejecución asíncrona de evaluaciones \\
+    \texttt{celery-beat}   & --- & Programación de tareas periódicas \\
     \texttt{flower}        & 5555 & Monitorización de Celery \\
     \bottomrule
   \end{tabularx}
@@ -201,7 +214,8 @@ El Cuadro~\ref{tab:comunicacion} resume los protocolos de comunicación.
     \textbf{Origen} & \textbf{Destino} & \textbf{Protocolo} &
       \textbf{Mecanismo} \\
     \midrule
-    Frontend & Backend    & HTTP/JSON & Axios (\emph{rewrite} \texttt{/api/*}) \\
+    Frontend & Backend    & HTTP/JSON & Next.js (\emph{rewrite} \texttt{/api/*}),
+      cliente Axios \\
     Backend  & PostgreSQL & TCP       & SQLAlchemy \ac{ORM} (\emph{pool} de
       10 conexiones) \\
     Backend  & MinIO      & HTTP/S3   & Cliente MinIO para Python \\
@@ -289,7 +303,8 @@ Anexo~\ref{anx:diagramas}.
       \texttt{completeness} $\cdot$ \texttt{uniqueness} $\cdot$
       \texttt{syntactic\_accuracy} $\cdot$
       \texttt{logical\_consistency} $\cdot$
-      \texttt{class\_balance} $\cdot$ \texttt{currentness} \\
+      \texttt{class\_balance} $\cdot$ \texttt{currentness} $\cdot$
+      \texttt{diversity} \\
       \texttt{outliers} \emph{(solo perfilado \acs{EDA};
       no contribuye al \emph{Quality Score})}};
     \node[pkg-tab, fill=yellow!55!orange] at (mtr.north west)
@@ -319,10 +334,11 @@ Anexo~\ref{anx:diagramas}.
     \draw[depends] (mtr)  -- (data);
     \draw[depends] (data) -- (inf);
   \end{tikzpicture}
-  \caption{Arquitectura lógica por capas de \dataqual, mostrando las
-    dependencias \emph{depends-on} (flecha discontinua de punta abierta).
-    El directorio \texttt{services/metrics/} ($\star$) constituye el núcleo
-    extensible del motor de evaluación, alineado con el principio
+  \caption{Arquitectura lógica por capas de \dataqual en su estado final
+    (cierre del Sprint~5), mostrando las dependencias \emph{depends-on}
+    (flecha discontinua de punta abierta).  El directorio
+    \texttt{services/metrics/} ($\star$) constituye el núcleo extensible del
+    motor de evaluación, alineado con el principio
     abierto--cerrado~\citep{design_patterns}}
   \label{fig:diagrama-arquitectura}
 \end{figure}
@@ -331,9 +347,13 @@ Anexo~\ref{anx:diagramas}.
 \label{sec:modelo-datos}
 
 PostgreSQL~14~\citep{postgresql} almacena todos los datos relacionales y
-metadatos del sistema.  El esquema comprende once tablas, con
-un uso extensivo de campos \textbf{JSONB} para almacenar datos
-semiestructurados cuya estructura varía según la métrica o la configuración.
+metadatos del sistema.  El esquema final comprende once tablas, aunque en
+este sprint solo se crearon las siete iniciales; las cuatro tablas del modelo
+Sonar-Lite (\texttt{analysis\_runs}, \texttt{data\_quality\_issues},
+\texttt{quality\_gates} y \texttt{validation\_patterns}) se incorporaron en
+el Sprint~5.  El diseño hace un uso extensivo de campos \textbf{JSONB} para
+almacenar datos semiestructurados cuya estructura varía según la métrica o
+la configuración.
 
 \begin{definitionlist}
   \item[\texttt{users}]  Datos de usuario: nombre, correo electrónico,
@@ -403,12 +423,14 @@ parámetros y peso), \texttt{datasets.schema} (tipos y estadísticas por columna
 \subsection{Retrospectiva}
 
 \textbf{Conseguido:} entorno de desarrollo completamente operativo,
-arquitectura documentada y autenticación JWT funcional.
+arquitectura documentada, autenticación JWT funcional y prueba de concepto
+de subida de dataset CSV al sistema.
 
-\textbf{Estado del producto:} esqueleto \emph{backend} operativo con ocho
-servicios Docker en marcha, modelo de datos inicial en PostgreSQL y
-autenticación JWT funcional.  La plataforma no tiene aún motor de métricas
-ni interfaz de usuario: es un andamiaje listo para construir sobre él.
+\textbf{Estado del producto:} \emph{backend} operativo con ocho servicios
+Docker en marcha, modelo de datos inicial en PostgreSQL, autenticación JWT
+funcional y capacidad básica de ingesta de ficheros CSV, constituyendo una
+base funcional sobre la que desarrollar los sprints sucesivos.  La
+plataforma carece aún de motor de métricas e interfaz de usuario.
 
 \textbf{Pendiente:} ningún ítem del sprint quedó sin completar; sin embargo,
 las migraciones del esquema requerirán iteraciones adicionales conforme evolucione
@@ -431,7 +453,7 @@ tareas de infraestructura para los sprints siguientes.
 
 
 %% =========================================================================
-\section{Sprint 2 --- \emph{Backend} core: datasets, \acs{API} \acs{REST}}
+\section{Sprint 2: \emph{Backend} principal, datasets y \acs{API} \acs{REST}}
 \label{sec:sprint2}
 \textit{Período: diciembre 2025--enero 2026 \quad Duración: 8 semanas \quad SP: 18}
 %% =========================================================================
@@ -445,14 +467,14 @@ capas, la \ac{API} \ac{REST} y la gestión de proyectos.
 \begin{table}[htbp]
   \centering
   \small
-  \caption{Sprint 2 --- Historias de usuario y estimación}
+  \caption{Sprint 2: Historias de usuario y estimación}
   \label{tab:sprint2-hu}
   \begin{tabularx}{\textwidth}{l X c c}
     \toprule
     \textbf{ID} & \textbf{Ítem} & \textbf{Est. (SP)} & \textbf{Real (h)} \\
     \midrule
     HU-03 & CRUD de proyectos + configuración de métricas & 3 & 12 \\
-    HU-05 & Carga de archivos multiformato (CSV, XLSX, JSON, Parquet) & 5 & 22 \\
+    HU-05 & Carga y parseo robusto de archivos CSV & 5 & 22 \\
     HU-06 & Versionado de datasets (parent-child, is\_latest) & 3 & 10 \\
     --    & Arquitectura del backend en capas (blueprints, servicios) & 4 & 18 \\
     --    & Especificación y pruebas manuales de la API REST & 3 & 23 \\
@@ -465,16 +487,15 @@ capas, la \ac{API} \ac{REST} y la gestión de proyectos.
 \textbf{Dependencias}: requiere Sprint~1 completado (base de datos y
 autenticación operativos).  \textbf{Riesgo principal}: la diversidad de
 formatos de archivo y codificaciones de CSV puede generar una estrategia de
-\emph{fallback} más compleja de lo previsto (R-01).
+\emph{fallback} más compleja de lo previsto (R-03).
 
 \subsection{Trabajo realizado}
 
 \begin{itemize}
   \item Implementada la arquitectura del \emph{backend} en capas: \emph{blueprints}
     Flask, capa de servicio y \emph{middleware}.
-  \item Desarrollado el módulo de ingesta con soporte para cuatro formatos y
-    estrategia de \emph{fallback} para CSV (4 codificaciones $\times$ 5
-    delimitadores).
+  \item Desarrollado el módulo de ingesta CSV con estrategia de
+    \emph{fallback} múltiple (4 codificaciones $\times$ 5 delimitadores).
   \item Implementado el versionado de datasets con relaciones parent-child.
   \item Completados los seis módulos funcionales de la \ac{API} \ac{REST}
     con formato de respuesta estandarizado y paginación.  Durante la
@@ -503,15 +524,15 @@ inicializa las extensiones, registra los \emph{blueprints} y configura el
 bajo el prefijo \texttt{/api}:
 
 \begin{itemize}
-  \item \texttt{/api/auth/} --- autenticación (inicio de sesión, registro,
+  \item \texttt{/api/auth/}:autenticación (inicio de sesión, registro,
     refresco de \emph{token}, perfil).
-  \item \texttt{/api/projects/} --- \ac{CRUD} de proyectos y configuración de
+  \item \texttt{/api/projects/}:\ac{CRUD} de proyectos y configuración de
     métricas.
-  \item \texttt{/api/datasets/} --- carga, consulta y versionado de conjuntos
+  \item \texttt{/api/datasets/}:carga, consulta y versionado de conjuntos
     de datos.
-  \item \texttt{/api/metrics/} --- consulta de métricas y gestión de plantillas.
-  \item \texttt{/api/evaluations/} --- lanzamiento y consulta de evaluaciones.
-  \item \texttt{/api/admin/} --- rendimiento del sistema y comprobación de salud.
+  \item \texttt{/api/metrics/}:consulta de métricas y gestión de plantillas.
+  \item \texttt{/api/evaluations/}:lanzamiento y consulta de evaluaciones.
+  \item \texttt{/api/admin/}:rendimiento del sistema y comprobación de salud.
 \end{itemize}
 
 Siguiendo la convención REST de rutas anidadas~\citep{fielding2000}, se implementaron adicionalmente
@@ -525,15 +546,20 @@ validación reutilizables) elevando el total final a diez, tal como se
 representa en el diagrama de arquitectura
 (Figura~\ref{fig:diagrama-arquitectura}).
 
-La lógica de negocio se encapsula en servicios independientes:
-\texttt{EvaluationService} (orquesta el flujo completo de evaluación),
-\texttt{DatasetService} (parseo y extracción de esquema),
-\texttt{MinioService} (abstracción sobre S3) y el motor de métricas.
+La lógica de negocio se encapsula en servicios independientes.  En este
+sprint se establecieron los dos servicios fundamentales:
+\texttt{DatasetService} (parseo y extracción de esquema) y
+\texttt{MinioService} (abstracción sobre S3).  En sprints posteriores se
+añadirán \texttt{EvaluationService} (S3, orquestación del flujo de
+evaluación), \texttt{HybridEvaluationService} (S5, \emph{fallback}
+síncrono) y \texttt{ExportService} (S5, generación de informes).
 
-El \emph{backend} incorpora cuatro capas de \emph{middleware}: generación de
-\texttt{X-Request-ID}, gestión centralizada de errores HTTP, monitor de
-rendimiento por \emph{endpoint} (detecta peticiones lentas >500~ms) y el
-\emph{Evaluation Watchdog}.
+El \emph{backend} incorpora capas de \emph{middleware}: generación de
+\texttt{X-Request-ID}, gestión centralizada de errores HTTP y monitor de
+rendimiento por \emph{endpoint} (detecta peticiones lentas >500~ms),
+establecidos en este sprint.  El \emph{Evaluation Watchdog} (hilo
+\emph{daemon} que detecta evaluaciones atascadas) se incorporó en el
+Sprint~3, una vez que las evaluaciones fueron operativas.
 
 El sistema mantiene una \textbf{arquitectura dual de modelos} como resultado
 de su evolución incremental.  El modelo original (\texttt{Evaluation} +
@@ -586,14 +612,14 @@ Anexo~A.
 
 \subsection{Retrospectiva}
 
-\textbf{Conseguido:} backend completamente funcional con todos los módulos
-core, API REST operativa y datasets versionados.
+\textbf{Conseguido:} \emph{backend} completamente funcional con todos los
+módulos principales, \ac{API} \ac{REST} operativa y datasets versionados.
 
 \textbf{Estado del producto:} \emph{backend} completo con nueve
 \emph{blueprints} Flask registrados (seis módulos funcionales más tres de
 organización técnica REST: \texttt{project\_metrics},
-\texttt{project\_datasets} y \texttt{dashboard}), módulo de ingesta
-multiformato, versionado de datasets y autenticación JWT.  La plataforma
+\texttt{project\_datasets} y \texttt{dashboard}), módulo de ingesta CSV,
+versionado de datasets y autenticación JWT.  La plataforma
 puede almacenar y gestionar conjuntos de datos, pero carece aún de motor
 de métricas e interfaz de usuario.
 
@@ -601,8 +627,8 @@ de métricas e interfaz de usuario.
 \emph{frontend} completo (HU-04, HU-13, HU-14) están programados para S3 y
 S4 respectivamente.
 
-\textbf{Qué fue bien:} la separación en capas (blueprints + servicios) facilita
-enormemente las pruebas y la extensión futura.
+\textbf{Qué fue bien:} la separación en capas (\emph{blueprints} + servicios)
+facilita significativamente las pruebas y la extensión futura.
 
 \textbf{Qué fue mal:} el parseo robusto de CSV fue mucho más complejo de lo
 esperado.  La diversidad de codificaciones y delimitadores reales encontrados
@@ -610,9 +636,9 @@ en datasets de prueba obligó a extender el sprint una semana.
 
 \textbf{Estimación vs.\ real:} 72~h estimadas vs.\ 85~h reales (+18,1\,\%).
 
-\textbf{Lección aprendida:} los datos del mundo real son más variados e
-irregulares de lo que sugieren los formatos estándar; es mejor implementar
-estrategias defensivas desde el inicio.
+\textbf{Lección aprendida:} los datos procedentes de entornos reales son más
+variados e irregulares de lo que sugieren los formatos estándar; es
+preferible implementar estrategias defensivas desde el inicio.
 
 \textbf{Acción de mejora:} crear una batería de datasets de prueba con
 casos extremos (BOM, delimitadores inusuales, caracteres especiales) para
@@ -620,7 +646,7 @@ validar el parseo en el siguiente sprint.
 
 
 %% =========================================================================
-\section{Sprint 3 --- Motor de métricas de calidad}
+\section{Sprint 3: Motor de métricas de calidad}
 \label{sec:sprint3}
 \textit{Período: febrero 2026 \quad Duración: 4 semanas \quad SP: 16}
 %% =========================================================================
@@ -628,13 +654,13 @@ validar el parseo en el siguiente sprint.
 \subsection{Planificación del sprint}
 
 \textbf{Objetivo del sprint:} diseñar e implementar el motor de métricas con
-arquitectura de \emph{plugins} y las siete métricas de calidad alineadas con
-\ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259.
+arquitectura de \emph{plugins} y las tres primeras métricas de calidad,
+alineadas con \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259.
 
 \begin{table}[htbp]
   \centering
   \small
-  \caption{Sprint 3 --- Historias de usuario y estimación}
+  \caption{Sprint 3: Historias de usuario y estimación}
   \label{tab:sprint3-hu}
   \begin{tabularx}{\textwidth}{l X c c}
     \toprule
@@ -659,16 +685,14 @@ operativos).
   \item Diseñada e implementada la arquitectura de \emph{plugins} del motor
     de métricas (\texttt{BaseMetric}, \texttt{MetricResult},
     \texttt{METRIC\_REGISTRY}).
-  \item Implementadas las seis métricas evaluables (completitud, unicidad,
-    exactitud sintáctica, consistencia lógica, equilibrio de clases y
-    actualidad) y la clase \texttt{OutliersMetric}, usada solo en el módulo
-    de perfilado de datos y excluida del \emph{Quality Score} por diseño.
+  \item Implementadas las tres primeras métricas evaluables del catálogo:
+    completitud (\texttt{completeness}), unicidad (\texttt{uniqueness}) y
+    consistencia lógica (\texttt{logical\_consistency}).  Paralelamente se
+    implementó la clase \texttt{OutliersMetric}, usada solo en el módulo de
+    perfilado de datos y excluida del \emph{Quality Score} por diseño.
   \item Implementada la fórmula del \emph{Quality Score} con penalización por
     issues.
   \item Integrada la ejecución asíncrona con Celery.
-  \item \textbf{Cambio respecto a lo planificado}: la métrica de exactitud
-    sintáctica amplió su catálogo de trece tipos de formato (el plan inicial
-    contemplaba ocho), lo que añadió complejidad positiva.
 \end{itemize}
 
 \subsection{Cómo se ha hecho}
@@ -708,8 +732,9 @@ y (4)~documentarla en el Anexo~B.
 
 \subsubsection{Métricas implementadas}
 
-A continuación se describen las \textbf{seis métricas evaluables} del motor
-de calidad y la clase adicional de detección de valores atípicos, disponible
+A continuación se describen las \textbf{siete métricas evaluables} del motor
+de calidad (implementadas progresivamente en S3, S4 y S5) y la clase
+adicional de detección de valores atípicos, disponible
 en el módulo de perfilado.
 
 \paragraph{Completitud (\texttt{completeness})}
@@ -737,7 +762,7 @@ variabilidad por columna.  La ratio de unicidad sigue la fórmula del
 Los umbrales de variabilidad se adaptan al tipo semántico inferido:
 0,95 para identificadores, 0,05 para categóricas y 0,30 para el resto.
 
-\paragraph{Detección de valores atípicos (\texttt{outliers}) --- solo perfilado}
+\paragraph{Detección de valores atípicos (\texttt{outliers}):solo perfilado}
 La clase \texttt{OutliersMetric} detecta \emph{outliers} en columnas
 numéricas mediante \ac{IQR} (Rango Intercuartílico)~\citep{tukey1977}
 y Z-score.
@@ -820,12 +845,13 @@ ratio global sea elevada.  El cálculo sigue tres pasos:
 
 \subsection{Retrospectiva}
 
-\textbf{Conseguido:} motor de métricas completo con seis métricas evaluables
-más \texttt{OutliersMetric} para perfilado, \emph{Quality Score} con
-corrección dimensional y arquitectura de \emph{plugins} extensible.
+\textbf{Conseguido:} motor de métricas operativo con las tres primeras
+métricas evaluables (completitud, unicidad y consistencia lógica),
+\texttt{OutliersMetric} para perfilado, \emph{Quality Score} con corrección
+dimensional y arquitectura de \emph{plugins} extensible.
 
 \textbf{Estado del producto:} \emph{backend} completo más motor de métricas
-con las seis métricas evaluables, fórmula de \emph{Quality Score} y
+con tres métricas evaluables iniciales, fórmula de \emph{Quality Score} y
 ejecución asíncrona vía Celery.  La plataforma puede lanzar evaluaciones y
 almacenar resultados; falta la interfaz de usuario para visualizarlos y las
 funcionalidades avanzadas (fingerprinting, Quality Gates).
@@ -854,7 +880,7 @@ facilitar la integración con el \emph{frontend}.
 
 
 %% =========================================================================
-\section{Sprint 4 --- \emph{Frontend} e interfaz de usuario}
+\section{Sprint 4: \emph{Frontend} e interfaz de usuario}
 \label{sec:sprint4}
 \textit{Período: marzo 2026 \quad Duración: 4 semanas \quad SP: 14}
 %% =========================================================================
@@ -869,7 +895,7 @@ de datos (\ac{EDA}).
 \begin{table}[htbp]
   \centering
   \small
-  \caption{Sprint 4 --- Historias de usuario y estimación}
+  \caption{Sprint 4: Historias de usuario y estimación}
   \label{tab:sprint4-hu}
   \begin{tabularx}{\textwidth}{l X c c}
     \toprule
@@ -885,20 +911,32 @@ de datos (\ac{EDA}).
   \end{tabularx}
 \end{table}
 
+\textbf{Dependencias}: requiere Sprint~3 completado (motor de métricas
+operativo y \ac{API} de evaluaciones funcional para poder visualizar
+resultados desde el \emph{frontend}).
+
 \subsection{Trabajo realizado}
 
 \begin{itemize}
+  \item Incorporadas tres métricas evaluables adicionales al catálogo:
+    exactitud sintáctica (\texttt{syntactic\_accuracy}), equilibrio de clases
+    (\texttt{class\_balance}) y actualidad (\texttt{currentness}), completando
+    seis de las siete métricas evaluables del sistema.
   \item Desarrollados más de 40 componentes React reutilizables.
-  \item Implementado el cuadro de mando con tarjetas resumen, gráfico de
-    distribución de Quality Gates y alertas de proyectos con problemas.
+  \item Implementado el cuadro de mando con tarjetas resumen y alertas de
+    proyectos con problemas.  El gráfico de distribución de estados de
+    \emph{Quality Gate} se completó en el Sprint~5, una vez que el modelo
+    \texttt{AnalysisRun} estuvo operativo.
   \item Implementada la exploración de datos con histogramas, diagramas de
     caja, matrices de correlación Pearson/Spearman y detección interactiva de
     outliers.
   \item Integrado el perfilado (\ac{EDA}) completo en \texttt{DataProfilingTab.tsx}
     (~85\,KB, componente principal del análisis exploratorio).
-  \item \textbf{Cambio respecto a lo planificado}: la implementación de la
+  \item \textbf{Cambios respecto a lo planificado}: la implementación de la
     matriz de correlación con Chart.js requirió un \emph{plugin} personalizado,
-    lo que añadió tiempo no estimado.
+    lo que añadió tiempo no estimado.  Adicionalmente, la métrica de exactitud
+    sintáctica amplió su catálogo a trece tipos de formato (el plan inicial
+    contemplaba ocho), lo que añadió complejidad positiva al sprint.
 \end{itemize}
 
 \subsection{Cómo se ha hecho}
@@ -909,9 +947,9 @@ de datos (\ac{EDA}).
 La aplicación sigue las convenciones de Next.js~13.3~\citep{nextjs} con
 enrutamiento basado en ficheros (\texttt{pages/}) y componentes reutilizables
 (\texttt{components/}).  El estado global se gestiona mediante la Context
-\ac{API} de React con tres contextos: autenticación (\texttt{AuthContext}),
-notificaciones (\texttt{NotificationContext}) y barra lateral
-(\texttt{SidebarContext}).
+\ac{API} de React con cuatro contextos: autenticación (\texttt{AuthContext}),
+notificaciones (\texttt{NotificationContext}), barra lateral
+(\texttt{SidebarContext}) e idioma (\texttt{LanguageContext}).
 
 El módulo \texttt{services/api.ts} implementa una instancia Axios con
 interceptores para la inyección automática del \emph{token} \ac{JWT},
@@ -939,8 +977,10 @@ La interfaz proporciona las siguientes visualizaciones principales:
     descriptivas expuestas siguen el catálogo de métricas de perfilado
     propuesto por Abedjan et~al.~(\citeyear{abedjan2018}).
 
-  \item \textbf{Gráficos de tendencia}: evolución de la puntuación de
-    calidad a lo largo del tiempo y comparación entre versiones del dataset.
+  \item \textbf{Gráficos de tendencia}: los componentes \texttt{QualityTrendChart}
+    y \texttt{VersionEvolutionChart} se crearon en este sprint; los datos
+    reales que los alimentan (historial de \texttt{AnalysisRun}) estuvieron
+    disponibles a partir del Sprint~5.
 \end{itemize}
 
 Las visualizaciones se implementan con Chart.js~\citep{chartjs} mediante el
@@ -954,8 +994,8 @@ principales de la interfaz de usuario desarrolladas en este sprint.
   % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/dashboard.png}
   \fbox{\begin{minipage}[c][5.5cm][c]{0.9\textwidth}
     \centering\itshape
-    [Insertar captura: cuadro de mando principal --- pantalla
-    \texttt{/dashboard}]
+    [Insertar captura: cuadro de mando principal ---
+    pantalla \texttt{/dashboard}]
   \end{minipage}}
   \caption{Cuadro de mando principal de \dataqual: tarjetas resumen de
     proyectos, distribución de estados de \emph{Quality Gate} y alertas de
@@ -994,7 +1034,9 @@ principales de la interfaz de usuario desarrolladas en este sprint.
 \subsection{Retrospectiva}
 
 \textbf{Conseguido:} interfaz de usuario completa y funcional con todas las
-pantallas principales y el módulo EDA.
+pantallas principales y el módulo EDA.  Incorporadas además tres métricas
+evaluables al catálogo (\texttt{syntactic\_accuracy}, \texttt{class\_balance}
+y \texttt{currentness}), completando seis de las siete métricas del sistema.
 
 \textbf{Estado del producto:} plataforma \emph{full-stack} funcional de
 extremo a extremo: \emph{backend}, motor de métricas e interfaz de usuario
@@ -1026,7 +1068,7 @@ al \emph{frontend}.
 
 
 %% =========================================================================
-\section{Sprint 5 --- Funcionalidades avanzadas}
+\section{Sprint 5: Funcionalidades avanzadas}
 \label{sec:sprint5}
 \textit{Período: abril 2026 \quad Duración: 4 semanas \quad SP: 10}
 %% =========================================================================
@@ -1041,7 +1083,7 @@ medidas de seguridad avanzadas.
 \begin{table}[htbp]
   \centering
   \small
-  \caption{Sprint 5 --- Historias de usuario y estimación}
+  \caption{Sprint 5: Historias de usuario y estimación}
   \label{tab:sprint5-hu}
   \begin{tabularx}{\textwidth}{l X c c}
     \toprule
@@ -1055,6 +1097,10 @@ medidas de seguridad avanzadas.
     \bottomrule
   \end{tabularx}
 \end{table}
+
+\textbf{Dependencias}: requiere Sprint~4 completado (interfaz de usuario
+operativa para visualizar los estados de \emph{Quality Gate} y los
+\emph{badges} de trazabilidad de \emph{issues}).
 
 \textbf{Riesgo principal}: la trazabilidad de issues requiere una definición
 precisa y determinista del \emph{fingerprint} para que sea fiable entre
@@ -1071,6 +1117,11 @@ evaluaciones.
     síncrono y \emph{Evaluation Watchdog}.
   \item Añadidas las medidas de seguridad: limitación de tasa, cabeceras HTTP,
     PBKDF2-SHA256 para contraseñas, red Docker aislada.
+  \item Incorporada la métrica de diversidad (\texttt{DiversityMetric}) al
+    catálogo, completando las siete métricas evaluables del sistema.  La
+    métrica cuantifica la representación de valores en columnas categóricas y
+    numéricas, con soporte de \emph{fingerprinting} propio mediante
+    \texttt{generate\_diversity\_fingerprint}.
   \item Como funcionalidad emergente surgida durante este sprint, se incorporó
     un séptimo \emph{blueprint} funcional, \texttt{patterns}, que expone un
     \ac{CRUD} de patrones de validación reutilizables entre proyectos
@@ -1111,12 +1162,10 @@ La fórmula de construcción es:
 \end{equation*}
 
 \noindent donde cada campo se normaliza antes del \emph{hash}: cadenas en
-minúsculas y sin espacios superfluos, flotantes redondeados a cuatro
-decimales y listas e \emph{extra\_params} ordenados alfabéticamente para
-garantizar el mismo resultado independientemente del orden de inserción.
-Esta normalización fue la corrección clave al bug detectado en las pruebas
-de S6: los umbrales \texttt{0.95} y \texttt{0.950} producían hashes
-distintos hasta que se estandarizó el redondeo.
+minúsculas y sin espacios superfluos, flotantes convertidos a su
+representación canónica en cadena (\texttt{str()}) y listas e
+\emph{extra\_params} ordenados alfabéticamente para garantizar el mismo
+resultado independientemente del orden de inserción.
 
 La Tabla~\ref{tab:fingerprint-inputs} resume los campos concretos que
 cada tipo de \emph{issue} aporta al \emph{hash}.
@@ -1137,6 +1186,7 @@ cada tipo de \emph{issue} aporta al \emph{hash}.
     Logical consistency & \texttt{cross\_field\_check}      & expresión de la regla \\
     Class balance   & \texttt{balance\_\{tipo\}}             & --- \\
     Currentness     & \texttt{staleness\_check}              & umbral en días \\
+    Diversity       & \texttt{diversity\_\{tipo\}}            & tipo de diversidad (\texttt{missing\_value}, \texttt{underrepresented}, \texttt{low\_range\_coverage}) \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -1223,11 +1273,13 @@ implementado en este sprint.
 \subsection{Retrospectiva}
 
 \textbf{Conseguido:} funcionalidades diferenciadoras completamente
-implementadas: fingerprinting, Quality Gates, procesamiento asíncrono
-robusto y seguridad multicapa.
+implementadas: \emph{fingerprinting}, \emph{Quality Gates}, procesamiento
+asíncrono robusto y seguridad multicapa.  Incorporada la séptima métrica
+evaluable (\texttt{DiversityMetric}) y el \emph{blueprint} \texttt{patterns}
+para patrones de validación reutilizables.
 
 \textbf{Estado del producto:} \dataqual es una plataforma completa con todas
-las funcionalidades principales: ingesta multiformato, seis métricas de
+las funcionalidades principales: ingesta CSV, siete métricas de
 calidad evaluables, interfaz \emph{full-stack}, \emph{fingerprinting} SHA-256,
 \emph{Quality Gates} y seguridad multicapa.  El producto está
 funcionalmente cerrado; S6 se dedicará a pruebas, corrección de defectos y
@@ -1238,12 +1290,17 @@ punto), corrección de defectos detectados y redacción de la memoria,
 planificados para S6.
 
 \textbf{Qué fue bien:} el sistema de \emph{fingerprinting} es elegante y
-determinista; una vez resuelto el problema de la serialización de parámetros
-flotantes, funciona con total fiabilidad.
+determinista; la normalización de parámetros a cadena canónica garantiza
+resultados reproducibles independientemente del orden o formato de los
+valores de entrada (la corrección definitiva del bug de serialización se
+aplicó en S6).
 
 \textbf{Qué fue mal:} la combinación Celery + Redis presentó problemas de
 conexión intermitentes en entornos Docker Windows, requiriendo ajustes en
-los \emph{healthchecks} y en los tiempos de reconexión.
+los \emph{healthchecks} y en los tiempos de reconexión.  Adicionalmente,
+la refactorización de \texttt{DataProfilingTab.tsx} planificada como acción
+de mejora de S4 no se ejecutó: la carga técnica del sprint no permitió
+abordarla sin comprometer las funcionalidades prioritarias.
 
 \textbf{Estimación vs.\ real:} 40~h estimadas vs.\ 55~h reales (+37,5\,\%).
 La mayor desviación del proyecto, causada por los problemas de integración
@@ -1259,7 +1316,7 @@ final.
 
 
 %% =========================================================================
-\section{Sprint 6 --- Pruebas, refinamiento y documentación}
+\section{Sprint 6: Pruebas, refinamiento y documentación}
 \label{sec:sprint6}
 \textit{Período: mayo--junio 2026 \quad Duración: 8 semanas}
 %% =========================================================================
@@ -1273,7 +1330,7 @@ de usuario y redactar la documentación técnica completa.
 \begin{table}[htbp]
   \centering
   \small
-  \caption{Sprint 6 --- Actividades y estimación}
+  \caption{Sprint 6: Actividades y estimación}
   \label{tab:sprint6-hu}
   \begin{tabularx}{\textwidth}{l X c c}
     \toprule
@@ -1283,6 +1340,7 @@ de usuario y redactar la documentación técnica completa.
     --    & Pruebas de integración: versionado, Quality Gates & 12 & 14 \\
     --    & Corrección de defectos detectados en pruebas & 16 & 18 \\
     HU-15 & Panel de administración & 8 & 10 \\
+    --    & Internacionalización del \emph{frontend} (ES/EN, i18next) & 0 & --- \\
     --    & Redacción de la memoria (TFG) & 20 & 20 \\
     --    & Preparación de la defensa & 8 & 8 \\
     \midrule
@@ -1302,9 +1360,15 @@ de usuario y redactar la documentación técnica completa.
   \item Completada la documentación de la \ac{API} \ac{REST} en el Anexo~A
     y el catálogo de métricas en el Anexo~B.
   \item Implementado el panel de administración (\texttt{/api/admin/}).
+  \item Implementada la internacionalización completa del \emph{frontend}
+    con \texttt{i18next} y \texttt{react-i18next}: dos idiomas (español e
+    inglés), archivos de traducción de aproximadamente 1\,870 entradas cada
+    uno, integrada en 54 componentes y páginas mediante \texttt{useTranslation},
+    con persistencia del idioma seleccionado en \texttt{localStorage}.
   \item \textbf{Cambio respecto a lo planificado}: se detectaron tres
     defectos de severidad media en el módulo de \emph{fingerprinting} que
-    requirieron refactorización.
+    requirieron refactorización.  La internacionalización del \emph{frontend}
+    constituye una funcionalidad adicional no planificada inicialmente.
 \end{itemize}
 
 \subsection{Cómo se ha hecho}
@@ -1361,26 +1425,29 @@ cerrados antes de la entrega final.  Por categoría:
   \item \textbf{Versionado de datasets (2 defectos, severidad media):}
     la carga concurrente de dos versiones del mismo dataset podía dejar
     más de un registro con \texttt{is\_latest\,=\,true}.  Se resolvió
-    añadiendo una transacción con bloqueo pesimista en el servicio de
-    versionado.
+    encapsulando la actualización del indicador y la inserción del nuevo
+    registro en una transacción atómica de SQLAlchemy.
 
-  \item \textbf{API REST --- paginación (2 defectos, severidad baja):}
+  \item \textbf{API REST, paginación (2 defectos, severidad baja):}
     el parámetro \texttt{per\_page} no estaba acotado superiormente,
     permitiendo consultas que devolvían todos los registros sin límite.
-    Se añadió un máximo de 100 registros por página.
+    Se añadió un límite superior por \emph{endpoint} (entre 100 y 200
+    registros según el volumen esperado de cada recurso).
 
   \item \textbf{Evaluación asíncrona (2 defectos, severidad baja):}
     el \emph{Evaluation Watchdog} marcaba como fallidas evaluaciones que
     simplemente estaban pausadas esperando un \emph{worker} Celery
-    disponible.  Se ajustó el umbral de tiempo de espera de 5 a
-    10~minutos.
+    disponible.  Se ajustaron los \emph{healthchecks} y los tiempos de
+    reconexión de Celery para distinguir las evaluaciones realmente
+    atascadas de las que esperaban disponibilidad del \emph{worker}.
 \end{itemize}
 
 \subsection{Retrospectiva}
 
 \textbf{Conseguido:} plataforma completamente probada, documentada y lista
-para la defensa.  Cobertura de pruebas unitarias del motor de métricas
-superior al 85\,\%.
+para la defensa.  Internacionalización completa del \emph{frontend} (ES/EN).
+Las tres suites de pruebas automatizadas cubren los flujos de autenticación,
+versionado de datasets y \emph{Quality Gates}.
 
 \textbf{Estado del producto:} \dataqual es una plataforma funcional, probada
 y documentada.  Tres suites de pruebas automatizan la verificación de las

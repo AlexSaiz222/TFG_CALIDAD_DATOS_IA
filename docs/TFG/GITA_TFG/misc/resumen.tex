@@ -1,46 +1,68 @@
 \chapter{Resumen}
 
-La calidad de los datos constituye un factor determinante en el éxito de los
-proyectos de inteligencia artificial y aprendizaje automático.  Sin embargo,
-las herramientas disponibles para su evaluación presentan limitaciones
-significativas: las bibliotecas basadas en código imponen una barrera técnica
-elevada, mientras que los \emph{scripts} ad~hoc carecen de estandarización,
-historización y mecanismos de decisión automatizados.
+La inteligencia artificial se ha consolidado como una tecnología
+transformadora en sectores como la sanidad, las finanzas, la industria o la
+administración pública, y la calidad de los datos que alimentan estos sistemas
+constituye un factor determinante en su fiabilidad y en la equidad de sus
+resultados.  Sin embargo, las herramientas disponibles para la evaluación de
+dicha calidad presentan limitaciones significativas: las bibliotecas basadas
+en código imponen una barrera técnica elevada, mientras que los \emph{scripts}
+ad~hoc carecen de estandarización, historización y mecanismos de decisión
+automatizados.
 
 Este Trabajo Fin de Grado presenta \dataqual, una plataforma web
 \emph{full-stack} para la evaluación automatizada de la calidad de datos.
 La plataforma implementa siete métricas de calidad alineadas con los
-estándares ISO/IEC~25012 e ISO/IEC~5259, un motor modular y extensible, un sistema de \emph{fingerprinting} SHA-256 para la
-trazabilidad de incidencias entre evaluaciones y \emph{Quality Gates}
-configurables inspirados en SonarQube.  El sistema se despliega como ocho
-servicios Docker orquestados con Docker~Compose, combinando una interfaz web
-interactiva (Next.js, React) con una API RESTful (Flask, Python) y
-procesamiento asíncrono (Celery, Redis).
+estándares ISO/IEC~5259 (calidad de datos para \ac{IA}) e ISO/IEC~25012
+(modelo general de calidad de datos), un motor modular y extensible, un
+sistema de \emph{fingerprinting} SHA-256 para la trazabilidad de incidencias
+entre evaluaciones y \emph{Quality Gates} configurables inspirados en
+SonarQube.  El sistema se despliega como ocho servicios Docker orquestados
+con Docker~Compose, combinando una interfaz web interactiva (Next.js, React)
+con una API RESTful (Flask, Python) y procesamiento asíncrono
+(Celery, Redis).
 
 La plataforma ha sido validada con conjuntos de datos ampliamente utilizados
-en el ámbito de la IA y la ciencia de datos, confirmando la detección efectiva
-de problemas de calidad, la trazabilidad de incidencias entre evaluaciones
-sucesivas y la correcta clasificación de datasets mediante \emph{Quality
-Gates} con estados PASSED, WARNING y FAILED.
+en el ámbito de la \ac{IA} y la ciencia de datos, confirmando la detección
+efectiva de problemas de calidad, la trazabilidad de incidencias entre
+evaluaciones sucesivas y la correcta clasificación de datasets mediante
+\emph{Quality Gates} con estados PASSED, WARNING y FAILED.
+
+\dataqual contribuye a democratizar el acceso a la evaluación estandarizada
+de calidad de datos, eliminando la barrera técnica que suponen las
+herramientas basadas en código.  Su alineación con el Reglamento Europeo de
+Inteligencia Artificial facilita el cumplimiento normativo en un contexto
+regulatorio cada vez más exigente, contribuyendo al desarrollo de sistemas
+de \ac{IA} más fiables, equitativos y auditables.
 
 
 \chapter{Abstract}
 
-Data quality is a determining factor in the success of artificial
-intelligence and machine learning projects.  However, the tools available for
-its assessment have significant limitations: code-based libraries impose a
-high technical barrier, while ad~hoc scripts lack standardisation,
-historisation and automated decision mechanisms.
+Artificial intelligence has become a transformative technology in sectors
+such as healthcare, finance, industry and public administration, and the
+quality of the data that feed these systems is a determining factor in their
+reliability and the fairness of their outcomes.  However, the tools available
+for data quality assessment have significant limitations: code-based
+libraries impose a high technical barrier, while ad~hoc scripts lack
+standardisation, historisation and automated decision mechanisms.
 
 This undergraduate thesis presents \dataqual, a full-stack web platform for
 automated data quality evaluation.  The platform implements seven quality
-metrics aligned with the ISO/IEC~25012 and ISO/IEC~5259 standards, a modular and extensible engine, a SHA-256 fingerprinting system for issue
-traceability across evaluations, and configurable Quality Gates inspired by
-SonarQube.  The system is deployed as eight Docker services orchestrated with
-Docker~Compose, combining an interactive web interface (Next.js, React) with
-a RESTful API (Flask, Python) and asynchronous processing (Celery, Redis).
+metrics aligned with the ISO/IEC~5259 (data quality for AI) and ISO/IEC~25012
+(general data quality model) standards, a modular and extensible engine,
+a SHA-256 fingerprinting system for issue traceability across evaluations,
+and configurable Quality Gates inspired by SonarQube.  The system is deployed
+as eight Docker services orchestrated with Docker~Compose, combining an
+interactive web interface (Next.js, React) with a RESTful API
+(Flask, Python) and asynchronous processing (Celery, Redis).
 
 The platform has been validated with widely used datasets in the field of
 AI and data science, confirming the effective detection of quality issues,
 issue traceability across successive evaluations, and correct dataset
 classification through Quality Gates with PASSED, WARNING and FAILED states.
+
+\dataqual contributes to democratising access to standardised data quality
+evaluation by removing the technical barrier imposed by code-based tools.
+Its alignment with the European Artificial Intelligence Act supports
+regulatory compliance in an increasingly demanding landscape, fostering the
+development of more reliable, fair and auditable AI systems.
