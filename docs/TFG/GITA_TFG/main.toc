@@ -169,12 +169,12 @@
 \contentsline {section}{\numberline {A.5}Módulo de evaluaciones (\texttt {/api/evaluations})}{83}{section.Alph1.5}%
 \contentsline {section}{\numberline {A.6}Módulo de administración (\texttt {/api/admin})}{84}{section.Alph1.6}%
 \contentsline {chapter}{\numberline {B}Catálogo de métricas de calidad}{85}{appendix.Alph2}%
-\contentsline {section}{\numberline {B.1}Completitud (\texttt {completeness})}{85}{section.Alph2.1}%
+\contentsline {section}{\numberline {B.1}Completitud (\texttt {completeness})}{86}{section.Alph2.1}%
 \contentsline {section}{\numberline {B.2}Unicidad (\texttt {uniqueness})}{86}{section.Alph2.2}%
 \contentsline {section}{\numberline {B.3}Exactitud sintáctica (\texttt {syntactic\_accuracy})}{87}{section.Alph2.3}%
 \contentsline {section}{\numberline {B.4}Consistencia lógica (\texttt {logical\_consistency})}{88}{section.Alph2.4}%
 \contentsline {section}{\numberline {B.5}Equilibrio de clases (\texttt {class\_balance})}{89}{section.Alph2.5}%
-\contentsline {section}{\numberline {B.6}Actualidad (\texttt {currentness})}{89}{section.Alph2.6}%
+\contentsline {section}{\numberline {B.6}Actualidad (\texttt {currentness})}{90}{section.Alph2.6}%
 \contentsline {section}{\numberline {B.7}Diversidad (\texttt {diversity})}{90}{section.Alph2.7}%
 \contentsline {section}{\numberline {B.8}Valores atípicos (\texttt {outliers})}{91}{section.Alph2.8}%
 \contentsline {section}{\numberline {B.9}Modelo de severidad dinámica}{91}{section.Alph2.9}%
@@ -183,4 +183,4 @@
 \contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{98}{appendix.Alph5}%
 \contentsline {chapter}{\numberline {F}Manual de usuario}{100}{appendix.Alph6}%
 \contentsline {chapter}{\numberline {G}Diagramas UML del sistema}{103}{appendix.Alph7}%
-\contentsline {chapter}{Referencias}{106}{appendix*.46}%
+\contentsline {chapter}{Referencias}{107}{appendix*.46}%

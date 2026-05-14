@@ -19,7 +19,8 @@ es la siguiente:
     \texttt{pages/} (rutas), \texttt{components/} (más de 40 componentes
     React reutilizables), \texttt{services/} (cliente \ac{API} con Axios)
     y \texttt{contexts/} (estado global: \texttt{AuthContext},
-    \texttt{NotificationContext}, \texttt{SidebarContext}).
+    \texttt{NotificationContext}, \texttt{SidebarContext},
+    \texttt{LanguageContext}).
 
   \item \textbf{API REST} (\emph{backend} Flask, 10 \emph{blueprints}):
     siete \emph{blueprints} funcionales (\texttt{auth}, \texttt{projects},
@@ -39,11 +40,12 @@ es la siguiente:
   \item \textbf{Motor de métricas} (\texttt{services/metrics/}, núcleo
     extensible): \texttt{BaseMetric} (clase base abstracta),
     \texttt{MetricResult} (\emph{dataclass}) y \texttt{METRIC\_REGISTRY}
-    (registro de \emph{plugins}).  Implementa seis métricas evaluables
+    (registro de \emph{plugins}).  Implementa siete métricas evaluables
     (\texttt{completeness}, \texttt{uniqueness}, \texttt{syntactic\_accuracy},
     \texttt{logical\_consistency}, \texttt{class\_balance},
-    \texttt{currentness}) y la clase \texttt{OutliersMetric}, usada
-    exclusivamente desde el módulo de perfilado \ac{EDA}.
+    \texttt{currentness}, \texttt{diversity}) y la clase
+    \texttt{OutliersMetric}, usada exclusivamente desde el módulo de
+    perfilado \ac{EDA}.
 
   \item \textbf{Datos} (modelos SQLAlchemy \ac{ORM}, 11 tablas):
     \texttt{User}, \texttt{Project}, \texttt{Dataset}, \texttt{Metric},
@@ -149,6 +151,7 @@ Jerarquía de clases del motor de métricas
   \item \textbf{LogicalConsistencyMetric} hereda BaseMetric
   \item \textbf{ClassBalanceMetric} hereda BaseMetric
   \item \textbf{CurrentnessMetric} hereda BaseMetric
+  \item \textbf{DiversityMetric} hereda BaseMetric
   \item \textbf{MetricResult} (dataclass):
     \texttt{metric\_id, score, details, issues: List[Issue]}
   \item \textbf{METRIC\_REGISTRY}: \texttt{Dict[str, Type[BaseMetric]]}

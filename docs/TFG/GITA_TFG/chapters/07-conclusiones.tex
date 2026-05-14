@@ -61,10 +61,10 @@ de cumplimiento de cada uno.
 
   \item[Objetivos transversales] \textbf{Cumplidos en su mayoría.}
     Seguridad multicapa (JWT, PBKDF2, rate limiting, cabeceras), escalabilidad
-    asíncrona (Celery + Redis), mantenibilidad (módulos independientes) y
-    portabilidad (Docker Compose) han sido alcanzados.  La internacionalización
-    y las pruebas \emph{end-to-end} del \emph{frontend} quedan como trabajo
-    futuro.
+    asíncrona (Celery + Redis), mantenibilidad (módulos independientes),
+    portabilidad (Docker Compose) e internacionalización (ES/EN con i18next)
+    han sido alcanzados.  Las pruebas \emph{end-to-end} del \emph{frontend}
+    quedan como trabajo futuro.
 \end{description}
 
 \textbf{Valoración global del proyecto:} \dataqual es una plataforma
@@ -112,7 +112,7 @@ Las principales conclusiones que se extraen del trabajo son las siguientes:
   \item \textbf{La arquitectura de \emph{plugins} facilita la
     extensibilidad.}  El diseño del motor de métricas basado en una clase
     base abstracta y un registro dinámico ha demostrado ser una decisión
-    arquitectónica acertada: las seis métricas evaluables se han implementado
+    arquitectónica acertada: las siete métricas evaluables se han implementado
     de forma independiente, y el proceso de incorporación de nuevas métricas
     está formalizado en cuatro pasos claramente definidos.
 
@@ -211,7 +211,9 @@ evolución de \dataqual:
   \item \textbf{Webhooks} para notificar a sistemas externos cuando una
     evaluación se complete o un \emph{Quality Gate} falle.
 
-  \item \textbf{Internacionalización} completa de la interfaz de usuario.
+  \item \textbf{Pruebas \emph{end-to-end} del \emph{frontend}} con herramientas
+    como Cypress o Playwright, cubriendo los flujos principales de la interfaz
+    de usuario.
 
   \item \textbf{Sugerencias de corrección automatizadas} basadas en los
     \emph{issues} detectados, cerrando el ciclo de diagnóstico con
@@ -227,7 +229,7 @@ evolución de \dataqual:
 Desde el punto de vista técnico, \dataqual aporta al panorama de herramientas de
 calidad de datos una solución \emph{full-stack} autoalojada que combina en un
 único producto una interfaz web accesible sin necesidad de programar, métricas
-específicas para proyectos de \ac{ML} (equilibrio de clases, actualidad),
+específicas para proyectos de \ac{ML} (equilibrio de clases, diversidad del dataset),
 sistema de \emph{fingerprinting} determinista para la trazabilidad de
 \emph{issues}, \emph{Quality Gates} configurables y protección nativa de
 \ac{PII}, una combinación que no está disponible en ninguna de las herramientas

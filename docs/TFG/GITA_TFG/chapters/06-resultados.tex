@@ -34,7 +34,7 @@ magnitudes del sistema implementado.
     Métricas de calidad evaluables (Quality Score) & 7     \\
     Clases de métricas implementadas (incl.\ outliers para EDA) & 8 \\
     Servicios Docker orquestados                    & 8     \\
-    Rutas / páginas del \emph{frontend}             & 20    \\
+    Rutas / páginas del \emph{frontend}             & 20+   \\
     Componentes React reutilizables                 & 40+   \\
     Módulos funcionales de \ac{API} (\emph{blueprints} principales) & 7 \\
     \emph{Blueprints} Flask totales (incl.\ sub-rutas REST)        & 10 \\
@@ -88,8 +88,8 @@ al esfuerzo real invertido en cada sprint.
     S2 — Backend core           & dic.\ 2025--ene.\ 2026 & 18 & 72  & 85  & +18,1\,\% \\
     S3 — Motor de métricas      & feb.\ 2026       & 16 & 64  & 70  & +9,4\,\%  \\
     S4 — Frontend y dashboard   & mar.\ 2026       & 14 & 56  & 65  & +16,1\,\% \\
-    S5 — Quality Gate y cierre  & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
-    S6 — Documentación          & may.--jun.\ 2026 & — & 80  & 90  & +12,5\,\% \\
+    S5 — Funcionalidades avanzadas & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
+    S6 — Pruebas y documentación & may.--jun.\ 2026 & — & 80  & 90  & +12,5\,\% \\
     \midrule
     \textbf{Total}              &                  & \textbf{71} &
       \textbf{364} & \textbf{425} & \textbf{+16,8\,\%} \\
@@ -171,9 +171,8 @@ Los cinco objetivos se cumplen con el sistema tal como está desplegado.  El
 único objetivo superado es OE3: la \ac{API} creció de seis a siete
 \emph{blueprints} funcionales durante el desarrollo, y los \emph{blueprints}
 de organización técnica elevaron el total a diez.  Los objetivos transversales
-de seguridad, escalabilidad, mantenibilidad y portabilidad se cumplen; la
-internacionalización completa del \emph{frontend} y las pruebas
-\emph{end-to-end} quedan como trabajo futuro
+de seguridad, escalabilidad, mantenibilidad y portabilidad se cumplen; las
+pruebas \emph{end-to-end} del \emph{frontend} quedan como trabajo futuro
 (sección~\ref{sec:trabajo-futuro}).
 
 %% =========================================================================
@@ -214,8 +213,8 @@ fortalezas de \dataqual:
     \ac{CSV} reales que fallan con analizadores estándar.
 
   \item \textbf{Métricas específicas para \ac{ML}.}  El equilibrio de clases
-    (entropía de Shannon) y la actualidad no están presentes en la mayoría de
-    las herramientas generalistas de calidad de datos.
+    (entropía de Shannon) y la diversidad del dataset no están presentes en la
+    mayoría de las herramientas generalistas de calidad de datos.
 
   \item \textbf{Procesamiento asíncrono con resiliencia.}  Celery con
     reintentos, \emph{watchdog} para tareas atascadas y \emph{fallback}
@@ -300,7 +299,7 @@ reproducirla o superarla en la práctica.
     \bottomrule
   \end{tabularx}
   \medskip\par\footnotesize\raggedright
-  $^a$~La interfaz web de Soda (Soda Cloud) está disponible únicamente en el nivel comercial.
+  \textsuperscript{a}~La interfaz web de Soda (Soda Cloud) está disponible únicamente en el nivel comercial.
 \end{table}
 
 La implementación aportó perspectivas que no eran evidentes en el análisis
