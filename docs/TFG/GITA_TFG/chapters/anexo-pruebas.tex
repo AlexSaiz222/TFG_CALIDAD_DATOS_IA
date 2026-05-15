@@ -1,0 +1,443 @@
+\chapter{Plan de pruebas integral}
+\label{chap:anexo-pruebas}
+
+Este anexo formaliza el plan de pruebas de \dataqual\ y complementa la visión
+sintética presentada en el capítulo de resultados.  Se redacta siguiendo las
+recomendaciones del estándar \acs{ISO}/\acs{IEC}/\acs{IEEE}~29119 (\emph{Software
+Testing}) y la pirámide clásica de pruebas de Cohn, adaptada a una arquitectura
+de tres capas (\emph{frontend}, \acs{API} \acs{REST}, motor analítico
+asíncrono).  Su finalidad es doble: documentar la estrategia de calidad
+aplicada durante el desarrollo y servir de referencia operativa para futuras
+iteraciones del producto.
+
+
+%% =========================================================================
+\section{Objetivos y alcance}
+\label{sec:anx-pruebas-objetivos}
+%% =========================================================================
+
+\subsection*{Objetivos del plan}
+\begin{itemize}
+  \item Verificar que \dataqual\ cumple los requisitos funcionales y no
+        funcionales recogidos en el capítulo de objetivos.
+  \item Detectar regresiones en los flujos críticos (autenticación, ejecución
+        de análisis, \emph{Quality Gate}) antes de cada incremento.
+  \item Validar la lógica del dominio \emph{Sonar-Lite} (\texttt{AnalysisRun},
+        \emph{baseline} y \emph{fingerprinting} de incidencias).
+  \item Garantizar la integridad de los datos almacenados en PostgreSQL y
+        \acs{MinIO}, incluyendo el versionado de \emph{datasets}.
+  \item Documentar de forma trazable el estado de calidad del producto en el
+        momento de la defensa.
+\end{itemize}
+
+\subsection*{Alcance}
+\noindent\textbf{Dentro del alcance:} la \acs{API} \acs{REST} (módulos
+\texttt{auth}, \texttt{projects}, \texttt{datasets}, \texttt{metrics},
+\texttt{evaluations}, \texttt{dashboard}, \texttt{admin}), el motor de
+métricas, las tareas Celery, el modelo de datos y los flujos de interfaz
+crítica.\\
+\noindent\textbf{Fuera del alcance:} pruebas de penetración profundas,
+auditoría formal de accesibilidad \acs{WCAG} \acs{AA}, pruebas de carga
+sostenida en producción y pruebas de compatibilidad con navegadores
+heredados.
+
+
+%% =========================================================================
+\section{Estrategia y niveles de prueba}
+\label{sec:anx-pruebas-estrategia}
+%% =========================================================================
+
+La estrategia se articula sobre cuatro niveles complementarios, distribuidos
+conforme a una pirámide de pruebas con peso mayoritario en los niveles
+inferiores (mayor velocidad, menor coste por ejecución):
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Niveles de prueba y distribución prevista}
+  \label{tab:niveles-prueba}
+  \begin{tabularx}{\textwidth}{l l c X}
+    \toprule
+    \textbf{Nivel} & \textbf{Tipo} & \textbf{Peso} & \textbf{Propósito} \\
+    \midrule
+    L1 & Unitario               & 50\,\% &
+      Lógica pura: cálculo de métricas, helpers, validadores, serializadores. \\
+    L2 & Integración (\emph{API}) & 35\,\% &
+      \emph{Endpoints} con base de datos en memoria, fixtures y \acs{JWT}. \\
+    L3 & Sistema / E2E          & 10\,\% &
+      Flujos completos a través del \emph{frontend} contra el \emph{backend}
+      real (Playwright o equivalente). \\
+    L4 & No funcional           &  5\,\% &
+      Carga, seguridad, rendimiento de consultas y observabilidad. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Tipos de pruebas aplicadas}
+\label{sec:anx-pruebas-tipos}
+%% =========================================================================
+
+\begin{description}
+  \item[Funcionales.]  Validan el comportamiento esperado de cada
+        \emph{endpoint}, métrica y vista de la \acs{UI}.
+  \item[Integración.]  Comprueban la colaboración correcta entre Flask,
+        SQLAlchemy, Celery, \acs{Redis} y \acs{MinIO}.
+  \item[Regresión.]  Suite ejecutada antes de cada \emph{merge} a
+        \texttt{main} para garantizar que los cambios no rompen
+        funcionalidad existente.
+  \item[\emph{Smoke}.]  Conjunto reducido (\textless\,30\,s) que verifica
+        que el sistema arranca y los flujos básicos responden.
+  \item[Negativas / límite.]  Validan respuestas ante entradas inválidas,
+        datasets vacíos, valores extremos y errores de autenticación.
+  \item[Seguridad.]  Revisión de \acs{JWT}, control de acceso por
+        propietario, sanitización de \emph{uploads} y revisión de
+        dependencias con \texttt{pip-audit}.
+  \item[Rendimiento.]  Mediciones puntuales de tiempo de respuesta de
+        \emph{endpoints} clave y de ejecución de análisis sobre
+        \emph{datasets} de hasta 100\,\acs{MB}.
+  \item[Usabilidad (exploratorias).]  Ejecutadas manualmente sobre los
+        flujos principales para detectar problemas de \acs{UX} no
+        capturados por las pruebas automáticas.
+\end{description}
+
+
+%% =========================================================================
+\section{Suites de prueba (resumen por capa)}
+\label{sec:anx-pruebas-suites}
+%% =========================================================================
+
+A continuación se enumeran las \emph{suites} previstas y su propósito de
+alto nivel.  Los casos detallados (\emph{TC-ID}, precondiciones, pasos y
+datos de entrada) se mantienen en el documento técnico
+\texttt{docs/PLAN\_PRUEBAS.md}, fuera de la memoria, para facilitar su
+ejecución y evolución sin afectar al documento académico.
+
+\subsection{Capa de \emph{backend} (Flask + Celery)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Suites de \emph{backend}}
+  \label{tab:suites-backend}
+  \begin{tabularx}{\textwidth}{l l X l}
+    \toprule
+    \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
+    \midrule
+    BE-01 & \texttt{test\_auth} &
+      Registro, \emph{login}, refresco y revocación de \acs{JWT}.
+      & Implementada \\
+    BE-02 & \texttt{test\_projects\_api} &
+      \acs{CRUD} de proyectos y configuración de métricas.
+      & Implementada \\
+    BE-03 & \texttt{test\_dataset\_versioning} &
+      Lógica de versionado padre-hijo y árbol de linaje.
+      & Implementada \\
+    BE-04 & \texttt{test\_dataset\_versioning\_api} &
+      \emph{Endpoints} de versionado y consulta de historial.
+      & Implementada \\
+    BE-05 & \texttt{test\_quality\_gate} &
+      Umbrales del \emph{Quality Gate} y veredicto del análisis.
+      & Implementada \\
+    BE-06 & \texttt{test\_metrics\_engine} +
+            \texttt{test\_metrics\_engine\_extended} &
+      Comportamiento de las ocho clases de métricas frente a casos
+      límite: completitud, unicidad, actualidad, exactitud sintáctica,
+      equilibrio de clases, diversidad, valores atípicos y consistencia
+      lógica (42 casos).
+      & Implementada \\
+    BE-07 & \texttt{test\_analysis\_run} &
+      Creación de \texttt{AnalysisRun}, comparación con \emph{baseline}
+      y cálculo de \emph{new/fixed issues}.
+      & Pendiente \\
+    BE-08 & \texttt{test\_celery\_tasks} &
+      Ejecución asíncrona, reintentos y manejo de errores en tareas
+      diferidas.
+      & Pendiente \\
+    BE-09 & \texttt{test\_minio\_storage} &
+      Subida, descarga e integridad de ficheros en \acs{MinIO}.
+      & Pendiente \\
+    BE-10 & \texttt{test\_idor\_authorization} &
+      Control de acceso a recursos: un usuario no puede leer ni
+      modificar \emph{datasets} de otro propietario, ni acceder sin
+      \acs{JWT} (14 casos cubriendo \acs{IDOR} en lectura, escritura y
+      enumeración).
+      & Implementada \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Capa de dominio (\emph{Sonar-Lite})}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Suites de dominio \emph{Sonar-Lite}}
+  \label{tab:suites-dominio}
+  \begin{tabularx}{\textwidth}{l l X l}
+    \toprule
+    \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
+    \midrule
+    DM-01 & \texttt{test\_fingerprinting} &
+      Estabilidad del \emph{fingerprint} de \texttt{DataQualityIssue} entre
+      ejecuciones (mismo \emph{issue} $\Rightarrow$ misma huella; 28 casos).
+      & Implementada \\
+    DM-02 & \texttt{test\_diff\_baseline} &
+      Cálculo correcto de incidencias \emph{nuevas}, \emph{resueltas} y
+      \emph{persistentes} respecto al \emph{baseline} (7 casos).
+      & Implementada \\
+    DM-03 & \texttt{test\_quality\_score} &
+      Verificación numérica de la fórmula de \emph{Quality Score} con
+      casos canónicos (sin issues, una severidad, mezcla, \emph{cap} de
+      penalización, corrección de dimensionalidad; 30 casos).
+      & Implementada \\
+    DM-04 & \texttt{test\_quality\_gate\_verdict} &
+      Combinaciones de umbrales (\emph{min\_score}, \emph{max\_critical},
+      \emph{max\_new}) y veredicto \texttt{PASSED/WARNING/FAILED} con
+      precedencia (12 casos).
+      & Implementada \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Capa de \emph{frontend} (Next.js)}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Suites de \emph{frontend}}
+  \label{tab:suites-frontend}
+  \begin{tabularx}{\textwidth}{l l X l}
+    \toprule
+    \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
+    \midrule
+    FE-01 & \emph{Smoke} de páginas &
+      Renderizado sin errores de las páginas públicas (\emph{login},
+      registro, recuperación).
+      & Manual \\
+    FE-02 & Componentes de formulario &
+      Validación de campos, mensajes de error y estado deshabilitado.
+      & Manual \\
+    FE-03 & Flujo de subida de \emph{datasets} &
+      \emph{Drag\,\&\,drop}, validación de tamaño y tipo, progreso.
+      & Manual \\
+    FE-04 & Configuración de métricas &
+      Edición del \emph{metrics\_config}, persistencia tras recarga.
+      & Manual \\
+    FE-05 & Ejecución y consulta de análisis &
+      Lanzamiento de \texttt{AnalysisRun}, \emph{polling} de estado y
+      visualización del dashboard.
+      & Manual \\
+    FE-06 & Canvas de linaje &
+      Render correcto del árbol de versiones y navegación entre nodos.
+      & Manual \\
+    FE-07 & E2E críticos (Playwright) &
+      Automatización futura de FE-03 + FE-05 contra \emph{stack} Docker.
+      & Pendiente \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Pruebas no funcionales}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Suites no funcionales}
+  \label{tab:suites-nofuncionales}
+  \begin{tabularx}{\textwidth}{l l X l}
+    \toprule
+    \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
+    \midrule
+    NF-01 & Seguridad \acs{JWT} &
+      \emph{Tokens} expirados, manipulados y reutilización tras
+      \emph{logout}.
+      & Parcial (BE-01) \\
+    NF-02 & Autorización por recurso &
+      Un usuario no puede acceder a proyectos o \emph{datasets} de otro
+      (cubierta por BE-02 para proyectos y BE-10 para \emph{datasets}).
+      & Implementada \\
+    NF-03 & Validación de entradas &
+      \emph{Fuzzing} ligero de cuerpos \acs{JSON} y \emph{uploads}
+      maliciosos (\acs{CSV} con \emph{payloads}).
+      & Pendiente \\
+    NF-04 & Auditoría de dependencias &
+      Ejecución de \texttt{pip-audit} y \texttt{npm audit} en cada
+      \emph{release}.
+      & Manual \\
+    NF-05 & Rendimiento de análisis &
+      Tiempos de ejecución sobre \emph{datasets} de 10, 50 y 100\,\acs{MB}.
+      & Manual \\
+    NF-06 & Rendimiento de \emph{endpoints} clave &
+      Latencia \emph{p50}/\emph{p95} de \texttt{GET /api/dashboard} y
+      listados paginados con 1\,000 elementos.
+      & Pendiente \\
+  \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Entornos y datos de prueba}
+\label{sec:anx-pruebas-entornos}
+%% =========================================================================
+
+\subsection*{Entornos}
+\begin{itemize}
+  \item \textbf{Local (desarrollador).}  \texttt{pytest} con SQLite en
+        memoria; ejecuta L1 y L2 en menos de 30\,s.
+  \item \textbf{Docker compose.}  \emph{Stack} completo (PostgreSQL,
+        \acs{Redis}, \acs{MinIO}, Celery) para pruebas de integración
+        realista y manuales.
+  \item \textbf{Pre-producción.}  No disponible en el alcance del
+        \acs{TFG}; queda planteado como trabajo futuro.
+\end{itemize}
+
+\subsection*{Datos de prueba}
+Se utilizan tres categorías de \emph{datasets} sintéticos almacenados en
+\texttt{samples/}: \emph{(i)}~conjuntos limpios para escenarios positivos;
+\emph{(ii)}~conjuntos contaminados deliberadamente (nulos, duplicados,
+formatos incorrectos, valores fuera de rango) para validar la detección
+de incidencias; y \emph{(iii)}~conjuntos grandes (50--100\,\acs{MB}) para
+pruebas de rendimiento.  Los \emph{fixtures} de \texttt{pytest} construyen
+usuarios, proyectos y \emph{datasets} de referencia en cada ejecución.
+
+
+%% =========================================================================
+\section{Criterios de entrada, salida y aceptación}
+\label{sec:anx-pruebas-criterios}
+%% =========================================================================
+
+\subsection*{Criterios de entrada (\emph{ready to test})}
+\begin{itemize}
+  \item Código integrado en la rama de trabajo y compilando sin errores.
+  \item Migraciones de base de datos aplicadas correctamente.
+  \item Documentación de la \acs{HU} disponible (criterios de aceptación
+        redactados).
+\end{itemize}
+
+\subsection*{Criterios de salida (\emph{exit criteria})}
+\begin{itemize}
+  \item 100\,\% de los casos críticos (P1) ejecutados y \emph{aprobados}.
+  \item Ningún defecto de severidad \emph{bloqueante} o \emph{crítica}
+        abierto.
+  \item Cobertura de líneas $\geq 70\,\%$ en módulos críticos
+        (\texttt{api/auth}, \texttt{api/datasets}, \texttt{tasks/}).
+  \item Suite \emph{smoke} verde en el último \emph{commit} de \texttt{main}.
+\end{itemize}
+
+\subsection*{Criterios de aceptación por \acs{HU}}
+Cada \acs{HU} del \emph{backlog} (anexo~\ref{chap:anexo-backlog}) incluye
+sus propios criterios de aceptación; el plan de pruebas mantiene una
+matriz de trazabilidad \acs{HU}\,$\leftrightarrow$\,\emph{suite} que se
+detalla en el documento técnico complementario.
+
+
+%% =========================================================================
+\section{Métricas y \acs{KPI} del plan}
+\label{sec:anx-pruebas-kpis}
+%% =========================================================================
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Indicadores de calidad del proceso de pruebas}
+  \label{tab:kpis-pruebas}
+  \begin{tabularx}{\textwidth}{l X l l}
+    \toprule
+    \textbf{KPI} & \textbf{Descripción} & \textbf{Objetivo} &
+      \textbf{Estado} \\
+    \midrule
+    Cobertura líneas      & \texttt{pytest --cov} sobre \texttt{backend/}.
+                          & $\geq 70\,\%$ & Por medir \\
+    Tasa de paso          & Casos \emph{passed}\,/\,total ejecutados.
+                          & $\geq 95\,\%$ & 100\,\% (232/233) \\
+    Defectos críticos abiertos & Bugs P1 sin resolver al cierre.
+                          & 0           & 0 \\
+    Tiempo suite L1+L2    & Duración total en local.
+                          & \textless\,60\,s & $\sim$17\,s \\
+    Densidad de defectos  & Defectos \,/\,KLOC en el periodo.
+                          & Decreciente   & N/A \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+%% =========================================================================
+\section{Riesgos del plan de pruebas}
+\label{sec:anx-pruebas-riesgos}
+%% =========================================================================
+
+\begin{description}
+  \item[RP-01.]  Cobertura limitada del \emph{frontend} automatizado.
+    \emph{Mitigación}: pruebas manuales guiadas y \emph{checklist} de
+    regresión antes de cada hito.
+  \item[RP-02.]  Pruebas dependientes del entorno Docker (red, volúmenes).
+    \emph{Mitigación}: \emph{fixtures} aislados y uso preferente de
+    SQLite en memoria para L2.
+  \item[RP-03.]  Datos sintéticos no representativos de producción.
+    \emph{Mitigación}: incorporación de \emph{datasets} públicos
+    (\acs{UCI}, Kaggle) en muestras de validación.
+  \item[RP-04.]  Falta de pruebas de carga sostenida.
+    \emph{Mitigación}: documentado como trabajo futuro; mediciones
+    puntuales con ficheros de 100\,\acs{MB}.
+\end{description}
+
+
+%% =========================================================================
+\section{Roles y responsabilidades}
+\label{sec:anx-pruebas-roles}
+%% =========================================================================
+
+Dado el carácter individual del \acs{TFG}, el autor asume los roles de
+\emph{QA Lead}, \emph{Test Engineer} y \emph{ejecutor manual}.  Los tutores
+actúan como \emph{stakeholders} y validan los criterios de aceptación en
+las revisiones de cada \emph{sprint} (capítulo de metodología).
+
+
+%% =========================================================================
+\section{Trazabilidad y herramientas}
+\label{sec:anx-pruebas-trazabilidad}
+%% =========================================================================
+
+\begin{itemize}
+  \item \textbf{Pruebas \emph{backend}.}  \texttt{pytest} +
+        \texttt{pytest-cov}; \emph{fixtures} en \texttt{conftest.py}.
+  \item \textbf{Pruebas \emph{frontend}.}  Pruebas manuales guiadas;
+        Playwright planificado para FE-07.
+  \item \textbf{Análisis estático.}  \texttt{ruff}, \texttt{eslint} y
+        \texttt{tsc --noEmit}; SonarCloud configurado vía
+        \texttt{sonar-project.properties}.
+  \item \textbf{Gestión de defectos.}  \emph{Issues} de GitHub etiquetados
+        \texttt{bug/P1..P4}.
+  \item \textbf{Matriz de trazabilidad.}  Mantenida en
+        \texttt{docs/PLAN\_PRUEBAS.md}, vinculando \acs{HU}, suite y
+        veredicto.
+\end{itemize}
+
+
+%% =========================================================================
+\section{Estado actual y trabajo futuro}
+\label{sec:anx-pruebas-estado}
+%% =========================================================================
+
+A la fecha de redacción de la memoria se han implementado doce
+\emph{suites} automatizadas que cubren las áreas de mayor riesgo:
+BE-01 a BE-05 (autenticación, proyectos, versionado y \emph{Quality
+Gate} básico), BE-06 (motor completo de métricas: 8 clases), BE-10
+(autorización cruzada \acs{IDOR}) y DM-01 a DM-04
+(\emph{fingerprinting}, comparación con \emph{baseline}, \emph{Quality
+Score} y combinaciones de veredicto del \emph{gate}).  En conjunto,
+la suite acumula 233 casos de prueba (232 \emph{passed} y 1
+\emph{skipped}) y se ejecuta completa en aproximadamente 17~segundos
+sobre SQLite en memoria.
+
+Las suites pendientes (BE-07--BE-09 y FE-07) se han priorizado para
+una próxima iteración del producto, junto con la integración continua
+mediante GitHub Actions y la generación automatizada de informes de
+cobertura.
+
+Este plan deberá revisarse al inicio de cada nueva fase de desarrollo
+para incorporar las funcionalidades añadidas y reajustar los criterios
+de aceptación correspondientes.

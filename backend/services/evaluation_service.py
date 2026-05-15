@@ -20,12 +20,73 @@ logger = logging.getLogger(__name__)
 
 class EvaluationService:
     """Service for running data quality evaluations"""
-    
+
+    # Penalty weights per issue severity (used by _calculate_quality_score).
+    PENALTY_PER_ISSUE = {'critical': 0.12, 'high': 0.05, 'medium': 0.01, 'low': 0.003}
+    REFERENCE_COLUMNS = 10
+    MAX_ISSUE_PENALTY = 0.97
+
     def __init__(self):
         """Initialize evaluation service"""
         self.dataset_service = DatasetService()
         self.minio_service = MinioService()
-    
+
+    @classmethod
+    def _calculate_quality_score(cls, issues, num_columns):
+        """Compute the issue-based Quality Score with dimensionality correction.
+
+        Formula:
+            quality_score = max(0, 1 - min(MAX_ISSUE_PENALTY, raw_penalty / column_scale))
+        where
+            raw_penalty  = sum(count[s] * weight[s] for s in severities)
+            column_scale = sqrt(max(REFERENCE_COLUMNS, num_columns) / REFERENCE_COLUMNS)
+
+        Args:
+            issues: iterable of issue dicts; each may carry a 'severity' key
+                (one of 'critical', 'high', 'medium', 'low'). Other values are
+                ignored.
+            num_columns: number of columns in the analysed dataset (>= 0).
+
+        Returns:
+            tuple (quality_score, breakdown_dict). quality_score is a float in
+            [0.0, 1.0]; breakdown_dict contains the intermediate values for
+            transparency in the UI.
+        """
+        critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
+        high_count     = sum(1 for i in issues if i.get('severity') == 'high')
+        medium_count   = sum(1 for i in issues if i.get('severity') == 'medium')
+        low_count      = sum(1 for i in issues if i.get('severity') == 'low')
+
+        column_scale = math.sqrt(
+            max(cls.REFERENCE_COLUMNS, max(0, num_columns)) / cls.REFERENCE_COLUMNS
+        )
+        raw_penalty = (
+            critical_count * cls.PENALTY_PER_ISSUE['critical'] +
+            high_count     * cls.PENALTY_PER_ISSUE['high'] +
+            medium_count   * cls.PENALTY_PER_ISSUE['medium'] +
+            low_count      * cls.PENALTY_PER_ISSUE['low']
+        )
+        issue_penalty = min(cls.MAX_ISSUE_PENALTY, raw_penalty / column_scale)
+        quality_score = max(0.0, 1.0 - issue_penalty)
+
+        breakdown = {
+            'raw_penalty': round(raw_penalty, 4),
+            'column_scale': round(column_scale, 4),
+            'num_columns': num_columns,
+            'issue_penalty': round(issue_penalty, 4),
+            'penalty_weights': cls.PENALTY_PER_ISSUE,
+            'final_score': round(quality_score, 4),
+            'formula': 'issue_penalty_with_dimensionality',
+            'issue_counts': {
+                'critical': critical_count,
+                'high': high_count,
+                'medium': medium_count,
+                'low': low_count,
+            },
+        }
+        return quality_score, breakdown
+
+
     def _update_progress(self, evaluation_id, progress, current_step, analysis_run_id=None):
         """Update evaluation progress in the database using direct SQL update
         
@@ -475,31 +536,20 @@ class EvaluationService:
             else:
                 base_score = 0.0
 
-            # Step 2: issue counts.
-            critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
-            high_count     = sum(1 for i in issues if i.get('severity') == 'high')
-            medium_count   = sum(1 for i in issues if i.get('severity') == 'medium')
-            low_count      = sum(1 for i in issues if i.get('severity') == 'low')
-
-            # Step 3: dimensionality-normalised penalty.
-            PENALTY_PER_ISSUE = {'critical': 0.12, 'high': 0.05, 'medium': 0.01, 'low': 0.003}
-            REFERENCE_COLUMNS = 10
-
-            num_columns   = len(df.columns)
-            column_scale  = math.sqrt(max(REFERENCE_COLUMNS, num_columns) / REFERENCE_COLUMNS)
-            raw_penalty   = (
-                critical_count * PENALTY_PER_ISSUE['critical'] +
-                high_count     * PENALTY_PER_ISSUE['high'] +
-                medium_count   * PENALTY_PER_ISSUE['medium'] +
-                low_count      * PENALTY_PER_ISSUE['low']
+            # Step 2 & 3: issue-based score with dimensionality correction.
+            num_columns = len(df.columns)
+            quality_score, score_breakdown_calc = self._calculate_quality_score(
+                issues, num_columns
             )
-            issue_penalty = min(0.97, raw_penalty / column_scale)
-            quality_score = max(0.0, 1.0 - issue_penalty)
 
             logger.info(
-                f"[SCORE] issue_penalty={issue_penalty:.4f} "
-                f"(raw={raw_penalty:.4f}, scale={column_scale:.3f}, cols={num_columns}, "
-                f"crit={critical_count}, high={high_count}, med={medium_count}, low={low_count})"
+                f"[SCORE] issue_penalty={score_breakdown_calc['issue_penalty']:.4f} "
+                f"(raw={score_breakdown_calc['raw_penalty']:.4f}, "
+                f"scale={score_breakdown_calc['column_scale']:.3f}, cols={num_columns}, "
+                f"crit={score_breakdown_calc['issue_counts']['critical']}, "
+                f"high={score_breakdown_calc['issue_counts']['high']}, "
+                f"med={score_breakdown_calc['issue_counts']['medium']}, "
+                f"low={score_breakdown_calc['issue_counts']['low']})"
                 f" final={quality_score:.4f} | diagnostic_base={base_score:.4f}"
             )
 
@@ -522,19 +572,7 @@ class EvaluationService:
                         'metric_scores': score_breakdown,
                         'diagnostic_base_score': round(base_score, 4),
                         # Grade formula: 1 − min(0.97, raw_penalty / column_scale)
-                        'raw_penalty': round(raw_penalty, 4),
-                        'column_scale': round(column_scale, 4),
-                        'num_columns': num_columns,
-                        'issue_penalty': round(issue_penalty, 4),
-                        'penalty_weights': PENALTY_PER_ISSUE,
-                        'final_score': round(quality_score, 4),
-                        'formula': 'issue_penalty_with_dimensionality',
-                        'issue_counts': {
-                            'critical': critical_count,
-                            'high': high_count,
-                            'medium': medium_count,
-                            'low': low_count,
-                        },
+                        **score_breakdown_calc,
                     },
                     **results  # Include all metric results
                 },
