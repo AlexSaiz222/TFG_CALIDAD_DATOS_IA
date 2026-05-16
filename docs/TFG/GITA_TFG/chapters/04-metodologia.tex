@@ -243,6 +243,9 @@ La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
       el \emph{wrapper} \texttt{react-chartjs-2}. \\
     Axios     & 1.3  & Cliente HTTP con interceptores para inyección
       automática de \ac{JWT} y gestión centralizada de errores. \\
+    i18next   & 26.0 & Internacionalización del \emph{frontend} con
+      detección automática de idioma y catálogos cargables; se integra con
+      React mediante el \emph{wrapper} \texttt{react-i18next}~17.0. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -292,6 +295,13 @@ herramienta empleada.
       descriptivas. \\
     Gunicorn  & 20.1 & Servidor \ac{WSGI} de producción con soporte
       multiproceso para gestionar la concurrencia. \\
+    Marshmallow & 3.19 & Validación y serialización declarativa de los
+      \emph{payloads} de la \ac{API} \ac{REST}; se emplea para verificar
+      las configuraciones de métricas y los parámetros de evaluación
+      antes de ejecutarlos. \\
+    Flask-Limiter & 3.3 & Limitación de tasa de peticiones por
+      dirección IP (100~req/min por defecto), con Redis como almacén
+      compartido entre los procesos de Gunicorn. \\
     \bottomrule
   \end{tabularx}
 \end{table}

@@ -32,7 +32,8 @@
       "Bash(Select-Object -Last 10)",
       "Skill(tfg-review)",
       "Bash(awk '{printf \"%.1f KB\\\\n\", $1/1024}')",
-      "Bash(pdflatex -interaction=nonstopmode main.tex)"
+      "Bash(pdflatex -interaction=nonstopmode main.tex)",
+      "Bash(git log *)"
     ]
   }
 }
