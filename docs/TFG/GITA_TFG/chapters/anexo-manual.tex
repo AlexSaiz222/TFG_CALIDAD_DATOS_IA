@@ -1,17 +1,20 @@
 \chapter{Manual de usuario}
 \label{anx:manual}
 
-Este anexo proporciona una guía paso a paso para las operaciones principales
-de \dataqual.  Se asume que el sistema está desplegado y accesible en
-\texttt{http://localhost:3000}.
+Este anexo ofrece una guía paso a paso de las operaciones principales
+de \dataqual\ desde la perspectiva del usuario final.  Se asume que el
+sistema está desplegado y accesible en \texttt{http://localhost:3000}.
+La interfaz está disponible en español e inglés y el idioma se puede
+alternar en cualquier momento desde el selector \texttt{ES~/~EN}
+situado en la parte inferior de la barra lateral.
 
 \section*{Requisitos previos}
 
 \begin{enumerate}
   \item Docker Desktop instalado y en ejecución.
   \item Repositorio clonado: \texttt{git clone <url-repositorio>}.
-  \item Fichero \texttt{backend/.env} configurado con las variables de entorno
-    (plantilla en \texttt{backend/.env.example}).
+  \item Fichero \texttt{backend/.env} configurado con las variables de
+    entorno (plantilla en \texttt{backend/.env.example}).
 \end{enumerate}
 
 \section*{Arranque del sistema}
@@ -23,97 +26,450 @@ docker-compose up           # Arranques posteriores
 \end{verbatim}
 
 El sistema tarda aproximadamente 30--60 segundos en estar completamente
-operativo.  Acceder a \texttt{http://localhost:3000}.
+operativo.  Una vez listos los servicios, acceder a
+\texttt{http://localhost:3000}.
+
+\section*{Navegación general}
+
+La interfaz se organiza en torno a tres elementos: una barra lateral
+persistente que agrupa la navegación principal, una zona central de
+contenido y un encabezado contextual con \emph{breadcrumbs} que
+indica la posición actual (proyecto, \emph{dataset} o evaluación
+activos).
+
+La barra lateral se divide en dos secciones.  La sección principal
+contiene los apartados \textbf{Dashboard}, \textbf{Proyectos},
+\textbf{Datasets} y \textbf{Análisis}; los tres últimos se despliegan
+en accesos directos a la vista de listado, a la acción de creación o
+carga, y a las entradas recientes (los proyectos del usuario aparecen
+como atajos directos bajo \textbf{Proyectos}).  La sección de
+\textbf{Configuración} agrupa el perfil del usuario y la gestión de
+plantillas de métricas reutilizables.  En la parte inferior se sitúan
+el selector de idioma \texttt{ES~/~EN}, el indicador del usuario
+activo y el botón de cierre de sesión.  La barra lateral se puede
+colapsar a un panel de iconos pulsando el \emph{chevron} de su
+cabecera, lo que maximiza el área útil para el contenido.
+
+\section*{Cuadro de mando}
+
+Tras iniciar sesión el sistema redirige al cuadro de mando
+(\texttt{/dashboard}), que ofrece una visión global del estado de
+calidad de todos los proyectos del usuario.  La pantalla agrupa
+varias secciones de información:
+
+\begin{itemize}
+  \item \textbf{Indicadores clave (KPI):} número de proyectos
+    activos, \emph{datasets} en uso y puntuación media de los
+    últimos análisis completados.
+  \item \textbf{Distribución de \emph{Quality Gates}:} desglose
+    visual del estado del último análisis de cada proyecto, con
+    contadores de \textbf{Aprobado}, \textbf{Advertencia} y
+    \textbf{Fallido}.
+  \item \textbf{Requiere atención:} listado de los proyectos cuyo
+    \emph{Quality Gate} ha fallado, está en advertencia, o cuya
+    puntuación de calidad se encuentra por debajo del 70\,\%.
+  \item \textbf{Historial de salud:} gráfico de barras con el
+    histórico de análisis recientes por proyecto, accesible
+    mediante \emph{scroll} horizontal para revisar la evolución a
+    lo largo del tiempo.
+\end{itemize}
+
+Si el usuario aún no ha creado ningún proyecto, el cuadro de mando
+muestra un estado vacío con una llamada a la acción \textbf{Crear
+proyecto}.
 
 \section*{Flujo principal de uso}
 
 \subsection*{1. Registro e inicio de sesión}
 
+La autenticación se realiza desde la pantalla unificada
+\texttt{/auth}, que ofrece dos pestañas: \textbf{Iniciar sesión}
+(activa por defecto) y \textbf{Registrarse}.
+
 \begin{enumerate}
-  \item Acceder a \texttt{/auth/register} y completar el formulario con
-    nombre, email y contraseña.
-  \item Iniciar sesión en \texttt{/auth/login}.  El token JWT se gestiona
-    automáticamente.
+  \item Para crear una cuenta nueva, seleccionar la pestaña
+    \textbf{Registrarse} (o acceder directamente a
+    \texttt{/auth?mode=register}) e introducir nombre de usuario,
+    correo electrónico y contraseña.  Tras el registro, el sistema
+    inicia sesión automáticamente y redirige al cuadro de mando.
+  \item Para los inicios de sesión sucesivos, introducir el usuario
+    o correo y la contraseña en la pestaña \textbf{Iniciar sesión}.
+    El \emph{token} \ac{JWT} se almacena en \texttt{localStorage} y
+    se inyecta automáticamente en todas las peticiones a la \ac{API}
+    mediante el cliente Axios; la renovación del \emph{token} de
+    acceso es transparente para el usuario gracias al \emph{refresh
+    token} de larga duración.
 \end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-auth.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: pantalla unificada de autenticación
+    (\texttt{/auth}) con las pestañas \emph{Iniciar sesión} y
+    \emph{Registrarse}]
+  \end{minipage}}
+  \caption{Pantalla unificada de autenticación con pestañas de
+    inicio de sesión y registro}
+  \label{fig:manual-auth}
+\end{figure}
 
 \subsection*{2. Crear un proyecto}
 
-\begin{enumerate}
-  \item En el cuadro de mando, pulsar el botón \textbf{Nuevo proyecto}.
-  \item Introducir nombre y descripción.
-  \item El proyecto aparece en la lista con estado \emph{Sin evaluaciones}.
-\end{enumerate}
-
-\subsection*{3. Cargar un dataset}
+Los proyectos son la unidad organizativa de \dataqual: agrupan los
+\emph{datasets} cargados, las métricas configuradas, las
+evaluaciones ejecutadas y el \emph{Quality Gate} del conjunto.
 
 \begin{enumerate}
-  \item Acceder al proyecto y pulsar \textbf{Cargar dataset}.
-  \item Seleccionar un archivo CSV (máx. 100\,MB).
-  \item El sistema extrae automáticamente el esquema y estadísticas
-    descriptivas.
-  \item Opcional: marcar columnas sensibles (\acs{PII}) en la pestaña
-    \emph{Columnas}.
+  \item Pulsar \textbf{Nuevo proyecto} desde el cuadro de mando,
+    desde el listado de proyectos (\texttt{/projects}) o desde el
+    acceso directo de la barra lateral.  La aplicación abre un
+    asistente de tres pasos:
+    \begin{enumerate}
+      \item \textbf{Información básica:} nombre del proyecto y
+        descripción opcional.
+      \item \textbf{Plantilla y métricas:} elección entre aplicar
+        una plantilla del sistema (que preconfigura un conjunto
+        coherente de métricas y umbrales) o una configuración
+        personalizada activando individualmente las métricas
+        deseadas.  Los parámetros detallados se pueden refinar
+        posteriormente desde la página del proyecto.
+      \item \textbf{Resumen y confirmación:} revisión final del
+        proyecto antes de su creación.
+    \end{enumerate}
+  \item Al confirmar, el proyecto aparece en el listado con estado
+    \emph{Sin evaluaciones} y queda disponible como atajo en la
+    barra lateral para acceso rápido en sesiones posteriores.
 \end{enumerate}
 
-\subsection*{4. Configurar métricas}
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-new-project.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: asistente \emph{Nuevo proyecto}
+    (\texttt{/projects/new}), mostrando los pasos \emph{Información
+    básica}, \emph{Plantilla y métricas} y \emph{Resumen}]
+  \end{minipage}}
+  \caption{Asistente de creación de un nuevo proyecto en tres pasos}
+  \label{fig:manual-new-project}
+\end{figure}
+
+\subsection*{3. Cargar un \emph{dataset}}
+
+La carga de \emph{datasets} sigue un asistente de tres pasos
+accesible desde \texttt{/datasets/upload}, desde el botón
+\textbf{Añadir dataset} en la pestaña \emph{Datasets} de un proyecto,
+o desde el acceso directo \textbf{Subir dataset} en la barra
+lateral.
 
 \begin{enumerate}
-  \item En la página del proyecto, pestaña \emph{Métricas}.
-  \item Seleccionar las métricas deseadas de la lista o usar una plantilla del
-    sistema.
-  \item Ajustar parámetros: umbrales, pesos y columnas objetivo.
-  \item Pulsar \textbf{Guardar configuración}.
+  \item \textbf{Selecciona un proyecto:} elegir el proyecto al que
+    se asociará el \emph{dataset}.  Si la carga se inicia desde la
+    página de un proyecto concreto, este paso se completa de forma
+    automática.
+  \item \textbf{Añade un archivo:} arrastrar y soltar un fichero
+    CSV en la zona de carga o pulsar para abrir el selector de
+    archivos.  El sistema solo admite ficheros con extensión
+    \texttt{.csv} y un tamaño máximo de 10\,MB, y aplica una
+    estrategia de \emph{fallback} para codificaciones y
+    delimitadores poco habituales descrita en la
+    sección~\ref{sec:impl-ingesta}.
+  \item \textbf{Revisa y confirma:} introducir el nombre del
+    \emph{dataset}, una descripción opcional y, opcionalmente, una
+    etiqueta de versión (por ejemplo \texttt{v2.0},
+    \texttt{producción} o \texttt{baseline}).  En la misma pantalla,
+    el panel \emph{Privacidad de datos} permite marcar las columnas
+    sensibles (\ac{PII}) cuyos valores se enmascararán
+    automáticamente en todas las salidas posteriores del sistema
+    (logs, \emph{issues}, vistas previas, perfilado).
 \end{enumerate}
+
+Al confirmar la carga, el sistema valida el fichero, extrae el
+esquema y las estadísticas descriptivas básicas, almacena el binario
+en MinIO y registra los metadatos en PostgreSQL.
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-upload.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: asistente de carga de \emph{dataset}
+    (\texttt{/datasets/upload}) con la zona de \emph{drag-and-drop}
+    y el panel de selección de columnas sensibles (\ac{PII})]
+  \end{minipage}}
+  \caption{Asistente de carga de \emph{dataset} CSV con marcado
+    opcional de columnas sensibles (\ac{PII})}
+  \label{fig:manual-upload}
+\end{figure}
+
+\subsection*{4. Configurar métricas del proyecto}
+
+Cada proyecto mantiene su propia configuración de métricas, accesible
+desde la pestaña \textbf{Métricas} de la página del proyecto o desde
+el botón \textbf{Configurar métricas}, que abre la página dedicada
+\texttt{/metrics/configure/[id]}.  El configurador presenta tres
+pestañas:
+
+\begin{enumerate}
+  \item \textbf{Métricas disponibles:} catálogo de las siete
+    métricas evaluables del sistema (completitud, unicidad,
+    exactitud sintáctica, consistencia lógica, equilibrio de clases,
+    actualidad y diversidad).  Cada métrica incluye una breve
+    descripción de lo que mide y un botón para activarla en el
+    proyecto.
+  \item \textbf{Métricas seleccionadas:} para cada métrica activa,
+    se pueden ajustar sus parámetros específicos (umbrales, pesos,
+    columnas objetivo, patrones de validación para la exactitud
+    sintáctica, reglas \texttt{IF--THEN} para la consistencia
+    lógica, etc.).
+  \item \textbf{Plantillas:} aplicar una plantilla predefinida del
+    sistema o una creada por el usuario (véase paso 10) para
+    reutilizar configuraciones entre proyectos similares sin tener
+    que repetir el ajuste manual.
+\end{enumerate}
+
+Pulsar \textbf{Guardar configuración} aplica los cambios y devuelve
+al usuario a la página del proyecto.
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-metrics.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: configurador de métricas
+    (\texttt{/metrics/configure/[id]}) con sus tres pestañas
+    \emph{Métricas disponibles}, \emph{Métricas seleccionadas} y
+    \emph{Plantillas}]
+  \end{minipage}}
+  \caption{Configurador de métricas con catálogo, parametrización
+    detallada y plantillas reutilizables}
+  \label{fig:manual-metrics}
+\end{figure}
 
 \subsection*{5. Ejecutar una evaluación}
 
+Una vez configuradas las métricas y cargado al menos un
+\emph{dataset}, el usuario puede lanzar un análisis desde la página
+del proyecto pulsando el botón \textbf{Ejecutar análisis}.
+
 \begin{enumerate}
-  \item En la página del proyecto, pulsar \textbf{Nueva evaluación}.
-  \item Seleccionar el dataset a evaluar.
-  \item La evaluación se lanza de forma asíncrona.  La barra de progreso
-    muestra el avance (0--100\,\%).
-  \item Al completarse, se muestra el \emph{Quality Score} y el estado del
-    \emph{Quality Gate}.
+  \item Seleccionar el \emph{dataset} (y opcionalmente la versión
+    concreta) que se desea evaluar.
+  \item El sistema encola la tarea en Celery y muestra una barra
+    de progreso en tiempo real (0--100\,\%) actualizada mediante
+    \emph{polling} cada pocos segundos.  Si Celery no estuviera
+    disponible, el servicio híbrido (\texttt{HybridEvaluationService})
+    ejecuta el análisis de forma síncrona como mecanismo de
+    \emph{fallback}, garantizando que la evaluación se complete.
+  \item Al finalizar, el sistema registra los resultados como un
+    \texttt{AnalysisRun} inmutable y muestra el \emph{Quality
+    Score} obtenido junto con el veredicto del \emph{Quality Gate}.
+    Si la evaluación se quedara atascada por un tiempo prolongado,
+    el \emph{watchdog} de evaluaciones la detectaría y marcaría
+    como fallida automáticamente.
 \end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-evaluation.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: lanzamiento de \emph{Ejecutar análisis}
+    desde la página del proyecto, con la barra de progreso asíncrono
+    (0--100\,\%)]
+  \end{minipage}}
+  \caption{Lanzamiento de un análisis con seguimiento del progreso
+    asíncrono mediante \emph{polling}}
+  \label{fig:manual-evaluation}
+\end{figure}
 
 \subsection*{6. Consultar resultados}
 
-\begin{enumerate}
-  \item Pulsar sobre una evaluación completada para ver el detalle.
-  \item El indicador circular muestra el \emph{Quality Score} (0--100).
-  \item Las pestañas muestran los resultados por métrica y la lista de
-    \emph{issues} con severidad, columna afectada y descripción.
-  \item Los \emph{badges} indican si los issues son nuevos, recurrentes o
-    corregidos respecto a la evaluación anterior.
-\end{enumerate}
-
-\subsection*{7. Explorar datos (EDA)}
+Los resultados de los análisis son accesibles desde tres puntos
+de entrada: la pestaña \textbf{Análisis} de la página del proyecto
+(histórico de análisis del proyecto), el listado global en
+\texttt{/evaluations} (histórico cruzado de todos los proyectos),
+y la pestaña \textbf{Evaluaciones} de la página del \emph{dataset}.
 
 \begin{enumerate}
-  \item En la página del dataset, pestaña \emph{Profiling}.
-  \item Seleccionar columnas para visualizar histogramas y diagramas de caja.
-  \item La pestaña \emph{Correlaciones} muestra la matriz de correlación
-    de Pearson (numéricas) y Spearman (mixtas).
-  \item La pestaña \emph{Outliers} permite ajustar el factor IQR
-    interactivamente.
+  \item Pulsar sobre un análisis completado para abrir su detalle.
+  \item El indicador circular (\emph{gauge}) muestra el
+    \emph{Quality Score} global (0--100), acompañado del veredicto
+    del \emph{Quality Gate} (\texttt{PASSED}, \texttt{WARNING} o
+    \texttt{FAILED}) y de un desglose por dimensiones de calidad.
+  \item Las pestañas dedicadas a cada métrica detallan el resultado
+    por columna y permiten profundizar en los \emph{issues}
+    detectados, indicando severidad (crítica, alta, media, baja),
+    columna afectada, descripción del problema y, cuando procede,
+    el porcentaje de filas afectadas.
+  \item Los \emph{badges} que acompañan a cada \emph{issue} indican
+    su estado respecto a la evaluación anterior:
+    \textbf{Nuevo}, \textbf{Recurrente} o, en la pestaña de cambios,
+    \textbf{Corregido}.  Esta trazabilidad se sustenta en el sistema
+    de \emph{fingerprinting} descrito en la
+    sección~\ref{sec:impl-fingerprinting}, que asigna un \emph{hash}
+    determinista a cada problema.
 \end{enumerate}
 
-\subsection*{8. Configurar un Quality Gate}
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-results.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: detalle de un análisis
+    (\texttt{/evaluations/[id]}) con el \emph{gauge} del
+    \emph{Quality Score}, las pestañas por métrica y el listado de
+    \emph{issues} con \emph{badges} de trazabilidad]
+  \end{minipage}}
+  \caption{Detalle de un análisis: \emph{Quality Score}, métricas
+    e \emph{issues} con \emph{badges} de trazabilidad
+    entre ejecuciones}
+  \label{fig:manual-results}
+\end{figure}
+
+\subsection*{7. Explorar datos (\acs{EDA})}
+
+El módulo de perfilado interactivo es accesible desde la pestaña
+\textbf{Perfilado} de cualquier \emph{dataset}
+(\texttt{/datasets/[id]}).  Concentra en una única pantalla las
+visualizaciones habituales del análisis exploratorio de datos:
 
 \begin{enumerate}
-  \item En la página del proyecto, pestaña \emph{Quality Gate}.
-  \item Establecer: puntuación mínima (defecto: 70), máximo de issues
-    críticos (defecto: 0) y máximo de issues nuevos (defecto: 10).
-  \item Los estados son: \texttt{PASSED} (verde), \texttt{WARNING} (amarillo),
-    \texttt{FAILED} (rojo).
+  \item Histogramas y diagramas de caja (\emph{boxplots}) por
+    columna, con vistas separadas para columnas numéricas y
+    categóricas.
+  \item Matriz de correlación, alternable entre los coeficientes
+    de Pearson (relaciones lineales entre variables numéricas) y
+    Spearman (relaciones monótonas, incluidas variables
+    ordinales).
+  \item Detección de valores atípicos (\emph{outliers}) con factor
+    \ac{IQR} ajustable interactivamente para explorar distintos
+    niveles de tolerancia.
+  \item Análisis de duplicados a nivel de fila completa y de
+    variabilidad por columna, útil para identificar columnas
+    quasi-constantes o claves duplicadas.
 \end{enumerate}
+
+Las columnas previamente marcadas como sensibles aparecen con sus
+valores ofuscados en todas las visualizaciones, garantizando que la
+exploración exploratoria no exponga información personal.
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-eda.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: módulo de perfilado (pestaña
+    \emph{Perfilado} de \texttt{/datasets/[id]}) con histogramas,
+    diagramas de caja, matriz de correlación y panel de
+    \emph{outliers} con factor \ac{IQR} configurable]
+  \end{minipage}}
+  \caption{Módulo de perfilado interactivo (\ac{EDA}): histogramas,
+    diagramas de caja, correlaciones y detección de
+    \emph{outliers}}
+  \label{fig:manual-eda}
+\end{figure}
+
+\subsection*{8. Configurar un \emph{Quality Gate}}
+
+Cada proyecto puede definir su propio \emph{Quality Gate} desde la
+pestaña \textbf{Quality Gate} de la página del proyecto.  El editor
+ofrece dos modos de configuración complementarios:
+
+\begin{enumerate}
+  \item \textbf{Preajustes de rigor:} botones de selección rápida
+    para los perfiles \textbf{Estricto}, \textbf{Moderado} y
+    \textbf{Permisivo}, que aplican un conjunto coherente de
+    umbrales sin necesidad de ajustarlos individualmente.  Útiles
+    como punto de partida.
+  \item \textbf{Configuración manual:} ajuste fino de los tres
+    umbrales que determinan el veredicto del \emph{gate}:
+    \begin{itemize}
+      \item \textbf{Score mínimo} (defecto 70): puntuación de
+        calidad global por debajo de la cual el \emph{Quality Gate}
+        falla.
+      \item \textbf{Máx.\ \emph{issues} críticos} (defecto 0):
+        número máximo de \emph{issues} de severidad crítica que se
+        permiten antes de fallar el \emph{gate}.
+      \item \textbf{Máx.\ \emph{issues} nuevos} (defecto 10):
+        número máximo de \emph{issues} nuevos respecto a la línea
+        base permitidos.
+    \end{itemize}
+\end{enumerate}
+
+El veredicto del \emph{Quality Gate} adopta tres estados, mostrados
+tanto en la página del análisis como en el cuadro de mando:
+\texttt{PASSED} (verde), \texttt{WARNING} (amarillo, dentro del
+margen de advertencia configurado) y \texttt{FAILED} (rojo).  Las
+opciones \textbf{Guardar cambios} y \textbf{Restaurar valores por
+defecto} controlan la persistencia de la configuración.
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-quality-gate.png}
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
+    \centering\itshape
+    [Insertar captura: pestaña \emph{Quality Gate} del proyecto con
+    los preajustes \emph{Estricto / Moderado / Permisivo} y los
+    tres umbrales de configuración manual]
+  \end{minipage}}
+  \caption{Configuración del \emph{Quality Gate} con preajustes de
+    rigor y umbrales manuales (\texttt{PASSED}, \texttt{WARNING},
+    \texttt{FAILED})}
+  \label{fig:manual-qg}
+\end{figure}
+
+\subsection*{9. Gestionar versiones de un \emph{dataset}}
+
+La pestaña \textbf{Versiones} de cualquier \emph{dataset} muestra el
+árbol completo de versiones del fichero, con las relaciones
+padre-hijo entre cargas sucesivas y el indicador
+\texttt{is\_latest} sobre la versión activa (la representación
+visual se ilustra en la Figura~\ref{fig:dataset-lineage} del
+Capítulo~\ref{chap:desarrollo}).  Desde esta vista se puede:
+
+\begin{itemize}
+  \item Subir una nueva versión del \emph{dataset}: la nueva carga
+    se vincula automáticamente como hija de la versión seleccionada
+    y se convierte en la nueva \texttt{is\_latest}.
+  \item Asignar una etiqueta descriptiva a una versión
+    (\texttt{v2.0}, \texttt{producción}, \texttt{baseline}\ldots)
+    para facilitar su identificación posterior.
+  \item Comparar dos versiones del mismo \emph{dataset} desde
+    \texttt{/datasets/compare} para ver diferencias en esquema,
+    estadísticas descriptivas y resultados de evaluación.
+\end{itemize}
+
+\subsection*{10. Plantillas de métricas reutilizables}
+
+La sección \texttt{/settings/templates}, accesible desde el
+apartado \textbf{Configuración} de la barra lateral, permite
+gestionar plantillas del usuario que encapsulan una configuración
+completa de métricas (selección, parámetros y umbrales).  Una vez
+guardada, una plantilla puede aplicarse durante el paso
+\emph{Plantilla y métricas} del asistente de creación de un proyecto
+nuevo, o desde la pestaña \emph{Plantillas} del configurador de
+métricas de un proyecto existente.  Esta funcionalidad ahorra
+configuración manual repetitiva entre proyectos similares y
+favorece la consistencia de criterios de calidad entre equipos.
 
 \section*{Monitorización del sistema}
 
+Más allá de la interfaz de usuario, dos paneles auxiliares permiten
+supervisar el estado del \emph{stack} desde el navegador:
+
 \begin{itemize}
-  \item \textbf{Flower} (monitor de Celery): \texttt{http://localhost:5555}
+  \item \textbf{Flower} (monitor de Celery):
+    \texttt{http://localhost:5555}.  Visualiza en tiempo real los
+    \emph{workers} activos, las tareas en curso y completadas, sus
+    tiempos de ejecución y el histórico de fallos, y permite
+    reintentar manualmente tareas concretas.
   \item \textbf{MinIO Console}: \texttt{http://localhost:9001}
-    (usuario/contraseña en \texttt{.env})
+    (usuario y contraseña configurados en \texttt{.env}).  Permite
+    inspeccionar los \emph{buckets} de almacenamiento y verificar
+    que los \emph{datasets} se han subido correctamente.
 \end{itemize}
 
 \section*{Apagado del sistema}

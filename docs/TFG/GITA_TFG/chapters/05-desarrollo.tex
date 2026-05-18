@@ -619,7 +619,25 @@ nombre y tipo de cada columna, estadísticas descriptivas y histogramas
 para columnas numéricas.  El versionado opera mediante un campo
 \texttt{parent\_dataset\_id} opcional y un indicador \texttt{is\_latest}:
 las cargas sucesivas dentro de un mismo proyecto generan versiones
-encadenadas que conservan el historial completo.
+encadenadas que conservan el historial completo.  La
+Figura~\ref{fig:dataset-lineage} muestra la vista de versionado de un
+\emph{dataset}, donde la interfaz representa el árbol de versiones y
+etiqueta la versión activa.
+
+\begin{figure}[htbp]
+  \centering
+  % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/dataset-lineage.png}
+  \fbox{\begin{minipage}[c][5.5cm][c]{0.9\textwidth}
+    \centering\itshape
+    [Insertar captura: vista de versionado de un \emph{dataset}
+    (\texttt{/datasets/[id]}), con el árbol de versiones padre-hijo y
+    la etiqueta \texttt{is\_latest} sobre la versión activa]
+  \end{minipage}}
+  \caption{Vista de versionado de \emph{datasets}: árbol de versiones
+    padre-hijo y etiquetado de la versión activa
+    (\texttt{is\_latest})}
+  \label{fig:dataset-lineage}
+\end{figure}
 
 \subsubsection{\acs{API} \acs{REST}ful}
 \label{sec:impl-api}
