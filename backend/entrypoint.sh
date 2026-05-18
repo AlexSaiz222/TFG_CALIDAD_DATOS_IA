@@ -45,5 +45,8 @@ flask db migrate || echo "No se pudo crear la migración, pero continuamos"
 flask db upgrade || echo "No se pudieron aplicar las migraciones, pero continuamos"
 
 # Iniciar la aplicación
+# --timeout 180: margen suficiente para procesar CSVs cercanos al límite de
+#                100 MB en la misma petición (parseo Pandas + extracción de
+#                esquema y estadísticas + escritura en MinIO/Postgres).
 echo "Iniciando la aplicación..."
-exec gunicorn --bind 0.0.0.0:5000 --log-level debug app:app
+exec gunicorn --bind 0.0.0.0:5000 --log-level debug --timeout 180 app:app

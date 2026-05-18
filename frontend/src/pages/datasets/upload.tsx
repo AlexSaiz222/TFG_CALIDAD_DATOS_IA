@@ -133,8 +133,8 @@ const DatasetUpload = () => {
       return;
     }
 
-    // Check file size (max 10MB)
-    if (selectedFile.size > 10 * 1024 * 1024) {
+    // Check file size (max 100MB)
+    if (selectedFile.size > 100 * 1024 * 1024) {
       setErrors(prev => ({
         ...prev,
         file: t('datasets.upload.errors.sizeLimit')
