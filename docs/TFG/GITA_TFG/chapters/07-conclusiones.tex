@@ -92,47 +92,58 @@ los cinco objetivos específicos establecidos en el
 capítulo~\ref{chap:objetivos}, tal como se ha verificado en la
 sección~\ref{sec:resultados-alcanzados}.
 
-Las principales conclusiones que se extraen del trabajo son las siguientes:
+Las conclusiones que se extraen del trabajo se articulan en torno a
+cuatro ejes: la respuesta a una necesidad práctica del ecosistema actual
+de calidad de datos, el valor de los estándares internacionales como
+marco de rigor metodológico, la validez de las decisiones arquitectónicas
+fundacionales y la contribución diferencial de las dos funcionalidades
+distintivas de la plataforma.
 
-\begin{enumerate}
-  \item \textbf{La calidad de datos requiere herramientas accesibles.}  Los
-    enfoques ad~hoc basados en \emph{scripts} y cuadernos Jupyter, aunque
-    flexibles, presentan barreras de estandarización, historización y
-    accesibilidad que dificultan su adopción sistemática.  \dataqual
-    demuestra que es viable ofrecer una interfaz web accesible a perfiles no
-    técnicos sin renunciar a la potencia de una \ac{API} \ac{REST}ful para
-    integraciones programáticas.
+En primer lugar, el proyecto confirma que \textbf{la calidad de datos
+para \ac{IA} requiere herramientas más accesibles} que los enfoques
+\emph{ad hoc} basados en \emph{scripts} y cuadernos Jupyter.  Estas
+aproximaciones, aunque flexibles, presentan barreras de estandarización,
+historización y accesibilidad que dificultan su adopción sistemática en
+organizaciones donde los responsables de la calidad no son perfiles
+puramente técnicos.  \dataqual\ demuestra que es viable ofrecer una
+interfaz web accesible sin renunciar a la potencia de una \ac{API}
+\ac{REST}ful programática, conciliando ambos modos de uso bajo el mismo
+sistema.
 
-  \item \textbf{Los estándares internacionales proporcionan un marco
-    sólido.}  La alineación con \ac{ISO}/IEC~25012~\citep{iso25012} e
-    \ac{ISO}/IEC~5259~\citep{iso5259} ha proporcionado un marco de referencia
-    riguroso para la definición de las métricas de calidad, evitando
-    definiciones arbitrarias y facilitando la comparabilidad entre proyectos.
+En segundo lugar, \textbf{los estándares internacionales han demostrado
+ser un marco sólido para el diseño de métricas}.  La alineación con
+\ac{ISO}/IEC~25012~\citep{iso25012} e
+\ac{ISO}/IEC~5259~\citep{iso5259} ha evitado definiciones arbitrarias y
+ha aportado un vocabulario común que facilita la comparabilidad entre
+proyectos.  La adopción explícita de estándares como referencia, lejos
+de constreñir el diseño, ha aportado claridad a decisiones que de otro
+modo habrían requerido justificación \emph{ad hoc}.
 
-  \item \textbf{La arquitectura de \emph{plugins} facilita la
-    extensibilidad.}  El diseño del motor de métricas basado en una clase
-    base abstracta y un registro dinámico ha demostrado ser una decisión
-    arquitectónica acertada: las siete métricas evaluables se han implementado
-    de forma independiente, y el proceso de incorporación de nuevas métricas
-    está formalizado en cuatro pasos claramente definidos.
+En tercer lugar, \textbf{las decisiones arquitectónicas fundacionales se
+han demostrado acertadas}.  La arquitectura de \emph{plugins} del motor
+de métricas, basada en una clase base abstracta y un registro dinámico,
+permitió incorporar nuevas métricas en sprints sucesivos sin tocar el
+orquestador de evaluaciones, materializando en la práctica el principio
+de abierto-cerrado~\citep{design_patterns}: las siete métricas
+evaluables se implementaron de forma independiente y el proceso para
+añadir una nueva quedó formalizado en cuatro pasos.  La contenerización
+con Docker Compose~\citep{docker}, por su parte, garantiza que la
+plataforma pueda reproducirse en cualquier entorno sin enviar datos a
+servicios externos, alineando el diseño con los requisitos de soberanía
+del dato propios del \ac{RGPD}.
 
-  \item \textbf{El \emph{fingerprinting} habilita la trazabilidad.}  La
-    generación de \emph{hashes} deterministas para cada \emph{issue}
-    detectado permite una comparación automática entre ejecuciones que supera
-    las capacidades de la mayoría de las herramientas de código abierto
-    analizadas en el estado del arte.
-
-  \item \textbf{Las \emph{Quality Gates} aportan claridad a la toma de
-    decisiones.}  La traslación del concepto de \emph{Quality Gate} del
-    ámbito de la calidad del código~\citep{sonarqube} al ámbito de la calidad
-    de datos proporciona una señal objetiva y automatizable sobre la aptitud
-    de un conjunto de datos para su uso.
-
-  \item \textbf{La contenerización garantiza la portabilidad.}  El despliegue
-    mediante Docker Compose~\citep{docker} asegura que la plataforma pueda
-    reproducirse en cualquier entorno sin enviar datos a servicios
-    externos.
-\end{enumerate}
+Por último, las dos funcionalidades distintivas de la plataforma (el
+sistema de \emph{fingerprinting} y los \emph{Quality Gates}) aportan
+capacidades que no están presentes en la mayoría de las herramientas de
+código abierto analizadas en el estado del arte.  El
+\emph{fingerprinting} habilita la trazabilidad de \emph{issues} entre
+ejecuciones mediante \emph{hashes} deterministas que permiten clasificar
+automáticamente cada problema como nuevo, recurrente o corregido.  Los
+\emph{Quality Gates}, inspirados en el concepto homónimo de
+SonarQube~\citep{sonarqube}, trasladan a la calidad de datos una señal
+objetiva y automatizable (PASSED, WARNING, FAILED) sobre la aptitud de
+un conjunto de datos para su uso, integrable en \emph{pipelines} de
+\ac{MLOps} como criterio de promoción entre entornos.
 
 
 %% =========================================================================
@@ -140,32 +151,41 @@ Las principales conclusiones que se extraen del trabajo son las siguientes:
 \label{sec:lecciones}
 %% =========================================================================
 
-El desarrollo del proyecto ha proporcionado las siguientes lecciones
-relevantes desde la perspectiva de la ingeniería del software:
+El desarrollo del proyecto ha proporcionado lecciones que cabe agrupar
+en dos planos: el metodológico, relativo a cómo se organiza el trabajo,
+y el técnico, relativo a las decisiones de diseño que conviene tomar
+pronto.
 
-\begin{itemize}
-  \item \textbf{El desarrollo iterativo minimiza los riesgos.}  La
-    organización en iteraciones con entregas funcionales ha permitido
-    detectar y corregir problemas de diseño de forma temprana, evitando
-    retrabajos costosos en fases avanzadas del proyecto.
+En el plano metodológico, la lección principal es que el \textbf{desarrollo
+iterativo no es solo una metodología formal, sino una forma de pensar
+que reduce el riesgo real de los proyectos}.  La organización en
+iteraciones con entregas funcionales permitió detectar y corregir
+problemas de diseño de forma temprana, evitando retrabajos costosos en
+fases avanzadas.  Paralelamente, el desarrollo confirmó que \textbf{el
+diseño de métricas de calidad de datos no es un ejercicio puramente
+algorítmico}: requiere comprender los estándares internacionales, las
+necesidades reales de los usuarios y los matices de cada dimensión de
+calidad (qué significa exactamente «completitud» cuando una columna
+tiene valores codificados como cadenas vacías, etiquetas
+\texttt{N/A} o ceros con sentido distinto al de nulo).  Sin este trabajo
+previo de modelado del dominio, las métricas resultantes habrían sido
+superficiales o francamente engañosas.
 
-  \item \textbf{El diseño de métricas exige conocimiento del dominio.}  La
-    implementación de métricas de calidad de datos no es un ejercicio
-    puramente algorítmico: requiere comprender los estándares
-    internacionales, las necesidades reales de los usuarios y los matices de
-    cada dimensión de calidad.
-
-  \item \textbf{La seguridad debe integrarse desde el inicio.}  Decisiones
-    como la protección contra inyección en las reglas de consistencia lógica
-    o el enmascaramiento nativo de \ac{PII} fueron más sencillas de
-    implementar al considerarlas desde las fases iniciales del diseño que si
-    se hubieran añadido como capas posteriores.
-
-  \item \textbf{La gestión de la complejidad del \emph{frontend} requiere
-    disciplina.}  Componentes como el módulo de \emph{profiling} de datos
-    crecieron significativamente durante el desarrollo.  Una mayor
-    modularización temprana habría facilitado el mantenimiento posterior.
-\end{itemize}
+En el plano técnico, dos decisiones tomadas pronto resultaron
+especialmente rentables.  \textbf{La seguridad debe integrarse desde el
+inicio del diseño}, no añadirse como capa posterior: decisiones como la
+protección contra inyección en las reglas de consistencia lógica o el
+enmascaramiento nativo de \ac{PII} fueron mucho más sencillas de
+implementar al considerarlas desde las fases iniciales que si hubiera
+sido necesario reconstruir el sistema sin ellas.  Por contraste, \textbf{la
+gestión de la complejidad del \emph{frontend} requiere una disciplina
+de modularización que conviene aplicar antes de que duela}: componentes
+como el módulo de \emph{profiling} de datos crecieron significativamente
+durante el desarrollo y, en retrospectiva, una mayor división temprana
+en subcomponentes habría facilitado el mantenimiento en las iteraciones
+finales.  La asimetría entre ambas lecciones resulta reveladora: lo que
+se asume cuidar desde el principio (seguridad) sale bien, mientras que
+lo que se posterga (refactor del \emph{frontend}) acaba doliendo.
 
 
 %% =========================================================================
@@ -174,51 +194,60 @@ relevantes desde la perspectiva de la ingeniería del software:
 %% =========================================================================
 
 A partir de las limitaciones identificadas en la
-sección~\ref{sec:limitaciones} y de las oportunidades detectadas durante el
-desarrollo, se proponen las siguientes líneas de trabajo futuro para la
-evolución de \dataqual:
+sección~\ref{sec:limitaciones} y de las oportunidades detectadas durante
+el desarrollo, las líneas de evolución de \dataqual\ se articulan en
+cuatro ejes: documentación y comunicación de resultados, escalabilidad y
+rendimiento, integraciones empresariales, y aseguramiento de calidad e
+inteligencia analítica.
 
-\begin{enumerate}
-  \item \textbf{Documentación Swagger/OpenAPI} para la \ac{API} \ac{REST}ful,
-    proporcionando documentación interactiva generada automáticamente.
+En el eje de \textbf{documentación y comunicación} se sitúa la
+incorporación de documentación interactiva tipo Swagger/OpenAPI para la
+\ac{API} \ac{REST}ful, generada automáticamente a partir del código y
+consultable en línea, que aceleraría la integración por parte de equipos
+externos.  Complementariamente, la exportación de informes a PDF y Excel
+facilitaría la comunicación de resultados a \emph{stakeholders} no
+técnicos y la incorporación de los hallazgos a documentación de
+auditoría; y la incorporación de \emph{webhooks} permitiría notificar a
+sistemas externos cuando una evaluación se complete o un \emph{Quality
+Gate} falle, integrando \dataqual\ en flujos automatizados de
+\ac{MLOps}.
 
-  \item \textbf{Exportación de informes} a PDF y Excel para facilitar la
-    comunicación de resultados a \emph{stakeholders} no técnicos.
+El eje de \textbf{escalabilidad y rendimiento} concentra tres mejoras
+con cota técnica clara.  La sustitución del mecanismo actual de
+\emph{polling} por notificaciones \emph{push} con \emph{WebSockets}
+reduciría tanto la latencia perceptible como la carga innecesaria sobre
+la \ac{API}.  El procesamiento por fragmentos (\emph{chunk-based})
+levantaría la cota actual del tamaño de RAM disponible y abriría la
+plataforma a \emph{datasets} de varios GB sin necesidad de migrar a un
+motor distribuido como Dask o Spark.  Por último, las evaluaciones
+programadas mediante Celery Beat (servicio ya disponible en la pila
+tecnológica pero todavía sin interfaz de usuario) habilitarían la
+monitorización continua de la calidad de datos sin intervención manual.
 
-  \item \textbf{WebSockets} para notificaciones \emph{push} del progreso de
-    las evaluaciones, sustituyendo el mecanismo actual de \emph{polling}.
+El tercer eje, \textbf{integraciones empresariales}, recoge las
+limitaciones que separan a la plataforma de un escenario corporativo
+real.  La incorporación de OAuth~2.0 y \emph{Single Sign-On} permitiría
+integrar \dataqual\ en sistemas empresariales con identidad federada.
+La integración directa con bases de datos relacionales y analíticas
+(PostgreSQL, MySQL, BigQuery) como fuentes de datos eliminaría la
+necesidad de exportar previamente los \emph{datasets} a fichero.  Y la
+colaboración en equipo con roles y permisos granulares haría posible
+que múltiples usuarios trabajaran sobre los mismos proyectos,
+completando el modelo actual basado en un único propietario por
+proyecto.
 
-  \item \textbf{OAuth~2.0 y \ac{SSO}} para la integración con sistemas
-    empresariales de gestión de identidades.
-
-  \item \textbf{Evaluaciones programadas} mediante Celery Beat para la
-    monitorización continua de la calidad de datos.
-
-  \item \textbf{Detección de anomalías basada en \ac{ML}}, incorporando
-    algoritmos como \emph{Isolation Forest} o \emph{Autoencoders} como
-    métricas adicionales del motor.
-
-  \item \textbf{Procesamiento por fragmentos} (\emph{chunk-based}) para
-    conjuntos de datos que excedan la memoria RAM disponible.
-
-  \item \textbf{Integración directa con bases de datos} (PostgreSQL, MySQL,
-    BigQuery) como fuentes de datos, eliminando la necesidad de exportar a
-    archivo.
-
-  \item \textbf{Colaboración en equipo} con roles y permisos granulares,
-    permitiendo que múltiples usuarios trabajen sobre los mismos proyectos.
-
-  \item \textbf{Webhooks} para notificar a sistemas externos cuando una
-    evaluación se complete o un \emph{Quality Gate} falle.
-
-  \item \textbf{Pruebas \emph{end-to-end} del \emph{frontend}} con herramientas
-    como Cypress o Playwright, cubriendo los flujos principales de la interfaz
-    de usuario.
-
-  \item \textbf{Sugerencias de corrección automatizadas} basadas en los
-    \emph{issues} detectados, cerrando el ciclo de diagnóstico con
-    propuestas de acción.
-\end{enumerate}
+Por último, el eje de \textbf{aseguramiento de calidad e inteligencia
+analítica} aborda tanto las pruebas del propio software como la
+sofisticación analítica del producto.  La automatización de pruebas
+\emph{end-to-end} con Cypress o Playwright cubriría los flujos
+principales de la interfaz y cerraría la mayor brecha actual en la
+estrategia de \ac{QA} del proyecto.  En el plano analítico, la
+incorporación de algoritmos de detección de anomalías basados en
+aprendizaje automático (\emph{Isolation Forest},
+\emph{Autoencoders}) ampliaría el catálogo de métricas más allá del
+método estadístico clásico \ac{IQR}, mientras que las sugerencias de
+corrección automatizadas sobre los \emph{issues} detectados cerrarían
+el ciclo de diagnóstico con propuestas concretas de acción.
 
 
 %% =========================================================================

@@ -9,6 +9,20 @@ comienza con la definición global de requisitos y se estructura a continuación
 en seis sprints, cada uno con sus subsecciones de planificación, trabajo
 realizado, evidencias técnicas (\emph{cómo se ha hecho}) y retrospectiva.
 
+La estructura por sprints agrupa el desarrollo en \textbf{dominios
+funcionales}: análisis y arquitectura (S1), núcleo del \emph{backend}
+(S2), motor de métricas (S3), interfaz de usuario (S4), funcionalidades
+avanzadas (S5) y consolidación (S6).  Como es habitual en un proceso
+iterativo, las actividades de un dominio no se cerraron herméticamente al
+finalizar el sprint correspondiente: algunos componentes (como el
+\emph{watchdog} de evaluaciones, el versionado de datasets, el sistema
+de \emph{Quality Gates} o ciertos elementos de internacionalización) se
+iniciaron en un sprint y se refinaron o consolidaron en sprints
+posteriores a medida que las dependencias quedaban disponibles.  Las tablas de \emph{story points} y horas reflejan, para
+cada sprint, el trabajo principal del dominio correspondiente, mientras
+que la narrativa describe cada componente en el sprint donde alcanzó su
+versión funcional definitiva.
+
 
 %% =========================================================================
 \section{Requisitos globales del sistema}
@@ -26,25 +40,15 @@ sprint a sprint se incluye en el Anexo~C.
 
 \subsection{Casos de uso principales}
 
-El sistema identifica tres actores: \textbf{Usuario autenticado} (rol
-principal), \textbf{Administrador} (hereda del Usuario) y \textbf{Sistema
-Celery} (actor interno para evaluaciones asíncronas).  Los casos de uso de
-mayor relevancia son:
-
-\begin{itemize}
-  \item \textbf{UC-01 Gestionar proyecto}: crear, editar, eliminar y
-    consultar proyectos.
-  \item \textbf{UC-02 Gestionar dataset}: cargar archivo, ver versiones,
-    marcar columnas PII.
-  \item \textbf{UC-03 Configurar métricas}: seleccionar métricas, ajustar
-    parámetros, crear plantillas.
-  \item \textbf{UC-04 Ejecutar evaluación}: lanzar evaluación, monitorizar
-    progreso, consultar resultados e issues.
-  \item \textbf{UC-05 Gestionar Quality Gate}: definir umbrales, consultar
-    estado PASSED/WARNING/FAILED.
-  \item \textbf{UC-06 Explorar datos (EDA)}: visualizar histogramas, boxplots
-    y correlaciones.
-\end{itemize}
+El sistema soporta dos actores: \textbf{Usuario autenticado} (actor
+principal, único rol con interfaz de usuario en esta versión, con acceso
+a la gestión de proyectos, datasets, métricas, evaluaciones, Quality
+Gates y exploración de datos) y \textbf{Sistema Celery} (actor interno
+que ejecuta las tareas asíncronas de evaluación y supervisa su estado).
+Sobre estos dos actores se definen \textbf{ocho casos de uso} que cubren
+la totalidad del comportamiento funcional de \dataqual.  El diagrama
+\ac{UML} de casos de uso y la especificación textual de cada uno se
+recogen en el Anexo~\ref{anx:diagramas}.
 
 \subsection{Burndown global del proyecto}
 \label{sec:burndown-global}
@@ -578,27 +582,44 @@ sección~\ref{sec:trabajo-futuro}.
 \subsubsection{Módulo de ingesta y almacenamiento}
 \label{sec:impl-ingesta}
 
-Los usuarios pueden cargar archivos en formato \ac{CSV}, con un límite de
-tamaño configurable (por defecto, 100\,MB).
+Los usuarios pueden cargar archivos en formato \ac{CSV} con un límite de
+tamaño configurable (por defecto, 100\,MB).  Tras superar la validación,
+el fichero se persiste en MinIO como objeto binario y sus metadatos
+(esquema inferido, tamaño, versión y proyecto al que pertenece) se
+registran en PostgreSQL mediante el modelo \texttt{Dataset}.
 
-El servicio \texttt{DatasetService} implementa una estrategia de
-\emph{fallback} múltiple para archivos \ac{CSV}:
+El servicio \texttt{DatasetService} implementa una estrategia de lectura
+robusta de \ac{CSV} estructurada en tres fases:
 
 \begin{enumerate}
-  \item \textbf{Detección de formato:} descarta archivos \ac{XLSX} o gzip
-    erróneamente etiquetados como \ac{CSV}.
-  \item \textbf{Detección de delimitador:} utiliza \texttt{csv.Sniffer} sobre
-    los primeros 5\,000 bytes.
-  \item \textbf{Matriz de \emph{fallback}:} prueba combinaciones de cuatro
-    codificaciones (UTF-8, UTF-8-BOM, CP1252, Latin-1), cinco separadores
-    (detectado, coma, punto y coma, tabulador, \emph{pipe}) y dos motores de
-    Pandas (Python, C).
+  \item \textbf{Validación del formato real:} se inspeccionan los
+    primeros bytes del fichero para detectar archivos incorrectamente
+    etiquetados como \ac{CSV}.  Los ficheros Excel (XLSX) se rechazan con
+    un mensaje claro al usuario, mientras que los archivos comprimidos
+    con \emph{gzip} se descomprimen de forma transparente antes de
+    continuar.
+
+  \item \textbf{Detección del delimitador:} se aplica
+    \texttt{csv.Sniffer} sobre los primeros 8\,192 bytes del contenido,
+    evaluando los candidatos coma, punto y coma, tabulador y
+    \emph{pipe}.
+
+  \item \textbf{Matriz de \emph{fallback}:} si la detección del
+    delimitador no es concluyente o la lectura no produce un
+    \emph{DataFrame} válido, se ensayan exhaustivamente combinaciones de
+    cuatro codificaciones (UTF-8, UTF-8 con BOM, CP1252, Latin-1), seis
+    estrategias de separador (el detectado, la inferencia automática de
+    Pandas y los cuatro candidatos explícitos) y los dos motores de
+    \emph{parsing} de Pandas (Python y C).  Se retorna el primer intento
+    que produzca columnas válidas.
 \end{enumerate}
 
-Al cargar un conjunto de datos, el sistema extrae automáticamente el nombre y
-tipo de cada columna, estadísticas descriptivas y histogramas para columnas
-numéricas.  El versionado opera mediante un campo \texttt{parent\_dataset\_id}
-opcional y un indicador \texttt{is\_latest}.
+Al cargar un conjunto de datos, el sistema extrae automáticamente el
+nombre y tipo de cada columna, estadísticas descriptivas y histogramas
+para columnas numéricas.  El versionado opera mediante un campo
+\texttt{parent\_dataset\_id} opcional y un indicador \texttt{is\_latest}:
+las cargas sucesivas dentro de un mismo proyecto generan versiones
+encadenadas que conservan el historial completo.
 
 \subsubsection{\acs{API} \acs{REST}ful}
 \label{sec:impl-api}
@@ -1336,10 +1357,10 @@ de usuario y redactar la documentación técnica completa.
     \toprule
     \textbf{ID} & \textbf{Actividad} & \textbf{Est. (h)} & \textbf{Real (h)} \\
     \midrule
-    --    & Pruebas unitarias de métricas (pytest) & 16 & 20 \\
-    --    & Pruebas de integración: versionado, Quality Gates & 12 & 14 \\
+    --    & Pruebas unitarias del motor de métricas y \emph{Quality Score} (pytest) & 18 & 22 \\
+    --    & Pruebas de integración: versionado, Quality Gates y autorización IDOR & 14 & 16 \\
+    --    & Pruebas de \emph{fingerprinting} y comparación con \emph{baseline} & 4 & 6 \\
     --    & Corrección de defectos detectados en pruebas & 16 & 18 \\
-    HU-15 & Panel de administración & 8 & 10 \\
     --    & Internacionalización del \emph{frontend} (ES/EN, i18next) & 0 & --- \\
     --    & Redacción de la memoria (TFG) & 20 & 20 \\
     --    & Preparación de la defensa & 8 & 8 \\
@@ -1352,23 +1373,36 @@ de usuario y redactar la documentación técnica completa.
 \subsection{Trabajo realizado}
 
 \begin{itemize}
-  \item Implementadas tres suites de pruebas con pytest: unitarias de
-    métricas, integración de versionado de datasets y pruebas de Quality
-    Gates.
+  \item Implementada una batería de pruebas automatizadas con pytest
+    organizada en doce módulos de test que cubren autenticación
+    (\texttt{test\_auth}), \ac{API} de proyectos (\texttt{test\_projects\_api}),
+    versionado de datasets a nivel de servicio y de \ac{API}
+    (\texttt{test\_dataset\_versioning},
+    \texttt{test\_dataset\_versioning\_api}), motor de métricas en sus
+    versiones base y extendida (\texttt{test\_metrics\_engine},
+    \texttt{test\_metrics\_engine\_extended}), Quality Score
+    (\texttt{test\_quality\_score}), Quality Gates con umbrales y
+    veredicto (\texttt{test\_quality\_gate},
+    \texttt{test\_quality\_gate\_verdict}), \emph{fingerprinting}
+    (\texttt{test\_fingerprinting}), comparación con línea base
+    (\texttt{test\_diff\_baseline}) y autorización contra accesos
+    indebidos (\texttt{test\_idor\_authorization}).
   \item Corregidos 11 defectos identificados durante las pruebas (issues de
     GitHub cerrados).
   \item Completada la documentación de la \ac{API} \ac{REST} en el Anexo~A
     y el catálogo de métricas en el Anexo~B.
-  \item Implementado el panel de administración (\texttt{/api/admin/}).
   \item Implementada la internacionalización completa del \emph{frontend}
     con \texttt{i18next} y \texttt{react-i18next}: dos idiomas (español e
-    inglés), archivos de traducción de aproximadamente 1\,870 entradas cada
+    inglés), archivos de traducción de aproximadamente 1\,500 entradas cada
     uno, integrada en 54 componentes y páginas mediante \texttt{useTranslation},
     con persistencia del idioma seleccionado en \texttt{localStorage}.
   \item \textbf{Cambio respecto a lo planificado}: se detectaron tres
     defectos de severidad media en el módulo de \emph{fingerprinting} que
-    requirieron refactorización.  La internacionalización del \emph{frontend}
-    constituye una funcionalidad adicional no planificada inicialmente.
+    requirieron refactorización.  La batería de pruebas se amplió respecto
+    al plan inicial al incorporar suites adicionales para Quality Score,
+    \emph{fingerprinting}, \emph{diff} contra línea base y autorización
+    \ac{IDOR}; la internacionalización del \emph{frontend} constituye
+    asimismo una funcionalidad adicional no planificada inicialmente.
 \end{itemize}
 
 \subsection{Cómo se ha hecho}
@@ -1376,33 +1410,59 @@ de usuario y redactar la documentación técnica completa.
 \subsubsection{Estrategia de pruebas}
 \label{sec:impl-pruebas}
 
-Las pruebas automatizadas se organizan en tres suites en
-\texttt{backend/tests/}:
+Las pruebas automatizadas se organizan en \textbf{doce módulos} en
+\texttt{backend/tests/} agrupados por dominio funcional:
 
 \begin{itemize}
-  \item \textbf{Pruebas de autenticación y \ac{API} de proyectos
-    (\texttt{test\_auth.py} y \texttt{test\_projects\_api.py}):} verifican
-    el flujo de autenticación completo (registro, inicio de sesión, refresco
-    de \emph{token}) y las operaciones \ac{CRUD} sobre proyectos.
+  \item \textbf{Autenticación y \ac{API} de proyectos
+    (\texttt{test\_auth.py}, \texttt{test\_projects\_api.py}):} verifican
+    el flujo de autenticación completo (registro, inicio de sesión,
+    refresco de \emph{token}) y las operaciones \ac{CRUD} sobre proyectos.
 
-  \item \textbf{Pruebas de integración de versionado
+  \item \textbf{Versionado de datasets
     (\texttt{test\_dataset\_versioning.py},
-    \texttt{test\_dataset\_versioning\_api.py}):} validan la correcta
-    relación padre-hijo entre versiones de datasets y la actualización del
-    indicador \texttt{is\_latest} ante cargas sucesivas.  Comprueban que
-    solo la versión más reciente tiene \texttt{is\_latest\,=\,true} y que
-    el historial de versiones se recupera ordenado, tanto a nivel de servicio
-    como a través de los \emph{endpoints} de la \ac{API}.
+    \texttt{test\_dataset\_versioning\_api.py}):} validan la relación
+    padre-hijo entre versiones y la actualización del indicador
+    \texttt{is\_latest} ante cargas sucesivas, tanto a nivel de servicio
+    como a través de los \emph{endpoints} de la \ac{API}.  Comprueban
+    que solo la versión más reciente tiene \texttt{is\_latest\,=\,true}
+    y que el historial se recupera ordenado.
 
-  \item \textbf{Pruebas de \emph{Quality Gates}
-    (\texttt{test\_quality\_gate.py}):} verifican que los umbrales
-    configurados producen los estados \texttt{PASSED}, \texttt{WARNING}
-    y \texttt{FAILED} esperados para distintas combinaciones de scores e
-    issues, incluyendo los casos frontera (score exactamente en el umbral).
+  \item \textbf{Motor de métricas (\texttt{test\_metrics\_engine.py},
+    \texttt{test\_metrics\_engine\_extended.py}):} cubren la ejecución
+    unitaria de cada métrica del \texttt{METRIC\_REGISTRY} sobre
+    \emph{DataFrames} sintéticos y casos límite (columnas vacías, tipos
+    mixtos, valores extremos).
+
+  \item \textbf{\emph{Quality Score} (\texttt{test\_quality\_score.py}):}
+    valida la fórmula del \emph{score} y su penalización por número de
+    \emph{issues} sobre escenarios controlados.
+
+  \item \textbf{\emph{Quality Gates} (\texttt{test\_quality\_gate.py},
+    \texttt{test\_quality\_gate\_verdict.py}):} verifican que los
+    umbrales configurados producen los estados \texttt{PASSED},
+    \texttt{WARNING} y \texttt{FAILED} para distintas combinaciones de
+    \emph{score} e \emph{issues}, incluyendo casos frontera (\emph{score}
+    exactamente en el umbral).
+
+  \item \textbf{\emph{Fingerprinting} y \emph{diff} contra línea base
+    (\texttt{test\_fingerprinting.py},
+    \texttt{test\_diff\_baseline.py}):} comprueban que el \emph{hash} es
+    determinista bajo distintos órdenes de parámetros y representaciones
+    flotantes, y que la clasificación de \emph{issues} en nuevos,
+    corregidos y recurrentes coincide con el resultado esperado al
+    comparar con la \emph{baseline}.
+
+  \item \textbf{Autorización \ac{IDOR}
+    (\texttt{test\_idor\_authorization.py}):} verifica que un usuario no
+    puede acceder a recursos (proyectos, datasets, evaluaciones) que
+    pertenecen a otro usuario, comprobando que los \emph{endpoints}
+    devuelven 403/404 ante referencias directas no autorizadas a
+    objetos.
 \end{itemize}
 
-Las pruebas se ejecutan con \texttt{pytest} desde \texttt{backend/} y pueden
-generar informes de cobertura con la opción \texttt{-{}-cov}.
+Las pruebas se ejecutan con \texttt{pytest} desde \texttt{backend/} y
+pueden generar informes de cobertura con la opción \texttt{-{}-cov}.
 
 \subsubsection{Defectos detectados y corregidos}
 

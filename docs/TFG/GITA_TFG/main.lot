@@ -13,49 +13,49 @@
 \contentsline {table}{\numberline {4.1}{\ignorespaces Tecnologías del \emph {frontend}}}{33}{table.4.1}%
 \contentsline {table}{\numberline {4.2}{\ignorespaces Tecnologías del \emph {backend}}}{34}{table.4.2}%
 \contentsline {table}{\numberline {4.3}{\ignorespaces Tecnologías de base de datos y almacenamiento}}{35}{table.4.3}%
-\contentsline {table}{\numberline {4.4}{\ignorespaces Tecnologías de procesamiento asíncrono y orquestación}}{35}{table.4.4}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Tecnologías de procesamiento asíncrono y orquestación}}{36}{table.4.4}%
 \contentsline {table}{\numberline {4.5}{\ignorespaces Backlog inicial — historias de usuario principales}}{40}{table.4.5}%
 \contentsline {table}{\numberline {4.6}{\ignorespaces Estimación inicial vs.\ real por sprint}}{41}{table.4.6}%
 \contentsline {table}{\numberline {4.7}{\ignorespaces Estimación de costes del proyecto}}{42}{table.4.7}%
 \contentsline {table}{\numberline {4.8}{\ignorespaces Plan de gestión de riesgos}}{43}{table.4.8}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces Sprint 1: Historias de usuario y estimación}}{46}{table.5.1}%
-\contentsline {table}{\numberline {5.2}{\ignorespaces Servicios Docker de \textsc {DataQual}\xspace }}{47}{table.5.2}%
-\contentsline {table}{\numberline {5.3}{\ignorespaces Protocolos de comunicación entre componentes}}{47}{table.5.3}%
-\contentsline {table}{\numberline {5.4}{\ignorespaces Sprint 2: Historias de usuario y estimación}}{51}{table.5.4}%
-\contentsline {table}{\numberline {5.5}{\ignorespaces Sprint 3: Historias de usuario y estimación}}{54}{table.5.5}%
-\contentsline {table}{\numberline {5.6}{\ignorespaces Sprint 4: Historias de usuario y estimación}}{58}{table.5.6}%
-\contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{61}{table.5.7}%
-\contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph {hash} por tipo de \emph {issue}}}{63}{table.5.8}%
-\contentsline {table}{\numberline {5.9}{\ignorespaces Sprint 6: Actividades y estimación}}{66}{table.5.9}%
+\contentsline {table}{\numberline {5.1}{\ignorespaces Sprint 1: Historias de usuario y estimación}}{47}{table.5.1}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Servicios Docker de \textsc {DataQual}\xspace }}{48}{table.5.2}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Protocolos de comunicación entre componentes}}{48}{table.5.3}%
+\contentsline {table}{\numberline {5.4}{\ignorespaces Sprint 2: Historias de usuario y estimación}}{52}{table.5.4}%
+\contentsline {table}{\numberline {5.5}{\ignorespaces Sprint 3: Historias de usuario y estimación}}{55}{table.5.5}%
+\contentsline {table}{\numberline {5.6}{\ignorespaces Sprint 4: Historias de usuario y estimación}}{59}{table.5.6}%
+\contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{62}{table.5.7}%
+\contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph {hash} por tipo de \emph {issue}}}{64}{table.5.8}%
+\contentsline {table}{\numberline {5.9}{\ignorespaces Sprint 6: Actividades y estimación}}{67}{table.5.9}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Resultados cuantitativos de la implementación}}{69}{table.6.1}%
-\contentsline {table}{\numberline {6.2}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{70}{table.6.2}%
-\contentsline {table}{\numberline {6.3}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{71}{table.6.3}%
-\contentsline {table}{\numberline {6.4}{\ignorespaces Comparación de \textsc {DataQual}\xspace con herramientas existentes (perspectiva post-implementación)}}{73}{table.6.4}%
+\contentsline {table}{\numberline {6.1}{\ignorespaces Resultados cuantitativos de la implementación}}{71}{table.6.1}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{72}{table.6.2}%
+\contentsline {table}{\numberline {6.3}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{73}{table.6.3}%
+\contentsline {table}{\numberline {6.4}{\ignorespaces Comparación de \textsc {DataQual}\xspace con herramientas existentes (perspectiva post-implementación)}}{76}{table.6.4}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de métrica.}}{92}{table.Alph2.1}%
+\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de métrica.}}{95}{table.Alph2.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{93}{table.Alph3.1}%
-\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{93}{table.Alph3.2}%
-\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{94}{table.Alph3.3}%
-\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{94}{table.Alph3.4}%
-\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{94}{table.Alph3.5}%
-\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{95}{table.Alph3.6}%
+\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{96}{table.Alph3.1}%
+\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{96}{table.Alph3.2}%
+\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{97}{table.Alph3.3}%
+\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{97}{table.Alph3.4}%
+\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{97}{table.Alph3.5}%
+\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{98}{table.Alph3.6}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {D.1}{\ignorespaces Registro de riesgos con ocurrencia y acciones aplicadas}}{97}{table.Alph4.1}%
+\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{100}{table.Alph4.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{98}{table.Alph5.1}%
-\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{99}{table.Alph5.2}%
-\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{99}{table.Alph5.3}%
+\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{101}{table.Alph5.1}%
+\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{102}{table.Alph5.2}%
+\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{102}{table.Alph5.3}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{101}{table.Alph6.1}%
-\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{103}{table.Alph6.2}%
-\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph {Sonar-Lite}}}{104}{table.Alph6.3}%
-\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{104}{table.Alph6.4}%
-\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{105}{table.Alph6.5}%
-\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{105}{table.Alph6.6}%
+\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{104}{table.Alph6.1}%
+\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{106}{table.Alph6.2}%
+\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph {Sonar-Lite}}}{107}{table.Alph6.3}%
+\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{107}{table.Alph6.4}%
+\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{108}{table.Alph6.5}%
+\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{108}{table.Alph6.6}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

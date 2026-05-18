@@ -65,6 +65,63 @@ asíncrona de tareas.
 
 \section*{Diagrama de casos de uso}
 
+La Figura~\ref{fig:casos-uso} representa los ocho casos de uso del
+sistema y su asignación a los dos actores: Usuario autenticado y
+Sistema Celery (actor interno).  La especificación textual de cada caso
+de uso se enumera a continuación.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+      actor/.pic={
+        \draw[thick] (0,0.6) circle [radius=0.13];
+        \draw[thick] (0,0.47) -- (0,0);
+        \draw[thick] (-0.22,0.3) -- (0.22,0.3);
+        \draw[thick] (0,0) -- (-0.18,-0.32);
+        \draw[thick] (0,0) -- (0.18,-0.32);
+      },
+      usecase/.style={ellipse, draw, thick, align=center,
+                      font=\footnotesize,
+                      minimum width=3.4cm, minimum height=0.7cm,
+                      inner sep=1pt},
+      uses/.style={-, thick},
+    ]
+    %% Casos de uso (columna central, dentro del límite del sistema)
+    \node[usecase] (uc01) at (0, 3.6)  {UC-01 Gestionar proyectos};
+    \node[usecase] (uc02) at (0, 2.7)  {UC-02 Gestionar datasets};
+    \node[usecase] (uc03) at (0, 1.8)  {UC-03 Configurar métricas};
+    \node[usecase] (uc04) at (0, 0.9)  {UC-04 Ejecutar evaluación};
+    \node[usecase] (uc05) at (0, 0)    {UC-05 Gestionar Quality Gate};
+    \node[usecase] (uc06) at (0,-0.9)  {UC-06 Explorar datos (EDA)};
+    \node[usecase] (uc07) at (0,-2.1)  {UC-07 Ejecutar tarea asíncrona};
+    \node[usecase] (uc08) at (0,-3.0)  {UC-08 Detectar evaluaciones atascadas};
+
+    %% Límite del sistema
+    \begin{pgfonlayer}{background}
+      \node[draw, thick, rounded corners=3pt, inner sep=15pt,
+            fit=(uc01)(uc08),
+            label={[font=\small\bfseries]above:DataQual}] (sys) {};
+    \end{pgfonlayer}
+
+    %% Actores
+    \pic at (-5.6, 1.35) {actor};
+    \node[font=\small, align=center] at (-5.6, 0.55) {Usuario\\autenticado};
+
+    \pic at (5.6,-2.55) {actor};
+    \node[font=\small, align=center] at (5.6,-3.35) {Sistema\\Celery};
+
+    %% Asociaciones del Usuario con UC-01..UC-06
+    \foreach \uc in {uc01,uc02,uc03,uc04,uc05,uc06}
+      \draw[uses] (-5.25, 1.35) -- (\uc.west);
+
+    %% Asociaciones del Sistema Celery con UC-07, UC-08
+    \draw[uses] (5.25,-2.55) -- (uc07.east);
+    \draw[uses] (5.25,-2.55) -- (uc08.east);
+  \end{tikzpicture}
+  \caption{Diagrama \ac{UML} de casos de uso de \dataqual}
+  \label{fig:casos-uso}
+\end{figure}
+
 \begin{itemize}
   \item \textbf{Actor: Usuario autenticado}
     \begin{itemize}
@@ -75,15 +132,10 @@ asíncrona de tareas.
       \item UC-05: Gestionar Quality Gate (configurar umbrales, consultar estado)
       \item UC-06: Explorar datos (EDA: histogramas, boxplots, correlaciones)
     \end{itemize}
-  \item \textbf{Actor: Administrador} (hereda de Usuario)
-    \begin{itemize}
-      \item UC-07: Gestionar usuarios
-      \item UC-08: Ver métricas del sistema (rendimiento, salud)
-    \end{itemize}
   \item \textbf{Actor: Sistema Celery} (interno)
     \begin{itemize}
-      \item UC-09: Ejecutar tarea de evaluación asíncrona
-      \item UC-10: Detectar evaluaciones atascadas (Watchdog)
+      \item UC-07: Ejecutar tarea de evaluación asíncrona
+      \item UC-08: Detectar evaluaciones atascadas (Watchdog)
     \end{itemize}
 \end{itemize}
 

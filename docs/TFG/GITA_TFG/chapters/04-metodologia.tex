@@ -57,9 +57,11 @@ adaptaciones adoptadas se detallan a continuación.
   \item[Sprints]  El proyecto se divide en \textbf{6 sprints} de duración
     variable entre cuatro y ocho semanas, ajustada a la complejidad de cada
     incremento.  La duración variable es una adaptación deliberada: los
-    sprints de mayor carga técnica (S2, S6) reciben más tiempo, mientras
-    que los de alcance más acotado (S3--S5) se mantienen en un mes.
-    La distribución temporal completa se recoge en la
+    sprints iniciales y finales (S1, S2, S6) reciben más tiempo dada la
+    carga de análisis y arquitectura (S1), implementación del núcleo del
+    \emph{backend} (S2) o documentación y validación (S6), mientras que los
+    sprints centrales de alcance más acotado (S3--S5) se mantienen en un
+    mes.  La distribución temporal completa se recoge en la
     Sección~\ref{sec:planificacion}.
 
   \item[Roles]  Al ser un proyecto individual, el estudiante asume
@@ -560,20 +562,28 @@ Anexo~C.
       correlaciones de mis datos visualmente. & Media & 8 \\
     HU-14 & PII       & Como usuario, quiero marcar columnas sensibles para que
       sus valores no aparezcan en resultados. & Media & 5 \\
-    HU-15 & Admin     & Como administrador, quiero gestionar usuarios y ver el
-      estado del sistema. & Baja & 3 \\
+    HU-15$^{\dagger}$ & Admin & Como administrador, quiero gestionar usuarios y
+      ver el estado del sistema. & Baja & 3 \\
     \midrule
-    \multicolumn{4}{r}{\textbf{Total SP}} & \textbf{71} \\
+    \multicolumn{4}{r}{\textbf{Total SP planificados}} & \textbf{71} \\
+    \multicolumn{4}{r}{\textbf{Total SP entregados (sin HU-15)}} & \textbf{68} \\
     \bottomrule
   \end{tabularx}
+  \medskip\par\small
+  $^{\dagger}$~HU-15 fue descartada del alcance final: el proyecto no
+  incluye interfaz de administración para gestión de usuarios.  El
+  blueprint técnico \texttt{/api/admin/} se mantiene en el \emph{backend}
+  con endpoints de salud y rendimiento únicamente.
 \end{table}
 
-El backlog inicial suma \textbf{71 puntos de historia}.  Las épicas de
-mayor peso son Evaluación (13~SP) y, en segundo lugar, Proyectos,
-Datasets, Métricas, \emph{Fingerprinting} y \ac{EDA} (8~SP cada una).
-La historia de prioridad baja (HU-15) se planificó para los últimos
-sprints y se implementó condicionada a la disponibilidad de tiempo
-tras completar el núcleo del sistema.
+El backlog inicial planificado sumaba \textbf{71 puntos de historia},
+de los cuales se entregaron \textbf{68}: HU-15 (panel de administración,
+3 SP, prioridad baja) se descartó del alcance final ante la decisión de
+centrar el desarrollo en las funcionalidades del rol de usuario, que son
+las que aportan el valor diferencial de la plataforma.  Las épicas de
+mayor peso entre las entregadas son Evaluación (13~SP) y, en segundo
+lugar, Proyectos, Datasets, Métricas, \emph{Fingerprinting} y \ac{EDA}
+(8~SP cada una).
 
 
 %% =========================================================================
@@ -638,9 +648,9 @@ S1~(+15\,\%), causados respectivamente por la complejidad del sistema de
 \emph{fingerprinting}, el parseo robusto de CSV y la configuración de la
 infraestructura Docker.  S6 registró una desviación del~+12,5\,\%, atribuible
 al mayor volumen de documentación respecto a lo estimado inicialmente.  S3 fue
-el sprint más ajustado (~9\,\%), mientras que S4 se situó en torno al~+16\,\%,
-próximo a la media global, dentro del margen de incertidumbre habitual en
-proyectos de este tipo.
+el sprint más ajustado ($\approx$\,9\,\%), mientras que S4 se situó en torno
+al $\approx$\,+16\,\%, próximo a la media global, dentro del margen de
+incertidumbre habitual en proyectos de este tipo.
 
 
 %% =========================================================================
@@ -704,16 +714,32 @@ de AWS (RDS, S3, ElastiCache, ECS).
 \label{sec:riesgos}
 %% =========================================================================
 
-La gestión de riesgos se realizó de forma proactiva al inicio del
-proyecto, identificando los principales factores de riesgo y definiendo
-acciones preventivas y correctivas para cada uno.  El seguimiento se
-llevó a cabo en las retrospectivas de cada sprint, donde se evaluaba si
-algún riesgo se había materializado y si las acciones aplicadas habían
-sido efectivas.
+La gestión de riesgos en este proyecto siguió un enfoque ligero,
+propio del contexto unipersonal y de la naturaleza ágil del desarrollo.
+No se mantuvo un registro formal de riesgos actualizado en cada sprint;
+en su lugar, varias prácticas preventivas se aplicaron de forma
+implícita en el flujo de trabajo diario (\emph{push} frecuente al
+repositorio remoto, fijación de versiones en \texttt{requirements.txt}
+y \texttt{package.json}, \emph{healthchecks} en los servicios de Docker
+Compose, pruebas automatizadas del flujo de autenticación, etc.), y las
+acciones correctivas se decidieron \emph{ad hoc} cuando aparecía una
+incidencia, dejando constancia en la retrospectiva del sprint
+correspondiente.
 
-La Tabla~\ref{tab:riesgos} recoge los riesgos identificados con su
+El análisis que se presenta a continuación tiene, por tanto, carácter
+\textbf{retrospectivo}: a partir de las incidencias documentadas en las
+retrospectivas del Capítulo~\ref{chap:desarrollo}, se reconstruyen los
+principales factores de riesgo a los que se enfrentó el proyecto, las
+prácticas que actuaron como mitigación preventiva y las acciones
+correctivas que efectivamente se aplicaron cuando alguno se
+materializó.  Esta reconstrucción cumple un doble objetivo: documentar
+qué riesgos eran relevantes en un proyecto de estas características y
+extraer lecciones aprendidas que faciliten la planificación de
+proyectos futuros.
+
+La Tabla~\ref{tab:riesgos} recoge los riesgos así reconstruidos con su
 probabilidad de ocurrencia (Alta/Media/Baja), impacto (Alto/Medio/Bajo)
-y las acciones definidas.
+y las acciones asociadas.
 
 \begin{table}[htbp]
   \centering
@@ -761,7 +787,7 @@ y las acciones definidas.
   \end{tabularx}
 \end{table}
 
-De los ocho riesgos identificados, tres se materializaron de forma
+De los ocho riesgos así reconstruidos, tres se materializaron de forma
 significativa: R-03 (desvío temporal) en los sprints S2 y S5, R-02
 (integración Docker) en S5 con el sistema Celery+Redis, y R-08
 (incompatibilidad de versiones) durante la migración de SQLAlchemy
@@ -770,9 +796,15 @@ materializó de forma menor, con ajustes puntuales al backlog en S5.
 R-01 tuvo una incidencia positiva: la complejidad del motor de
 métricas impulsó la ampliación del catálogo más allá de lo planificado
 inicialmente.  Los tres riesgos restantes (R-04, R-06, R-07) no
-llegaron a producirse, lo que valida en parte las acciones preventivas
-adoptadas.  El análisis detallado de ocurrencia se recoge en el
-Anexo~D.
+llegaron a producirse, lo que resulta coherente con las prácticas
+preventivas que se aplicaron de forma implícita en el flujo de
+trabajo.  La principal lección extraída es que, en proyectos
+individuales de alcance acotado, un registro formal de riesgos puede
+sustituirse por un conjunto de prácticas preventivas integradas en el
+flujo de trabajo (control de versiones, fijación de dependencias,
+contenedorización, pruebas automatizadas) junto con la documentación
+de incidencias en las retrospectivas.  El análisis detallado de
+ocurrencia se recoge en el Anexo~D.
 
 
 % Local Variables:
