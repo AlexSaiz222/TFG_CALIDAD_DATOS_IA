@@ -139,23 +139,26 @@ de uso se enumera a continuación.
     \end{itemize}
 \end{itemize}
 
-\section*{Diagrama entidad--relación (ERD)}
+\section*{Diagrama relacional de la base de datos}
 
-Entidades y relaciones principales del esquema PostgreSQL:
+La Figura~\ref{fig:er-diagram} muestra el esquema relacional completo de
+\dataqual, generado a partir de la base de datos PostgreSQL desplegada.
+Cada tabla corresponde a un modelo SQLAlchemy definido en
+\texttt{backend/models/}.  Las relaciones de clave foránea aparecen
+representadas mediante líneas con cardinalidad.  Las columnas de tipo
+\texttt{\{\}} indican campos JSONB (almacenamiento semiestructurado),
+y \texttt{is\_latest} junto a \texttt{parent\_dataset\_id} implementan
+el versionado jerárquico de \emph{datasets}.  La tabla
+\texttt{alembic\_version} es interna de Flask-Migrate y no forma parte
+del dominio.
 
-\begin{itemize}
-  \item \texttt{users} (1) --- (N) \texttt{projects}
-  \item \texttt{projects} (1) --- (N) \texttt{datasets}
-  \item \texttt{projects} (1) --- (N) \texttt{evaluations}
-  \item \texttt{projects} (1) --- (1) \texttt{quality\_gates}
-  \item \texttt{datasets} (1) --- (N) \texttt{datasets} [versionado:
-    parent\_dataset\_id]
-  \item \texttt{evaluations} (1) --- (N) \texttt{issues}
-  \item \texttt{evaluations} (1) --- (1) \texttt{analysis\_runs}
-  \item \texttt{analysis\_runs} (1) --- (N) \texttt{data\_quality\_issues}
-  \item \texttt{metric\_templates} (N) --- referenciados por
-    \texttt{projects.metrics\_config}~(JSONB)
-\end{itemize}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{img/er-diagram.png}
+  \caption{Esquema relacional de la base de datos \texttt{dataquality}:
+    tablas, columnas, tipos y relaciones de clave foránea}
+  \label{fig:er-diagram}
+\end{figure}
 
 \section*{Diagrama de secuencia: Ejecución de evaluación}
 

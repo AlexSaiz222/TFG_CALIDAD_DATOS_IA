@@ -54,17 +54,20 @@ motor de métricas en sus versiones base y extendida, \emph{Quality
 Score}, \emph{Quality Gates} con umbrales y veredicto,
 \emph{fingerprinting}, comparación con línea base y autorización contra
 accesos indebidos (\ac{IDOR}); el detalle de cada suite se describe en
-la sección~\ref{sec:impl-pruebas}.  Las pruebas se ejecutan con
-\texttt{pytest} desde el directorio \texttt{backend/} y pueden generar
-informes de cobertura mediante la opción \texttt{-{}-cov}.  Estas suites
-unitarias y de integración se complementaron con pruebas manuales de
-extremo a extremo sobre los flujos completos de la plataforma (registro,
-creación de proyecto, carga de dataset, configuración de métricas,
-ejecución de evaluaciones y consulta de resultados), que verificaron la
-correcta integración de todos los componentes en escenarios realistas.
-La automatización de estas pruebas \emph{end-to-end} con herramientas
-como Playwright o Cypress queda como tarea pendiente y se identifica
-explícitamente como limitación en la sección~\ref{sec:limitaciones}.
+la sección~\ref{sec:impl-pruebas} y el plan de pruebas integral
+(estrategia, niveles, casos de prueba y trazabilidad con requisitos) se
+formaliza en el Anexo~\ref{chap:anexo-pruebas}.  Las pruebas se ejecutan
+con \texttt{pytest} desde el directorio \texttt{backend/} y pueden
+generar informes de cobertura mediante la opción \texttt{-{}-cov}.
+Estas suites unitarias y de integración se complementaron con pruebas
+manuales de extremo a extremo sobre los flujos completos de la
+plataforma (registro, creación de proyecto, carga de dataset,
+configuración de métricas, ejecución de evaluaciones y consulta de
+resultados), que verificaron la correcta integración de todos los
+componentes en escenarios realistas.  La automatización de estas
+pruebas \emph{end-to-end} con herramientas como Playwright o Cypress
+queda como tarea pendiente y se identifica explícitamente como
+limitación en la sección~\ref{sec:limitaciones}.
 
 \subsection{Esfuerzo y desviaciones}
 \label{sec:esfuerzo}
