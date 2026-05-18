@@ -619,24 +619,41 @@ nombre y tipo de cada columna, estadísticas descriptivas y histogramas
 para columnas numéricas.  El versionado opera mediante un campo
 \texttt{parent\_dataset\_id} opcional y un indicador \texttt{is\_latest}:
 las cargas sucesivas dentro de un mismo proyecto generan versiones
-encadenadas que conservan el historial completo.  La
-Figura~\ref{fig:dataset-lineage} muestra la vista de versionado de un
-\emph{dataset}, donde la interfaz representa el árbol de versiones y
-etiqueta la versión activa.
+encadenadas que conservan el historial completo.  Las
+figuras~\ref{fig:dataset-versions-list} y~\ref{fig:dataset-lineage}
+muestran la vista de versionado de un \emph{dataset}: la primera recoge
+la lista cronológica de versiones con sus etiquetas de rama y puntuación
+de calidad; la segunda presenta el árbol visual interactivo
+(\emph{Visual version tree}) con el diferencial de puntuación entre
+versiones padre-hijo.  La Figura~\ref{fig:version-comparison} ilustra
+la pantalla de comparación entre dos versiones, con el desglose de
+\emph{issues} resueltos, nuevos y persistentes.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/dataset-lineage.png}
-  \fbox{\begin{minipage}[c][5.5cm][c]{0.9\textwidth}
-    \centering\itshape
-    [Insertar captura: vista de versionado de un \emph{dataset}
-    (\texttt{/datasets/[id]}), con el árbol de versiones padre-hijo y
-    la etiqueta \texttt{is\_latest} sobre la versión activa]
-  \end{minipage}}
-  \caption{Vista de versionado de \emph{datasets}: árbol de versiones
-    padre-hijo y etiquetado de la versión activa
-    (\texttt{is\_latest})}
+  \includegraphics[width=0.92\textwidth]{img/versiones-lista.png}
+  \caption{Pestaña \emph{Versions} de un \emph{dataset}: lista cronológica
+    de versiones con etiquetas de rama, estado de calidad y puntuación
+    por versión}
+  \label{fig:dataset-versions-list}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{img/dataset-lineage.png}
+  \caption{Canvas de árbol de versiones (\emph{Visual version tree}):
+    grafo interactivo con nodos coloreados por estado de \emph{Quality Gate}
+    y diferencial de puntuación entre versiones padre-hijo}
   \label{fig:dataset-lineage}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{img/version-comparison.png}
+  \caption{Comparación entre versiones de un \emph{dataset}: \emph{issues}
+    resueltos, nuevos y persistentes entre dos versiones seleccionadas,
+    con detalle de descripción y columna afectada}
+  \label{fig:version-comparison}
 \end{figure}
 
 \subsubsection{\acs{API} \acs{REST}ful}
@@ -882,6 +899,21 @@ ratio global sea elevada.  El cálculo sigue tres pasos:
     preservando la diferenciación entre conjuntos de datos muy deficientes.
 \end{enumerate}
 
+La Figura~\ref{fig:metric-config-detail} muestra el diálogo de configuración
+detallada de una métrica, donde el usuario puede ajustar umbrales mediante
+controles deslizantes, seleccionar columnas objetivo y revisar el
+equivalente \acs{JSON} en tiempo real.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{img/metric-config-detail.png}
+  \caption{Diálogo de configuración detallada de la métrica
+    \emph{Uniqueness}: umbral de unicidad mínimo, selección de columnas
+    que deben ser únicas y previsualización del \acs{JSON} de
+    parámetros generado}
+  \label{fig:metric-config-detail}
+\end{figure}
+
 \subsection{Retrospectiva}
 
 \textbf{Conseguido:} motor de métricas operativo con las tres primeras
@@ -1030,12 +1062,7 @@ principales de la interfaz de usuario desarrolladas en este sprint.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/dashboard.png}
-  \fbox{\begin{minipage}[c][5.5cm][c]{0.9\textwidth}
-    \centering\itshape
-    [Insertar captura: cuadro de mando principal ---
-    pantalla \texttt{/dashboard}]
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{img/dashboard.png}
   \caption{Cuadro de mando principal de \dataqual: tarjetas resumen de
     proyectos, distribución de estados de \emph{Quality Gate} y alertas de
     proyectos con problemas detectados}
@@ -1044,29 +1071,28 @@ principales de la interfaz de usuario desarrolladas en este sprint.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/evaluation-results.png}
-  \fbox{\begin{minipage}[c][5.5cm][c]{0.9\textwidth}
-    \centering\itshape
-    [Insertar captura: página de resultados de evaluación ---
-    \texttt{/evaluations/[id]}]
-  \end{minipage}}
-  \caption{Página de resultados de evaluación: indicador circular de
-    puntuación de calidad (\emph{gauge}), tabla de métricas por columna y
-    listado de \emph{issues} con severidad y columna afectada}
+  \includegraphics[width=0.92\textwidth]{img/analysis-history.png}
+  \caption{Historial de análisis de un proyecto: evolución temporal de la
+    puntuación de calidad, tendencia por \emph{dataset} y tabla de
+    ejecuciones con estado de \emph{Quality Gate}}
+  \label{fig:analysis-history}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth,height=0.85\textheight,keepaspectratio]{img/evaluation-results.png}
+  \caption{Página de resultados de evaluación: puntuación de calidad global,
+    resumen de métricas por dimensión, listado de \emph{issues} con
+    severidad y columna afectada, y cálculo detallado de la puntuación final}
   \label{fig:evaluation-results}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/eda-profiling.png}
-  \fbox{\begin{minipage}[c][5.5cm][c]{0.9\textwidth}
-    \centering\itshape
-    [Insertar captura: módulo de perfilado --- pestaña \emph{Profiling}
-    en \texttt{/datasets/[id]}]
-  \end{minipage}}
-  \caption{Módulo de exploración de datos (\acs{EDA}): histogramas de
-    distribución, diagramas de caja y matriz de correlación
-    Pearson/Spearman para columnas numéricas}
+  \includegraphics[width=0.92\textwidth,height=0.85\textheight,keepaspectratio]{img/eda-profiling.png}
+  \caption{Módulo de exploración de datos (\acs{EDA}): resumen estadístico,
+    diagrama de caja (\emph{boxplot}), distribuciones por columna,
+    matriz de correlación Pearson/Spearman y diagrama de dispersión}
   \label{fig:eda}
 \end{figure}
 
@@ -1286,6 +1312,14 @@ La seguridad de la plataforma se aborda desde múltiples capas:
     lógica se verifican contra una lista de \emph{tokens} prohibidos antes
     de su ejecución.
 
+  \item \textbf{Enmascaramiento de datos sensibles (\acs{PII}):} durante la
+    carga de un \emph{dataset}, el usuario puede marcar las columnas que
+    contienen datos personales.  El sistema persiste esta selección en el
+    campo \texttt{sensitive\_columns} (JSONB) y aplica automáticamente
+    el enmascaramiento en \emph{issues}, vistas previas, perfilado y logs,
+    sin almacenar valores en claro fuera del binario original en MinIO
+    (Figura~\ref{fig:enmascarado-pii}).
+
   \item \textbf{Red Docker aislada:} los servicios se comunican por la red
     interna \texttt{app-network} sin exponer puertos innecesariamente.
 \end{itemize}
@@ -1295,18 +1329,22 @@ implementado en este sprint.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.92\textwidth]{img/quality-gate.png}
-  \fbox{\begin{minipage}[c][5cm][c]{0.9\textwidth}
-    \centering\itshape
-    [Insertar captura: panel de \emph{Quality Gate} con estado
-    PASSED/WARNING/FAILED, umbrales configurados e indicadores de
-    \emph{issues} nuevos, recurrentes y corregidos]
-  \end{minipage}}
-  \caption{\emph{Quality Gate} de \dataqual: estado global con código de
-    color (PASSED/WARNING/FAILED), desglose de condiciones configuradas y
-    \emph{badges} de trazabilidad de \emph{issues} por
-    \emph{fingerprinting}}
+  \includegraphics[width=0.92\textwidth]{img/quality-gate.png}
+  \caption{\emph{Quality Gate} de \dataqual: condiciones de aprobación
+    configuradas (puntuación mínima, máximo de \emph{issues} críticos y
+    máximo de \emph{issues} nuevos) con etiquetas de nivel de rigor por
+    umbral (STRICT / MODERATE / PERMISSIVE)}
   \label{fig:quality-gate}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{img/enmascarado-pii.png}
+  \caption{Paso de revisión y confirmación del asistente de carga de
+    \emph{dataset}: panel de privacidad de datos con selección de columnas
+    \acs{PII} cuyos valores se enmascararán automáticamente en todas las
+    salidas del sistema}
+  \label{fig:enmascarado-pii}
 \end{figure}
 
 \subsection{Retrospectiva}

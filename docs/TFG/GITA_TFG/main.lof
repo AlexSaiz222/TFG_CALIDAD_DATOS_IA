@@ -13,11 +13,14 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {5.1}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{46}{figure.5.1}%
 \contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura lógica por capas de \textsc {DataQual}\xspace en su estado final (cierre del Sprint~5), mostrando las dependencias \emph {depends-on} (flecha discontinua de punta abierta). El directorio \texttt {services/metrics/} ($\star $) constituye el núcleo extensible del motor de evaluación, alineado con el principio abierto--cerrado~\citep {design_patterns}}}{49}{figure.5.2}%
-\contentsline {figure}{\numberline {5.3}{\ignorespaces Vista de versionado de \emph {datasets}: árbol de versiones padre-hijo y etiquetado de la versión activa (\texttt {is\_latest})}}{54}{figure.5.3}%
-\contentsline {figure}{\numberline {5.4}{\ignorespaces Cuadro de mando principal de \textsc {DataQual}\xspace : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{61}{figure.5.4}%
-\contentsline {figure}{\numberline {5.5}{\ignorespaces Página de resultados de evaluación: indicador circular de puntuación de calidad (\emph {gauge}), tabla de métricas por columna y listado de \emph {issues} con severidad y columna afectada}}{61}{figure.5.5}%
-\contentsline {figure}{\numberline {5.6}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): histogramas de distribución, diagramas de caja y matriz de correlación Pearson/Spearman para columnas numéricas}}{62}{figure.5.6}%
-\contentsline {figure}{\numberline {5.7}{\ignorespaces \emph {Quality Gate} de \textsc {DataQual}\xspace : estado global con código de color (PASSED/WARNING/FAILED), desglose de condiciones configuradas y \emph {badges} de trazabilidad de \emph {issues} por \emph {fingerprinting}}}{66}{figure.5.7}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Pestaña \emph {Versions} de un \emph {dataset}: lista cronológica de versiones con etiquetas de rama, estado de calidad y puntuación por versión}}{54}{figure.5.3}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{55}{figure.5.4}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Comparación entre versiones de un \emph {dataset}: \emph {issues} resueltos, nuevos y persistentes entre dos versiones seleccionadas, con detalle de descripción y columna afectada}}{56}{figure.5.5}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Cuadro de mando principal de \textsc {DataQual}\xspace : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{63}{figure.5.6}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{64}{figure.5.7}%
+\contentsline {figure}{\numberline {5.8}{\ignorespaces Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}}{65}{figure.5.8}%
+\contentsline {figure}{\numberline {5.9}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}}{66}{figure.5.9}%
+\contentsline {figure}{\numberline {5.10}{\ignorespaces \emph {Quality Gate} de \textsc {DataQual}\xspace : estado global con código de color (PASSED/WARNING/FAILED), desglose de condiciones configuradas y \emph {badges} de trazabilidad de \emph {issues} por \emph {fingerprinting}}}{70}{figure.5.10}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
@@ -27,13 +30,13 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{112}{figure.Alph7.1}%
-\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{112}{figure.Alph7.2}%
-\contentsline {figure}{\numberline {G.3}{\ignorespaces Asistente de carga de \emph {dataset} CSV con marcado opcional de columnas sensibles (\ac {PII})}}{113}{figure.Alph7.3}%
-\contentsline {figure}{\numberline {G.4}{\ignorespaces Configurador de métricas con catálogo, parametrización detallada y plantillas reutilizables}}{114}{figure.Alph7.4}%
-\contentsline {figure}{\numberline {G.5}{\ignorespaces Lanzamiento de un análisis con seguimiento del progreso asíncrono mediante \emph {polling}}}{114}{figure.Alph7.5}%
-\contentsline {figure}{\numberline {G.6}{\ignorespaces Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}}{115}{figure.Alph7.6}%
-\contentsline {figure}{\numberline {G.7}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}}{116}{figure.Alph7.7}%
-\contentsline {figure}{\numberline {G.8}{\ignorespaces Configuración del \emph {Quality Gate} con preajustes de rigor y umbrales manuales (\texttt {PASSED}, \texttt {WARNING}, \texttt {FAILED})}}{117}{figure.Alph7.8}%
+\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{116}{figure.Alph7.1}%
+\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{116}{figure.Alph7.2}%
+\contentsline {figure}{\numberline {G.3}{\ignorespaces Asistente de carga de \emph {dataset} CSV con marcado opcional de columnas sensibles (\ac {PII})}}{117}{figure.Alph7.3}%
+\contentsline {figure}{\numberline {G.4}{\ignorespaces Configurador de métricas con catálogo, parametrización detallada y plantillas reutilizables}}{118}{figure.Alph7.4}%
+\contentsline {figure}{\numberline {G.5}{\ignorespaces Lanzamiento de un análisis con seguimiento del progreso asíncrono mediante \emph {polling}}}{119}{figure.Alph7.5}%
+\contentsline {figure}{\numberline {G.6}{\ignorespaces Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}}{120}{figure.Alph7.6}%
+\contentsline {figure}{\numberline {G.7}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}}{121}{figure.Alph7.7}%
+\contentsline {figure}{\numberline {G.8}{\ignorespaces Configuración del \emph {Quality Gate} con preajustes de rigor y umbrales manuales (\texttt {PASSED}, \texttt {WARNING}, \texttt {FAILED})}}{122}{figure.Alph7.8}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \textsc {DataQual}\xspace }}{120}{figure.Alph8.1}%
+\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \textsc {DataQual}\xspace }}{125}{figure.Alph8.1}%

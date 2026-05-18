@@ -105,97 +105,97 @@
 \contentsline {subsection}{\numberline {5.3.3}Cómo se ha hecho}{52}{subsection.5.3.3}%
 \contentsline {subsubsection}{Arquitectura del \emph {backend}}{52}{subsection.5.3.3}%
 \contentsline {subsubsection}{Módulo de ingesta y almacenamiento}{53}{subsection.5.3.3}%
-\contentsline {subsubsection}{\acs {API} \acs {REST}ful}{54}{figure.5.3}%
-\contentsline {subsection}{\numberline {5.3.4}Retrospectiva}{54}{subsection.5.3.4}%
-\contentsline {section}{\numberline {5.4}Sprint 3: Motor de métricas de calidad}{55}{section.5.4}%
-\contentsline {subsection}{\numberline {5.4.1}Planificación del sprint}{55}{subsection.5.4.1}%
-\contentsline {subsection}{\numberline {5.4.2}Trabajo realizado}{56}{subsection.5.4.2}%
-\contentsline {subsection}{\numberline {5.4.3}Cómo se ha hecho}{56}{subsection.5.4.3}%
-\contentsline {subsubsection}{Arquitectura del motor de métricas}{56}{subsection.5.4.3}%
-\contentsline {subsubsection}{Métricas implementadas}{56}{subsection.5.4.3}%
-\contentsline {paragraph}{Completitud (\texttt {completeness})}{57}{subsection.5.4.3}%
-\contentsline {paragraph}{Unicidad (\texttt {uniqueness})}{57}{subsection.5.4.3}%
-\contentsline {paragraph}{Detección de valores atípicos (\texttt {outliers}):solo perfilado}{57}{subsection.5.4.3}%
-\contentsline {paragraph}{Exactitud sintáctica (\texttt {syntactic\_accuracy})}{57}{subsection.5.4.3}%
-\contentsline {paragraph}{Consistencia lógica (\texttt {logical\_consistency})}{57}{subsection.5.4.3}%
-\contentsline {paragraph}{Equilibrio de clases (\texttt {class\_balance})}{58}{subsection.5.4.3}%
-\contentsline {paragraph}{Actualidad (\texttt {currentness})}{58}{subsection.5.4.3}%
-\contentsline {subsubsection}{Fórmula del \emph {Quality Score}}{58}{subsection.5.4.3}%
-\contentsline {subsection}{\numberline {5.4.4}Retrospectiva}{59}{subsection.5.4.4}%
-\contentsline {section}{\numberline {5.5}Sprint 4: \emph {Frontend} e interfaz de usuario}{59}{section.5.5}%
-\contentsline {subsection}{\numberline {5.5.1}Planificación del sprint}{59}{subsection.5.5.1}%
-\contentsline {subsection}{\numberline {5.5.2}Trabajo realizado}{59}{subsection.5.5.2}%
-\contentsline {subsection}{\numberline {5.5.3}Cómo se ha hecho}{60}{subsection.5.5.3}%
-\contentsline {subsubsection}{Estructura de la aplicación \emph {frontend}}{60}{subsection.5.5.3}%
-\contentsline {subsubsection}{Cuadros de mando y visualizaciones}{60}{subsection.5.5.3}%
+\contentsline {subsubsection}{\acs {API} \acs {REST}ful}{54}{figure.5.5}%
+\contentsline {subsection}{\numberline {5.3.4}Retrospectiva}{55}{subsection.5.3.4}%
+\contentsline {section}{\numberline {5.4}Sprint 3: Motor de métricas de calidad}{57}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Planificación del sprint}{57}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Trabajo realizado}{57}{subsection.5.4.2}%
+\contentsline {subsection}{\numberline {5.4.3}Cómo se ha hecho}{57}{subsection.5.4.3}%
+\contentsline {subsubsection}{Arquitectura del motor de métricas}{57}{subsection.5.4.3}%
+\contentsline {subsubsection}{Métricas implementadas}{58}{subsection.5.4.3}%
+\contentsline {paragraph}{Completitud (\texttt {completeness})}{58}{subsection.5.4.3}%
+\contentsline {paragraph}{Unicidad (\texttt {uniqueness})}{58}{subsection.5.4.3}%
+\contentsline {paragraph}{Detección de valores atípicos (\texttt {outliers}):solo perfilado}{59}{subsection.5.4.3}%
+\contentsline {paragraph}{Exactitud sintáctica (\texttt {syntactic\_accuracy})}{59}{subsection.5.4.3}%
+\contentsline {paragraph}{Consistencia lógica (\texttt {logical\_consistency})}{59}{subsection.5.4.3}%
+\contentsline {paragraph}{Equilibrio de clases (\texttt {class\_balance})}{59}{subsection.5.4.3}%
+\contentsline {paragraph}{Actualidad (\texttt {currentness})}{59}{subsection.5.4.3}%
+\contentsline {subsubsection}{Fórmula del \emph {Quality Score}}{59}{subsection.5.4.3}%
+\contentsline {subsection}{\numberline {5.4.4}Retrospectiva}{60}{subsection.5.4.4}%
+\contentsline {section}{\numberline {5.5}Sprint 4: \emph {Frontend} e interfaz de usuario}{61}{section.5.5}%
+\contentsline {subsection}{\numberline {5.5.1}Planificación del sprint}{61}{subsection.5.5.1}%
+\contentsline {subsection}{\numberline {5.5.2}Trabajo realizado}{61}{subsection.5.5.2}%
+\contentsline {subsection}{\numberline {5.5.3}Cómo se ha hecho}{62}{subsection.5.5.3}%
+\contentsline {subsubsection}{Estructura de la aplicación \emph {frontend}}{62}{subsection.5.5.3}%
+\contentsline {subsubsection}{Cuadros de mando y visualizaciones}{62}{subsection.5.5.3}%
 \contentsline {subsection}{\numberline {5.5.4}Retrospectiva}{62}{subsection.5.5.4}%
-\contentsline {section}{\numberline {5.6}Sprint 5: Funcionalidades avanzadas}{62}{section.5.6}%
-\contentsline {subsection}{\numberline {5.6.1}Planificación del sprint}{63}{subsection.5.6.1}%
-\contentsline {subsection}{\numberline {5.6.2}Trabajo realizado}{63}{subsection.5.6.2}%
-\contentsline {subsection}{\numberline {5.6.3}Cómo se ha hecho}{64}{subsection.5.6.3}%
-\contentsline {subsubsection}{Sistema de \emph {fingerprinting}}{64}{subsection.5.6.3}%
-\contentsline {subsubsection}{Procesamiento asíncrono}{65}{table.5.8}%
-\contentsline {subsubsection}{Seguridad}{65}{table.5.8}%
-\contentsline {subsection}{\numberline {5.6.4}Retrospectiva}{65}{subsection.5.6.4}%
-\contentsline {section}{\numberline {5.7}Sprint 6: Pruebas, refinamiento y documentación}{67}{section.5.7}%
-\contentsline {subsection}{\numberline {5.7.1}Planificación del sprint}{67}{subsection.5.7.1}%
-\contentsline {subsection}{\numberline {5.7.2}Trabajo realizado}{67}{subsection.5.7.2}%
-\contentsline {subsection}{\numberline {5.7.3}Cómo se ha hecho}{68}{subsection.5.7.3}%
-\contentsline {subsubsection}{Estrategia de pruebas}{68}{subsection.5.7.3}%
-\contentsline {subsubsection}{Defectos detectados y corregidos}{69}{subsection.5.7.3}%
-\contentsline {subsection}{\numberline {5.7.4}Retrospectiva}{69}{subsection.5.7.4}%
-\contentsline {chapter}{\numberline {6}Resultados y discusión}{71}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Resultados alcanzados}{71}{section.6.1}%
-\contentsline {subsection}{\numberline {6.1.1}Resultados cuantitativos}{71}{subsection.6.1.1}%
-\contentsline {subsection}{\numberline {6.1.2}Esfuerzo y desviaciones}{72}{subsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.1.3}Verificación del cumplimiento de objetivos}{72}{subsection.6.1.3}%
-\contentsline {section}{\numberline {6.2}Fortalezas de la plataforma}{73}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Limitaciones}{74}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Comparación con herramientas existentes}{75}{section.6.4}%
-\contentsline {chapter}{\numberline {7}Conclusiones y trabajo futuro}{77}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Revisión de objetivos}{77}{section.7.1}%
-\contentsline {section}{\numberline {7.2}Conclusiones}{78}{section.7.2}%
-\contentsline {section}{\numberline {7.3}Lecciones aprendidas}{79}{section.7.3}%
-\contentsline {section}{\numberline {7.4}Líneas de trabajo futuro}{80}{section.7.4}%
-\contentsline {section}{\numberline {7.5}Aportación del proyecto}{81}{section.7.5}%
-\contentsline {section}{\numberline {7.6}Competencias adquiridas}{82}{section.7.6}%
-\contentsline {section}{\numberline {7.7}Valoración personal}{83}{section.7.7}%
-\contentsline {chapter}{\numberline {A}Especificación de la \acs {API} \acs {REST}ful}{85}{appendix.Alph1}%
-\contentsline {section}{\numberline {A.1}Módulo de autenticación (\texttt {/api/auth})}{85}{section.Alph1.1}%
-\contentsline {section}{\numberline {A.2}Módulo de proyectos (\texttt {/api/projects})}{85}{section.Alph1.2}%
-\contentsline {section}{\numberline {A.3}Módulo de conjuntos de datos (\texttt {/api/datasets})}{86}{section.Alph1.3}%
-\contentsline {section}{\numberline {A.4}Módulo de métricas (\texttt {/api/metrics})}{86}{section.Alph1.4}%
-\contentsline {section}{\numberline {A.5}Módulo de evaluaciones (\texttt {/api/evaluations})}{86}{section.Alph1.5}%
-\contentsline {section}{\numberline {A.6}Módulo de administración (\texttt {/api/admin})}{87}{section.Alph1.6}%
-\contentsline {chapter}{\numberline {B}Catálogo de métricas de calidad}{88}{appendix.Alph2}%
-\contentsline {section}{\numberline {B.1}Completitud (\texttt {completeness})}{89}{section.Alph2.1}%
-\contentsline {section}{\numberline {B.2}Unicidad (\texttt {uniqueness})}{89}{section.Alph2.2}%
-\contentsline {section}{\numberline {B.3}Exactitud sintáctica (\texttt {syntactic\_accuracy})}{90}{section.Alph2.3}%
-\contentsline {section}{\numberline {B.4}Consistencia lógica (\texttt {logical\_consistency})}{91}{section.Alph2.4}%
-\contentsline {section}{\numberline {B.5}Equilibrio de clases (\texttt {class\_balance})}{92}{section.Alph2.5}%
-\contentsline {section}{\numberline {B.6}Actualidad (\texttt {currentness})}{93}{section.Alph2.6}%
-\contentsline {section}{\numberline {B.7}Diversidad (\texttt {diversity})}{93}{section.Alph2.7}%
-\contentsline {section}{\numberline {B.8}Valores atípicos (\texttt {outliers})}{94}{section.Alph2.8}%
-\contentsline {section}{\numberline {B.9}Modelo de severidad dinámica}{94}{section.Alph2.9}%
-\contentsline {chapter}{\numberline {C}Backlog completo del proyecto}{96}{appendix.Alph3}%
-\contentsline {chapter}{\numberline {D}Análisis retrospectivo de riesgos}{99}{appendix.Alph4}%
-\contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{101}{appendix.Alph5}%
-\contentsline {chapter}{\numberline {F}Plan de pruebas integral}{103}{appendix.Alph6}%
-\contentsline {section}{\numberline {F.1}Objetivos y alcance}{103}{section.Alph6.1}%
-\contentsline {section}{\numberline {F.2}Estrategia y niveles de prueba}{104}{section.Alph6.2}%
-\contentsline {section}{\numberline {F.3}Tipos de pruebas aplicadas}{104}{section.Alph6.3}%
-\contentsline {section}{\numberline {F.4}Suites de prueba (resumen por capa)}{104}{section.Alph6.4}%
-\contentsline {subsection}{\numberline {F.4.1}Capa de \emph {backend} (Flask + Celery)}{105}{subsection.Alph6.4.1}%
-\contentsline {subsection}{\numberline {F.4.2}Capa de dominio (\emph {Sonar-Lite})}{105}{subsection.Alph6.4.2}%
-\contentsline {subsection}{\numberline {F.4.3}Capa de \emph {frontend} (Next.js)}{105}{subsection.Alph6.4.3}%
-\contentsline {subsection}{\numberline {F.4.4}Pruebas no funcionales}{105}{subsection.Alph6.4.4}%
-\contentsline {section}{\numberline {F.5}Entornos y datos de prueba}{105}{section.Alph6.5}%
-\contentsline {section}{\numberline {F.6}Criterios de entrada, salida y aceptación}{105}{section.Alph6.6}%
-\contentsline {section}{\numberline {F.7}Métricas y \acs {KPI} del plan}{108}{section.Alph6.7}%
-\contentsline {section}{\numberline {F.8}Riesgos del plan de pruebas}{108}{section.Alph6.8}%
-\contentsline {section}{\numberline {F.9}Roles y responsabilidades}{109}{section.Alph6.9}%
-\contentsline {section}{\numberline {F.10}Trazabilidad y herramientas}{109}{section.Alph6.10}%
-\contentsline {section}{\numberline {F.11}Estado actual y trabajo futuro}{109}{section.Alph6.11}%
-\contentsline {chapter}{\numberline {G}Manual de usuario}{110}{appendix.Alph7}%
-\contentsline {chapter}{\numberline {H}Diagramas UML del sistema}{119}{appendix.Alph8}%
-\contentsline {chapter}{Referencias}{123}{appendix*.76}%
+\contentsline {section}{\numberline {5.6}Sprint 5: Funcionalidades avanzadas}{67}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}Planificación del sprint}{67}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}Trabajo realizado}{68}{subsection.5.6.2}%
+\contentsline {subsection}{\numberline {5.6.3}Cómo se ha hecho}{68}{subsection.5.6.3}%
+\contentsline {subsubsection}{Sistema de \emph {fingerprinting}}{68}{subsection.5.6.3}%
+\contentsline {subsubsection}{Procesamiento asíncrono}{69}{table.5.8}%
+\contentsline {subsubsection}{Seguridad}{69}{table.5.8}%
+\contentsline {subsection}{\numberline {5.6.4}Retrospectiva}{70}{subsection.5.6.4}%
+\contentsline {section}{\numberline {5.7}Sprint 6: Pruebas, refinamiento y documentación}{71}{section.5.7}%
+\contentsline {subsection}{\numberline {5.7.1}Planificación del sprint}{71}{subsection.5.7.1}%
+\contentsline {subsection}{\numberline {5.7.2}Trabajo realizado}{72}{subsection.5.7.2}%
+\contentsline {subsection}{\numberline {5.7.3}Cómo se ha hecho}{72}{subsection.5.7.3}%
+\contentsline {subsubsection}{Estrategia de pruebas}{72}{subsection.5.7.3}%
+\contentsline {subsubsection}{Defectos detectados y corregidos}{73}{subsection.5.7.3}%
+\contentsline {subsection}{\numberline {5.7.4}Retrospectiva}{74}{subsection.5.7.4}%
+\contentsline {chapter}{\numberline {6}Resultados y discusión}{75}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Resultados alcanzados}{75}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}Resultados cuantitativos}{75}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}Esfuerzo y desviaciones}{76}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}Verificación del cumplimiento de objetivos}{76}{subsection.6.1.3}%
+\contentsline {section}{\numberline {6.2}Fortalezas de la plataforma}{77}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Limitaciones}{78}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Comparación con herramientas existentes}{79}{section.6.4}%
+\contentsline {chapter}{\numberline {7}Conclusiones y trabajo futuro}{81}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Revisión de objetivos}{81}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Conclusiones}{82}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Lecciones aprendidas}{83}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Líneas de trabajo futuro}{84}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Aportación del proyecto}{85}{section.7.5}%
+\contentsline {section}{\numberline {7.6}Competencias adquiridas}{86}{section.7.6}%
+\contentsline {section}{\numberline {7.7}Valoración personal}{87}{section.7.7}%
+\contentsline {chapter}{\numberline {A}Especificación de la \acs {API} \acs {REST}ful}{89}{appendix.Alph1}%
+\contentsline {section}{\numberline {A.1}Módulo de autenticación (\texttt {/api/auth})}{89}{section.Alph1.1}%
+\contentsline {section}{\numberline {A.2}Módulo de proyectos (\texttt {/api/projects})}{89}{section.Alph1.2}%
+\contentsline {section}{\numberline {A.3}Módulo de conjuntos de datos (\texttt {/api/datasets})}{90}{section.Alph1.3}%
+\contentsline {section}{\numberline {A.4}Módulo de métricas (\texttt {/api/metrics})}{90}{section.Alph1.4}%
+\contentsline {section}{\numberline {A.5}Módulo de evaluaciones (\texttt {/api/evaluations})}{90}{section.Alph1.5}%
+\contentsline {section}{\numberline {A.6}Módulo de administración (\texttt {/api/admin})}{91}{section.Alph1.6}%
+\contentsline {chapter}{\numberline {B}Catálogo de métricas de calidad}{92}{appendix.Alph2}%
+\contentsline {section}{\numberline {B.1}Completitud (\texttt {completeness})}{93}{section.Alph2.1}%
+\contentsline {section}{\numberline {B.2}Unicidad (\texttt {uniqueness})}{93}{section.Alph2.2}%
+\contentsline {section}{\numberline {B.3}Exactitud sintáctica (\texttt {syntactic\_accuracy})}{94}{section.Alph2.3}%
+\contentsline {section}{\numberline {B.4}Consistencia lógica (\texttt {logical\_consistency})}{95}{section.Alph2.4}%
+\contentsline {section}{\numberline {B.5}Equilibrio de clases (\texttt {class\_balance})}{96}{section.Alph2.5}%
+\contentsline {section}{\numberline {B.6}Actualidad (\texttt {currentness})}{97}{section.Alph2.6}%
+\contentsline {section}{\numberline {B.7}Diversidad (\texttt {diversity})}{97}{section.Alph2.7}%
+\contentsline {section}{\numberline {B.8}Valores atípicos (\texttt {outliers})}{98}{section.Alph2.8}%
+\contentsline {section}{\numberline {B.9}Modelo de severidad dinámica}{98}{section.Alph2.9}%
+\contentsline {chapter}{\numberline {C}Backlog completo del proyecto}{100}{appendix.Alph3}%
+\contentsline {chapter}{\numberline {D}Análisis retrospectivo de riesgos}{103}{appendix.Alph4}%
+\contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{105}{appendix.Alph5}%
+\contentsline {chapter}{\numberline {F}Plan de pruebas integral}{107}{appendix.Alph6}%
+\contentsline {section}{\numberline {F.1}Objetivos y alcance}{107}{section.Alph6.1}%
+\contentsline {section}{\numberline {F.2}Estrategia y niveles de prueba}{108}{section.Alph6.2}%
+\contentsline {section}{\numberline {F.3}Tipos de pruebas aplicadas}{108}{section.Alph6.3}%
+\contentsline {section}{\numberline {F.4}Suites de prueba (resumen por capa)}{108}{section.Alph6.4}%
+\contentsline {subsection}{\numberline {F.4.1}Capa de \emph {backend} (Flask + Celery)}{109}{subsection.Alph6.4.1}%
+\contentsline {subsection}{\numberline {F.4.2}Capa de dominio (\emph {Sonar-Lite})}{109}{subsection.Alph6.4.2}%
+\contentsline {subsection}{\numberline {F.4.3}Capa de \emph {frontend} (Next.js)}{109}{subsection.Alph6.4.3}%
+\contentsline {subsection}{\numberline {F.4.4}Pruebas no funcionales}{109}{subsection.Alph6.4.4}%
+\contentsline {section}{\numberline {F.5}Entornos y datos de prueba}{109}{section.Alph6.5}%
+\contentsline {section}{\numberline {F.6}Criterios de entrada, salida y aceptación}{109}{section.Alph6.6}%
+\contentsline {section}{\numberline {F.7}Métricas y \acs {KPI} del plan}{112}{section.Alph6.7}%
+\contentsline {section}{\numberline {F.8}Riesgos del plan de pruebas}{112}{section.Alph6.8}%
+\contentsline {section}{\numberline {F.9}Roles y responsabilidades}{113}{section.Alph6.9}%
+\contentsline {section}{\numberline {F.10}Trazabilidad y herramientas}{113}{section.Alph6.10}%
+\contentsline {section}{\numberline {F.11}Estado actual y trabajo futuro}{113}{section.Alph6.11}%
+\contentsline {chapter}{\numberline {G}Manual de usuario}{114}{appendix.Alph7}%
+\contentsline {chapter}{\numberline {H}Diagramas UML del sistema}{124}{appendix.Alph8}%
+\contentsline {chapter}{Referencias}{128}{appendix*.76}%

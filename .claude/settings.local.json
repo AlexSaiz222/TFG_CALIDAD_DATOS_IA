@@ -37,7 +37,10 @@
       "Bash(pdflatex -interaction=nonstopmode -halt-on-error main.tex)",
       "Bash(grep -E \"\\\\.\\(py|sql\\)$\")",
       "Bash(Get-ChildItem \"C:\\\\Users\\\\aleja\\\\Documents\\\\GitHub\\\\TFG_CALIDAD_DATOS_IA\\\\docs\\\\TFG\\\\GITA_TFG\" -Recurse -Directory)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(grep -n \"\\\\\\\\\\\\\\\\begin{figure}\\\\|\\\\\\\\\\\\\\\\label{fig:\\\\|\\\\\\\\\\\\\\\\caption{\" \"C:/Users/aleja/Documents/GitHub/TFG_CALIDAD_DATOS_IA/docs/TFG/GITA_TFG/chapters/05-desarrollo.tex\")",
+      "Bash(grep -rn \"\\\\\\\\\\\\\\\\begin{figure}\\\\|\\\\\\\\\\\\\\\\label{fig:\\\\|\\\\\\\\\\\\\\\\caption{\" \"C:/Users/aleja/Documents/GitHub/TFG_CALIDAD_DATOS_IA/docs/TFG/GITA_TFG/chapters/04-metodologia.tex\")",
+      "Bash(grep *)"
     ]
   }
 }

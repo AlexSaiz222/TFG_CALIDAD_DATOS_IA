@@ -103,13 +103,7 @@ La autenticación se realiza desde la pantalla unificada
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-auth.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: pantalla unificada de autenticación
-    (\texttt{/auth}) con las pestañas \emph{Iniciar sesión} y
-    \emph{Registrarse}]
-  \end{minipage}}
+  \includegraphics[width=0.85\textwidth]{img/manual-auth.png}
   \caption{Pantalla unificada de autenticación con pestañas de
     inicio de sesión y registro}
   \label{fig:manual-auth}
@@ -145,13 +139,7 @@ evaluaciones ejecutadas y el \emph{Quality Gate} del conjunto.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-new-project.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: asistente \emph{Nuevo proyecto}
-    (\texttt{/projects/new}), mostrando los pasos \emph{Información
-    básica}, \emph{Plantilla y métricas} y \emph{Resumen}]
-  \end{minipage}}
+  \includegraphics[width=0.85\textwidth]{img/manual-new-project.png}
   \caption{Asistente de creación de un nuevo proyecto en tres pasos}
   \label{fig:manual-new-project}
 \end{figure}
@@ -192,16 +180,18 @@ en MinIO y registra los metadatos en PostgreSQL.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-upload.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: asistente de carga de \emph{dataset}
-    (\texttt{/datasets/upload}) con la zona de \emph{drag-and-drop}
-    y el panel de selección de columnas sensibles (\ac{PII})]
-  \end{minipage}}
-  \caption{Asistente de carga de \emph{dataset} CSV con marcado
-    opcional de columnas sensibles (\ac{PII})}
+  \includegraphics[width=0.85\textwidth]{img/manual-upload.png}
+  \caption{Paso 2 del asistente de carga: zona de \emph{drag-and-drop}
+    con nombre y descripción del \emph{dataset}}
   \label{fig:manual-upload}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/enmascarado-pii.png}
+  \caption{Paso 3 del asistente de carga: resumen del \emph{dataset} y
+    selección de columnas \ac{PII} para enmascaramiento automático}
+  \label{fig:manual-pii}
 \end{figure}
 
 \subsection*{4. Configurar métricas del proyecto}
@@ -235,16 +225,10 @@ al usuario a la página del proyecto.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-metrics.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: configurador de métricas
-    (\texttt{/metrics/configure/[id]}) con sus tres pestañas
-    \emph{Métricas disponibles}, \emph{Métricas seleccionadas} y
-    \emph{Plantillas}]
-  \end{minipage}}
-  \caption{Configurador de métricas con catálogo, parametrización
-    detallada y plantillas reutilizables}
+  \includegraphics[width=0.85\textwidth]{img/manual-metrics.png}
+  \caption{Configurador de métricas (pestaña \emph{Métricas seleccionadas}):
+    tarjetas de las métricas activas con acceso a configuración detallada
+    y opción de guardar como plantilla reutilizable}
   \label{fig:manual-metrics}
 \end{figure}
 
@@ -273,15 +257,10 @@ del proyecto pulsando el botón \textbf{Ejecutar análisis}.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-evaluation.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: lanzamiento de \emph{Ejecutar análisis}
-    desde la página del proyecto, con la barra de progreso asíncrono
-    (0--100\,\%)]
-  \end{minipage}}
-  \caption{Lanzamiento de un análisis con seguimiento del progreso
-    asíncrono mediante \emph{polling}}
+  \includegraphics[width=0.85\textwidth]{img/manual-evaluation.png}
+  \caption{Pestaña \emph{Evaluaciones} de un \emph{dataset}: evaluación
+    recién lanzada con estado \emph{Queued} y botón \emph{Run evaluation}
+    en curso, junto a una evaluación anterior con resultado PASSED}
   \label{fig:manual-evaluation}
 \end{figure}
 
@@ -315,14 +294,7 @@ y la pestaña \textbf{Evaluaciones} de la página del \emph{dataset}.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-results.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: detalle de un análisis
-    (\texttt{/evaluations/[id]}) con el \emph{gauge} del
-    \emph{Quality Score}, las pestañas por métrica y el listado de
-    \emph{issues} con \emph{badges} de trazabilidad]
-  \end{minipage}}
+  \includegraphics[width=0.85\textwidth,height=0.85\textheight,keepaspectratio]{img/manual-results.png}
   \caption{Detalle de un análisis: \emph{Quality Score}, métricas
     e \emph{issues} con \emph{badges} de trazabilidad
     entre ejecuciones}
@@ -358,21 +330,40 @@ exploración exploratoria no exponga información personal.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-eda.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: módulo de perfilado (pestaña
-    \emph{Perfilado} de \texttt{/datasets/[id]}) con histogramas,
-    diagramas de caja, matriz de correlación y panel de
-    \emph{outliers} con factor \ac{IQR} configurable]
-  \end{minipage}}
+  \includegraphics[width=0.85\textwidth,height=0.85\textheight,keepaspectratio]{img/manual-eda.png}
   \caption{Módulo de perfilado interactivo (\ac{EDA}): histogramas,
     diagramas de caja, correlaciones y detección de
     \emph{outliers}}
   \label{fig:manual-eda}
 \end{figure}
 
-\subsection*{8. Configurar un \emph{Quality Gate}}
+\subsection*{8. Seguir la evolución temporal del proyecto}
+
+La pestaña \textbf{Analysis history} de la página de un proyecto
+concentra el historial completo de análisis ejecutados, con una
+perspectiva de seguimiento longitudinal:
+
+\begin{itemize}
+  \item \textbf{Gráfico de evolución:} serie temporal de la puntuación
+    de calidad por \emph{dataset}, con indicadores de tendencia positiva
+    o negativa entre ejecuciones consecutivas.
+  \item \textbf{Filtros por dataset:} posibilidad de aislar la evolución
+    de un \emph{dataset} concreto o verlos todos superpuestos.
+  \item \textbf{Tabla de ejecuciones:} lista paginada de todos los
+    \texttt{AnalysisRun} del proyecto con fecha, \emph{dataset},
+    puntuación, número de \emph{issues} y estado del \emph{Quality Gate}.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/analysis-history.png}
+  \caption{Pestaña \emph{Analysis history} de un proyecto: gráfico de
+    evolución temporal de la puntuación de calidad por \emph{dataset}
+    y tabla de ejecuciones con estado de \emph{Quality Gate}}
+  \label{fig:manual-analysis-history}
+\end{figure}
+
+\subsection*{9. Configurar un \emph{Quality Gate}}
 
 Cada proyecto puede definir su propio \emph{Quality Gate} desde la
 pestaña \textbf{Quality Gate} de la página del proyecto.  El editor
@@ -408,20 +399,14 @@ defecto} controlan la persistencia de la configuración.
 
 \begin{figure}[htbp]
   \centering
-  % TODO: sustituir por \includegraphics[width=0.85\textwidth]{img/manual-quality-gate.png}
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.85\textwidth}
-    \centering\itshape
-    [Insertar captura: pestaña \emph{Quality Gate} del proyecto con
-    los preajustes \emph{Estricto / Moderado / Permisivo} y los
-    tres umbrales de configuración manual]
-  \end{minipage}}
-  \caption{Configuración del \emph{Quality Gate} con preajustes de
-    rigor y umbrales manuales (\texttt{PASSED}, \texttt{WARNING},
-    \texttt{FAILED})}
+  \includegraphics[width=0.85\textwidth]{img/manual-quality-gate.png}
+  \caption{Pestaña \emph{Quality Gate} de un proyecto: condición de
+    aprobación activa, umbrales configurables con deslizadores y
+    etiquetas de nivel de rigor por umbral}
   \label{fig:manual-qg}
 \end{figure}
 
-\subsection*{9. Gestionar versiones de un \emph{dataset}}
+\subsection*{10. Gestionar versiones de un \emph{dataset}}
 
 La pestaña \textbf{Versiones} de cualquier \emph{dataset} muestra el
 árbol completo de versiones del fichero, con las relaciones
@@ -442,7 +427,7 @@ Capítulo~\ref{chap:desarrollo}).  Desde esta vista se puede:
     estadísticas descriptivas y resultados de evaluación.
 \end{itemize}
 
-\subsection*{10. Plantillas de métricas reutilizables}
+\subsection*{11. Plantillas de métricas reutilizables}
 
 La sección \texttt{/settings/templates}, accesible desde el
 apartado \textbf{Configuración} de la barra lateral, permite
