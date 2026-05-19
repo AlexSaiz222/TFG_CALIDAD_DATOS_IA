@@ -41,7 +41,9 @@
       "Bash(grep -n \"\\\\\\\\\\\\\\\\begin{figure}\\\\|\\\\\\\\\\\\\\\\label{fig:\\\\|\\\\\\\\\\\\\\\\caption{\" \"C:/Users/aleja/Documents/GitHub/TFG_CALIDAD_DATOS_IA/docs/TFG/GITA_TFG/chapters/05-desarrollo.tex\")",
       "Bash(grep -rn \"\\\\\\\\\\\\\\\\begin{figure}\\\\|\\\\\\\\\\\\\\\\label{fig:\\\\|\\\\\\\\\\\\\\\\caption{\" \"C:/Users/aleja/Documents/GitHub/TFG_CALIDAD_DATOS_IA/docs/TFG/GITA_TFG/chapters/04-metodologia.tex\")",
       "Bash(grep *)",
-      "PowerShell(Copy-Item *)"
+      "PowerShell(Copy-Item *)",
+      "Bash(sort -t'\\(' -k2 -nr)",
+      "Bash(sort -k4 -t'\\(' -nr)"
     ]
   }
 }

@@ -31,7 +31,7 @@ versión funcional definitiva.
 
 \subsection{Historias de usuario}
 
-Las quince historias de usuario que definen el alcance funcional de \dataqual
+Las quince historias de usuario que se planificaron inicialmente para \dataqual
 se recogen en la Tabla~\ref{tab:backlog-hu} del
 capítulo~\ref{chap:metodologia} (sección~\ref{sec:backlog-inicial}), donde
 se detallan también la épica, la prioridad y la estimación en \emph{story
@@ -507,7 +507,8 @@ formatos de archivo y codificaciones de CSV puede generar una estrategia de
     convención REST: \texttt{project\_metrics} y \texttt{project\_datasets}
     (sub-rutas anidadas \texttt{/projects/<id>/…}) y \texttt{dashboard}
     (agregación de solo lectura), elevando el total a nueve \emph{blueprints}
-    Flask registrados.
+    Flask registrados, que en el Sprint~5 ascenderían a diez con la
+    incorporación de \texttt{patterns}.
   \item \textbf{Cambio respecto a lo planificado}: el parseo robusto de CSV
     requirió una semana adicional por la casuística de ficheros con BOM,
     delimitadores inusuales y codificaciones mixtas.
@@ -1572,9 +1573,10 @@ está redactada y los siete anexos completos.  La cobertura del
 \emph{frontend} sigue siendo insuficiente, lo que queda registrado como
 deuda técnica en las líneas de trabajo futuro.
 
-\textbf{Pendiente (trabajo futuro):} Swagger/OpenAPI, exportación de
-informes, WebSockets y pruebas \emph{end-to-end} del \emph{frontend};
-documentados en la sección~\ref{sec:trabajo-futuro}.
+\textbf{Pendiente (trabajo futuro):} exportación de informes,
+\emph{WebSockets}, pruebas \emph{end-to-end} del \emph{frontend} y
+validación con usuarios externos; documentados en la
+sección~\ref{sec:trabajo-futuro}.
 
 \textbf{Qué fue bien:} la batería de pruebas unitarias detectó tres defectos
 en el módulo de fingerprinting que habrían pasado desapercibidos, demostrando

@@ -1,5 +1,5 @@
 \chapter{Catálogo de métricas de calidad}
-\label{chap:anexo-metricas}
+\label{anx:metricas}
 
 Este anexo recoge el catálogo completo de las métricas de calidad de datos
 implementadas en \dataqual.  El sistema define \textbf{ocho clases de métricas}
@@ -110,7 +110,7 @@ La evaluación opera en dos niveles simultáneos:
   \item \textbf{Unicidad de filas}: $U_{\text{filas}} =
         \text{filas\_únicas} / \text{total\_filas}$.
   \item \textbf{Variabilidad por columna}: para cada columna se calcula
-        $V_c = \text{valores\_únicos}_c / \text{valores\_no\_nulos}_c$
+        $V_c = n_{\text{únicos}}^{(c)} / n_{\text{no nulos}}^{(c)}$
         y se compara con un \textbf{umbral adaptativo} que depende del tipo
         inferido de la columna:
         \begin{itemize}

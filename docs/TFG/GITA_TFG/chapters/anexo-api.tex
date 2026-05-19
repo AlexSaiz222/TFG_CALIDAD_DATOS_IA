@@ -1,12 +1,18 @@
 \chapter{Especificación de la \acs{API} \acs{REST}ful}
-\label{chap:anexo-api}
+\label{anx:api}
 
-Este anexo documenta los principales \emph{endpoints} de la \ac{API}
-\ac{REST}ful de \dataqual, organizados por módulo (\emph{blueprint}).
-Todos los \emph{endpoints} protegidos requieren un \emph{token} \ac{JWT}
-válido en la cabecera \texttt{Authorization:~Bearer~<token>}.  Las respuestas
-siguen el formato estandarizado
-\texttt{\{success,~data,~message\}}.
+Este anexo documenta los \emph{endpoints} de la \ac{API} \ac{REST}ful de
+\dataqual, agrupados por los diez \emph{blueprints} Flask registrados bajo el
+prefijo común \texttt{/api}.  Salvo indicación contraria, todos los
+\emph{endpoints} requieren un \emph{token} \ac{JWT} válido en la cabecera
+\texttt{Authorization:~Bearer~<token>}.  Las respuestas siguen el formato
+estandarizado \texttt{\{success,~data,~message\}} y devuelven códigos
+\ac{HTTP} convencionales (200, 201, 400, 401, 403, 404, 500).
+
+Los siete primeros \emph{blueprints} son funcionalmente diferenciados; los
+tres restantes (\texttt{project\_metrics}, \texttt{project\_datasets} y
+\texttt{dashboard}) cumplen un rol técnico de organización de rutas anidadas
+y agregación, tal como se justifica en el capítulo~\ref{chap:conclusiones}.
 
 
 %% =========================================================================
@@ -16,22 +22,21 @@ siguen el formato estandarizado
 
 \begin{definitionlist}
   \item[\texttt{POST /api/auth/register}]  Registro de un nuevo usuario.
-    Requiere \texttt{username}, \texttt{email} y \texttt{password}.
+    Requiere \texttt{username}, \texttt{email} y \texttt{password}.  No
+    requiere autenticación.
 
   \item[\texttt{POST /api/auth/login}]  Inicio de sesión.  Devuelve
-    \emph{access\_token} y \emph{refresh\_token}.
+    \emph{access\_token} y \emph{refresh\_token} \ac{JWT}.  No requiere
+    autenticación.
 
-  \item[\texttt{POST /api/auth/refresh}]  Refresco del \emph{access token}
-    utilizando el \emph{refresh token}.
+  \item[\texttt{POST /api/auth/refresh}]  Renovación del \emph{access token}
+    a partir del \emph{refresh token}.
 
-  \item[\texttt{POST /api/auth/logout}]  Cierre de sesión.  Revoca el
-    \emph{token} actual.
-
-  \item[\texttt{GET /api/auth/profile}]  Consulta del perfil del usuario
+  \item[\texttt{GET /api/auth/me}]  Consulta del perfil del usuario
     autenticado.
 
-  \item[\texttt{PUT /api/auth/profile}]  Actualización del perfil del
-    usuario.
+  \item[\texttt{PUT /api/auth/me}]  Actualización del perfil
+    (nombre, email, contraseña).
 \end{definitionlist}
 
 
@@ -51,14 +56,34 @@ siguen el formato estandarizado
   \item[\texttt{GET /api/projects/<id>}]  Detalle de un proyecto.
 
   \item[\texttt{PUT /api/projects/<id>}]  Actualización de un proyecto
-    (nombre, descripción, configuración de métricas).
+    (nombre, descripción).
 
   \item[\texttt{DELETE /api/projects/<id>}]  Eliminación de un proyecto y
     todos sus recursos asociados (conjuntos de datos, evaluaciones,
-    \emph{issues}).
+    \emph{issues}, \emph{Quality Gate}).
 
+  \item[\texttt{GET /api/projects/<id>/quality-gate}]  Consulta de la
+    configuración del \emph{Quality Gate} del proyecto (\texttt{min\_score},
+    \texttt{max\_critical\_issues}, \texttt{max\_new\_issues}).
+
+  \item[\texttt{PUT /api/projects/<id>/quality-gate}]  Actualización de los
+    umbrales del \emph{Quality Gate} del proyecto.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Configuración de métricas por proyecto}
+\label{sec:api-project-metrics}
+%% =========================================================================
+
+Prefijo: \texttt{/api/projects/<id>/metrics}.  \emph{Blueprint} técnico
+anidado bajo \texttt{projects} para separar la configuración de métricas
+de la gestión del proyecto.
+
+\begin{definitionlist}
   \item[\texttt{GET /api/projects/<id>/metrics/config}]  Consulta de la
-    configuración de métricas del proyecto.
+    configuración de métricas activas del proyecto (incluye pesos y
+    parámetros).
 
   \item[\texttt{POST /api/projects/<id>/metrics/config}]  Actualización de
     la configuración de métricas del proyecto.
@@ -71,25 +96,81 @@ siguen el formato estandarizado
 %% =========================================================================
 
 \begin{definitionlist}
-  \item[\texttt{POST /api/projects/<id>/datasets}]  Carga de un nuevo
-    conjunto de datos (formulario \emph{multipart}).  Acepta archivos en formato \ac{CSV}.
+  \item[\texttt{GET /api/datasets}]  Lista global de conjuntos de datos
+    accesibles al usuario.
+
+  \item[\texttt{POST /api/datasets/}]  Carga de un conjunto de datos sin
+    asociación previa a proyecto (formulario \emph{multipart}).  Acepta
+    archivos en formato \ac{CSV}.
 
   \item[\texttt{GET /api/datasets/<id>}]  Consulta de metadatos, esquema y
-    estadísticas de un conjunto de datos.
+    estadísticas del conjunto de datos.
 
-  \item[\texttt{GET /api/datasets/<id>/versions}]  Historial de versiones de
-    un conjunto de datos.
+  \item[\texttt{DELETE /api/datasets/<id>}]  Eliminación del conjunto de
+    datos y de las evaluaciones asociadas.
 
-  \item[\texttt{PUT /api/datasets/<id>/sensitive-columns}]  Actualización de
-    las columnas marcadas como \ac{PII}.
+  \item[\texttt{GET /api/datasets/<id>/columns}]  Listado ligero de columnas
+    y tipos a partir del esquema almacenado, sin descargar el archivo.
 
-  \item[\texttt{GET /api/datasets/<id>/download}]  Descarga del archivo
-    original.
+  \item[\texttt{GET /api/datasets/<id>/preview}]  Previsualización paginada
+    de las primeras filas, con enmascarado automático de columnas marcadas
+    como \ac{PII}.
+
+  \item[\texttt{GET /api/datasets/<id>/profiling}]  Perfilado estadístico
+    completo (\emph{EDA}): distribuciones, valores faltantes, valores
+    atípicos, correlaciones e histogramas.
+
+  \item[\texttt{GET /api/datasets/<id>/duplicates}]  Análisis de filas
+    duplicadas con muestra de ejemplos.
+
+  \item[\texttt{GET /api/datasets/<id>/evaluations}]  Historial de
+    evaluaciones del conjunto de datos.
+
+  \item[\texttt{POST /api/datasets/<id>/evaluations}]  Lanzamiento de una
+    nueva evaluación legacy sobre el conjunto de datos.
 \end{definitionlist}
 
 
 %% =========================================================================
-\section{Módulo de métricas (\texttt{/api/metrics})}
+\section{Versionado y carga de datasets por proyecto}
+\label{sec:api-project-datasets}
+%% =========================================================================
+
+Prefijo: \texttt{/api/projects/<id>/datasets}.  \emph{Blueprint} técnico
+anidado para operaciones de carga y versionado en el contexto de un
+proyecto.
+
+\begin{definitionlist}
+  \item[\texttt{GET /api/projects/<id>/datasets}]  Lista de conjuntos de
+    datos del proyecto, mostrando únicamente la versión más reciente de cada
+    linaje (\texttt{is\_latest=true}).
+
+  \item[\texttt{POST /api/projects/<id>/datasets/upload}]  Carga inicial de
+    un conjunto de datos en el proyecto (formulario \emph{multipart}).
+    Acepta el campo opcional \texttt{sensitive\_columns} como cadena
+    \ac{JSON} para declarar columnas \ac{PII} en el momento de la carga.
+
+  \item[\texttt{GET /api/projects/<id>/datasets/<id>/versions}]  Historial
+    completo de versiones del linaje padre-hijo del conjunto de datos.
+
+  \item[\texttt{POST /api/projects/<id>/datasets/<id>/new-version}]  Subida
+    de una nueva versión hija a partir de un dataset existente.  Hereda
+    automáticamente las columnas sensibles del padre salvo que se
+    proporcionen explícitamente.
+
+  \item[\texttt{GET /api/projects/<id>/datasets/<id>/compare/<other\_id>}]
+    Comparación estructural y estadística entre dos versiones de un
+    conjunto de datos (esquema, columnas añadidas/eliminadas, deriva de
+    distribuciones).
+
+  \item[\texttt{PATCH /api/projects/<id>/datasets/<id>/version-tag}]
+    Actualización de la etiqueta semántica (\texttt{version\_tag}) de una
+    versión concreta.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Catálogo de métricas y plantillas (\texttt{/api/metrics})}
 \label{sec:api-metrics}
 %% =========================================================================
 
@@ -97,11 +178,19 @@ siguen el formato estandarizado
   \item[\texttt{GET /api/metrics/}]  Catálogo de métricas disponibles con
     sus parámetros de configuración.
 
-  \item[\texttt{GET /api/metrics/templates}]  Lista de plantillas de métricas
-    (del sistema y del usuario).
+  \item[\texttt{GET /api/metrics/<id>}]  Definición detallada de una
+    métrica concreta.
+
+  \item[\texttt{GET /api/metrics/templates}]  Lista de plantillas de
+    configuración de métricas (del sistema y del usuario).
+
+  \item[\texttt{GET /api/metrics/templates/<id>}]  Detalle de una plantilla.
 
   \item[\texttt{POST /api/metrics/templates}]  Creación de una nueva
-    plantilla de métricas.
+    plantilla del usuario.
+
+  \item[\texttt{PUT /api/metrics/templates/<id>}]  Modificación de una
+    plantilla del usuario.
 
   \item[\texttt{DELETE /api/metrics/templates/<id>}]  Eliminación de una
     plantilla del usuario.
@@ -109,28 +198,114 @@ siguen el formato estandarizado
 
 
 %% =========================================================================
-\section{Módulo de evaluaciones (\texttt{/api/evaluations})}
+\section{Módulo de evaluaciones y análisis (\texttt{/api/evaluations})}
 \label{sec:api-evaluations}
 %% =========================================================================
 
+Concentra dos sistemas: las \textbf{evaluaciones} (modelo legacy por
+\emph{dataset}) y los \textbf{\emph{Analysis Runs}} (modelo Sonar-Lite
+con \emph{Quality Gate}, comparación frente a línea base y trazabilidad
+de \emph{issues} mediante \emph{fingerprint}).
+
+\subsection*{Evaluaciones (legacy)}
+
 \begin{definitionlist}
-  \item[\texttt{POST /api/evaluations/}]  Lanzamiento de una nueva
-    evaluación.  Requiere \texttt{project\_id} y \texttt{dataset\_id}.
+  \item[\texttt{GET /api/evaluations/}]  Lista de evaluaciones accesibles
+    al usuario.
 
-  \item[\texttt{GET /api/evaluations/<id>}]  Consulta de los resultados
-    completos de una evaluación: métricas, puntuación, \emph{issues} y
-    estado del \emph{Quality Gate}.
+  \item[\texttt{POST /api/evaluations/datasets/<dataset\_id>}]  Lanzamiento
+    de una nueva evaluación sobre el \emph{dataset} indicado.
 
-  \item[\texttt{GET /api/evaluations/<id>/status}]  Consulta del estado y
-    progreso de una evaluación en curso.
+  \item[\texttt{GET /api/evaluations/<id>}]  Resultados completos de una
+    evaluación: métricas, puntuación global, \emph{issues} y estado del
+    \emph{Quality Gate}.
 
-  \item[\texttt{GET /api/evaluations/<id>/issues}]  Lista de \emph{issues}
-    detectados en la evaluación, con severidad, descripción, columnas
-    afectadas y muestras de filas.
+  \item[\texttt{GET /api/evaluations/<id>/status}]  Estado y progreso de
+    una evaluación en curso (sondeo desde el \emph{frontend}).
 
-  \item[\texttt{GET /api/projects/<id>/evaluations}]  Historial de
-    evaluaciones de un proyecto, con puntuaciones y estados de \emph{Quality
-    Gate}.
+  \item[\texttt{GET /api/evaluations/<id>/issues}]  \emph{Issues}
+    detectados, con severidad, descripción, columnas afectadas y muestras
+    de filas.
+
+  \item[\texttt{GET /api/evaluations/<id>/violations}]  Violaciones por
+    métrica con detalle de umbrales incumplidos.
+
+  \item[\texttt{GET /api/evaluations/<id>/export}]  Exportación de los
+    resultados de la evaluación en formato descargable.
+
+  \item[\texttt{GET /api/evaluations/compare}]  Comparación entre dos
+    evaluaciones (parámetros \texttt{eval\_a}, \texttt{eval\_b}).
+
+  \item[\texttt{DELETE /api/evaluations/<id>}]  Eliminación de una
+    evaluación.
+\end{definitionlist}
+
+\subsection*{Analysis Runs}
+
+\begin{definitionlist}
+  \item[\texttt{POST /api/evaluations/projects/<id>/analyze}]  Lanzamiento
+    de un nuevo \emph{Analysis Run} sobre el último \emph{dataset} del
+    proyecto.  Compara contra el \emph{baseline} configurado y produce un
+    veredicto \emph{Quality Gate} con valor PASSED, WARNING o FAILED.
+
+  \item[\texttt{GET /api/evaluations/projects/<id>/analysis\_runs}]
+    Historial de \emph{Analysis Runs} del proyecto con sus puntuaciones y
+    veredictos.
+
+  \item[\texttt{GET /api/evaluations/projects/<id>/latest\_analysis}]
+    Último \emph{Analysis Run} ejecutado en el proyecto.
+
+  \item[\texttt{GET /api/evaluations/analysis/<run\_id>}]  Detalle
+    completo de un \emph{Analysis Run}: métricas, puntuación,
+    \texttt{new\_issues\_count}, \texttt{fixed\_issues\_count} y veredicto.
+
+  \item[\texttt{GET /api/evaluations/analysis/<run\_id>/status}]  Estado
+    y progreso del \emph{run} en ejecución.
+
+  \item[\texttt{GET /api/evaluations/analysis/<run\_id>/issues}]
+    \emph{Issues} del \emph{run}, con \emph{fingerprint} \ac{SHA}-256 que
+    permite trazar cada \emph{issue} a través de sucesivas ejecuciones.
+
+  \item[\texttt{GET /api/evaluations/analysis/<run\_id>/violations}]
+    Violaciones de umbrales del \emph{Quality Gate} en el \emph{run}.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de patrones de validación (\texttt{/api/patterns})}
+\label{sec:api-patterns}
+%% =========================================================================
+
+Gestión de patrones reutilizables (expresiones regulares y reglas de
+detección de \ac{PII}/\emph{outliers}) compartidos entre proyectos del
+mismo usuario.  \emph{Blueprint} funcional añadido en el Sprint~5.
+
+\begin{definitionlist}
+  \item[\texttt{GET /api/patterns/}]  Lista de patrones del usuario y del
+    sistema.
+
+  \item[\texttt{POST /api/patterns/}]  Creación de un nuevo patrón.
+
+  \item[\texttt{PUT /api/patterns/<id>}]  Modificación de un patrón del
+    usuario.
+
+  \item[\texttt{DELETE /api/patterns/<id>}]  Eliminación de un patrón del
+    usuario.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Módulo de cuadros de mando (\texttt{/api/dashboard})}
+\label{sec:api-dashboard}
+%% =========================================================================
+
+\emph{Blueprint} técnico de agregación que evita múltiples llamadas desde
+el \emph{frontend} al renderizar la pantalla inicial.
+
+\begin{definitionlist}
+  \item[\texttt{GET /api/dashboard/summary}]  Resumen agregado del usuario:
+    número de proyectos, últimos \emph{Analysis Runs}, tendencia de
+    puntuaciones y estado global de los \emph{Quality Gates}.
 \end{definitionlist}
 
 
@@ -139,12 +314,32 @@ siguen el formato estandarizado
 \label{sec:api-admin}
 %% =========================================================================
 
+Reservado a usuarios con \texttt{is\_admin=true}.
+
 \begin{definitionlist}
   \item[\texttt{GET /api/admin/health}]  Comprobación de salud del sistema.
-    Verifica la conectividad con PostgreSQL, MinIO y Redis.
+    Verifica la conectividad con PostgreSQL, MinIO y Redis.  No requiere
+    autenticación para permitir su uso como sonda externa de monitoreo.
 
-  \item[\texttt{GET /api/admin/performance}]  Estadísticas de rendimiento por
-    \emph{endpoint}: número de peticiones, tiempo medio, mínimo y máximo.
+  \item[\texttt{GET /api/admin/performance}]  Estadísticas de rendimiento
+    por \emph{endpoint}: número de peticiones, tiempo medio, mínimo y
+    máximo.  Acepta \texttt{?reset=true} para reiniciar las métricas
+    acumuladas.
+\end{definitionlist}
+
+
+%% =========================================================================
+\section{Endpoint raíz de salud (\texttt{/health})}
+\label{sec:api-health}
+%% =========================================================================
+
+Adicionalmente al \emph{endpoint} \texttt{/api/admin/health}, la aplicación
+expone una ruta a nivel raíz, fuera del prefijo \texttt{/api}, pensada como
+sonda mínima para orquestadores y balanceadores:
+
+\begin{definitionlist}
+  \item[\texttt{GET /health}]  Devuelve \texttt{\{status,~version,
+    ~environment\}}.  No requiere autenticación.
 \end{definitionlist}
 
 

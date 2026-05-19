@@ -56,7 +56,7 @@ Score}, \emph{Quality Gates} con umbrales y veredicto,
 accesos indebidos (\ac{IDOR}); el detalle de cada suite se describe en
 la sección~\ref{sec:impl-pruebas} y el plan de pruebas integral
 (estrategia, niveles, casos de prueba y trazabilidad con requisitos) se
-formaliza en el Anexo~\ref{chap:anexo-pruebas}.  Las pruebas se ejecutan
+formaliza en el Anexo~\ref{anx:pruebas}.  Las pruebas se ejecutan
 con \texttt{pytest} desde el directorio \texttt{backend/} y pueden
 generar informes de cobertura mediante la opción \texttt{-{}-cov}.
 Estas suites unitarias y de integración se complementaron con pruebas
@@ -95,6 +95,14 @@ al esfuerzo real invertido en cada sprint.
       \textbf{364} & \textbf{425} & \textbf{+16,8\,\%} \\
     \bottomrule
   \end{tabularx}
+  \medskip\par\footnotesize\raggedright
+  \textit{Nota.}~La columna SP agrega, por sprint, las historias de
+  usuario más las tareas técnicas que conformaron el plan de cada
+  iteración (véase Anexo~\ref{anx:backlog}).  El backlog original
+  (Tabla~\ref{tab:backlog-hu}) contabiliza 71~SP en historias de
+  usuario, de los cuales se entregaron 68~SP (HU-15 fue descartada
+  del alcance final); las tareas técnicas se computan adicionalmente
+  como esfuerzo ejecutado.
 \end{table}
 
 La desviación global del +16,8\,\% se mantiene dentro del rango habitual para
@@ -237,57 +245,65 @@ escenarios degradados.
 %% =========================================================================
 
 A pesar de los resultados alcanzados, la plataforma presenta limitaciones
-que conviene reconocer explícitamente.  Estas se pueden agrupar en tres
-ámbitos: la madurez de los servicios de plataforma (autenticación,
-entrega de informes y documentación de la \ac{API}), la escalabilidad y
-el rendimiento bajo cargas elevadas, y la cobertura de pruebas
-\emph{end-to-end}.
+que conviene reconocer explícitamente.  Estas se pueden agrupar en cuatro
+ámbitos: la escalabilidad y el rendimiento del motor de procesamiento,
+la madurez de los servicios de plataforma de cara a entornos
+corporativos, la cobertura de las pruebas automatizadas y el alcance de
+la validación experimental.
 
-El conjunto de limitaciones más relevantes para un escenario de
-producción afecta a los \textbf{servicios de plataforma}.  La
-autenticación se limita a \ac{JWT} con usuario y contraseña: no se han
-implementado OAuth~2.0, \emph{Single Sign-On} corporativo ni
-autenticación multifactor, por lo que la plataforma no está preparada
-todavía para integrarse en entornos empresariales con identidad
-federada.  Los resultados, además, no pueden exportarse a formatos de
-informe formal como PDF o Excel, lo que dificulta el reporte a perfiles
-ajenos al equipo técnico y la incorporación de los hallazgos a
-documentación de auditoría.  Finalmente, la \ac{API} \ac{REST} carece de
-documentación interactiva tipo Swagger/OpenAPI generada automáticamente:
-el contrato se mantiene íntegramente en el Anexo~A de esta memoria, lo
-que ralentiza la integración por parte de equipos externos y obliga a
-mantener manualmente la sincronía entre código y documentación.
-
-Otro grupo de limitaciones afecta a la \textbf{escalabilidad y al
-rendimiento} bajo cargas elevadas.  El \emph{frontend} obtiene el estado
-de las evaluaciones mediante \emph{polling} periódico en lugar de
-notificaciones \emph{push} por \emph{WebSocket}: aunque el patrón es
-funcionalmente correcto y simplifica la arquitectura, introduce latencia
-perceptible y carga innecesaria contra la \ac{API} cuando se ejecutan
-muchas evaluaciones simultáneamente.  La capa de procesamiento, además,
-no se ha validado con múltiples \emph{workers} de Celery en paralelo,
-por lo que la escalabilidad horizontal que el diseño permite es
-todavía teórica.  El motor de métricas opera sobre \emph{DataFrames} de
+El primer grupo afecta a la \textbf{escalabilidad y al rendimiento} bajo
+cargas elevadas y constituye la restricción técnica más significativa de
+la plataforma.  El motor de métricas opera sobre \emph{DataFrames} de
 Pandas cargados íntegramente en memoria, lo que impone como cota
 superior el tamaño de la RAM disponible y descarta procesar
 \emph{datasets} de varios GB sin migrar a un motor distribuido como Dask
-o Spark.  Por último, la detección de valores atípicos en el módulo de
-perfilado se limita al método estadístico clásico del \ac{IQR};
-algoritmos basados en aprendizaje automático como \emph{Isolation
-Forest} o DBSCAN, que detectarían anomalías multidimensionales más
-sutiles, quedan fuera del alcance de esta versión.
+o Spark.  La capa de procesamiento, además, no se ha validado con
+múltiples \emph{workers} de Celery en paralelo, por lo que la
+escalabilidad horizontal que el diseño permite es todavía teórica.  El
+\emph{frontend}, por su parte, obtiene el estado de las evaluaciones
+mediante \emph{polling} periódico en lugar de notificaciones \emph{push}
+por \emph{WebSocket}: aunque el patrón es funcionalmente correcto y
+simplifica la arquitectura, introduce latencia perceptible y carga
+innecesaria contra la \ac{API} cuando se ejecutan muchas evaluaciones
+simultáneamente.  Por último, la detección de valores atípicos en el
+módulo de perfilado se limita al método estadístico clásico del
+\ac{IQR}; algoritmos basados en aprendizaje automático como
+\emph{Isolation Forest} o DBSCAN, que detectarían anomalías
+multidimensionales más sutiles, quedan fuera del alcance de esta versión.
 
-Por último, la cobertura de \textbf{pruebas automatizadas}, aunque
-amplia en componentes individuales (motor de métricas, \emph{Quality
-Score}, \emph{Quality Gates}, \emph{fingerprinting}, comparación con
-línea base, autorización \ac{IDOR} y versionado de \emph{datasets}), no
-incluye pruebas \emph{end-to-end} que validen el flujo completo desde
-la subida de un \emph{dataset} hasta la emisión del veredicto del
-\emph{Quality Gate}.  Esta validación se realizó de forma manual
-durante el desarrollo, pero su automatización con herramientas como
-Playwright o Cypress queda como tarea pendiente y constituye la mayor
-brecha en la estrategia de aseguramiento de calidad del propio
+Un segundo grupo afecta a la \textbf{madurez de los servicios de
+plataforma} de cara a entornos corporativos.  La autenticación se limita
+a \ac{JWT} con usuario y contraseña: no se han implementado OAuth~2.0,
+\emph{Single Sign-On} corporativo ni autenticación multifactor, por lo
+que la plataforma no está preparada todavía para integrarse en entornos
+empresariales con identidad federada.  Los resultados, además, no pueden
+exportarse a formatos de informe formal como PDF o Excel, lo que
+dificulta el reporte a perfiles ajenos al equipo técnico y la
+incorporación de los hallazgos a documentación de auditoría.
+
+El tercer ámbito es la cobertura de \textbf{pruebas automatizadas}, que
+aunque amplia en componentes individuales (motor de métricas,
+\emph{Quality Score}, \emph{Quality Gates}, \emph{fingerprinting},
+comparación con línea base, autorización \ac{IDOR} y versionado de
+\emph{datasets}), no incluye pruebas \emph{end-to-end} que validen el
+flujo completo desde la subida de un \emph{dataset} hasta la emisión del
+veredicto del \emph{Quality Gate}.  Esta validación se realizó de forma
+manual durante el desarrollo, pero su automatización con herramientas
+como Playwright o Cypress queda como tarea pendiente y constituye la
+mayor brecha en la estrategia de aseguramiento de calidad del propio
 proyecto.
+
+Finalmente, conviene reconocer también una limitación de carácter
+metodológico relativa al \textbf{alcance de la validación
+experimental}.  La verificación funcional del sistema se ha realizado
+por el propio autor, complementada con un conjunto amplio de pruebas
+automatizadas, pero no se ha llevado a cabo una validación con usuarios
+externos del dominio de calidad de datos o de ingeniería de \ac{ML} que
+permita evaluar empíricamente la usabilidad de la interfaz, la
+adecuación del catálogo de métricas a casos de uso reales o el ajuste
+de los umbrales por defecto de los \emph{Quality Gates}.  La
+validación realizada acredita la corrección técnica del sistema, pero
+no su idoneidad operativa para perfiles externos al desarrollo.
 
 
 %% =========================================================================

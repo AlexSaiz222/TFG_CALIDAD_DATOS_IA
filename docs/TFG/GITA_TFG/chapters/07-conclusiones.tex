@@ -17,13 +17,13 @@ un conjunto de objetivos transversales.  A continuación se revisa el grado
 de cumplimiento de cada uno.
 
 \begin{description}
-  \item[OE1 — Módulo de ingesta y almacenamiento] \textbf{Cumplido.}
+  \item[OE1 Módulo de ingesta y almacenamiento] (Cumplido)
     Se implementó soporte para \ac{CSV} con estrategia de
     \emph{fallback} múltiple (4 codificaciones $\times$ 5 delimitadores),
     almacenamiento seguro en MinIO, extracción automática de esquema y
     versionado padre-hijo con indicador \texttt{is\_latest}.
 
-  \item[OE2 — Motor de métricas parametrizables] \textbf{Cumplido.}
+  \item[OE2 Motor de métricas parametrizables] (Cumplido)
     Se implementaron siete métricas de calidad evaluables (completitud,
     unicidad, exactitud sintáctica, consistencia lógica, actualidad,
     equilibrio de clases y diversidad) mediante arquitectura de \emph{plugins}
@@ -33,7 +33,7 @@ de cumplimiento de cada uno.
     disponible en el módulo de perfilado, sin participar en el
     \emph{Quality Score} (alineado con \ac{ISO}/IEC~5259).
 
-  \item[OE3 — \acs{API} \acs{REST}ful con especificación formal] \textbf{Cumplido y superado.}
+  \item[OE3 \acs{API} \acs{REST}ful con especificación formal] (Cumplido y superado)
     Se implementaron los seis módulos funcionales definidos como
     \emph{blueprints} Flask principales (\texttt{auth}, \texttt{projects},
     \texttt{datasets}, \texttt{metrics}, \texttt{evaluations},
@@ -48,18 +48,18 @@ de cumplimiento de cada uno.
     \texttt{dashboard}), totalizando \textbf{diez} \emph{blueprints}
     registrados.  La especificación completa se recoge en el Anexo~A.
 
-  \item[OE4 — Aplicación web con cuadros de mando interactivos]
-    \textbf{Cumplido.}  Se desarrollaron más de 20 páginas con cuadros de
+  \item[OE4 Aplicación web con cuadros de mando interactivos]
+    (Cumplido)  Se desarrollaron más de 20 páginas con cuadros de
     mando, visualizaciones interactivas (\emph{EDA}: histogramas, boxplots,
     matrices de correlación) y diseño adaptable.
 
-  \item[OE5 — Mecanismos de identificación de problemas]
-    \textbf{Cumplido.}  Se implementaron el sistema de \emph{issues} con
+  \item[OE5 Mecanismos de identificación de problemas]
+    (Cumplido)  Se implementaron el sistema de \emph{issues} con
     cuatro niveles de severidad, el \emph{fingerprinting} \ac{SHA}-256
     para trazabilidad entre evaluaciones y los \emph{Quality Gates} con
     tres estados (PASSED/WARNING/FAILED).
 
-  \item[Objetivos transversales] \textbf{Cumplidos en su mayoría.}
+  \item[Objetivos transversales] (Cumplidos en su mayoría)
     Seguridad multicapa (JWT, PBKDF2, rate limiting, cabeceras), escalabilidad
     asíncrona (Celery + Redis), mantenibilidad (módulos independientes),
     portabilidad (Docker Compose) e internacionalización (ES/EN con i18next)
@@ -74,9 +74,21 @@ las alternativas open source revisadas.  Su madurez es la de un prototipo
 funcional, no de una herramienta de producción, lo cual está alineado con el
 alcance de un \ac{TFG}.
 
-\textbf{Limitaciones encontradas:} ausencia de Swagger/OpenAPI, sin
-exportación de informes, \emph{polling} en lugar de WebSockets, escalabilidad
-limitada a un nodo y cobertura de pruebas del \emph{frontend} insuficiente.
+\textbf{Limitaciones encontradas:} el motor de métricas opera sobre
+\emph{DataFrames} de Pandas cargados en memoria, lo que descarta procesar
+\emph{datasets} de varios GB sin migrar a un motor distribuido; la
+escalabilidad horizontal del \emph{worker} de Celery, aunque
+arquitectónicamente permitida, no se ha validado en producción; la
+autenticación se reduce a \ac{JWT} con usuario y contraseña, sin soporte
+para \emph{Single Sign-On}, OAuth~2.0 ni autenticación multifactor; la
+detección de valores atípicos se limita al método estadístico del \ac{IQR}
+y no incorpora algoritmos como \emph{Isolation Forest} o DBSCAN; la
+\emph{suite} de pruebas no incluye flujos \emph{end-to-end} automatizados
+del \emph{frontend}, validados manualmente durante el desarrollo; y la
+validación del sistema se ha realizado por el propio autor, sin
+contraste empírico con usuarios externos del dominio que permita
+evaluar la usabilidad de la interfaz o la idoneidad del catálogo de
+métricas para casos de uso reales.
 
 %% =========================================================================
 \section{Conclusiones}
@@ -196,21 +208,18 @@ lo que se posterga (refactor del \emph{frontend}) acaba doliendo.
 A partir de las limitaciones identificadas en la
 sección~\ref{sec:limitaciones} y de las oportunidades detectadas durante
 el desarrollo, las líneas de evolución de \dataqual\ se articulan en
-cuatro ejes: documentación y comunicación de resultados, escalabilidad y
-rendimiento, integraciones empresariales, y aseguramiento de calidad e
-inteligencia analítica.
+cuatro ejes: comunicación de resultados e integraciones salientes,
+escalabilidad y rendimiento, integraciones empresariales, y
+aseguramiento de calidad e inteligencia analítica.
 
-En el eje de \textbf{documentación y comunicación} se sitúa la
-incorporación de documentación interactiva tipo Swagger/OpenAPI para la
-\ac{API} \ac{REST}ful, generada automáticamente a partir del código y
-consultable en línea, que aceleraría la integración por parte de equipos
-externos.  Complementariamente, la exportación de informes a PDF y Excel
-facilitaría la comunicación de resultados a \emph{stakeholders} no
-técnicos y la incorporación de los hallazgos a documentación de
-auditoría; y la incorporación de \emph{webhooks} permitiría notificar a
-sistemas externos cuando una evaluación se complete o un \emph{Quality
-Gate} falle, integrando \dataqual\ en flujos automatizados de
-\ac{MLOps}.
+En el eje de \textbf{comunicación de resultados e integraciones
+salientes} se sitúa la exportación de informes a PDF y Excel, que
+facilitaría el reporte a \emph{stakeholders} no técnicos y la
+incorporación de los hallazgos a documentación de auditoría.
+Complementariamente, la incorporación de \emph{webhooks} permitiría
+notificar a sistemas externos cuando una evaluación se complete o un
+\emph{Quality Gate} falle, integrando \dataqual\ en flujos automatizados
+de \ac{MLOps} sin necesidad de \emph{polling} desde el lado consumidor.
 
 El eje de \textbf{escalabilidad y rendimiento} concentra tres mejoras
 con cota técnica clara.  La sustitución del mecanismo actual de
@@ -373,8 +382,9 @@ formal sino una forma de pensar que reduce el riesgo real de los proyectos.
 
 Estoy satisfecho con el resultado: \dataqual es una plataforma funcional,
 segura y extensible que cubre un hueco real en el ecosistema de herramientas
-de calidad de datos para \ac{IA}.  Queda trabajo por hacer (Swagger,
-WebSockets, pruebas de \emph{frontend}), pero eso es precisamente lo que
+de calidad de datos para \ac{IA}.  Queda trabajo por hacer
+(\emph{WebSockets}, pruebas \emph{end-to-end} del \emph{frontend},
+validación con usuarios externos), pero eso es precisamente lo que
 convierte un \ac{TFG} en el punto de partida de algo mayor.
 
 

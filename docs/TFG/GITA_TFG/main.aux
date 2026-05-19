@@ -82,11 +82,17 @@
 \newacro{CSV}[\AC@hyperlink{CSV}{CSV}]{Comma-Separated Values}
 \newacro{DMBOK}[\AC@hyperlink{DMBOK}{DMBOK}]{Data Management Body of Knowledge}
 \newacro{EDA}[\AC@hyperlink{EDA}{EDA}]{Exploratory Data Analysis}
+\newacro{HTTP}[\AC@hyperlink{HTTP}{HTTP}]{Hypertext Transfer Protocol}
+\newacro{HU}[\AC@hyperlink{HU}{HU}]{Historia de Usuario}
 \newacro{IA}[\AC@hyperlink{IA}{IA}]{Inteligencia Artificial}
+\newacro{IEC}[\AC@hyperlink{IEC}{IEC}]{International Electrotechnical Commission}
+\newacro{IEEE}[\AC@hyperlink{IEEE}{IEEE}]{Institute of Electrical and Electronics Engineers}
 \newacro{IQR}[\AC@hyperlink{IQR}{IQR}]{Interquartile Range}
 \newacro{IDOR}[\AC@hyperlink{IDOR}{IDOR}]{Insecure Direct Object Reference}
 \newacro{ISO}[\AC@hyperlink{ISO}{ISO}]{International Organization for Standardization}
+\newacro{JSON}[\AC@hyperlink{JSON}{JSON}]{JavaScript Object Notation}
 \newacro{JWT}[\AC@hyperlink{JWT}{JWT}]{JSON Web Token}
+\newacro{KPI}[\AC@hyperlink{KPI}{KPI}]{Key Performance Indicator}
 \newacro{ML}[\AC@hyperlink{ML}{ML}]{Machine Learning}
 \newacro{MLOps}[\AC@hyperlink{MLOps}{MLOps}]{Machine Learning Operations}
 \newacro{MVC}[\AC@hyperlink{MVC}{MVC}]{Model-View-Controller}
@@ -107,6 +113,8 @@
 \newacro{TFG}[\AC@hyperlink{TFG}{TFG}]{Trabajo Fin de Grado}
 \newacro{UI}[\AC@hyperlink{UI}{UI}]{User Interface}
 \newacro{UML}[\AC@hyperlink{UML}{UML}]{Unified Modeling Language}
+\newacro{UX}[\AC@hyperlink{UX}{UX}]{User Experience}
+\newacro{WCAG}[\AC@hyperlink{WCAG}{WCAG}]{Web Content Accessibility Guidelines}
 \newacro{WSGI}[\AC@hyperlink{WSGI}{WSGI}]{Web Server Gateway Interface}
 \newacro{YAML}[\AC@hyperlink{YAML}{YAML}]{YAML Ain't Markup Language}
 \citation{wang1996}
@@ -697,22 +705,22 @@
 \newlabel{sec:impl-ingesta}{{5.3.3}{53}{Módulo de ingesta y almacenamiento}{subsection.5.3.3}{}}
 \acronymused{CSV}
 \acronymused{CSV}
-\acronymused{CSV}
 \acronymused{API}
 \acronymused{REST}
+\acronymused{CSV}
 \@writefile{lof}{\contentsline {figure}{\numberline {5.3}{\ignorespaces Pestaña \emph  {Versions} de un \emph  {dataset}: lista cronológica de versiones con etiquetas de rama, estado de calidad y puntuación por versión}}{54}{figure.5.3}\protected@file@percent }
 \newlabel{fig:dataset-versions-list}{{5.3}{54}{Pestaña \emph {Versions} de un \emph {dataset}: lista cronológica de versiones con etiquetas de rama, estado de calidad y puntuación por versión}{figure.5.3}{}}
 \acronymused{API}
 \acronymused{REST}
-\@writefile{toc}{\contentsline {subsubsection}{\acs {API} \acs {REST}ful}{54}{figure.5.5}\protected@file@percent }
-\newlabel{sec:impl-api}{{5.3.3}{54}{\acs {API} \acs {REST}ful}{figure.5.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.4}{\ignorespaces Canvas de árbol de versiones (\emph  {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph  {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{55}{figure.5.4}\protected@file@percent }
+\newlabel{fig:dataset-lineage}{{5.4}{55}{Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}{figure.5.4}{}}
+\acronymused{API}
+\acronymused{REST}
+\@writefile{toc}{\contentsline {subsubsection}{\acs {API} \acs {REST}ful}{55}{figure.5.5}\protected@file@percent }
+\newlabel{sec:impl-api}{{5.3.3}{55}{\acs {API} \acs {REST}ful}{figure.5.5}{}}
 \acronymused{API}
 \acronymused{REST}
 \acronymused{JWT}
-\acronymused{API}
-\acronymused{REST}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.4}{\ignorespaces Canvas de árbol de versiones (\emph  {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph  {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{55}{figure.5.4}\protected@file@percent }
-\newlabel{fig:dataset-lineage}{{5.4}{55}{Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}{figure.5.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3.4}Retrospectiva}{55}{subsection.5.3.4}\protected@file@percent }
 \acronymused{API}
 \acronymused{REST}
@@ -733,14 +741,14 @@
 \newlabel{sec:motor-metricas}{{5.4.3}{57}{Arquitectura del motor de métricas}{subsection.5.4.3}{}}
 \citation{iso25024}
 \citation{iso25024}
-\citation{tukey1977}
-\citation{iso5259}
 \@writefile{toc}{\contentsline {subsubsection}{Métricas implementadas}{58}{subsection.5.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Completitud (\texttt  {completeness})}{58}{subsection.5.4.3}\protected@file@percent }
 \acronymused{ISO}
 \@writefile{toc}{\contentsline {paragraph}{Unicidad (\texttt  {uniqueness})}{58}{subsection.5.4.3}\protected@file@percent }
-\acronymused{ISO}
+\citation{tukey1977}
+\citation{iso5259}
 \citation{shannon1948}
+\acronymused{ISO}
 \@writefile{toc}{\contentsline {paragraph}{Detección de valores atípicos (\texttt  {outliers}):solo perfilado}{59}{subsection.5.4.3}\protected@file@percent }
 \acronymused{IQR}
 \acronymused{ISO}
@@ -753,123 +761,123 @@
 \AC@undonewlabel{acro:JSON}
 \newlabel{acro:JSON}{{5.4.3}{60}{Fórmula del \emph {Quality Score}}{section*.47}{}}
 \acronymused{JSON}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.6}{\ignorespaces Diálogo de configuración detallada de la métrica \emph  {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}}{60}{figure.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.4}Retrospectiva}{60}{subsection.5.4.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.6}{\ignorespaces Diálogo de configuración detallada de la métrica \emph  {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}}{61}{figure.5.6}\protected@file@percent }
 \AC@undonewlabel{acro:JSON}
-\newlabel{acro:JSON}{{5.6}{60}{Diálogo de configuración detallada de la métrica \emph {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}{section*.49}{}}
+\newlabel{acro:JSON}{{5.6}{61}{Diálogo de configuración detallada de la métrica \emph {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}{section*.49}{}}
 \acronymused{JSON}
-\newlabel{fig:metric-config-detail}{{5.6}{60}{Diálogo de configuración detallada de la métrica \emph {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}{figure.5.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.4}Retrospectiva}{61}{subsection.5.4.4}\protected@file@percent }
+\newlabel{fig:metric-config-detail}{{5.6}{61}{Diálogo de configuración detallada de la métrica \emph {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}{figure.5.6}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5.5}Sprint 4: \emph  {Frontend} e interfaz de usuario}{61}{section.5.5}\protected@file@percent }
 \newlabel{sec:sprint4}{{5.5}{61}{Sprint 4: \emph {Frontend} e interfaz de usuario}{section.5.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.5.1}Planificación del sprint}{61}{subsection.5.5.1}\protected@file@percent }
 \acronymused{EDA}
 \acronymused{API}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.2}Trabajo realizado}{61}{subsection.5.5.2}\protected@file@percent }
 \citation{nextjs}
-\citation{abedjan2018}
 \@writefile{lot}{\contentsline {table}{\numberline {5.6}{\ignorespaces Sprint 4: Historias de usuario y estimación}}{62}{table.5.6}\protected@file@percent }
 \newlabel{tab:sprint4-hu}{{5.6}{62}{Sprint 4: Historias de usuario y estimación}{table.5.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.2}Trabajo realizado}{62}{subsection.5.5.2}\protected@file@percent }
 \acronymused{EDA}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.5.3}Cómo se ha hecho}{62}{subsection.5.5.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{Estructura de la aplicación \emph  {frontend}}{62}{subsection.5.5.3}\protected@file@percent }
 \newlabel{sec:impl-frontend}{{5.5.3}{62}{Estructura de la aplicación \emph {frontend}}{subsection.5.5.3}{}}
 \acronymused{API}
 \acronymused{JWT}
-\@writefile{toc}{\contentsline {subsubsection}{Cuadros de mando y visualizaciones}{62}{subsection.5.5.3}\protected@file@percent }
+\citation{abedjan2018}
 \citation{chartjs}
+\@writefile{toc}{\contentsline {subsubsection}{Cuadros de mando y visualizaciones}{63}{subsection.5.5.3}\protected@file@percent }
 \acronymused{IQR}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.7}{\ignorespaces Cuadro de mando principal de \textsc  {DataQual}\xspace  : tarjetas resumen de proyectos, distribución de estados de \emph  {Quality Gate} y alertas de proyectos con problemas detectados}}{63}{figure.5.7}\protected@file@percent }
-\newlabel{fig:dashboard}{{5.7}{63}{Cuadro de mando principal de \dataqual : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}{figure.5.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.8}{\ignorespaces Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph  {dataset} y tabla de ejecuciones con estado de \emph  {Quality Gate}}}{64}{figure.5.8}\protected@file@percent }
-\newlabel{fig:analysis-history}{{5.8}{64}{Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}{figure.5.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.9}{\ignorespaces Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph  {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}}{65}{figure.5.9}\protected@file@percent }
-\newlabel{fig:evaluation-results}{{5.9}{65}{Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}{figure.5.9}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5.10}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph  {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}}{66}{figure.5.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.4}Retrospectiva}{63}{subsection.5.5.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.7}{\ignorespaces Cuadro de mando principal de \textsc  {DataQual}\xspace  : tarjetas resumen de proyectos, distribución de estados de \emph  {Quality Gate} y alertas de proyectos con problemas detectados}}{64}{figure.5.7}\protected@file@percent }
+\newlabel{fig:dashboard}{{5.7}{64}{Cuadro de mando principal de \dataqual : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}{figure.5.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.8}{\ignorespaces Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph  {dataset} y tabla de ejecuciones con estado de \emph  {Quality Gate}}}{65}{figure.5.8}\protected@file@percent }
+\newlabel{fig:analysis-history}{{5.8}{65}{Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}{figure.5.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.9}{\ignorespaces Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph  {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}}{66}{figure.5.9}\protected@file@percent }
+\newlabel{fig:evaluation-results}{{5.9}{66}{Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}{figure.5.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.10}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph  {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}}{67}{figure.5.10}\protected@file@percent }
 \acronymused{EDA}
-\newlabel{fig:eda}{{5.10}{66}{Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}{figure.5.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.4}Retrospectiva}{67}{subsection.5.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.6}Sprint 5: Funcionalidades avanzadas}{67}{section.5.6}\protected@file@percent }
-\newlabel{sec:sprint5}{{5.6}{67}{Sprint 5: Funcionalidades avanzadas}{section.5.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Planificación del sprint}{67}{subsection.5.6.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{67}{table.5.7}\protected@file@percent }
-\newlabel{tab:sprint5-hu}{{5.7}{67}{Sprint 5: Historias de usuario y estimación}{table.5.7}{}}
+\newlabel{fig:eda}{{5.10}{67}{Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}{figure.5.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Sprint 5: Funcionalidades avanzadas}{68}{section.5.6}\protected@file@percent }
+\newlabel{sec:sprint5}{{5.6}{68}{Sprint 5: Funcionalidades avanzadas}{section.5.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Planificación del sprint}{68}{subsection.5.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{68}{table.5.7}\protected@file@percent }
+\newlabel{tab:sprint5-hu}{{5.7}{68}{Sprint 5: Historias de usuario y estimación}{table.5.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}Trabajo realizado}{68}{subsection.5.6.2}\protected@file@percent }
-\acronymused{CRUD}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.3}Cómo se ha hecho}{68}{subsection.5.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{Sistema de \emph  {fingerprinting}}{68}{subsection.5.6.3}\protected@file@percent }
-\newlabel{sec:impl-fingerprinting}{{5.6.3}{68}{Sistema de \emph {fingerprinting}}{subsection.5.6.3}{}}
-\acronymused{SHA}
 \citation{celery}
 \citation{redis}
-\@writefile{lot}{\contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph  {hash} por tipo de \emph  {issue}}}{69}{table.5.8}\protected@file@percent }
-\newlabel{tab:fingerprint-inputs}{{5.8}{69}{Inputs al \emph {hash} por tipo de \emph {issue}}{table.5.8}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Procesamiento asíncrono}{69}{table.5.8}\protected@file@percent }
-\newlabel{sec:impl-async}{{5.6.3}{69}{Procesamiento asíncrono}{table.5.8}{}}
+\acronymused{CRUD}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.3}Cómo se ha hecho}{69}{subsection.5.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Sistema de \emph  {fingerprinting}}{69}{subsection.5.6.3}\protected@file@percent }
+\newlabel{sec:impl-fingerprinting}{{5.6.3}{69}{Sistema de \emph {fingerprinting}}{subsection.5.6.3}{}}
+\acronymused{SHA}
+\@writefile{lot}{\contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph  {hash} por tipo de \emph  {issue}}}{70}{table.5.8}\protected@file@percent }
+\newlabel{tab:fingerprint-inputs}{{5.8}{70}{Inputs al \emph {hash} por tipo de \emph {issue}}{table.5.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Procesamiento asíncrono}{70}{table.5.8}\protected@file@percent }
+\newlabel{sec:impl-async}{{5.6.3}{70}{Procesamiento asíncrono}{table.5.8}{}}
 \@writefile{toc}{\contentsline {subsubsection}{Seguridad}{70}{table.5.8}\protected@file@percent }
 \newlabel{sec:impl-seguridad}{{5.6.3}{70}{Seguridad}{table.5.8}{}}
 \acronymused{PBKDF2}
 \acronymused{PII}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.4}Retrospectiva}{70}{subsection.5.6.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5.11}{\ignorespaces \emph  {Quality Gate} de \textsc  {DataQual}\xspace  : condiciones de aprobación configuradas (puntuación mínima, máximo de \emph  {issues} críticos y máximo de \emph  {issues} nuevos) con etiquetas de nivel de rigor por umbral (STRICT / MODERATE / PERMISSIVE)}}{71}{figure.5.11}\protected@file@percent }
 \newlabel{fig:quality-gate}{{5.11}{71}{\emph {Quality Gate} de \dataqual : condiciones de aprobación configuradas (puntuación mínima, máximo de \emph {issues} críticos y máximo de \emph {issues} nuevos) con etiquetas de nivel de rigor por umbral (STRICT / MODERATE / PERMISSIVE)}{figure.5.11}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.7}Sprint 6: Pruebas, refinamiento y documentación}{71}{section.5.7}\protected@file@percent }
-\newlabel{sec:sprint6}{{5.7}{71}{Sprint 6: Pruebas, refinamiento y documentación}{section.5.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Planificación del sprint}{71}{subsection.5.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.4}Retrospectiva}{71}{subsection.5.6.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5.12}{\ignorespaces Paso de revisión y confirmación del asistente de carga de \emph  {dataset}: panel de privacidad de datos con selección de columnas \acs {PII} cuyos valores se enmascararán automáticamente en todas las salidas del sistema}}{72}{figure.5.12}\protected@file@percent }
 \acronymused{PII}
 \newlabel{fig:enmascarado-pii}{{5.12}{72}{Paso de revisión y confirmación del asistente de carga de \emph {dataset}: panel de privacidad de datos con selección de columnas \acs {PII} cuyos valores se enmascararán automáticamente en todas las salidas del sistema}{figure.5.12}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5.9}{\ignorespaces Sprint 6: Actividades y estimación}}{72}{table.5.9}\protected@file@percent }
-\newlabel{tab:sprint6-hu}{{5.9}{72}{Sprint 6: Actividades y estimación}{table.5.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}Sprint 6: Pruebas, refinamiento y documentación}{73}{section.5.7}\protected@file@percent }
+\newlabel{sec:sprint6}{{5.7}{73}{Sprint 6: Pruebas, refinamiento y documentación}{section.5.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Planificación del sprint}{73}{subsection.5.7.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.9}{\ignorespaces Sprint 6: Actividades y estimación}}{73}{table.5.9}\protected@file@percent }
+\newlabel{tab:sprint6-hu}{{5.9}{73}{Sprint 6: Actividades y estimación}{table.5.9}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Trabajo realizado}{73}{subsection.5.7.2}\protected@file@percent }
 \acronymused{API}
 \acronymused{API}
 \acronymused{API}
 \acronymused{REST}
 \AC@undonewlabel{acro:IDOR}
-\newlabel{acro:IDOR}{{5.7.2}{73}{Trabajo realizado}{section*.50}{}}
+\newlabel{acro:IDOR}{{5.7.2}{74}{Trabajo realizado}{section*.50}{}}
 \acronymused{IDOR}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Cómo se ha hecho}{73}{subsection.5.7.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{Estrategia de pruebas}{73}{subsection.5.7.3}\protected@file@percent }
-\newlabel{sec:impl-pruebas}{{5.7.3}{73}{Estrategia de pruebas}{subsection.5.7.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Cómo se ha hecho}{74}{subsection.5.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Estrategia de pruebas}{74}{subsection.5.7.3}\protected@file@percent }
+\newlabel{sec:impl-pruebas}{{5.7.3}{74}{Estrategia de pruebas}{subsection.5.7.3}{}}
 \acronymused{API}
 \acronymused{CRUD}
 \acronymused{API}
 \acronymused{IDOR}
-\@writefile{toc}{\contentsline {subsubsection}{Defectos detectados y corregidos}{74}{subsection.5.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Defectos detectados y corregidos}{75}{subsection.5.7.3}\protected@file@percent }
 \acronymused{SHA}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.4}Retrospectiva}{75}{subsection.5.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.4}Retrospectiva}{76}{subsection.5.7.4}\protected@file@percent }
 \acronymused{TFG}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Resultados y discusión}{76}{chapter.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Resultados y discusión}{77}{chapter.6}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:resultados}{{6}{76}{Resultados y discusión}{chapter.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.1}Resultados alcanzados}{76}{section.6.1}\protected@file@percent }
-\newlabel{sec:resultados-alcanzados}{{6.1}{76}{Resultados alcanzados}{section.6.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Resultados cuantitativos}{76}{subsection.6.1.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Resultados cuantitativos de la implementación}}{76}{table.6.1}\protected@file@percent }
-\newlabel{tab:resultados-cuantitativos}{{6.1}{76}{Resultados cuantitativos de la implementación}{table.6.1}{}}
+\newlabel{chap:resultados}{{6}{77}{Resultados y discusión}{chapter.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Resultados alcanzados}{77}{section.6.1}\protected@file@percent }
+\newlabel{sec:resultados-alcanzados}{{6.1}{77}{Resultados alcanzados}{section.6.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Resultados cuantitativos}{77}{subsection.6.1.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Resultados cuantitativos de la implementación}}{77}{table.6.1}\protected@file@percent }
+\newlabel{tab:resultados-cuantitativos}{{6.1}{77}{Resultados cuantitativos de la implementación}{table.6.1}{}}
 \acronymused{API}
 \acronymused{API}
 \acronymused{API}
 \acronymused{IDOR}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Esfuerzo y desviaciones}{77}{subsection.6.1.2}\protected@file@percent }
-\newlabel{sec:esfuerzo}{{6.1.2}{77}{Esfuerzo y desviaciones}{subsection.6.1.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{77}{table.6.2}\protected@file@percent }
-\newlabel{tab:esfuerzo}{{6.2}{77}{Esfuerzo estimado vs.\ real por sprint}{table.6.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Verificación del cumplimiento de objetivos}{77}{subsection.6.1.3}\protected@file@percent }
-\acronymused{API}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Esfuerzo y desviaciones}{78}{subsection.6.1.2}\protected@file@percent }
+\newlabel{sec:esfuerzo}{{6.1.2}{78}{Esfuerzo y desviaciones}{subsection.6.1.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{78}{table.6.2}\protected@file@percent }
+\newlabel{tab:esfuerzo}{{6.2}{78}{Esfuerzo estimado vs.\ real por sprint}{table.6.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Verificación del cumplimiento de objetivos}{78}{subsection.6.1.3}\protected@file@percent }
 \citation{design_patterns}
 \citation{sonarqube}
-\@writefile{lot}{\contentsline {table}{\numberline {6.3}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{78}{table.6.3}\protected@file@percent }
-\newlabel{tab:cumplimiento}{{6.3}{78}{Verificación del cumplimiento de los objetivos específicos}{table.6.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.3}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{79}{table.6.3}\protected@file@percent }
+\newlabel{tab:cumplimiento}{{6.3}{79}{Verificación del cumplimiento de los objetivos específicos}{table.6.3}{}}
 \acronymused{CSV}
 \acronymused{JWT}
 \acronymused{EDA}
 \acronymused{SHA}
-\@writefile{toc}{\contentsline {section}{\numberline {6.2}Fortalezas de la plataforma}{78}{section.6.2}\protected@file@percent }
-\newlabel{sec:fortalezas}{{6.2}{78}{Fortalezas de la plataforma}{section.6.2}{}}
-\acronymused{SHA}
+\acronymused{API}
+\@writefile{toc}{\contentsline {section}{\numberline {6.2}Fortalezas de la plataforma}{79}{section.6.2}\protected@file@percent }
+\newlabel{sec:fortalezas}{{6.2}{79}{Fortalezas de la plataforma}{section.6.2}{}}
 \citation{celery}
+\acronymused{SHA}
 \acronymused{MLOps}
 \acronymused{IQR}
 \acronymused{PII}
@@ -878,82 +886,80 @@
 \acronymused{PII}
 \acronymused{PII}
 \acronymused{CSV}
-\@writefile{toc}{\contentsline {section}{\numberline {6.3}Limitaciones}{79}{section.6.3}\protected@file@percent }
-\newlabel{sec:limitaciones}{{6.3}{79}{Limitaciones}{section.6.3}{}}
-\acronymused{API}
-\acronymused{JWT}
-\acronymused{API}
-\acronymused{REST}
+\@writefile{toc}{\contentsline {section}{\numberline {6.3}Limitaciones}{80}{section.6.3}\protected@file@percent }
+\newlabel{sec:limitaciones}{{6.3}{80}{Limitaciones}{section.6.3}{}}
 \acronymused{API}
 \acronymused{IQR}
+\acronymused{JWT}
 \acronymused{IDOR}
-\@writefile{toc}{\contentsline {section}{\numberline {6.4}Comparación con herramientas existentes}{80}{section.6.4}\protected@file@percent }
-\newlabel{sec:comparacion-final}{{6.4}{80}{Comparación con herramientas existentes}{section.6.4}{}}
-\acronymused{CSV}
+\acronymused{ML}
 \citation{greatexpectations}
-\@writefile{lot}{\contentsline {table}{\numberline {6.4}{\ignorespaces Comparación de \textsc  {DataQual}\xspace  con herramientas existentes (perspectiva post-implementación)}}{81}{table.6.4}\protected@file@percent }
-\newlabel{tab:comparacion-final}{{6.4}{81}{Comparación de \dataqual con herramientas existentes (perspectiva post-implementación)}{table.6.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.4}Comparación con herramientas existentes}{82}{section.6.4}\protected@file@percent }
+\newlabel{sec:comparacion-final}{{6.4}{82}{Comparación con herramientas existentes}{section.6.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.4}{\ignorespaces Comparación de \textsc  {DataQual}\xspace  con herramientas existentes (perspectiva post-implementación)}}{82}{table.6.4}\protected@file@percent }
+\newlabel{tab:comparacion-final}{{6.4}{82}{Comparación de \dataqual con herramientas existentes (perspectiva post-implementación)}{table.6.4}{}}
 \acronymused{UI}
 \acronymused{ML}
 \acronymused{PII}
+\acronymused{CSV}
 \acronymused{PII}
 \acronymused{RGPD}
 \acronymused{ML}
 \acronymused{PII}
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusiones y trabajo futuro}{82}{chapter.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusiones y trabajo futuro}{83}{chapter.7}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:conclusiones}{{7}{82}{Conclusiones y trabajo futuro}{chapter.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.1}Revisión de objetivos}{82}{section.7.1}\protected@file@percent }
-\newlabel{sec:revision-objetivos}{{7.1}{82}{Revisión de objetivos}{section.7.1}{}}
+\newlabel{chap:conclusiones}{{7}{83}{Conclusiones y trabajo futuro}{chapter.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.1}Revisión de objetivos}{83}{section.7.1}\protected@file@percent }
+\newlabel{sec:revision-objetivos}{{7.1}{83}{Revisión de objetivos}{section.7.1}{}}
 \acronymused{TFG}
 \acronymused{CSV}
 \acronymused{ISO}
 \acronymused{API}
 \acronymused{REST}
 \acronymused{JWT}
-\citation{iso25012}
-\citation{iso5259}
 \acronymused{SHA}
 \acronymused{ML}
 \acronymused{TFG}
-\@writefile{toc}{\contentsline {section}{\numberline {7.2}Conclusiones}{83}{section.7.2}\protected@file@percent }
-\newlabel{sec:conclusiones}{{7.2}{83}{Conclusiones}{section.7.2}{}}
+\acronymused{JWT}
+\acronymused{IQR}
+\@writefile{toc}{\contentsline {section}{\numberline {7.2}Conclusiones}{84}{section.7.2}\protected@file@percent }
+\newlabel{sec:conclusiones}{{7.2}{84}{Conclusiones}{section.7.2}{}}
 \acronymused{TFG}
 \acronymused{IA}
-\acronymused{IA}
-\acronymused{API}
-\acronymused{REST}
+\citation{iso25012}
+\citation{iso5259}
 \citation{design_patterns}
 \citation{docker}
 \citation{sonarqube}
+\acronymused{IA}
+\acronymused{API}
+\acronymused{REST}
 \acronymused{ISO}
 \acronymused{ISO}
 \acronymused{RGPD}
 \acronymused{MLOps}
-\@writefile{toc}{\contentsline {section}{\numberline {7.3}Lecciones aprendidas}{84}{section.7.3}\protected@file@percent }
-\newlabel{sec:lecciones}{{7.3}{84}{Lecciones aprendidas}{section.7.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.3}Lecciones aprendidas}{85}{section.7.3}\protected@file@percent }
+\newlabel{sec:lecciones}{{7.3}{85}{Lecciones aprendidas}{section.7.3}{}}
 \acronymused{PII}
-\@writefile{toc}{\contentsline {section}{\numberline {7.4}Líneas de trabajo futuro}{85}{section.7.4}\protected@file@percent }
-\newlabel{sec:trabajo-futuro}{{7.4}{85}{Líneas de trabajo futuro}{section.7.4}{}}
-\acronymused{API}
-\acronymused{REST}
+\@writefile{toc}{\contentsline {section}{\numberline {7.4}Líneas de trabajo futuro}{86}{section.7.4}\protected@file@percent }
+\newlabel{sec:trabajo-futuro}{{7.4}{86}{Líneas de trabajo futuro}{section.7.4}{}}
 \acronymused{MLOps}
 \acronymused{API}
 \AC@undonewlabel{acro:QA}
-\newlabel{acro:QA}{{7.4}{86}{Líneas de trabajo futuro}{section*.51}{}}
+\newlabel{acro:QA}{{7.4}{87}{Líneas de trabajo futuro}{section*.51}{}}
 \acronymused{QA}
 \acronymused{IQR}
-\@writefile{toc}{\contentsline {section}{\numberline {7.5}Aportación del proyecto}{86}{section.7.5}\protected@file@percent }
-\newlabel{sec:aportacion}{{7.5}{86}{Aportación del proyecto}{section.7.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.5}Aportación del proyecto}{87}{section.7.5}\protected@file@percent }
+\newlabel{sec:aportacion}{{7.5}{87}{Aportación del proyecto}{section.7.5}{}}
 \acronymused{ML}
 \acronymused{PII}
 \acronymused{IA}
 \acronymused{ISO}
 \acronymused{ISO}
 \acronymused{ML}
-\@writefile{toc}{\contentsline {section}{\numberline {7.6}Competencias adquiridas}{87}{section.7.6}\protected@file@percent }
-\newlabel{sec:competencias}{{7.6}{87}{Competencias adquiridas}{section.7.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.6}Competencias adquiridas}{88}{section.7.6}\protected@file@percent }
+\newlabel{sec:competencias}{{7.6}{88}{Competencias adquiridas}{section.7.6}{}}
 \acronymused{TFG}
 \acronymused{ISO}
 \acronymused{ISO}
@@ -963,264 +969,286 @@
 \acronymused{REST}
 \acronymused{TFG}
 \acronymused{API}
-\@writefile{toc}{\contentsline {section}{\numberline {7.7}Valoración personal}{88}{section.7.7}\protected@file@percent }
-\newlabel{sec:valoracion-personal}{{7.7}{88}{Valoración personal}{section.7.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.7}Valoración personal}{89}{section.7.7}\protected@file@percent }
+\newlabel{sec:valoracion-personal}{{7.7}{89}{Valoración personal}{section.7.7}{}}
 \acronymused{TFG}
 \acronymused{IA}
 \acronymused{TFG}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}Especificación de la \acs {API} \acs {REST}ful}{90}{appendix.Alph1}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}Especificación de la \acs {API} \acs {REST}ful}{91}{appendix.Alph1}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \acronymused{API}
 \acronymused{REST}
-\newlabel{chap:anexo-api}{{A}{90}{Especificación de la \acs {API} \acs {REST}ful}{appendix.Alph1}{}}
+\newlabel{anx:api}{{A}{91}{Especificación de la \acs {API} \acs {REST}ful}{appendix.Alph1}{}}
 \acronymused{API}
 \acronymused{REST}
 \acronymused{JWT}
-\@writefile{toc}{\contentsline {section}{\numberline {A.1}Módulo de autenticación (\texttt  {/api/auth})}{90}{section.Alph1.1}\protected@file@percent }
-\newlabel{sec:api-auth}{{A.1}{90}{Módulo de autenticación (\texttt {/api/auth})}{section.Alph1.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.2}Módulo de proyectos (\texttt  {/api/projects})}{90}{section.Alph1.2}\protected@file@percent }
-\newlabel{sec:api-projects}{{A.2}{90}{Módulo de proyectos (\texttt {/api/projects})}{section.Alph1.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.3}Módulo de conjuntos de datos (\texttt  {/api/datasets})}{91}{section.Alph1.3}\protected@file@percent }
-\newlabel{sec:api-datasets}{{A.3}{91}{Módulo de conjuntos de datos (\texttt {/api/datasets})}{section.Alph1.3}{}}
+\AC@undonewlabel{acro:HTTP}
+\newlabel{acro:HTTP}{{A}{91}{Especificación de la \acs {API} \acs {REST}ful}{section*.52}{}}
+\acronymused{HTTP}
+\@writefile{toc}{\contentsline {section}{\numberline {A.1}Módulo de autenticación (\texttt  {/api/auth})}{91}{section.Alph1.1}\protected@file@percent }
+\newlabel{sec:api-auth}{{A.1}{91}{Módulo de autenticación (\texttt {/api/auth})}{section.Alph1.1}{}}
+\acronymused{JWT}
+\@writefile{toc}{\contentsline {section}{\numberline {A.2}Módulo de proyectos (\texttt  {/api/projects})}{91}{section.Alph1.2}\protected@file@percent }
+\newlabel{sec:api-projects}{{A.2}{91}{Módulo de proyectos (\texttt {/api/projects})}{section.Alph1.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.3}Configuración de métricas por proyecto}{92}{section.Alph1.3}\protected@file@percent }
+\newlabel{sec:api-project-metrics}{{A.3}{92}{Configuración de métricas por proyecto}{section.Alph1.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.4}Módulo de conjuntos de datos (\texttt  {/api/datasets})}{92}{section.Alph1.4}\protected@file@percent }
+\newlabel{sec:api-datasets}{{A.4}{92}{Módulo de conjuntos de datos (\texttt {/api/datasets})}{section.Alph1.4}{}}
 \acronymused{CSV}
 \acronymused{PII}
-\@writefile{toc}{\contentsline {section}{\numberline {A.4}Módulo de métricas (\texttt  {/api/metrics})}{91}{section.Alph1.4}\protected@file@percent }
-\newlabel{sec:api-metrics}{{A.4}{91}{Módulo de métricas (\texttt {/api/metrics})}{section.Alph1.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.5}Módulo de evaluaciones (\texttt  {/api/evaluations})}{91}{section.Alph1.5}\protected@file@percent }
-\newlabel{sec:api-evaluations}{{A.5}{91}{Módulo de evaluaciones (\texttt {/api/evaluations})}{section.Alph1.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.6}Módulo de administración (\texttt  {/api/admin})}{92}{section.Alph1.6}\protected@file@percent }
-\newlabel{sec:api-admin}{{A.6}{92}{Módulo de administración (\texttt {/api/admin})}{section.Alph1.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.5}Versionado y carga de datasets por proyecto}{93}{section.Alph1.5}\protected@file@percent }
+\newlabel{sec:api-project-datasets}{{A.5}{93}{Versionado y carga de datasets por proyecto}{section.Alph1.5}{}}
+\AC@undonewlabel{acro:JSON}
+\newlabel{acro:JSON}{{A.5}{93}{Versionado y carga de datasets por proyecto}{section*.53}{}}
+\acronymused{JSON}
+\acronymused{PII}
+\@writefile{toc}{\contentsline {section}{\numberline {A.6}Catálogo de métricas y plantillas (\texttt  {/api/metrics})}{94}{section.Alph1.6}\protected@file@percent }
+\newlabel{sec:api-metrics}{{A.6}{94}{Catálogo de métricas y plantillas (\texttt {/api/metrics})}{section.Alph1.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.7}Módulo de evaluaciones y análisis (\texttt  {/api/evaluations})}{94}{section.Alph1.7}\protected@file@percent }
+\newlabel{sec:api-evaluations}{{A.7}{94}{Módulo de evaluaciones y análisis (\texttt {/api/evaluations})}{section.Alph1.7}{}}
+\acronymused{SHA}
+\@writefile{toc}{\contentsline {section}{\numberline {A.8}Módulo de patrones de validación (\texttt  {/api/patterns})}{95}{section.Alph1.8}\protected@file@percent }
+\newlabel{sec:api-patterns}{{A.8}{95}{Módulo de patrones de validación (\texttt {/api/patterns})}{section.Alph1.8}{}}
+\acronymused{PII}
+\@writefile{toc}{\contentsline {section}{\numberline {A.9}Módulo de cuadros de mando (\texttt  {/api/dashboard})}{96}{section.Alph1.9}\protected@file@percent }
+\newlabel{sec:api-dashboard}{{A.9}{96}{Módulo de cuadros de mando (\texttt {/api/dashboard})}{section.Alph1.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.10}Módulo de administración (\texttt  {/api/admin})}{96}{section.Alph1.10}\protected@file@percent }
+\newlabel{sec:api-admin}{{A.10}{96}{Módulo de administración (\texttt {/api/admin})}{section.Alph1.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.11}Endpoint raíz de salud (\texttt  {/health})}{96}{section.Alph1.11}\protected@file@percent }
+\newlabel{sec:api-health}{{A.11}{96}{Endpoint raíz de salud (\texttt {/health})}{section.Alph1.11}{}}
 \citation{iso25012}
-\@writefile{toc}{\contentsline {chapter}{\numberline {B}Catálogo de métricas de calidad}{93}{appendix.Alph2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {B}Catálogo de métricas de calidad}{97}{appendix.Alph2}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:anexo-metricas}{{B}{93}{Catálogo de métricas de calidad}{appendix.Alph2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B.1}Completitud (\texttt  {completeness})}{94}{section.Alph2.1}\protected@file@percent }
-\newlabel{sec:met-completitud}{{B.1}{94}{Completitud (\texttt {completeness})}{section.Alph2.1}{}}
+\newlabel{anx:metricas}{{B}{97}{Catálogo de métricas de calidad}{appendix.Alph2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.1}Completitud (\texttt  {completeness})}{98}{section.Alph2.1}\protected@file@percent }
+\newlabel{sec:met-completitud}{{B.1}{98}{Completitud (\texttt {completeness})}{section.Alph2.1}{}}
 \acronymused{ISO}
-\@writefile{toc}{\contentsline {section}{\numberline {B.2}Unicidad (\texttt  {uniqueness})}{94}{section.Alph2.2}\protected@file@percent }
-\newlabel{sec:met-unicidad}{{B.2}{94}{Unicidad (\texttt {uniqueness})}{section.Alph2.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.2}Unicidad (\texttt  {uniqueness})}{98}{section.Alph2.2}\protected@file@percent }
+\newlabel{sec:met-unicidad}{{B.2}{98}{Unicidad (\texttt {uniqueness})}{section.Alph2.2}{}}
 \citation{iso25012}
-\@writefile{toc}{\contentsline {section}{\numberline {B.3}Exactitud sintáctica (\texttt  {syntactic\_accuracy})}{95}{section.Alph2.3}\protected@file@percent }
-\newlabel{sec:met-exactitud}{{B.3}{95}{Exactitud sintáctica (\texttt {syntactic\_accuracy})}{section.Alph2.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.3}Exactitud sintáctica (\texttt  {syntactic\_accuracy})}{99}{section.Alph2.3}\protected@file@percent }
+\newlabel{sec:met-exactitud}{{B.3}{99}{Exactitud sintáctica (\texttt {syntactic\_accuracy})}{section.Alph2.3}{}}
 \acronymused{ISO}
-\@writefile{toc}{\contentsline {section}{\numberline {B.4}Consistencia lógica (\texttt  {logical\_consistency})}{96}{section.Alph2.4}\protected@file@percent }
-\newlabel{sec:met-consistencia}{{B.4}{96}{Consistencia lógica (\texttt {logical\_consistency})}{section.Alph2.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.4}Consistencia lógica (\texttt  {logical\_consistency})}{100}{section.Alph2.4}\protected@file@percent }
+\newlabel{sec:met-consistencia}{{B.4}{100}{Consistencia lógica (\texttt {logical\_consistency})}{section.Alph2.4}{}}
 \citation{shannon1948}
 \citation{iso5259}
-\@writefile{toc}{\contentsline {section}{\numberline {B.5}Equilibrio de clases (\texttt  {class\_balance})}{97}{section.Alph2.5}\protected@file@percent }
-\newlabel{sec:met-balance}{{B.5}{97}{Equilibrio de clases (\texttt {class\_balance})}{section.Alph2.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.5}Equilibrio de clases (\texttt  {class\_balance})}{101}{section.Alph2.5}\protected@file@percent }
+\newlabel{sec:met-balance}{{B.5}{101}{Equilibrio de clases (\texttt {class\_balance})}{section.Alph2.5}{}}
 \acronymused{ML}
 \acronymused{ISO}
 \citation{iso5259}
-\@writefile{toc}{\contentsline {section}{\numberline {B.6}Actualidad (\texttt  {currentness})}{98}{section.Alph2.6}\protected@file@percent }
-\newlabel{sec:met-actualidad}{{B.6}{98}{Actualidad (\texttt {currentness})}{section.Alph2.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B.7}Diversidad (\texttt  {diversity})}{98}{section.Alph2.7}\protected@file@percent }
-\newlabel{sec:met-diversidad}{{B.7}{98}{Diversidad (\texttt {diversity})}{section.Alph2.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.6}Actualidad (\texttt  {currentness})}{102}{section.Alph2.6}\protected@file@percent }
+\newlabel{sec:met-actualidad}{{B.6}{102}{Actualidad (\texttt {currentness})}{section.Alph2.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.7}Diversidad (\texttt  {diversity})}{102}{section.Alph2.7}\protected@file@percent }
+\newlabel{sec:met-diversidad}{{B.7}{102}{Diversidad (\texttt {diversity})}{section.Alph2.7}{}}
 \citation{iso5259}
-\@writefile{toc}{\contentsline {section}{\numberline {B.8}Valores atípicos (\texttt  {outliers})}{99}{section.Alph2.8}\protected@file@percent }
-\newlabel{sec:met-outliers}{{B.8}{99}{Valores atípicos (\texttt {outliers})}{section.Alph2.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.8}Valores atípicos (\texttt  {outliers})}{103}{section.Alph2.8}\protected@file@percent }
+\newlabel{sec:met-outliers}{{B.8}{103}{Valores atípicos (\texttt {outliers})}{section.Alph2.8}{}}
 \acronymused{ISO}
-\@writefile{toc}{\contentsline {section}{\numberline {B.9}Modelo de severidad dinámica}{99}{section.Alph2.9}\protected@file@percent }
-\newlabel{sec:met-severidad}{{B.9}{99}{Modelo de severidad dinámica}{section.Alph2.9}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de métrica.}}{100}{table.Alph2.1}\protected@file@percent }
-\newlabel{tab:severidad}{{B.1}{100}{Criterios de severidad dinámica por tipo de métrica}{table.Alph2.1}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {C}Backlog completo del proyecto}{101}{appendix.Alph3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B.9}Modelo de severidad dinámica}{103}{section.Alph2.9}\protected@file@percent }
+\newlabel{sec:met-severidad}{{B.9}{103}{Modelo de severidad dinámica}{section.Alph2.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de métrica.}}{104}{table.Alph2.1}\protected@file@percent }
+\newlabel{tab:severidad}{{B.1}{104}{Criterios de severidad dinámica por tipo de métrica}{table.Alph2.1}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {C}Backlog completo del proyecto}{105}{appendix.Alph3}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{anx:backlog}{{C}{101}{Backlog completo del proyecto}{appendix.Alph3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{101}{table.Alph3.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{101}{table.Alph3.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{102}{table.Alph3.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{102}{table.Alph3.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{102}{table.Alph3.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{103}{table.Alph3.6}\protected@file@percent }
+\newlabel{anx:backlog}{{C}{105}{Backlog completo del proyecto}{appendix.Alph3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{105}{table.Alph3.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{105}{table.Alph3.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{106}{table.Alph3.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{106}{table.Alph3.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{106}{table.Alph3.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{107}{table.Alph3.6}\protected@file@percent }
 \acronymused{IDOR}
-\@writefile{toc}{\contentsline {chapter}{\numberline {D}Análisis retrospectivo de riesgos}{104}{appendix.Alph4}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {D}Análisis retrospectivo de riesgos}{108}{appendix.Alph4}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{anx:riesgos}{{D}{104}{Análisis retrospectivo de riesgos}{appendix.Alph4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{105}{table.Alph4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{106}{appendix.Alph5}\protected@file@percent }
+\newlabel{anx:riesgos}{{D}{108}{Análisis retrospectivo de riesgos}{appendix.Alph4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{109}{table.Alph4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {E}Estimación de costes y viabilidad económica}{110}{appendix.Alph5}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{anx:costes}{{E}{106}{Estimación de costes y viabilidad económica}{appendix.Alph5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{106}{table.Alph5.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{107}{table.Alph5.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{107}{table.Alph5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {F}Plan de pruebas integral}{108}{appendix.Alph6}\protected@file@percent }
+\newlabel{anx:costes}{{E}{110}{Estimación de costes y viabilidad económica}{appendix.Alph5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{110}{table.Alph5.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{111}{table.Alph5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{111}{table.Alph5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {F}Plan de pruebas integral}{112}{appendix.Alph6}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:anexo-pruebas}{{F}{108}{Plan de pruebas integral}{appendix.Alph6}{}}
+\newlabel{anx:pruebas}{{F}{112}{Plan de pruebas integral}{appendix.Alph6}{}}
 \acronymused{ISO}
 \AC@undonewlabel{acro:IEC}
-\newlabel{acro:IEC}{{F}{108}{Plan de pruebas integral}{section*.52}{}}
+\newlabel{acro:IEC}{{F}{112}{Plan de pruebas integral}{section*.54}{}}
 \acronymused{IEC}
 \AC@undonewlabel{acro:IEEE}
-\newlabel{acro:IEEE}{{F}{108}{Plan de pruebas integral}{section*.53}{}}
+\newlabel{acro:IEEE}{{F}{112}{Plan de pruebas integral}{section*.55}{}}
 \acronymused{IEEE}
 \acronymused{API}
 \acronymused{REST}
-\@writefile{toc}{\contentsline {section}{\numberline {F.1}Objetivos y alcance}{108}{section.Alph6.1}\protected@file@percent }
-\newlabel{sec:anx-pruebas-objetivos}{{F.1}{108}{Objetivos y alcance}{section.Alph6.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.1}Objetivos y alcance}{112}{section.Alph6.1}\protected@file@percent }
+\newlabel{sec:anx-pruebas-objetivos}{{F.1}{112}{Objetivos y alcance}{section.Alph6.1}{}}
 \AC@undonewlabel{acro:MinIO}
-\newlabel{acro:MinIO}{{F.1}{108}{}{section*.54}{}}
+\newlabel{acro:MinIO}{{F.1}{112}{}{section*.56}{}}
 \acronymused{MinIO}
 \acronymused{API}
 \acronymused{REST}
 \AC@undonewlabel{acro:WCAG}
-\newlabel{acro:WCAG}{{F.1}{108}{}{section*.55}{}}
+\newlabel{acro:WCAG}{{F.1}{112}{}{section*.57}{}}
 \acronymused{WCAG}
 \AC@undonewlabel{acro:AA}
-\newlabel{acro:AA}{{F.1}{108}{}{section*.56}{}}
+\newlabel{acro:AA}{{F.1}{112}{}{section*.58}{}}
 \acronymused{AA}
-\@writefile{toc}{\contentsline {section}{\numberline {F.2}Estrategia y niveles de prueba}{109}{section.Alph6.2}\protected@file@percent }
-\newlabel{sec:anx-pruebas-estrategia}{{F.2}{109}{Estrategia y niveles de prueba}{section.Alph6.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{109}{table.Alph6.1}\protected@file@percent }
-\newlabel{tab:niveles-prueba}{{F.1}{109}{Niveles de prueba y distribución prevista}{table.Alph6.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.2}Estrategia y niveles de prueba}{113}{section.Alph6.2}\protected@file@percent }
+\newlabel{sec:anx-pruebas-estrategia}{{F.2}{113}{Estrategia y niveles de prueba}{section.Alph6.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{113}{table.Alph6.1}\protected@file@percent }
+\newlabel{tab:niveles-prueba}{{F.1}{113}{Niveles de prueba y distribución prevista}{table.Alph6.1}{}}
 \acronymused{JWT}
-\@writefile{toc}{\contentsline {section}{\numberline {F.3}Tipos de pruebas aplicadas}{109}{section.Alph6.3}\protected@file@percent }
-\newlabel{sec:anx-pruebas-tipos}{{F.3}{109}{Tipos de pruebas aplicadas}{section.Alph6.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.3}Tipos de pruebas aplicadas}{113}{section.Alph6.3}\protected@file@percent }
+\newlabel{sec:anx-pruebas-tipos}{{F.3}{113}{Tipos de pruebas aplicadas}{section.Alph6.3}{}}
 \acronymused{UI}
 \AC@undonewlabel{acro:Redis}
-\newlabel{acro:Redis}{{F.3}{109}{Tipos de pruebas aplicadas}{section*.57}{}}
+\newlabel{acro:Redis}{{F.3}{113}{Tipos de pruebas aplicadas}{section*.59}{}}
 \acronymused{Redis}
 \AC@undonewlabel{acro:MinIO}
-\newlabel{acro:MinIO}{{F.3}{109}{Tipos de pruebas aplicadas}{section*.58}{}}
+\newlabel{acro:MinIO}{{F.3}{113}{Tipos de pruebas aplicadas}{section*.60}{}}
 \acronymused{MinIO}
 \acronymused{JWT}
 \AC@undonewlabel{acro:MB}
-\newlabel{acro:MB}{{F.3}{109}{Tipos de pruebas aplicadas}{section*.59}{}}
+\newlabel{acro:MB}{{F.3}{113}{Tipos de pruebas aplicadas}{section*.61}{}}
 \acronymused{MB}
 \AC@undonewlabel{acro:UX}
-\newlabel{acro:UX}{{F.3}{109}{Tipos de pruebas aplicadas}{section*.60}{}}
+\newlabel{acro:UX}{{F.3}{113}{Tipos de pruebas aplicadas}{section*.62}{}}
 \acronymused{UX}
-\@writefile{toc}{\contentsline {section}{\numberline {F.4}Suites de prueba (resumen por capa)}{109}{section.Alph6.4}\protected@file@percent }
-\newlabel{sec:anx-pruebas-suites}{{F.4}{109}{Suites de prueba (resumen por capa)}{section.Alph6.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.1}Capa de \emph  {backend} (Flask + Celery)}{110}{subsection.Alph6.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.2}Capa de dominio (\emph  {Sonar-Lite})}{110}{subsection.Alph6.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.3}Capa de \emph  {frontend} (Next.js)}{110}{subsection.Alph6.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.4}Pruebas no funcionales}{110}{subsection.Alph6.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {F.5}Entornos y datos de prueba}{110}{section.Alph6.5}\protected@file@percent }
-\newlabel{sec:anx-pruebas-entornos}{{F.5}{110}{Entornos y datos de prueba}{section.Alph6.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.4}Suites de prueba (resumen por capa)}{113}{section.Alph6.4}\protected@file@percent }
+\newlabel{sec:anx-pruebas-suites}{{F.4}{113}{Suites de prueba (resumen por capa)}{section.Alph6.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.1}Capa de \emph  {backend} (Flask + Celery)}{114}{subsection.Alph6.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.2}Capa de dominio (\emph  {Sonar-Lite})}{114}{subsection.Alph6.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.3}Capa de \emph  {frontend} (Next.js)}{114}{subsection.Alph6.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {F.4.4}Pruebas no funcionales}{114}{subsection.Alph6.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {F.5}Entornos y datos de prueba}{114}{section.Alph6.5}\protected@file@percent }
+\newlabel{sec:anx-pruebas-entornos}{{F.5}{114}{Entornos y datos de prueba}{section.Alph6.5}{}}
 \AC@undonewlabel{acro:Redis}
-\newlabel{acro:Redis}{{F.5}{110}{}{section*.70}{}}
+\newlabel{acro:Redis}{{F.5}{114}{}{section*.69}{}}
 \acronymused{Redis}
 \AC@undonewlabel{acro:MinIO}
-\newlabel{acro:MinIO}{{F.5}{110}{}{section*.71}{}}
+\newlabel{acro:MinIO}{{F.5}{114}{}{section*.70}{}}
 \acronymused{MinIO}
 \acronymused{TFG}
 \AC@undonewlabel{acro:MB}
-\newlabel{acro:MB}{{F.5}{110}{}{section*.72}{}}
+\newlabel{acro:MB}{{F.5}{114}{}{section*.71}{}}
 \acronymused{MB}
-\@writefile{toc}{\contentsline {section}{\numberline {F.6}Criterios de entrada, salida y aceptación}{110}{section.Alph6.6}\protected@file@percent }
-\newlabel{sec:anx-pruebas-criterios}{{F.6}{110}{Criterios de entrada, salida y aceptación}{section.Alph6.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.6}Criterios de entrada, salida y aceptación}{114}{section.Alph6.6}\protected@file@percent }
+\newlabel{sec:anx-pruebas-criterios}{{F.6}{114}{Criterios de entrada, salida y aceptación}{section.Alph6.6}{}}
 \AC@undonewlabel{acro:HU}
-\newlabel{acro:HU}{{F.6}{110}{}{section*.73}{}}
+\newlabel{acro:HU}{{F.6}{114}{}{section*.72}{}}
 \acronymused{HU}
 \AC@undonewlabel{acro:HU}
-\newlabel{acro:HU}{{F.6}{110}{}{section*.74}{}}
+\newlabel{acro:HU}{{F.6}{114}{}{section*.73}{}}
 \acronymused{HU}
 \AC@undonewlabel{acro:HU}
-\newlabel{acro:HU}{{F.6}{110}{}{section*.75}{}}
+\newlabel{acro:HU}{{F.6}{114}{}{section*.74}{}}
 \acronymused{HU}
 \AC@undonewlabel{acro:HU}
-\newlabel{acro:HU}{{F.6}{110}{}{section*.76}{}}
+\newlabel{acro:HU}{{F.6}{114}{}{section*.75}{}}
 \acronymused{HU}
-\@writefile{lot}{\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph  {backend}}}{111}{table.Alph6.2}\protected@file@percent }
-\newlabel{tab:suites-backend}{{F.2}{111}{Suites de \emph {backend}}{table.Alph6.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph  {backend}}}{115}{table.Alph6.2}\protected@file@percent }
+\newlabel{tab:suites-backend}{{F.2}{115}{Suites de \emph {backend}}{table.Alph6.2}{}}
 \acronymused{JWT}
 \acronymused{CRUD}
 \AC@undonewlabel{acro:MinIO}
-\newlabel{acro:MinIO}{{F.2}{111}{Suites de \emph {backend}}{section*.63}{}}
+\newlabel{acro:MinIO}{{F.2}{115}{Suites de \emph {backend}}{section*.65}{}}
 \acronymused{MinIO}
 \acronymused{JWT}
 \acronymused{IDOR}
-\@writefile{lot}{\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph  {Sonar-Lite}}}{112}{table.Alph6.3}\protected@file@percent }
-\newlabel{tab:suites-dominio}{{F.3}{112}{Suites de dominio \emph {Sonar-Lite}}{table.Alph6.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph  {frontend}}}{112}{table.Alph6.4}\protected@file@percent }
-\newlabel{tab:suites-frontend}{{F.4}{112}{Suites de \emph {frontend}}{table.Alph6.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{113}{table.Alph6.5}\protected@file@percent }
-\newlabel{tab:suites-nofuncionales}{{F.5}{113}{Suites no funcionales}{table.Alph6.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph  {Sonar-Lite}}}{116}{table.Alph6.3}\protected@file@percent }
+\newlabel{tab:suites-dominio}{{F.3}{116}{Suites de dominio \emph {Sonar-Lite}}{table.Alph6.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph  {frontend}}}{116}{table.Alph6.4}\protected@file@percent }
+\newlabel{tab:suites-frontend}{{F.4}{116}{Suites de \emph {frontend}}{table.Alph6.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{117}{table.Alph6.5}\protected@file@percent }
+\newlabel{tab:suites-nofuncionales}{{F.5}{117}{Suites no funcionales}{table.Alph6.5}{}}
 \acronymused{JWT}
-\AC@undonewlabel{acro:JSON}
-\newlabel{acro:JSON}{{F.5}{113}{Suites no funcionales}{section*.68}{}}
 \acronymused{JSON}
 \acronymused{CSV}
 \AC@undonewlabel{acro:MB}
-\newlabel{acro:MB}{{F.5}{113}{Suites no funcionales}{section*.69}{}}
+\newlabel{acro:MB}{{F.5}{117}{Suites no funcionales}{section*.68}{}}
 \acronymused{MB}
 \AC@undonewlabel{acro:KPI}
-\newlabel{acro:KPI}{{F.7}{113}{Métricas y \acs {KPI} del plan}{section*.77}{}}
+\newlabel{acro:KPI}{{F.7}{117}{Métricas y \acs {KPI} del plan}{section*.76}{}}
 \acronymused{KPI}
-\@writefile{toc}{\contentsline {section}{\numberline {F.7}Métricas y \acs {KPI} del plan}{113}{section.Alph6.7}\protected@file@percent }
-\newlabel{sec:anx-pruebas-kpis}{{F.7}{113}{Métricas y \acs {KPI} del plan}{section.Alph6.7}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{113}{table.Alph6.6}\protected@file@percent }
-\newlabel{tab:kpis-pruebas}{{F.6}{113}{Indicadores de calidad del proceso de pruebas}{table.Alph6.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {F.8}Riesgos del plan de pruebas}{113}{section.Alph6.8}\protected@file@percent }
-\newlabel{sec:anx-pruebas-riesgos}{{F.8}{113}{Riesgos del plan de pruebas}{section.Alph6.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.7}Métricas y \acs {KPI} del plan}{117}{section.Alph6.7}\protected@file@percent }
+\newlabel{sec:anx-pruebas-kpis}{{F.7}{117}{Métricas y \acs {KPI} del plan}{section.Alph6.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{117}{table.Alph6.6}\protected@file@percent }
+\newlabel{tab:kpis-pruebas}{{F.6}{117}{Indicadores de calidad del proceso de pruebas}{table.Alph6.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.8}Riesgos del plan de pruebas}{117}{section.Alph6.8}\protected@file@percent }
+\newlabel{sec:anx-pruebas-riesgos}{{F.8}{117}{Riesgos del plan de pruebas}{section.Alph6.8}{}}
 \AC@undonewlabel{acro:UCI}
-\newlabel{acro:UCI}{{F.8}{113}{Riesgos del plan de pruebas}{section*.78}{}}
+\newlabel{acro:UCI}{{F.8}{117}{Riesgos del plan de pruebas}{section*.77}{}}
 \acronymused{UCI}
 \AC@undonewlabel{acro:MB}
-\newlabel{acro:MB}{{F.8}{113}{Riesgos del plan de pruebas}{section*.79}{}}
+\newlabel{acro:MB}{{F.8}{117}{Riesgos del plan de pruebas}{section*.78}{}}
 \acronymused{MB}
-\@writefile{toc}{\contentsline {section}{\numberline {F.9}Roles y responsabilidades}{114}{section.Alph6.9}\protected@file@percent }
-\newlabel{sec:anx-pruebas-roles}{{F.9}{114}{Roles y responsabilidades}{section.Alph6.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.9}Roles y responsabilidades}{118}{section.Alph6.9}\protected@file@percent }
+\newlabel{sec:anx-pruebas-roles}{{F.9}{118}{Roles y responsabilidades}{section.Alph6.9}{}}
 \acronymused{TFG}
-\@writefile{toc}{\contentsline {section}{\numberline {F.10}Trazabilidad y herramientas}{114}{section.Alph6.10}\protected@file@percent }
-\newlabel{sec:anx-pruebas-trazabilidad}{{F.10}{114}{Trazabilidad y herramientas}{section.Alph6.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.10}Trazabilidad y herramientas}{118}{section.Alph6.10}\protected@file@percent }
+\newlabel{sec:anx-pruebas-trazabilidad}{{F.10}{118}{Trazabilidad y herramientas}{section.Alph6.10}{}}
 \AC@undonewlabel{acro:HU}
-\newlabel{acro:HU}{{F.10}{114}{Trazabilidad y herramientas}{section*.80}{}}
+\newlabel{acro:HU}{{F.10}{118}{Trazabilidad y herramientas}{section*.79}{}}
 \acronymused{HU}
-\@writefile{toc}{\contentsline {section}{\numberline {F.11}Estado actual y trabajo futuro}{114}{section.Alph6.11}\protected@file@percent }
-\newlabel{sec:anx-pruebas-estado}{{F.11}{114}{Estado actual y trabajo futuro}{section.Alph6.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.11}Estado actual y trabajo futuro}{118}{section.Alph6.11}\protected@file@percent }
+\newlabel{sec:anx-pruebas-estado}{{F.11}{118}{Estado actual y trabajo futuro}{section.Alph6.11}{}}
 \acronymused{IDOR}
-\@writefile{toc}{\contentsline {chapter}{\numberline {G}Manual de usuario}{115}{appendix.Alph7}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {G}Manual de usuario}{119}{appendix.Alph7}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{anx:manual}{{G}{115}{Manual de usuario}{appendix.Alph7}{}}
+\newlabel{anx:manual}{{G}{119}{Manual de usuario}{appendix.Alph7}{}}
 \acronymused{JWT}
 \acronymused{API}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{117}{figure.Alph7.1}\protected@file@percent }
-\newlabel{fig:manual-auth}{{G.1}{117}{Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}{figure.Alph7.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{118}{figure.Alph7.2}\protected@file@percent }
-\newlabel{fig:manual-new-project}{{G.2}{118}{Asistente de creación de un nuevo proyecto en tres pasos}{figure.Alph7.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{121}{figure.Alph7.1}\protected@file@percent }
+\newlabel{fig:manual-auth}{{G.1}{121}{Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}{figure.Alph7.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{122}{figure.Alph7.2}\protected@file@percent }
+\newlabel{fig:manual-new-project}{{G.2}{122}{Asistente de creación de un nuevo proyecto en tres pasos}{figure.Alph7.2}{}}
 \acronymused{PII}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.3}{\ignorespaces Paso 2 del asistente de carga: zona de \emph  {drag-and-drop} con nombre y descripción del \emph  {dataset}}}{119}{figure.Alph7.3}\protected@file@percent }
-\newlabel{fig:manual-upload}{{G.3}{119}{Paso 2 del asistente de carga: zona de \emph {drag-and-drop} con nombre y descripción del \emph {dataset}}{figure.Alph7.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.4}{\ignorespaces Paso 3 del asistente de carga: resumen del \emph  {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}}{120}{figure.Alph7.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.3}{\ignorespaces Paso 2 del asistente de carga: zona de \emph  {drag-and-drop} con nombre y descripción del \emph  {dataset}}}{123}{figure.Alph7.3}\protected@file@percent }
+\newlabel{fig:manual-upload}{{G.3}{123}{Paso 2 del asistente de carga: zona de \emph {drag-and-drop} con nombre y descripción del \emph {dataset}}{figure.Alph7.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.4}{\ignorespaces Paso 3 del asistente de carga: resumen del \emph  {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}}{124}{figure.Alph7.4}\protected@file@percent }
 \acronymused{PII}
-\newlabel{fig:manual-pii}{{G.4}{120}{Paso 3 del asistente de carga: resumen del \emph {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}{figure.Alph7.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.5}{\ignorespaces Configurador de métricas (pestaña \emph  {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}}{120}{figure.Alph7.5}\protected@file@percent }
-\newlabel{fig:manual-metrics}{{G.5}{120}{Configurador de métricas (pestaña \emph {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}{figure.Alph7.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.6}{\ignorespaces Pestaña \emph  {Evaluaciones} de un \emph  {dataset}: evaluación recién lanzada con estado \emph  {Queued} y botón \emph  {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}}{121}{figure.Alph7.6}\protected@file@percent }
-\newlabel{fig:manual-evaluation}{{G.6}{121}{Pestaña \emph {Evaluaciones} de un \emph {dataset}: evaluación recién lanzada con estado \emph {Queued} y botón \emph {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}{figure.Alph7.6}{}}
+\newlabel{fig:manual-pii}{{G.4}{124}{Paso 3 del asistente de carga: resumen del \emph {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}{figure.Alph7.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.5}{\ignorespaces Configurador de métricas (pestaña \emph  {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}}{124}{figure.Alph7.5}\protected@file@percent }
+\newlabel{fig:manual-metrics}{{G.5}{124}{Configurador de métricas (pestaña \emph {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}{figure.Alph7.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.6}{\ignorespaces Pestaña \emph  {Evaluaciones} de un \emph  {dataset}: evaluación recién lanzada con estado \emph  {Queued} y botón \emph  {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}}{125}{figure.Alph7.6}\protected@file@percent }
+\newlabel{fig:manual-evaluation}{{G.6}{125}{Pestaña \emph {Evaluaciones} de un \emph {dataset}: evaluación recién lanzada con estado \emph {Queued} y botón \emph {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}{figure.Alph7.6}{}}
 \acronymused{EDA}
 \acronymused{IQR}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.7}{\ignorespaces Detalle de un análisis: \emph  {Quality Score}, métricas e \emph  {issues} con \emph  {badges} de trazabilidad entre ejecuciones}}{122}{figure.Alph7.7}\protected@file@percent }
-\newlabel{fig:manual-results}{{G.7}{122}{Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}{figure.Alph7.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.8}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph  {outliers}}}{124}{figure.Alph7.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.7}{\ignorespaces Detalle de un análisis: \emph  {Quality Score}, métricas e \emph  {issues} con \emph  {badges} de trazabilidad entre ejecuciones}}{126}{figure.Alph7.7}\protected@file@percent }
+\newlabel{fig:manual-results}{{G.7}{126}{Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}{figure.Alph7.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.8}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph  {outliers}}}{128}{figure.Alph7.8}\protected@file@percent }
 \acronymused{EDA}
-\newlabel{fig:manual-eda}{{G.8}{124}{Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}{figure.Alph7.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.9}{\ignorespaces Pestaña \emph  {Analysis history} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph  {dataset} y tabla de ejecuciones con estado de \emph  {Quality Gate}}}{125}{figure.Alph7.9}\protected@file@percent }
-\newlabel{fig:manual-analysis-history}{{G.9}{125}{Pestaña \emph {Analysis history} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}{figure.Alph7.9}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {G.10}{\ignorespaces Pestaña \emph  {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}}{125}{figure.Alph7.10}\protected@file@percent }
-\newlabel{fig:manual-qg}{{G.10}{125}{Pestaña \emph {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}{figure.Alph7.10}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {H}Diagramas UML del sistema}{127}{appendix.Alph8}\protected@file@percent }
+\newlabel{fig:manual-eda}{{G.8}{128}{Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}{figure.Alph7.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.9}{\ignorespaces Pestaña \emph  {Analysis history} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph  {dataset} y tabla de ejecuciones con estado de \emph  {Quality Gate}}}{129}{figure.Alph7.9}\protected@file@percent }
+\newlabel{fig:manual-analysis-history}{{G.9}{129}{Pestaña \emph {Analysis history} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}{figure.Alph7.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {G.10}{\ignorespaces Pestaña \emph  {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}}{129}{figure.Alph7.10}\protected@file@percent }
+\newlabel{fig:manual-qg}{{G.10}{129}{Pestaña \emph {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}{figure.Alph7.10}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {H}Diagramas UML del sistema}{131}{appendix.Alph8}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{anx:diagramas}{{H}{127}{Diagramas UML del sistema}{appendix.Alph8}{}}
+\newlabel{anx:diagramas}{{H}{131}{Diagramas UML del sistema}{appendix.Alph8}{}}
 \acronymused{UML}
 \acronymused{API}
 \acronymused{EDA}
 \acronymused{ORM}
-\@writefile{lof}{\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \textsc  {DataQual}\xspace  }}{128}{figure.Alph8.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \textsc  {DataQual}\xspace  }}{132}{figure.Alph8.1}\protected@file@percent }
 \acronymused{UML}
-\newlabel{fig:casos-uso}{{H.1}{128}{Diagrama \ac {UML} de casos de uso de \dataqual }{figure.Alph8.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {H.2}{\ignorespaces Esquema relacional de la base de datos \texttt  {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}}{129}{figure.Alph8.2}\protected@file@percent }
-\newlabel{fig:er-diagram}{{H.2}{129}{Esquema relacional de la base de datos \texttt {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}{figure.Alph8.2}{}}
+\newlabel{fig:casos-uso}{{H.1}{132}{Diagrama \ac {UML} de casos de uso de \dataqual }{figure.Alph8.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {H.2}{\ignorespaces Esquema relacional de la base de datos \texttt  {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}}{133}{figure.Alph8.2}\protected@file@percent }
+\newlabel{fig:er-diagram}{{H.2}{133}{Esquema relacional de la base de datos \texttt {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}{figure.Alph8.2}{}}
+\AC@undonewlabel{acro:MinIO}
+\newlabel{acro:MinIO}{{6}{134}{}{section*.80}{}}
+\acronymused{MinIO}
+\acronymused{PII}
 \bibdata{main}
 \bibcite{abedjan2018}{{1}{2018}{{Abedjan et~al.}}{{}}}
 \bibcite{alteryx}{{2}{2024}{{Alteryx, Inc.}}{{}}}
@@ -1236,7 +1264,7 @@
 \bibcite{docker}{{12}{2024}{{Docker, Inc.}}{{}}}
 \bibcite{dqops}{{13}{2024}{{DQOps}}{{}}}
 \bibcite{evidentlyai}{{14}{2024}{{Evidently AI}}{{}}}
-\@writefile{toc}{\contentsline {chapter}{Referencias}{132}{appendix*.81}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{Referencias}{136}{appendix*.81}\protected@file@percent }
 \bibcite{fielding2000}{{15}{2000}{{Fielding}}{{}}}
 \bibcite{design_patterns}{{16}{1994}{{Gamma et~al.}}{{}}}
 \bibcite{greatexpectations}{{17}{2024}{{Great Expectations}}{{}}}
@@ -1270,4 +1298,4 @@
 \bibcite{nextjs}{{45}{2024}{{Vercel}}{{}}}
 \bibcite{wang1996}{{46}{1996}{{Wang and Strong}}{{}}}
 \bibcite{ydataprofiling}{{47}{2024}{{ydata-ai}}{{}}}
-\gdef \@abspage@last{154}
+\gdef \@abspage@last{158}

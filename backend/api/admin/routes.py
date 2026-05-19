@@ -16,7 +16,7 @@ from models.user import User
 logger = logging.getLogger(__name__)
 
 # Crear blueprint
-admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/performance', methods=['GET'])
 @jwt_required()

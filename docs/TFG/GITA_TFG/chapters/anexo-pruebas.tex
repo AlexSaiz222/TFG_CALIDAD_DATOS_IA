@@ -1,5 +1,5 @@
 \chapter{Plan de pruebas integral}
-\label{chap:anexo-pruebas}
+\label{anx:pruebas}
 
 Este anexo formaliza el plan de pruebas de \dataqual\ y complementa la visión
 sintética presentada en el capítulo de resultados.  Se redacta siguiendo las
@@ -328,7 +328,7 @@ usuarios, proyectos y \emph{datasets} de referencia en cada ejecución.
 \end{itemize}
 
 \subsection*{Criterios de aceptación por \acs{HU}}
-Cada \acs{HU} del \emph{backlog} (anexo~\ref{chap:anexo-backlog}) incluye
+Cada \acs{HU} del \emph{backlog} (anexo~\ref{anx:backlog}) incluye
 sus propios criterios de aceptación; el plan de pruebas mantiene una
 matriz de trazabilidad \acs{HU}\,$\leftrightarrow$\,\emph{suite} que se
 detalla en el documento técnico complementario.
@@ -352,7 +352,7 @@ detalla en el documento técnico complementario.
     Cobertura líneas      & \texttt{pytest --cov} sobre \texttt{backend/}.
                           & $\geq 70$\,\% & Por medir \\
     Tasa de paso          & Casos \emph{passed}\,/\,total ejecutados.
-                          & $\geq 95$\,\% & 100\,\% (232/233) \\
+                          & $\geq 95$\,\% & 100\,\% (232/232, 1 \emph{skipped}) \\
     Defectos críticos abiertos & Bugs P1 sin resolver al cierre.
                           & 0           & 0 \\
     Tiempo suite L1+L2    & Duración total en local.
