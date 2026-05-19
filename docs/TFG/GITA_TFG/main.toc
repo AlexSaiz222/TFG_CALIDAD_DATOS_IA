@@ -13,58 +13,58 @@
 \contentsline {section}{\numberline {1.4}Público objetivo}{4}{section.1.4}%
 \contentsline {section}{\numberline {1.5}Alcance del proyecto}{4}{section.1.5}%
 \contentsline {section}{\numberline {1.6}Estructura del documento}{4}{section.1.6}%
-\contentsline {chapter}{\numberline {2}Antecedentes y estado del arte}{6}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Importancia de la calidad de datos en IA}{6}{section.2.1}%
-\contentsline {subsection}{\numberline {2.1.1}Marcos conceptuales fundacionales}{6}{subsection.2.1.1}%
-\contentsline {subsection}{\numberline {2.1.2}Impacto económico de la mala calidad de datos}{6}{subsection.2.1.2}%
-\contentsline {subsection}{\numberline {2.1.3}El paradigma data-centric AI}{7}{subsection.2.1.3}%
-\contentsline {section}{\numberline {2.2}Marco normativo: estándares ISO}{8}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}ISO/IEC 25012: Modelo de calidad de datos}{8}{subsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.2.2}ISO/IEC 5259: Calidad de datos para analítica e IA}{8}{subsection.2.2.2}%
-\contentsline {subsection}{\numberline {2.2.3}ISO/IEC 25024: Medición de la calidad de datos}{10}{subsection.2.2.3}%
-\contentsline {section}{\numberline {2.3}Alcance metodológico}{10}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}Taxonomía de características de calidad según \mbox {ISO/IEC 5259-2}}{10}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Características evaluables algorítmicamente}{11}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}Características fuera del alcance del proyecto}{13}{subsection.2.3.3}%
-\contentsline {paragraph}{Dependencia de infraestructura organizativa.}{13}{subsection.2.3.3}%
-\contentsline {paragraph}{Características mixtas con dependencia del sistema.}{13}{subsection.2.3.3}%
-\contentsline {paragraph}{Dependencia de metadatos organizativos y contexto de negocio.}{13}{subsection.2.3.3}%
-\contentsline {paragraph}{Decisiones de priorización del \ac {MVP}.}{13}{subsection.2.3.3}%
-\contentsline {subsection}{\numberline {2.3.4}Priorización de características para el MVP}{14}{subsection.2.3.4}%
-\contentsline {section}{\numberline {2.4}Estado del arte: herramientas existentes}{15}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Great Expectations}{15}{subsection.2.4.1}%
-\contentsline {paragraph}{Fortalezas.}{15}{subsection.2.4.1}%
-\contentsline {paragraph}{Limitaciones.}{15}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Apache Deequ}{15}{subsection.2.4.2}%
-\contentsline {paragraph}{Fortalezas.}{15}{subsection.2.4.2}%
-\contentsline {paragraph}{Limitaciones.}{15}{subsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.4.3}DQOps}{16}{subsection.2.4.3}%
-\contentsline {paragraph}{Fortalezas.}{16}{subsection.2.4.3}%
-\contentsline {paragraph}{Limitaciones.}{16}{subsection.2.4.3}%
-\contentsline {subsection}{\numberline {2.4.4}Soda Core}{16}{subsection.2.4.4}%
-\contentsline {paragraph}{Fortalezas.}{16}{subsection.2.4.4}%
-\contentsline {paragraph}{Limitaciones.}{16}{subsection.2.4.4}%
-\contentsline {subsection}{\numberline {2.4.5}Otras herramientas relevantes}{17}{subsection.2.4.5}%
-\contentsline {paragraph}{Herramientas comerciales.}{17}{subsection.2.4.5}%
-\contentsline {paragraph}{Herramientas orientadas a \ac {ML}.}{17}{subsection.2.4.5}%
-\contentsline {subsection}{\numberline {2.4.6}Análisis comparativo}{17}{subsection.2.4.6}%
-\contentsline {section}{\numberline {2.5}Diferenciación de \textsc {DataQual}\xspace }{18}{section.2.5}%
-\contentsline {section}{\numberline {2.6}Justificación académica}{19}{section.2.6}%
-\contentsline {paragraph}{Arquitectura de software y sistemas distribuidos.}{19}{section.2.6}%
-\contentsline {paragraph}{Capa de datos y procesamiento asíncrono.}{20}{section.2.6}%
-\contentsline {paragraph}{\emph {Frontend} y comunicación cliente-servidor.}{20}{section.2.6}%
-\contentsline {paragraph}{Estadística aplicada y análisis exploratorio.}{20}{section.2.6}%
-\contentsline {paragraph}{Seguridad y cumplimiento normativo.}{20}{section.2.6}%
-\contentsline {chapter}{\numberline {3}Objetivos}{21}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Objetivo general}{21}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Objetivos específicos}{21}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}OE1.\ Módulo de ingesta y almacenamiento}{21}{subsection.3.2.1}%
-\contentsline {subsection}{\numberline {3.2.2}OE2.\ Motor de evaluación con métricas parametrizables}{22}{subsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.2.3}OE3.\ \acs {API} \acs {REST}ful con especificación formal}{23}{subsection.3.2.3}%
-\contentsline {subsection}{\numberline {3.2.4}OE4.\ Aplicación web con \emph {dashboards} interactivos}{24}{subsection.3.2.4}%
-\contentsline {subsection}{\numberline {3.2.5}OE5.\ Mecanismos de identificación de problemas}{25}{subsection.3.2.5}%
-\contentsline {section}{\numberline {3.3}Objetivos transversales}{26}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Alcance y limitaciones}{27}{section.3.4}%
+\contentsline {chapter}{\numberline {2}Objetivos}{6}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Objetivo general}{6}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Objetivos específicos}{6}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}OE1.\ Módulo de ingesta y almacenamiento}{6}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}OE2.\ Motor de evaluación con métricas parametrizables}{7}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}OE3.\ \acs {API} \acs {REST}ful con especificación formal}{8}{subsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.2.4}OE4.\ Aplicación web con \emph {dashboards} interactivos}{9}{subsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.2.5}OE5.\ Mecanismos de identificación de problemas}{10}{subsection.2.2.5}%
+\contentsline {section}{\numberline {2.3}Objetivos transversales}{11}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Alcance y limitaciones}{12}{section.2.4}%
+\contentsline {chapter}{\numberline {3}Antecedentes y estado del arte}{14}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Importancia de la calidad de datos en IA}{14}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Marcos conceptuales fundacionales}{14}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Impacto económico de la mala calidad de datos}{14}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}El paradigma data-centric AI}{15}{subsection.3.1.3}%
+\contentsline {section}{\numberline {3.2}Marco normativo: estándares ISO}{16}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}ISO/IEC 25012: Modelo de calidad de datos}{16}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}ISO/IEC 5259: Calidad de datos para analítica e IA}{16}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}ISO/IEC 25024: Medición de la calidad de datos}{18}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Alcance metodológico}{18}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Taxonomía de características de calidad según \mbox {ISO/IEC 5259-2}}{18}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Características evaluables algorítmicamente}{19}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Características fuera del alcance del proyecto}{21}{subsection.3.3.3}%
+\contentsline {paragraph}{Dependencia de infraestructura organizativa.}{21}{subsection.3.3.3}%
+\contentsline {paragraph}{Características mixtas con dependencia del sistema.}{21}{subsection.3.3.3}%
+\contentsline {paragraph}{Dependencia de metadatos organizativos y contexto de negocio.}{21}{subsection.3.3.3}%
+\contentsline {paragraph}{Decisiones de priorización del \ac {MVP}.}{21}{subsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.3.4}Priorización de características para el MVP}{22}{subsection.3.3.4}%
+\contentsline {section}{\numberline {3.4}Estado del arte: herramientas existentes}{23}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Great Expectations}{23}{subsection.3.4.1}%
+\contentsline {paragraph}{Fortalezas.}{23}{subsection.3.4.1}%
+\contentsline {paragraph}{Limitaciones.}{23}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Apache Deequ}{23}{subsection.3.4.2}%
+\contentsline {paragraph}{Fortalezas.}{23}{subsection.3.4.2}%
+\contentsline {paragraph}{Limitaciones.}{23}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {3.4.3}DQOps}{24}{subsection.3.4.3}%
+\contentsline {paragraph}{Fortalezas.}{24}{subsection.3.4.3}%
+\contentsline {paragraph}{Limitaciones.}{24}{subsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.4.4}Soda Core}{24}{subsection.3.4.4}%
+\contentsline {paragraph}{Fortalezas.}{24}{subsection.3.4.4}%
+\contentsline {paragraph}{Limitaciones.}{24}{subsection.3.4.4}%
+\contentsline {subsection}{\numberline {3.4.5}Otras herramientas relevantes}{25}{subsection.3.4.5}%
+\contentsline {paragraph}{Herramientas comerciales.}{25}{subsection.3.4.5}%
+\contentsline {paragraph}{Herramientas orientadas a \ac {ML}.}{25}{subsection.3.4.5}%
+\contentsline {subsection}{\numberline {3.4.6}Análisis comparativo}{25}{subsection.3.4.6}%
+\contentsline {section}{\numberline {3.5}Diferenciación de \textsc {DataQual}\xspace }{26}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Justificación académica}{27}{section.3.6}%
+\contentsline {paragraph}{Arquitectura de software y sistemas distribuidos.}{27}{section.3.6}%
+\contentsline {paragraph}{Capa de datos y procesamiento asíncrono.}{28}{section.3.6}%
+\contentsline {paragraph}{\emph {Frontend} y comunicación cliente-servidor.}{28}{section.3.6}%
+\contentsline {paragraph}{Estadística aplicada y análisis exploratorio.}{28}{section.3.6}%
+\contentsline {paragraph}{Seguridad y cumplimiento normativo.}{28}{section.3.6}%
 \contentsline {chapter}{\numberline {4}Metodología y herramientas}{29}{chapter.4}%
 \contentsline {section}{\numberline {4.1}Gestión del proyecto}{29}{section.4.1}%
 \contentsline {subsection}{\numberline {4.1.1}Metodología ágil adoptada: Scrum adaptado}{29}{subsection.4.1.1}%

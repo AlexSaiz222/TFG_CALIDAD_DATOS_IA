@@ -5,10 +5,10 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {2.1}{\ignorespaces Correspondencia entre las dimensiones de calidad de \ac {ISO}/IEC~25012 e \ac {ISO}/IEC~5259-2 y las métricas implementadas en \textsc {DataQual}\xspace }}{9}{table.2.1}%
-\contentsline {table}{\numberline {2.2}{\ignorespaces Cobertura de \textsc {DataQual}\xspace respecto al modelo de calidad de \ac {ISO}/IEC 5259-2}}{12}{table.2.2}%
-\contentsline {table}{\numberline {2.3}{\ignorespaces Comparativa de \textsc {DataQual}\xspace con herramientas de calidad de datos existentes}}{18}{table.2.3}%
 \addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Correspondencia entre las dimensiones de calidad de \ac {ISO}/IEC~25012 e \ac {ISO}/IEC~5259-2 y las métricas implementadas en \textsc {DataQual}\xspace }}{17}{table.3.1}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Cobertura de \textsc {DataQual}\xspace respecto al modelo de calidad de \ac {ISO}/IEC 5259-2}}{20}{table.3.2}%
+\contentsline {table}{\numberline {3.3}{\ignorespaces Comparativa de \textsc {DataQual}\xspace con herramientas de calidad de datos existentes}}{26}{table.3.3}%
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {4.1}{\ignorespaces Tecnologías del \emph {frontend}}}{33}{table.4.1}%
 \contentsline {table}{\numberline {4.2}{\ignorespaces Tecnologías del \emph {backend}}}{34}{table.4.2}%

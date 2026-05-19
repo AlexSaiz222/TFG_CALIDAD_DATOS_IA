@@ -28,7 +28,7 @@ Invoca `/tfg-review` con uno de los modos siguientes (o sin argumentos para el c
 | `cap N` | Revisión completa del capítulo N (1–7) |
 | `sprint N` | Retrospectiva completa del sprint N (los 8 campos obligatorios) |
 | `biblio` | Consistencia bibliografía: cada `\cite{}` tiene entrada en `.bib` y viceversa |
-| `objetivos` | Trazabilidad OE1–OE5: intro → cap. 3 → resultados → conclusiones |
+| `objetivos` | Trazabilidad OE1–OE5: intro → cap. 2 → resultados → conclusiones |
 | `anexos` | Revisión de los 8 anexos contra la checklist de la guía |
 | `latex` | Solo aspectos técnicos LaTeX (warnings, paquetes, etiquetas) |
 
@@ -40,8 +40,8 @@ Invoca `/tfg-review` con uno de los modos siguientes (o sin argumentos para el c
 - `docs/TFG/GITA_TFG/main.tex` — estructura global, paquetes, `\input{}`
 - `docs/TFG/GITA_TFG/main.bib` — bibliografía BibTeX
 - `docs/TFG/GITA_TFG/chapters/01-intro.tex`
-- `docs/TFG/GITA_TFG/chapters/02-antecedentes.tex`
-- `docs/TFG/GITA_TFG/chapters/03-objetivos.tex`
+- `docs/TFG/GITA_TFG/chapters/02-objetivos.tex`
+- `docs/TFG/GITA_TFG/chapters/03-antecedentes.tex`
 - `docs/TFG/GITA_TFG/chapters/04-metodologia.tex`
 - `docs/TFG/GITA_TFG/chapters/05-desarrollo.tex`
 - `docs/TFG/GITA_TFG/chapters/06-resultados.tex`
@@ -76,8 +76,8 @@ Antes de leer cualquier archivo de código en la Fase 4, confirmar que existe co
 Verificar que cada capítulo contiene las secciones obligatorias indicadas en la guía:
 
 - **Cap. 1 Intro**: motivación, alcance, estructura del documento.
-- **Cap. 2 Antecedentes**: estado del arte con herramientas comparadas (Great Expectations, Deequ, DQOps), marco normativo (ISO 25012, ISO 5259).
-- **Cap. 3 Objetivos**: objetivo general + OE1–OE5 con indicadores medibles.
+- **Cap. 2 Objetivos**: objetivo general + OE1–OE5 con indicadores medibles.
+- **Cap. 3 Antecedentes**: estado del arte con herramientas comparadas (Great Expectations, Deequ, DQOps), marco normativo (ISO 25012, ISO 5259).
 - **Cap. 4 Metodología**: justificación Scrum, fases del proyecto, plan de sprints.
 - **Cap. 5 Desarrollo**: por cada sprint → planificación, backlog, trabajo realizado, retrospectiva completa (8 campos — ver modo `sprint N`).
 - **Cap. 6 Resultados**: resultados cuantitativos, cualitativos, verificación de objetivos, fortalezas, limitaciones, comparación con herramientas.
@@ -164,7 +164,7 @@ Reportar cada campo ausente como hallazgo CRÍTICO.
 ### Modo `objetivos`
 
 Para cada objetivo OE1–OE5:
-1. Localizar su definición en `chapters/03-objetivos.tex` (indicador medible incluido).
+1. Localizar su definición en `chapters/02-objetivos.tex` (indicador medible incluido).
 2. Verificar que cap. 6 (`chapters/06-resultados.tex`) lo menciona explícitamente y proporciona evidencia cuantitativa o cualitativa.
 3. Verificar que cap. 7 (`chapters/07-conclusiones.tex`) incluye una conclusión específica para ese objetivo.
 4. Reportar cualquier objetivo sin evidencia en resultados o sin conclusión como CRÍTICO.
