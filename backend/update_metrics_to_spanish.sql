@@ -29,16 +29,22 @@ UPDATE metrics SET
 WHERE name = 'outliers';
 
 UPDATE metrics SET 
-    description = 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.',
+    description = 'Evalúa la frescura y antigüedad de fechas (Currentness, ISO 5259-2 Cur-ML-1). Detecta datos obsoletos o fuera del rango temporal esperado.',
     category = 'data_quality',
-    parameters = '{"date_columns": [], "max_age_days": 365, "expected_range": null, "auto_detect": true}'::jsonb
+    parameters = '{"columns": [], "staleness_threshold_days": 30, "auto_detect": true}'::jsonb
 WHERE name = 'currentness';
 
 UPDATE metrics SET 
     description = 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.',
     category = 'distribution',
-    parameters = '{"columns": [], "threshold": 0.8, "auto_detect": true}'::jsonb
+    parameters = '{"columns": [], "auto_detect": true, "imbalance_threshold_high": 0.90, "imbalance_threshold_low": 0.05, "max_cardinality": 50}'::jsonb
 WHERE name = 'class_balance';
+
+UPDATE metrics SET 
+    description = 'Mide la cobertura de valores esperados por columna (ISO 5259-2). Para categóricas comprueba la presencia de valores definidos; para numéricas, la cobertura del rango esperado.',
+    category = 'data_quality',
+    parameters = '{"columns": {}, "threshold": 0.60}'::jsonb
+WHERE name = 'diversity';
 
 -- 4. Insertar métricas nuevas si no existen
 INSERT INTO metrics (name, description, category, parameters)
@@ -54,6 +60,13 @@ SELECT 'logical_consistency',
        'consistency',
        '{"rules": []}'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM metrics WHERE name = 'logical_consistency');
+
+INSERT INTO metrics (name, description, category, parameters)
+SELECT 'diversity',
+       'Mide la cobertura de valores esperados por columna (ISO 5259-2). Para categóricas comprueba la presencia de valores definidos; para numéricas, la cobertura del rango esperado.',
+       'data_quality',
+       '{"columns": {}, "threshold": 0.60}'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM metrics WHERE name = 'diversity');
 
 -- 5. Verificar resultado
 SELECT name, LEFT(description, 60) as description_preview, category 

@@ -101,9 +101,9 @@ INSERT INTO metrics (name, description, category, parameters) VALUES
 ('outliers', 'Detecta valores atípicos en columnas numéricas usando métodos estadísticos (IQR, Z-score). Identifica datos anómalos que pueden ser errores o casos excepcionales.', 'data_quality', '{"method": "iqr", "factor": 1.5, "columns": [], "auto_detect": true}'),
 ('syntactic_accuracy', 'Valida que los valores cumplan con el tipo de dato esperado, patrones regex o restricciones de longitud. Detecta errores de formato y valores mal tipados.', 'accuracy', '{"columns": [], "custom_patterns": {}, "auto_detect_types": true, "threshold": 0.95}'),
 ('logical_consistency', 'Valida reglas lógicas entre campos dentro de cada registro. Detecta inconsistencias como fechas de fin anteriores a fechas de inicio o valores mutuamente excluyentes.', 'consistency', '{"rules": []}'),
-('class_balance', 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.', 'distribution', '{"columns": [], "threshold": 0.8, "auto_detect": true}'),
-('currentness', 'Evalúa la frescura y antigüedad de fechas. Detecta datos obsoletos o fuera del rango temporal esperado.', 'data_quality', '{"date_columns": [], "max_age_days": 365, "expected_range": null, "auto_detect": true}'),
-('diversity', 'Mide la cobertura de valores esperados por columna (ISO 5259-2). Para categóricas: presencia de valores definidos. Para numéricas: cobertura de rango.', 'data_quality', '{"columns": {}, "threshold": 0.60}');
+('class_balance', 'Mide el equilibrio en la distribución de variables categóricas. Detecta desbalances que pueden afectar modelos de clasificación.', 'distribution', '{"columns": [], "auto_detect": true, "imbalance_threshold_high": 0.90, "imbalance_threshold_low": 0.05, "max_cardinality": 50}'),
+('currentness', 'Evalúa la frescura y antigüedad de fechas (Currentness, ISO 5259-2 Cur-ML-1). Detecta datos obsoletos o fuera del rango temporal esperado.', 'data_quality', '{"columns": [], "staleness_threshold_days": 30, "auto_detect": true}'),
+('diversity', 'Mide la cobertura de valores esperados por columna (ISO 5259-2). Para categóricas comprueba la presencia de valores definidos; para numéricas, la cobertura del rango esperado.', 'data_quality', '{"columns": {}, "threshold": 0.60}');
 
 -- Insert demo user
 INSERT INTO users (username, email, password_hash, first_name, last_name, organization, role)

@@ -1,6 +1,0 @@
-projectKey=TFG_CALIDAD_DATOS_IA
-serverUrl=http://localhost:9003
-serverVersion=26.4.0.121862
-dashboardUrl=http://localhost:9003/dashboard?id=TFG_CALIDAD_DATOS_IA
-ceTaskId=5eb388cf-fce8-4e81-913a-b2185e802f2f
-ceTaskUrl=http://localhost:9003/api/ce/task?id=5eb388cf-fce8-4e81-913a-b2185e802f2f

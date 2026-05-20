@@ -76,3 +76,14 @@ logs/
 .vscode/
 *.swp
 *.swo
+
+# AI tooling / agent configs
+.claude/
+.windsurf/
+.agents/
+.antigravitycli/
+CLAUDE.md
+skills-lock.json
+
+# Scanner artifacts
+.scannerwork/

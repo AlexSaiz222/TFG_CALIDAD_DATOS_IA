@@ -87,6 +87,12 @@ with app.app_context():
             'description': 'Valida reglas lógicas entre campos dentro de cada registro. Detecta inconsistencias como fechas de fin anteriores a fechas de inicio o valores mutuamente excluyentes.',
             'category': 'consistency',
             'parameters': {"rules": []}
+        },
+        {
+            'name': 'diversity',
+            'description': 'Mide la cobertura de valores esperados por columna (ISO 5259-2). Para categóricas comprueba la presencia de valores definidos; para numéricas, la cobertura del rango esperado.',
+            'category': 'data_quality',
+            'parameters': {"columns": {}, "threshold": 0.60}
         }
     ]
     
