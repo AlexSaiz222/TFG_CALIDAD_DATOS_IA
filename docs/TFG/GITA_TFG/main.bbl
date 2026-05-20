@@ -125,6 +125,11 @@ Gamma, E., Helm, R., Johnson, R., and Vlissides, J. (1994).
 \newblock \url{https://www.kaggle.com/kaggle-survey-2022}.
 \newblock Consultado: 2026.
 
+\bibitem[Kilkenny and Robinson, 2018]{kilkenny2018}
+Kilkenny, M.~F. and Robinson, K.~M. (2018).
+\newblock Data quality: ``garbage in -- garbage out''.
+\newblock {\em Health Information Management Journal}, 47(3):103--105.
+
 \bibitem[Kreuzberger et~al., 2023]{kreuzberger2023}
 Kreuzberger, D., Kühl, N., and Hirschl, S. (2023).
 \newblock Machine learning operations ({MLOps}): Overview, definition, and

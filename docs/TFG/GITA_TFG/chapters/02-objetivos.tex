@@ -69,10 +69,13 @@ concretan son los siguientes:
     \ac{IA} y ciencia de datos.
 
   \item \textbf{Parseo robusto.}  El módulo implementa una estrategia de
-    \emph{fallback} que combina múltiples codificaciones (UTF-8, UTF-8-BOM,
-    CP1252, Latin-1), separadores (coma, punto y coma, tabulador,
-    \emph{pipe}) y motores de lectura, garantizando la ingesta correcta del
-    mayor número posible de archivos reales sin intervención del usuario.
+    \emph{fallback} que combina cuatro codificaciones (UTF-8, UTF-8-BOM,
+    CP1252, Latin-1), seis estrategias de separador (los cuatro
+    candidatos explícitos: coma, punto y coma, tabulador y \emph{pipe};
+    más el delimitador inferido por \texttt{csv.Sniffer} y la
+    autodetección de Pandas) y los dos motores de lectura de Pandas,
+    garantizando la ingesta correcta del mayor número posible de
+    archivos reales sin intervención del usuario.
 
   \item \textbf{Almacenamiento seguro.}  Los archivos originales se
     almacenan en un sistema de objetos compatible con S3 (MinIO) para

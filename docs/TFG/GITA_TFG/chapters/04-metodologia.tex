@@ -5,8 +5,8 @@
 el desarrollo de \dataqual.  Se expone, en primer lugar, la metodología ágil
 de gestión del proyecto (Scrum adaptado a un entorno individual), junto con
 su justificación y adaptación práctica.  A continuación se describe la
-metodología de desarrollo de software adoptada, el stack tecnológico
-seleccionado y el entorno de trabajo.  El capítulo concluye con la
+metodología de desarrollo de software adoptada, la pila tecnológica
+seleccionada y el entorno de trabajo.  El capítulo concluye con la
 planificación temporal del proyecto mediante un diagrama de Gantt, el
 backlog inicial con las historias de usuario, la estimación del
 esfuerzo, el análisis de costes y el plan de gestión de riesgos.
@@ -217,7 +217,8 @@ como \emph{proxy} hacia el \emph{backend} y generación de contenido
 estático.  Se descartó Vue.js por su ecosistema de componentes de
 visualización menos maduro en el momento del desarrollo.  TypeScript se
 incorporó desde el inicio para garantizar la seguridad de tipos en un
-\emph{frontend} con más de cuarenta componentes reutilizables.
+\emph{frontend} que superó los cuarenta componentes reutilizables al
+cierre del Sprint~4 y los cincuenta al cierre del proyecto.
 La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
 
 
@@ -236,8 +237,8 @@ La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
       \emph{hooks} y la Context \ac{API} eliminan la necesidad de gestores de
       estado externos como Redux. \\
     TypeScript & 5.0 & Tipado estático que detecta errores en tiempo de
-      compilación, esencial para mantener un \emph{frontend} con más de
-      cuarenta componentes. \\
+      compilación, esencial para mantener un \emph{frontend} que crece
+      por encima de los cincuenta componentes reutilizables. \\
     Material \ac{UI} & 5.12 & Biblioteca de componentes con \emph{theming},
       diseño adaptable y accesibilidad incorporada. \\
     Chart.js  & 4.2  & Biblioteca de gráficos ligera con soporte para
@@ -420,8 +421,18 @@ pueda reproducir el entorno sin coste adicional.
     \emph{backend}, con soporte para pruebas unitarias y de integración.
 
   \item[Asistente de \ac{IA}]  Claude Pro (Anthropic), utilizado como
-    herramienta de apoyo para la resolución de dudas técnicas y de
-    implementación durante el desarrollo.
+    herramienta de apoyo durante el desarrollo en tres frentes
+    delimitados: (i)~resolución de dudas técnicas puntuales sobre las
+    bibliotecas empleadas (Flask, SQLAlchemy, Celery, Next.js, Chart.js)
+    y depuración de errores concretos; (ii)~generación y revisión de
+    fragmentos de código acotados (utilidades, validaciones, esqueletos
+    de pruebas) que el autor ha verificado, ajustado e integrado
+    manualmente al proyecto; y (iii)~revisión estilística y de
+    coherencia interna de la presente memoria. Las decisiones de
+    arquitectura, el diseño del catálogo de métricas, la selección y
+    alineación con los estándares \ac{ISO}/IEC, la fórmula del
+    \emph{Quality Score}, el sistema de \emph{fingerprinting} y la
+    validación funcional del sistema son trabajo íntegro del autor.
 \end{definitionlist}
 
 El conjunto de estas herramientas, combinado con la contenedorización de
@@ -639,6 +650,18 @@ estimación inicial y el tiempo real invertido en cada sprint.
     \textbf{Total} & & \textbf{71} & \textbf{364} & \textbf{425} \\
     \bottomrule
   \end{tabularx}
+  \medskip\par\footnotesize\raggedright
+  \textit{Nota.}~La columna SP de esta tabla agrega, por sprint, las
+  historias de usuario más las tareas técnicas que conformaron el plan
+  de cada iteración. El backlog original
+  (Tabla~\ref{tab:backlog-hu}) contabiliza 71~SP en historias de
+  usuario, de los cuales se entregaron 68~SP tras descartar HU-15 del
+  alcance final; las tareas técnicas asociadas a infraestructura,
+  arquitectura y \ac{API} \ac{REST} se computan adicionalmente como
+  esfuerzo ejecutado, de modo que el total por sprint coincide
+  numéricamente con los 71~SP del backlog inicial pero refleja una
+  composición distinta (HU efectivamente entregadas más tareas
+  técnicas).
 \end{table}
 
 La desviación media del \textbf{+16,8\,\%} sobre la estimación inicial es

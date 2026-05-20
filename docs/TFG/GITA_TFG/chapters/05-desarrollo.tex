@@ -499,7 +499,11 @@ formatos de archivo y codificaciones de CSV puede generar una estrategia de
   \item Implementada la arquitectura del \emph{backend} en capas: \emph{blueprints}
     Flask, capa de servicio y \emph{middleware}.
   \item Desarrollado el módulo de ingesta CSV con estrategia de
-    \emph{fallback} múltiple (4 codificaciones $\times$ 5 delimitadores).
+    \emph{fallback} múltiple: cuatro codificaciones (UTF-8, UTF-8 con
+    BOM, CP1252, Latin-1), seis estrategias de separador (los cuatro
+    candidatos explícitos más el delimitador inferido por
+    \texttt{csv.Sniffer} y la autodetección de Pandas) y los dos motores
+    de \emph{parsing} de Pandas.
   \item Implementado el versionado de datasets con relaciones parent-child.
   \item Completados los seis módulos funcionales de la \ac{API} \ac{REST}
     con formato de respuesta estandarizado y paginación.  Durante la
@@ -540,7 +544,7 @@ bajo el prefijo \texttt{/api}:
   \item \texttt{/api/admin/}:rendimiento del sistema y comprobación de salud.
 \end{itemize}
 
-Siguiendo la convención REST de rutas anidadas~\citep{fielding2000}, se implementaron adicionalmente
+Siguiendo la convención REST de rutas anidadas, se implementaron adicionalmente
 tres \emph{blueprints} de organización técnica: \texttt{project\_metrics}
 (\texttt{/projects/<id>/metrics}), \texttt{project\_datasets}
 (\texttt{/projects/<id>/datasets}) y \texttt{dashboard} (agregaciones de solo
@@ -994,7 +998,10 @@ resultados desde el \emph{frontend}).
     exactitud sintáctica (\texttt{syntactic\_accuracy}), equilibrio de clases
     (\texttt{class\_balance}) y actualidad (\texttt{currentness}), completando
     seis de las siete métricas evaluables del sistema.
-  \item Desarrollados más de 40 componentes React reutilizables.
+  \item Desarrollados más de cuarenta componentes React reutilizables
+    al cierre del sprint; la cifra superaría los cincuenta tras las
+    incorporaciones del Sprint~5 (componentes de \emph{Quality Gate},
+    \emph{fingerprinting} y \emph{patterns}).
   \item Implementado el cuadro de mando con tarjetas resumen y alertas de
     proyectos con problemas.  El gráfico de distribución de estados de
     \emph{Quality Gate} se completó en el Sprint~5, una vez que el modelo
@@ -1563,13 +1570,19 @@ cerrados antes de la entrega final.  Por categoría:
 
 \textbf{Conseguido:} plataforma completamente probada, documentada y lista
 para la defensa.  Internacionalización completa del \emph{frontend} (ES/EN).
-Las tres suites de pruebas automatizadas cubren los flujos de autenticación,
-versionado de datasets y \emph{Quality Gates}.
+Los doce módulos pytest implementados cubren los siete dominios funcionales
+del \emph{backend}: autenticación, \ac{API} de proyectos, versionado de
+datasets (servicio y \ac{API}), motor de métricas (base y extendido),
+\emph{Quality Score}, \emph{Quality Gates} (umbrales y veredicto),
+\emph{fingerprinting} con comparación contra línea base y autorización
+\ac{IDOR}.
 
 \textbf{Estado del producto:} \dataqual es una plataforma funcional, probada
-y documentada.  Tres suites de pruebas automatizan la verificación de las
-métricas, el versionado y los \emph{Quality Gates}.  La memoria del \ac{TFG}
-está redactada y los siete anexos completos.  La cobertura del
+y documentada.  Los doce módulos pytest organizados en siete dominios
+automatizan la verificación de las métricas, el versionado, el
+\emph{Quality Score}, los \emph{Quality Gates}, el \emph{fingerprinting} y
+la autorización contra accesos indebidos.  La memoria del \ac{TFG}
+está redactada y los ocho anexos completos.  La cobertura del
 \emph{frontend} sigue siendo insuficiente, lo que queda registrado como
 deuda técnica en las líneas de trabajo futuro.
 
