@@ -63,7 +63,7 @@
   .header-months {
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    grid-template-columns: repeat(8, 1fr);
   }
   .month-cell {
     padding: 13px 4px;
@@ -81,7 +81,7 @@
     position: absolute;
     top: 0; left: var(--lw); right: 0; bottom: 0;
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    grid-template-columns: repeat(8, 1fr);
     pointer-events: none;
     z-index: 1;
   }
@@ -89,12 +89,12 @@
   .grid-col:nth-child(even) { background: rgba(248,250,252,0.65); }
   .grid-col:last-child { border-right: none; }
 
-  /* Today marker — May 13 ≈ month index 7.42 (0=Oct … 8=Jun) */
+  /* Today marker — May 21 ≈ month index 6.68 (0=Ago … 7=Jun) */
   .today-marker {
     position: absolute;
     top: 0; bottom: 0; width: 2px;
     background: var(--today);
-    left: calc(var(--lw) + (100% - var(--lw)) / 9 * 7.42);
+    left: calc(var(--lw) + (100% - var(--lw)) / 8 * 6.68);
     z-index: 10;
     box-shadow: 0 0 6px rgba(239,68,68,0.45);
   }
@@ -161,7 +161,7 @@
   }
 
   /* ── Bars ── */
-  /* Positioned with inline style: left and width use calc(N/9*100% ± margin) */
+  /* Positioned with inline style: left and width use calc(N/8*100% ± margin) */
   .bar {
     position: absolute;
     height: 22px;
@@ -216,9 +216,8 @@
     <div class="gantt-header">
       <div class="header-label">Actividad</div>
       <div class="header-months">
-        <div class="month-cell">Oct '25</div>
-        <div class="month-cell">Nov '25</div>
-        <div class="month-cell">Dic '25</div>
+        <div class="month-cell">Ago '25</div>
+        <div class="month-cell">Sep '25</div>
         <div class="month-cell">Ene '26</div>
         <div class="month-cell">Feb '26</div>
         <div class="month-cell">Mar '26</div>
@@ -232,7 +231,7 @@
       <div class="grid-bg">
         <div class="grid-col"></div><div class="grid-col"></div><div class="grid-col"></div>
         <div class="grid-col"></div><div class="grid-col"></div><div class="grid-col"></div>
-        <div class="grid-col"></div><div class="grid-col"></div><div class="grid-col"></div>
+        <div class="grid-col"></div><div class="grid-col"></div>
       </div>
       <div class="today-marker"></div>
 
@@ -242,18 +241,17 @@
       <div class="gantt-row">
         <div class="task-name">Estado del arte y estándares ISO</div>
         <div class="task-track">
-          <!-- Oct–Nov principal, Dic residual -->
-          <div class="bar c-analysis" style="left:calc(0/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
-          <div class="bar c-analysis faded" style="left:calc(2/9*100% + 4px); width:calc(0.8/9*100% - 4px);"></div>
+          <!-- Ago–Sep principal -->
+          <div class="bar c-analysis" style="left:calc(0/8*100% + 4px); width:calc(2/8*100% - 8px);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
         <div class="task-name">Diseño de arquitectura del sistema</div>
         <div class="task-track">
-          <!-- Oct–Nov principal, Dic–Ene residual -->
-          <div class="bar c-analysis" style="left:calc(0/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
-          <div class="bar c-analysis faded" style="left:calc(2/9*100% + 4px); width:calc(1.8/9*100% - 4px);"></div>
+          <!-- Ago–Sep principal, Ene residual (refinamiento en backend) -->
+          <div class="bar c-analysis" style="left:calc(0/8*100% + 4px); width:calc(2/8*100% - 8px);"></div>
+          <div class="bar c-analysis faded" style="left:calc(2/8*100% + 4px); width:calc(0.5/8*100% - 4px);"></div>
         </div>
       </div>
 
@@ -263,18 +261,18 @@
       <div class="gantt-row">
         <div class="task-name">Modelos de datos + API RESTful + JWT</div>
         <div class="task-track">
-          <!-- Dic–Ene principal, Feb residual -->
-          <div class="bar c-backend" style="left:calc(2/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
-          <div class="bar c-backend faded" style="left:calc(4/9*100% + 4px); width:calc(0.6/9*100%);"></div>
+          <!-- Ene principal, Feb residual -->
+          <div class="bar c-backend" style="left:calc(2/8*100% + 4px); width:calc(1/8*100% - 8px);"></div>
+          <div class="bar c-backend faded" style="left:calc(3/8*100% + 4px); width:calc(0.6/8*100%);"></div>
         </div>
       </div>
 
       <div class="gantt-row">
         <div class="task-name">Ingesta multiformato + MinIO</div>
         <div class="task-track">
-          <!-- Dic–Feb (con cola en Feb) -->
-          <div class="bar c-backend" style="left:calc(2/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
-          <div class="bar c-backend faded" style="left:calc(4/9*100% + 4px); width:calc(0.5/9*100%);"></div>
+          <!-- Ene principal, Feb residual -->
+          <div class="bar c-backend" style="left:calc(2/8*100% + 4px); width:calc(1/8*100% - 8px);"></div>
+          <div class="bar c-backend faded" style="left:calc(3/8*100% + 4px); width:calc(0.5/8*100%);"></div>
         </div>
       </div>
 
@@ -282,8 +280,8 @@
         <div class="task-name">Motor de métricas (plugins)</div>
         <div class="task-track">
           <!-- Feb principal, inicio de Mar residual -->
-          <div class="bar c-backend" style="left:calc(4/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
-          <div class="bar c-backend faded" style="left:calc(5/9*100% + 4px); width:calc(0.4/9*100%);"></div>
+          <div class="bar c-backend" style="left:calc(3/8*100% + 4px); width:calc(1/8*100% - 8px);"></div>
+          <div class="bar c-backend faded" style="left:calc(4/8*100% + 4px); width:calc(0.4/8*100%);"></div>
         </div>
       </div>
 
@@ -291,9 +289,9 @@
         <div class="task-name">Métricas de calidad (3 base → 7)</div>
         <div class="task-track">
           <!-- Feb: 3 métricas base (principal) -->
-          <div class="bar c-backend" style="left:calc(4/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
+          <div class="bar c-backend" style="left:calc(3/8*100% + 4px); width:calc(1/8*100% - 8px);"></div>
           <!-- Mar–Abr: 4 métricas adicionales (media intensidad) -->
-          <div class="bar c-backend mid" style="left:calc(5/9*100% + 4px); width:calc(2/9*100% - 8px); border-left:3px solid #0369A1;"></div>
+          <div class="bar c-backend mid" style="left:calc(4/8*100% + 4px); width:calc(2/8*100% - 8px); border-left:3px solid #0369A1;"></div>
         </div>
       </div>
 
@@ -301,7 +299,7 @@
         <div class="task-name">Quality Gates + fingerprinting issues</div>
         <div class="task-track">
           <!-- Abr principal -->
-          <div class="bar c-backend" style="left:calc(6/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
+          <div class="bar c-backend" style="left:calc(5/8*100% + 4px); width:calc(1/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -309,7 +307,7 @@
         <div class="task-name">Enmascaramiento PII + comparación base</div>
         <div class="task-track">
           <!-- Abr–May -->
-          <div class="bar c-backend" style="left:calc(6/9*100% + 4px); width:calc(1.4/9*100% - 8px);"></div>
+          <div class="bar c-backend" style="left:calc(5/8*100% + 4px); width:calc(1.4/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -319,8 +317,8 @@
       <div class="gantt-row">
         <div class="task-name">Interfaz básica operativa</div>
         <div class="task-track">
-          <!-- Nov–Feb residual (siempre presente pero baja intensidad) -->
-          <div class="bar c-frontend faded" style="left:calc(1/9*100% + 4px); width:calc(3.2/9*100% - 8px);"></div>
+          <!-- Ene–Feb residual (esqueleto inicial) -->
+          <div class="bar c-frontend faded" style="left:calc(2/8*100% + 4px); width:calc(1.5/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -328,8 +326,8 @@
         <div class="task-name">Frontend principal (Next.js / React)</div>
         <div class="task-track">
           <!-- Mar principal, Abr residual -->
-          <div class="bar c-frontend" style="left:calc(5/9*100% + 4px); width:calc(1/9*100% - 8px);"></div>
-          <div class="bar c-frontend faded" style="left:calc(6/9*100% + 4px); width:calc(0.6/9*100%);"></div>
+          <div class="bar c-frontend" style="left:calc(4/8*100% + 4px); width:calc(1/8*100% - 8px);"></div>
+          <div class="bar c-frontend faded" style="left:calc(5/8*100% + 4px); width:calc(0.6/8*100%);"></div>
         </div>
       </div>
 
@@ -337,7 +335,7 @@
         <div class="task-name">Dashboards y módulo EDA</div>
         <div class="task-track">
           <!-- Mar–Abr -->
-          <div class="bar c-frontend" style="left:calc(5/9*100% + 4px); width:calc(1.6/9*100% - 8px);"></div>
+          <div class="bar c-frontend" style="left:calc(4/8*100% + 4px); width:calc(1.6/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -348,9 +346,9 @@
         <div class="task-name">Tests unitarios e integración</div>
         <div class="task-track">
           <!-- Feb incipiente, Mar creciendo, Abr–May pleno -->
-          <div class="bar c-quality faded" style="left:calc(4/9*100% + 4px); width:calc(0.9/9*100%); height:10px;"></div>
-          <div class="bar c-quality mid" style="left:calc(5/9*100% + 4px); width:calc(1/9*100% - 4px); border-left:3px solid #047857;"></div>
-          <div class="bar c-quality" style="left:calc(6/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-quality faded" style="left:calc(3/8*100% + 4px); width:calc(0.9/8*100%); height:10px;"></div>
+          <div class="bar c-quality mid" style="left:calc(4/8*100% + 4px); width:calc(1/8*100% - 4px); border-left:3px solid #047857;"></div>
+          <div class="bar c-quality" style="left:calc(5/8*100% + 4px); width:calc(2/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -358,7 +356,7 @@
         <div class="task-name">Validación con datos reales</div>
         <div class="task-track">
           <!-- May–Jun -->
-          <div class="bar c-quality" style="left:calc(7/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-quality" style="left:calc(6/8*100% + 4px); width:calc(2/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -368,8 +366,8 @@
       <div class="gantt-row">
         <div class="task-name">Documentación técnica base</div>
         <div class="task-track">
-          <!-- Oct–Abr (baja intensidad continua) -->
-          <div class="bar c-docs faded" style="left:calc(0/9*100% + 4px); width:calc(7/9*100% - 8px); height:11px;"></div>
+          <!-- Ago–Abr (baja intensidad continua) -->
+          <div class="bar c-docs faded" style="left:calc(0/8*100% + 4px); width:calc(6/8*100% - 8px); height:11px;"></div>
         </div>
       </div>
 
@@ -377,8 +375,8 @@
         <div class="task-name">Redacción memoria TFG</div>
         <div class="task-track">
           <!-- Abr arranque, May–Jun principal -->
-          <div class="bar c-docs faded" style="left:calc(6/9*100% + 4px); width:calc(0.9/9*100%); height:12px;"></div>
-          <div class="bar c-docs" style="left:calc(7/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-docs faded" style="left:calc(5/8*100% + 4px); width:calc(0.9/8*100%); height:12px;"></div>
+          <div class="bar c-docs" style="left:calc(6/8*100% + 4px); width:calc(2/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -386,7 +384,7 @@
         <div class="task-name">Preparación defensa</div>
         <div class="task-track">
           <!-- May–Jun -->
-          <div class="bar c-docs" style="left:calc(7/9*100% + 4px); width:calc(2/9*100% - 8px);"></div>
+          <div class="bar c-docs" style="left:calc(6/8*100% + 4px); width:calc(2/8*100% - 8px);"></div>
         </div>
       </div>
 
@@ -394,7 +392,7 @@
       <div class="gantt-row" style="background:#FEF2F2;">
         <div class="task-name" style="color:#B91C1C; font-weight:600; font-size:0.8rem;">Revisiones con tutores</div>
         <div class="task-track">
-          <div class="bar c-review" style="left:calc(0/9*100% + 4px); width:calc(9/9*100% - 8px);"></div>
+          <div class="bar c-review" style="left:calc(0/8*100% + 4px); width:calc(8/8*100% - 8px);"></div>
         </div>
       </div>
 

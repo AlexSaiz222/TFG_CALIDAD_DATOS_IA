@@ -31,31 +31,31 @@
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {6.1}{\ignorespaces Resultados cuantitativos de la implementación}}{78}{table.6.1}%
 \contentsline {table}{\numberline {6.2}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{79}{table.6.2}%
-\contentsline {table}{\numberline {6.3}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{80}{table.6.3}%
-\contentsline {table}{\numberline {6.4}{\ignorespaces Comparación de \textsc {DataQual}\xspace con herramientas existentes (perspectiva post-implementación)}}{83}{table.6.4}%
+\contentsline {table}{\numberline {6.3}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{81}{table.6.3}%
+\contentsline {table}{\numberline {6.4}{\ignorespaces Comparación de \textsc {DataQual}\xspace con herramientas existentes (perspectiva post-implementación)}}{84}{table.6.4}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de métrica.}}{105}{table.Alph2.1}%
+\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de métrica.}}{106}{table.Alph2.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{106}{table.Alph3.1}%
-\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{106}{table.Alph3.2}%
-\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{107}{table.Alph3.3}%
-\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{107}{table.Alph3.4}%
-\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{107}{table.Alph3.5}%
-\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{108}{table.Alph3.6}%
+\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{107}{table.Alph3.1}%
+\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{107}{table.Alph3.2}%
+\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{108}{table.Alph3.3}%
+\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{108}{table.Alph3.4}%
+\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{108}{table.Alph3.5}%
+\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{109}{table.Alph3.6}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{110}{table.Alph4.1}%
+\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{111}{table.Alph4.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{111}{table.Alph5.1}%
-\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{112}{table.Alph5.2}%
-\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{112}{table.Alph5.3}%
+\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{112}{table.Alph5.1}%
+\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{113}{table.Alph5.2}%
+\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{113}{table.Alph5.3}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{114}{table.Alph6.1}%
-\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{116}{table.Alph6.2}%
-\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph {Sonar-Lite}}}{117}{table.Alph6.3}%
-\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{117}{table.Alph6.4}%
-\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{118}{table.Alph6.5}%
-\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{118}{table.Alph6.6}%
+\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{115}{table.Alph6.1}%
+\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{117}{table.Alph6.2}%
+\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph {Sonar-Lite}}}{118}{table.Alph6.3}%
+\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{118}{table.Alph6.4}%
+\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{119}{table.Alph6.5}%
+\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{119}{table.Alph6.6}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

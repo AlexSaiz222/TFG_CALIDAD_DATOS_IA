@@ -84,8 +84,8 @@ al esfuerzo real invertido en cada sprint.
     \textbf{Sprint} & \textbf{Período} & \textbf{SP} &
       \textbf{H.\ est.} & \textbf{H.\ real} & \textbf{Desv.} \\
     \midrule
-    S1 — Arquitectura y setup   & oct.--nov.\ 2025 & 13 & 52  & 60  & +15,4\,\% \\
-    S2 — Backend core           & dic.\ 2025--ene.\ 2026 & 18 & 72  & 85  & +18,1\,\% \\
+    S1 — Arquitectura y setup   & ago.--sep.\ 2025 & 13 & 52  & 60  & +15,4\,\% \\
+    S2 — Backend core           & ene.\ 2026       & 18 & 72  & 85  & +18,1\,\% \\
     S3 — Motor de métricas      & feb.\ 2026       & 16 & 64  & 70  & +9,4\,\%  \\
     S4 — Frontend y dashboard   & mar.\ 2026       & 14 & 56  & 65  & +16,1\,\% \\
     S5 — Funcionalidades avanzadas & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
@@ -104,6 +104,23 @@ al esfuerzo real invertido en cada sprint.
   del alcance final); las tareas técnicas se computan adicionalmente
   como esfuerzo ejecutado.
 \end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/commits-per-sprint}
+  \caption{Número de \emph{commits} reales por sprint en el repositorio Git.
+  Refleja la actividad de desarrollo medida a partir del historial de
+  \texttt{git log}; complementa los datos de esfuerzo estimado de la
+  Tabla~\ref{tab:esfuerzo}.}
+  \label{fig:commits-per-sprint}
+\end{figure}
+
+La Figura~\ref{fig:commits-per-sprint} ilustra el reparto real de \emph{commits}
+por sprint a partir del historial de Git: el grueso de la actividad de
+desarrollo se concentra en los sprints S1 (setup intensivo del entorno y el
+modelo de datos), S4 (desarrollo del \emph{frontend}) y S5 (funcionalidades
+avanzadas), que conjuntamente suman alrededor del 78\,\% de los \emph{commits}
+del proyecto.
 
 La desviación global del +16,8\,\% se mantiene dentro del rango habitual para
 proyectos de software individuales.  El sprint con mayor desviación fue el S5
