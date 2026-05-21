@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Completed-success" alt="Status" />
-  <img src="https://img.shields.io/badge/License-MIT-blue" alt="License" />
+  <img src="https://img.shields.io/badge/Status-In_Progress-yellow" alt="Status" />
   <img src="https://img.shields.io/badge/Academic-TFG-orange" alt="TFG" />
   <br />
   
@@ -12,34 +11,34 @@
   </p>
   
   <p align="center">
-    <a href="#-about-the-project">About</a> •
-    <a href="#-key-features">Features</a> •
-    <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
-    <a href="#-getting-started">Getting Started</a> •
-    <a href="#-architecture">Architecture</a> •
-    <a href="#-documentation">Documentation</a>
+    <a href="#about-the-project">About</a> •
+    <a href="#key-features">Features</a> •
+    <a href="#tech-stack">Tech Stack</a> •
+    <a href="#getting-started">Getting Started</a> •
+    <a href="#architecture">Architecture</a> •
+    <a href="#documentation">Documentation</a>
   </p>
 </div>
 
 ---
 
-## 📖 About The Project
+## About The Project
 
 *“Garbage in, garbage out”* — Artificial intelligence models are only as reliable as the data they are trained on. **DataQual** is a comprehensive, open-source web platform designed to automate the evaluation of data quality in Artificial Intelligence (AI) and Machine Learning (ML) projects. 
 
 Inspired by code-quality tools like SonarQube, DataQual introduces the concept of **Quality Gates** to data engineering. It allows multidisciplinary teams to audit datasets without writing code, track quality degradation over time through deterministic SHA-256 fingerprinting, and ensure compliance with strict regulations like the GDPR and the European AI Act.
 
-## 🌟 Key Features
+## Key Features
 
-- **📊 Comprehensive Quality Metrics**: Evaluates datasets against seven distinct dimensions defined by the **ISO/IEC 5259**, **ISO/IEC 25012**, and **ISO/IEC 25024** standards (Completeness, Uniqueness, Syntactic Accuracy, Logical Consistency, Outlier Detection, Class Balance, and Currentness).
-- **🚦 Automated Quality Gates**: Define strict, customizable pass/fail thresholds (`PASSED`, `WARNING`, `FAILED`). Know instantly if your data is ready for model training.
-- **📈 Exploratory Data Profiling (EDA)**: Automatically generates statistical profiles, distributions, boxplots, histograms, and correlation matrices to understand your data at a glance.
-- **🔄 Dataset Versioning & Lineage**: Manage parent-child dataset relationships, track history, and monitor metric evolution over time to prevent data drift.
-- **🔒 Privacy First**: Automatically masks and obfuscates user-defined sensitive columns to prevent PII exposure in reports and interfaces.
-- **⚡ Asynchronous Execution**: Powered by Celery and Redis to handle heavy data processing in the background without blocking the user interface.
-- **🌍 Multi-language UI**: Seamless real-time localization in both English and Spanish.
+- **Comprehensive Quality Metrics**: Evaluates datasets against seven distinct dimensions defined by the **ISO/IEC 5259**, **ISO/IEC 25012**, and **ISO/IEC 25024** standards (Completeness, Uniqueness, Syntactic Accuracy, Logical Consistency, Outlier Detection, Class Balance, and Currentness).
+- **Automated Quality Gates**: Define strict, customizable pass/fail thresholds (`PASSED`, `WARNING`, `FAILED`). Know instantly if your data is ready for model training.
+- **Exploratory Data Profiling (EDA)**: Automatically generates statistical profiles, distributions, boxplots, histograms, and correlation matrices to understand your data at a glance.
+- **Dataset Versioning & Lineage**: Manage parent-child dataset relationships, track history, and monitor metric evolution over time to prevent data drift.
+- **Privacy First**: Automatically masks and obfuscates user-defined sensitive columns to prevent PII exposure in reports and interfaces.
+- **Asynchronous Execution**: Powered by Celery and Redis to handle heavy data processing in the background without blocking the user interface.
+- **Multi-language UI**: Seamless real-time localization in both English and Spanish.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 DataQual is built with a modern, scalable microservices architecture.
 
@@ -60,7 +59,7 @@ DataQual is built with a modern, scalable microservices architecture.
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![MinIO](https://img.shields.io/badge/MinIO-C72E49?style=for-the-badge&logo=minio&logoColor=white)
 
-## 🚀 Getting Started
+## Getting Started
 
 To get a local copy up and running, follow these simple steps.
 
@@ -93,12 +92,12 @@ Once the containers are successfully built and running, you can access the servi
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| 🖥️ **Frontend Interface** | [http://localhost:3000](http://localhost:3000) | Main User UI |
-| 🔌 **Backend API** | [http://localhost:5000](http://localhost:5000) | Flask REST API endpoints |
-| 🗄️ **MinIO Console**| [http://localhost:9001](http://localhost:9001) | S3-compatible Object Storage |
-| 📈 **Flower Dashboard** | [http://localhost:5555](http://localhost:5555) | Celery task monitoring |
+| **Frontend Interface** | [http://localhost:3000](http://localhost:3000) | Main User UI |
+| **Backend API** | [http://localhost:5000](http://localhost:5000) | Flask REST API endpoints |
+| **MinIO Console** | [http://localhost:9001](http://localhost:9001) | S3-compatible Object Storage |
+| **Flower Dashboard** | [http://localhost:5555](http://localhost:5555) | Celery task monitoring |
 
-## 🏗️ Architecture & Project Structure
+## Architecture
 
 The project is organized into core domains, deployed as 8 independent Docker containers orchestrating together:
 
@@ -112,21 +111,20 @@ TFG_CALIDAD_DATOS_IA/
 └── docker-compose.yml   # Infrastructure orchestration
 ```
 
-## 📚 Documentation
+## Documentation
 
 Deep-dive documentation is available within the `docs/` directory:
-- 🏛️ [System Architecture](docs/ARQUITECTURA_SISTEMA.md)
-- ⚙️ [Backend API & Models](backend/backend_info.md)
-- 🎨 [Frontend Components](frontend/frontend_info.md)
-- 📐 [Quality Metrics Catalog](docs/metricas/)
-- 🧮 [Quality Score Formula](docs/quality_score_formula.md)
+- [System Architecture](docs/ARQUITECTURA_SISTEMA.md)
+- [Backend API & Models](backend/backend_info.md)
+- [Frontend Components](frontend/frontend_info.md)
+- [Quality Metrics Catalog](docs/metricas/)
+- [Quality Score Formula](docs/quality_score_formula.md)
 
-**🎓 Academic Thesis:**
-The complete academic documentation detailing the research, methodologies, and technical implementations can be found in `docs/TFG/GITA_TFG/`.
+**Academic Thesis:** the complete academic documentation detailing the research, methodologies, and technical implementations can be found in `docs/TFG/GITA_TFG/`.
 
-## 👨‍💻 Author
+## Author
 
 **Alejandro Manuel Saiz García**  
-🎓 University: UCLM (Universidad de Castilla-La Mancha)  
-💻 Degree: Information Systems (Tecnologías y Sistemas de Información)  
-📧 Email: alejandrosaiztecno2016@gmail.com
+University: UCLM (Universidad de Castilla-La Mancha)  
+Degree: Information Systems (Tecnologías y Sistemas de Información)  
+Email: alejandrosaiztecno2018@gmail.com

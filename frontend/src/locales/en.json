@@ -1077,6 +1077,8 @@
       "noTemplatesYet": "No templates yet",
       "createFirstTemplate": "Create your first template to reuse metric configurations across multiple projects",
       "createTemplate": "Create template",
+      "templateName": "Template name",
+      "templateDescriptionOptional": "Description (optional)",
       "selectMetrics": "Select metrics",
       "metricCount_one": "{{count}} metric selected",
       "metricCount_other": "{{count}} metrics selected",

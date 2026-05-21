@@ -108,7 +108,7 @@ const TemplatesSettings = () => {
         .filter((m: any) => m?.name?.toLowerCase() !== 'outliers');
       setAllMetrics(metricsData);
     } catch (err: any) {
-      setError(t('templates.loadError'));
+      setError(t('metrics.templates.loadError'));
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ const TemplatesSettings = () => {
     // If in JSON mode, parse and apply first
     if (dialogViewMode === 'json') {
       if (!dialogEditJsonValid) {
-        setError(t('templates.jsonError'));
+        setError(t('metrics.templates.jsonError'));
         return;
       }
       const text = dialogEditEditorRef.current?.getValue() ?? dialogEditJson;
@@ -183,11 +183,11 @@ const TemplatesSettings = () => {
         }
         // Validate name after applying
         if (!data.name?.trim()) {
-          setError(t('templates.templateNameRequired'));
+          setError(t('metrics.templates.templateNameRequired'));
           return;
         }
         if (!Array.isArray(data.metrics) || data.metrics.length === 0) {
-          setError(t('templates.atLeastOneMetric'));
+          setError(t('metrics.templates.atLeastOneMetric'));
           return;
         }
         // Build payload directly from JSON data
@@ -202,23 +202,29 @@ const TemplatesSettings = () => {
         try {
           if (editingTemplate) {
             await metricsAPI.updateMetricTemplate(editingTemplate.id, payload);
-            setSuccess(t('templates.templateUpdated'));
+            setSuccess(t('metrics.templates.templateUpdated'));
           } else {
             await metricsAPI.createMetricTemplate(payload);
-            setSuccess(t('templates.templateCreated'));
+            setSuccess(t('metrics.templates.templateCreated'));
           }
           handleCloseDialog();
           fetchData();
         } catch (err: any) {
-          setError(err.response?.data?.message || t('templates.saveError'));
+          setError(err.response?.data?.message || t('metrics.templates.saveError'));
         }
         return;
       } catch {
-      setError(t('templates.templateNameRequired'));
+        setError(t('metrics.templates.invalidJson'));
+        return;
+      }
+    }
+
+    if (!templateName.trim()) {
+      setError(t('metrics.templates.templateNameRequired'));
       return;
     }
     if (Object.keys(selectedMetricsConfig).length === 0) {
-      setError(t('templates.atLeastOneMetric'));
+      setError(t('metrics.templates.atLeastOneMetric'));
       return;
     }
 
@@ -243,16 +249,16 @@ const TemplatesSettings = () => {
 
       if (editingTemplate?.id) {
         await metricsAPI.updateMetricTemplate(editingTemplate.id, payload);
-        setSuccess(t('templates.templateUpdated'));
+        setSuccess(t('metrics.templates.templateUpdated'));
       } else {
         await metricsAPI.createMetricTemplate(payload);
-        setSuccess(t('templates.templateCreated'));
+        setSuccess(t('metrics.templates.templateCreated'));
       }
 
       handleCloseDialog();
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || t('templates.saveError'));
+      setError(err.response?.data?.message || t('metrics.templates.saveError'));
     }
   };
 
@@ -260,12 +266,12 @@ const TemplatesSettings = () => {
     if (!templateToDelete) return;
     try {
       await metricsAPI.deleteMetricTemplate(templateToDelete.id);
-      setSuccess(t('templates.templateDeleted'));
+      setSuccess(t('metrics.templates.templateDeleted'));
       setDeleteDialogOpen(false);
       setTemplateToDelete(null);
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || t('templates.deleteError'));
+      setError(err.response?.data?.message || t('metrics.templates.deleteError'));
     }
   };
 
@@ -320,7 +326,7 @@ const TemplatesSettings = () => {
         setDialogEditJsonError(null);
         setDialogViewMode('visual');
       } catch {
-        setDialogEditJsonError(t('templates.jsonVisualError'));
+        setDialogEditJsonError(t('metrics.templates.jsonVisualError'));
       }
     }
   };
@@ -335,7 +341,7 @@ const TemplatesSettings = () => {
       setDialogEditJsonError(null);
     } catch (e: any) {
       setDialogEditJsonValid(false);
-      setDialogEditJsonError(e.message || t('templates.invalidJson'));
+      setDialogEditJsonError(e.message || t('metrics.templates.invalidJson'));
     }
   }, []);
 
@@ -377,7 +383,7 @@ const TemplatesSettings = () => {
         JSON.parse(text); // validate
         openJsonDialog(text);
       } catch {
-        setError(t('templates.fileReadError'));
+        setError(t('metrics.templates.fileReadError'));
       }
     };
     reader.readAsText(file);
@@ -395,14 +401,14 @@ const TemplatesSettings = () => {
       const parsed = JSON.parse(text);
       if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
         setJsonDialogValid(false);
-        setJsonDialogError(t('templates.jsonObjectError'));
+        setJsonDialogError(t('metrics.templates.jsonObjectError'));
         return;
       }
       setJsonDialogValid(true);
       setJsonDialogError(null);
     } catch (e: any) {
       setJsonDialogValid(false);
-      setJsonDialogError(e.message || t('templates.invalidJson'));
+      setJsonDialogError(e.message || t('metrics.templates.invalidJson'));
     }
   }, []);
 
@@ -441,7 +447,7 @@ const TemplatesSettings = () => {
     try {
       const data = JSON.parse(text);
       if (!data.name || !Array.isArray(data.metrics)) {
-        setJsonDialogError(t('templates.jsonStructureError'));
+        setJsonDialogError(t('metrics.templates.jsonStructureError'));
         return;
       }
 
@@ -464,10 +470,10 @@ const TemplatesSettings = () => {
       setDialogOpen(true);
 
       if (notFound.length > 0) {
-        setError(t('templates.unrecognizedMetrics', { metrics: notFound.join(', ') }));
+        setError(t('metrics.templates.unrecognizedMetrics', { metrics: notFound.join(', ') }));
       }
     } catch {
-      setJsonDialogError(t('templates.invalidJson'));
+      setJsonDialogError(t('metrics.templates.invalidJson'));
     }
   };
 
@@ -488,10 +494,10 @@ const TemplatesSettings = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
             <Typography variant="h5" component="h1" sx={{ fontWeight: 600, color: '#1A1A1A', mb: 0.5 }}>
-              {t('templates.pageTitle')}
+              {t('metrics.templates.pageTitle')}
             </Typography>
             <Typography variant="body2" sx={{ color: '#666' }}>
-              {t('templates.pageSubtitle')}
+              {t('metrics.templates.pageSubtitle')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -505,7 +511,7 @@ const TemplatesSettings = () => {
                 '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
               }}
             >
-              {t('templates.importJson')}
+              {t('metrics.templates.importJson')}
             </Button>
             <Button
               variant="contained"
@@ -517,7 +523,7 @@ const TemplatesSettings = () => {
                 '&:hover': { backgroundColor: GREEN_HOVER },
               }}
             >
-              {t('templates.newTemplate')}
+              {t('metrics.templates.newTemplate')}
             </Button>
           </Box>
         </Box>
@@ -545,10 +551,10 @@ const TemplatesSettings = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: '#999', mb: 1 }}>
-              {t('templates.noTemplatesYet')}
+              {t('metrics.templates.noTemplatesYet')}
             </Typography>
             <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
-              {t('templates.createFirstTemplate')}
+              {t('metrics.templates.createFirstTemplate')}
             </Typography>
             <Button
               variant="outlined"
@@ -560,7 +566,7 @@ const TemplatesSettings = () => {
                 '&:hover': { borderColor: GREEN_HOVER, backgroundColor: 'rgba(0,179,126,0.04)' },
               }}
             >
-              {t('templates.createTemplate')}
+              {t('metrics.templates.createTemplate')}
             </Button>
           </Paper>
         ) : (
@@ -595,7 +601,7 @@ const TemplatesSettings = () => {
         <DialogTitle sx={{ pb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" fontWeight={600}>
-              {editingTemplate ? t('templates.editTemplate') : t('templates.newTemplate')}
+              {editingTemplate ? t('metrics.templates.editTemplate') : t('metrics.templates.newTemplate')}
             </Typography>
             <ToggleButtonGroup
               value={dialogViewMode}
@@ -608,7 +614,7 @@ const TemplatesSettings = () => {
               }}
             >
               <ToggleButton value="visual">
-                <TuneIcon sx={{ fontSize: 16 }} /> {t('templates.visual')}
+                <TuneIcon sx={{ fontSize: 16 }} /> {t('metrics.templates.visual')}
               </ToggleButton>
               <ToggleButton value="json">
                 <CodeIcon sx={{ fontSize: 16 }} /> JSON
@@ -624,7 +630,7 @@ const TemplatesSettings = () => {
             <>
               <TextField
                 fullWidth
-                label={t('templates.templateName')}
+                label={t('metrics.templates.templateName')}
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 sx={{ mt: 2, mb: 2 }}
@@ -632,7 +638,7 @@ const TemplatesSettings = () => {
               />
               <TextField
                 fullWidth
-                label={t('templates.templateDescriptionOptional')}
+                label={t('metrics.templates.templateDescriptionOptional')}
                 value={templateDescription}
                 onChange={(e) => setTemplateDescription(e.target.value)}
                 multiline
@@ -641,10 +647,10 @@ const TemplatesSettings = () => {
               />
 
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                {t('templates.selectMetrics')}
+                {t('metrics.templates.selectMetrics')}
               </Typography>
               <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
-                {Object.keys(selectedMetricsConfig).length} {t('templates.metricCount', { count: Object.keys(selectedMetricsConfig).length })}
+                {t('metrics.templates.metricCount', { count: Object.keys(selectedMetricsConfig).length })}
               </Typography>
             </>
           )}
@@ -657,10 +663,10 @@ const TemplatesSettings = () => {
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>JSON</Typography>
-                <Chip label={t('templates.completeTemplate')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+                <Chip label={t('metrics.templates.completeTemplate')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
               </Box>
               <Box sx={{ display: 'flex', gap: 0.25 }}>
-                <Tooltip title={t('templates.formatJson')} arrow>
+                <Tooltip title={t('metrics.templates.formatJson')} arrow>
                   <IconButton size="small" onClick={() => {
                     if (dialogEditEditorRef.current) {
                       try {
@@ -709,7 +715,7 @@ const TemplatesSettings = () => {
                               {meta.label}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
-                              {metric.description || t('templates.noDescription')}
+                              {metric.description || t('metrics.templates.noDescription')}
                             </Typography>
                             <Chip
                               label={meta.category}
@@ -750,7 +756,7 @@ const TemplatesSettings = () => {
                               }
                             }}
                           >
-                            {t('templates.configure')}
+                            {t('metrics.templates.configure')}
                           </Button>
                         </Box>
                       )}
@@ -814,18 +820,18 @@ const TemplatesSettings = () => {
               '&.Mui-disabled': { bgcolor: '#E0E0E0' },
             }}
           >
-            {editingTemplate ? t('templates.saveChanges') : t('templates.createTemplate')}
+            {editingTemplate ? t('metrics.templates.saveChanges') : t('metrics.templates.createTemplate')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>{t('templates.deleteTemplate')}</DialogTitle>
+        <DialogTitle>{t('metrics.templates.deleteTemplate')}</DialogTitle>
         <DialogContent>
           <Typography>
-            {t('templates.deleteConfirm', { name: templateToDelete?.name })}
-            {t('templates.deleteWarning')}
+            {t('metrics.templates.deleteConfirm', { name: templateToDelete?.name })}
+            {t('metrics.templates.deleteWarning')}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -855,10 +861,10 @@ const TemplatesSettings = () => {
         PaperProps={{ sx: { borderRadius: 2, height: '80vh', maxHeight: '85vh' } }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, flexShrink: 0 }}>
-          <Typography variant="h6" fontWeight={600}>{t('templates.viewEditJson')}</Typography>
+          <Typography variant="h6" fontWeight={600}>{t('metrics.templates.viewEditJson')}</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {!jsonDialogValid && jsonDialogText.trim() !== '' && (
-              <Chip label={t('templates.invalidJson')} size="small" color="error" variant="outlined" sx={{ height: 24, fontSize: '0.7rem' }} />
+              <Chip label={t('metrics.templates.invalidJson')} size="small" color="error" variant="outlined" sx={{ height: 24, fontSize: '0.7rem' }} />
             )}
             <IconButton size="small" onClick={() => setJsonDialogOpen(false)}>
               <CloseIcon fontSize="small" />
@@ -873,11 +879,11 @@ const TemplatesSettings = () => {
           px: 1.5, py: 0.75, bgcolor: '#FAFAFA', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0,
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>{t('templates.json')}</Typography>
-            <Chip label={t('templates.completeTemplate')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
+            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>{t('metrics.templates.json')}</Typography>
+            <Chip label={t('metrics.templates.completeTemplate')} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#E8F5E9', color: GREEN }} />
           </Box>
           <Box sx={{ display: 'flex', gap: 0.25 }}>
-            <Tooltip title={t('templates.formatJson')} arrow>
+            <Tooltip title={t('metrics.templates.formatJson')} arrow>
               <IconButton size="small" onClick={handleJsonFormat}>
                 <FormatIcon fontSize="small" />
               </IconButton>
@@ -893,7 +899,7 @@ const TemplatesSettings = () => {
         {/* Schema hint */}
         <Box sx={{ px: 1.5, py: 0.75, bgcolor: '#F5F5F5', borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
           <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
-            {t('templates.structureHint')}
+            {t('metrics.templates.structureHint')}
           </Typography>
         </Box>
 
@@ -946,7 +952,7 @@ const TemplatesSettings = () => {
             onClick={() => fileInputRef.current?.click()}
             sx={{ borderColor: '#CCC', color: '#555', mr: 'auto', '&:hover': { borderColor: '#999' } }}
           >
-            {t('templates.loadFile')}
+            {t('metrics.templates.loadFile')}
           </Button>
           <Button onClick={() => setJsonDialogOpen(false)} color="inherit">{t('common.close')}</Button>
           <Button
@@ -956,7 +962,7 @@ const TemplatesSettings = () => {
             disabled={!jsonDialogValid || jsonDialogText.trim() === ''}
             sx={{ borderColor: GREEN, color: GREEN, '&:hover': { borderColor: GREEN_HOVER } }}
           >
-            {t('templates.downloadJson')}
+            {t('metrics.templates.downloadJson')}
           </Button>
           <Button
             variant="contained"
@@ -964,7 +970,7 @@ const TemplatesSettings = () => {
             disabled={!jsonDialogValid || jsonDialogText.trim() === ''}
             sx={{ bgcolor: GREEN, color: '#fff', '&:hover': { bgcolor: GREEN_HOVER }, '&.Mui-disabled': { bgcolor: '#E0E0E0' } }}
           >
-            {t('templates.importAsNewTemplate')}
+            {t('metrics.templates.importAsNewTemplate')}
           </Button>
         </DialogActions>
       </Dialog>
