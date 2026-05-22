@@ -6,43 +6,44 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Marco conceptual de calidad de datos de Wang y Strong}}{16}{figure.3.1}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Roadmap del proyecto: hitos entregados por sprint}}{38}{figure.4.1}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Diagrama de Gantt del proyecto (curso académico 2025--2026)}}{39}{figure.4.2}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Distribución de esfuerzo por disciplinas a lo largo de los sprints}}{41}{figure.4.3}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Roadmap del proyecto: hitos entregados por sprint}}{37}{figure.4.1}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Diagrama de Gantt del proyecto (curso académico 2025--2026)}}{38}{figure.4.2}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Distribución de esfuerzo por disciplinas a lo largo de los sprints}}{40}{figure.4.3}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{46}{figure.5.1}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura lógica por capas de \textsc {DataQual}\xspace en su estado final (cierre del Sprint~5), mostrando las dependencias \emph {depends-on} (flecha discontinua de punta abierta). El directorio \texttt {services/metrics/} ($\star $) constituye el núcleo extensible del motor de evaluación, alineado con el principio abierto--cerrado~\citep {design_patterns}}}{49}{figure.5.2}%
-\contentsline {figure}{\numberline {5.3}{\ignorespaces Pestaña \emph {Versions} de un \emph {dataset}: lista cronológica de versiones con etiquetas de rama, estado de calidad y puntuación por versión}}{55}{figure.5.3}%
-\contentsline {figure}{\numberline {5.4}{\ignorespaces Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{55}{figure.5.4}%
-\contentsline {figure}{\numberline {5.5}{\ignorespaces Comparación entre versiones de un \emph {dataset}: \emph {issues} resueltos, nuevos y persistentes entre dos versiones seleccionadas, con detalle de descripción y columna afectada}}{56}{figure.5.5}%
-\contentsline {figure}{\numberline {5.6}{\ignorespaces Diálogo de configuración detallada de la métrica \emph {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}}{61}{figure.5.6}%
-\contentsline {figure}{\numberline {5.7}{\ignorespaces Cuadro de mando principal de \textsc {DataQual}\xspace : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{64}{figure.5.7}%
-\contentsline {figure}{\numberline {5.8}{\ignorespaces Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{65}{figure.5.8}%
-\contentsline {figure}{\numberline {5.9}{\ignorespaces Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}}{66}{figure.5.9}%
-\contentsline {figure}{\numberline {5.10}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}}{67}{figure.5.10}%
-\contentsline {figure}{\numberline {5.11}{\ignorespaces \emph {Quality Gate} de \textsc {DataQual}\xspace : condiciones de aprobación configuradas (puntuación mínima, máximo de \emph {issues} críticos y máximo de \emph {issues} nuevos) con etiquetas de nivel de rigor por umbral (STRICT / MODERATE / PERMISSIVE)}}{71}{figure.5.11}%
-\contentsline {figure}{\numberline {5.12}{\ignorespaces Paso de revisión y confirmación del asistente de carga de \emph {dataset}: panel de privacidad de datos con selección de columnas \acs {PII} cuyos valores se enmascararán automáticamente en todas las salidas del sistema}}{72}{figure.5.12}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{45}{figure.5.1}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura lógica por capas de \textsc {DataQual}\xspace en su estado final (cierre del Sprint~5), mostrando las dependencias \emph {depends-on} (flecha discontinua de punta abierta). El directorio \texttt {services/metrics/} ($\star $) constituye el núcleo extensible del motor de evaluación, alineado con el principio abierto--cerrado~\citep {design_patterns}}}{48}{figure.5.2}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Pestaña \emph {Versions} de un \emph {dataset}: lista cronológica de versiones con etiquetas de rama, estado de calidad y puntuación por versión}}{54}{figure.5.3}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{54}{figure.5.4}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Comparación entre versiones de un \emph {dataset}: \emph {issues} resueltos, nuevos y persistentes entre dos versiones seleccionadas, con detalle de descripción y columna afectada}}{55}{figure.5.5}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Diálogo de configuración detallada de la métrica \emph {Uniqueness}: umbral de unicidad mínimo, selección de columnas que deben ser únicas y previsualización del \acs {JSON} de parámetros generado}}{60}{figure.5.6}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Cuadro de mando principal de \textsc {DataQual}\xspace : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{63}{figure.5.7}%
+\contentsline {figure}{\numberline {5.8}{\ignorespaces Historial de análisis de un proyecto: evolución temporal de la puntuación de calidad, tendencia por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{64}{figure.5.8}%
+\contentsline {figure}{\numberline {5.9}{\ignorespaces Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}}{65}{figure.5.9}%
+\contentsline {figure}{\numberline {5.10}{\ignorespaces Módulo de exploración de datos (\acs {EDA}): resumen estadístico, diagrama de caja (\emph {boxplot}), distribuciones por columna, matriz de correlación Pearson/Spearman y diagrama de dispersión}}{66}{figure.5.10}%
+\contentsline {figure}{\numberline {5.11}{\ignorespaces \emph {Quality Gate} de \textsc {DataQual}\xspace : condiciones de aprobación configuradas (puntuación mínima, máximo de \emph {issues} críticos y máximo de \emph {issues} nuevos) con etiquetas de nivel de rigor por umbral (STRICT / MODERATE / PERMISSIVE)}}{70}{figure.5.11}%
+\contentsline {figure}{\numberline {5.12}{\ignorespaces Paso de revisión y confirmación del asistente de carga de \emph {dataset}: panel de privacidad de datos con selección de columnas \acs {PII} cuyos valores se enmascararán automáticamente en todas las salidas del sistema}}{71}{figure.5.12}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Número de \emph {commits} reales por sprint en el repositorio Git. Refleja la actividad de desarrollo medida a partir del historial de \texttt {git log}; complementa los datos de esfuerzo estimado de la Tabla~\ref {tab:esfuerzo}.}}{80}{figure.6.1}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Número de \emph {commits} reales por sprint en el repositorio Git. Refleja la actividad de desarrollo medida a partir del historial de \texttt {git log}; complementa los datos de esfuerzo estimado de la Tabla~\ref {tab:esfuerzo}.}}{82}{figure.6.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{123}{figure.Alph7.1}%
-\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{124}{figure.Alph7.2}%
-\contentsline {figure}{\numberline {G.3}{\ignorespaces Paso 2 del asistente de carga: zona de \emph {drag-and-drop} con nombre y descripción del \emph {dataset}}}{125}{figure.Alph7.3}%
-\contentsline {figure}{\numberline {G.4}{\ignorespaces Paso 3 del asistente de carga: resumen del \emph {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}}{126}{figure.Alph7.4}%
-\contentsline {figure}{\numberline {G.5}{\ignorespaces Configurador de métricas (pestaña \emph {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}}{126}{figure.Alph7.5}%
-\contentsline {figure}{\numberline {G.6}{\ignorespaces Pestaña \emph {Evaluaciones} de un \emph {dataset}: evaluación recién lanzada con estado \emph {Queued} y botón \emph {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}}{127}{figure.Alph7.6}%
-\contentsline {figure}{\numberline {G.7}{\ignorespaces Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}}{128}{figure.Alph7.7}%
-\contentsline {figure}{\numberline {G.8}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}}{130}{figure.Alph7.8}%
-\contentsline {figure}{\numberline {G.9}{\ignorespaces Pestaña \emph {Analysis history} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{131}{figure.Alph7.9}%
-\contentsline {figure}{\numberline {G.10}{\ignorespaces Pestaña \emph {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}}{131}{figure.Alph7.10}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \textsc {DataQual}\xspace }}{134}{figure.Alph8.1}%
-\contentsline {figure}{\numberline {H.2}{\ignorespaces Esquema relacional de la base de datos \texttt {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}}{135}{figure.Alph8.2}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{126}{figure.Alph7.1}%
+\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{127}{figure.Alph7.2}%
+\contentsline {figure}{\numberline {G.3}{\ignorespaces Paso 2 del asistente de carga: zona de \emph {drag-and-drop} con nombre y descripción del \emph {dataset}}}{128}{figure.Alph7.3}%
+\contentsline {figure}{\numberline {G.4}{\ignorespaces Paso 3 del asistente de carga: resumen del \emph {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}}{129}{figure.Alph7.4}%
+\contentsline {figure}{\numberline {G.5}{\ignorespaces Configurador de métricas (pestaña \emph {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}}{129}{figure.Alph7.5}%
+\contentsline {figure}{\numberline {G.6}{\ignorespaces Pestaña \emph {Evaluaciones} de un \emph {dataset}: evaluación recién lanzada con estado \emph {Queued} y botón \emph {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}}{130}{figure.Alph7.6}%
+\contentsline {figure}{\numberline {G.7}{\ignorespaces Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}}{131}{figure.Alph7.7}%
+\contentsline {figure}{\numberline {G.8}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}}{133}{figure.Alph7.8}%
+\contentsline {figure}{\numberline {G.9}{\ignorespaces Pestaña \emph {Analysis history} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{134}{figure.Alph7.9}%
+\contentsline {figure}{\numberline {G.10}{\ignorespaces Pestaña \emph {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}}{134}{figure.Alph7.10}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \textsc {DataQual}\xspace }}{137}{figure.Alph8.1}%
+\contentsline {figure}{\numberline {H.2}{\ignorespaces Esquema relacional de la base de datos \texttt {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}}{138}{figure.Alph8.2}%

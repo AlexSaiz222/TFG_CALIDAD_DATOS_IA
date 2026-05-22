@@ -10,6 +10,202 @@ revisadas en el capítulo~\ref{chap:antecedentes}.
 
 
 %% =========================================================================
+\section{Instanciación del marco ISO/IEC 5259 en DataQual}
+\label{sec:instanciacion-iso5259}
+%% =========================================================================
+
+El marco normativo descrito en el capítulo~\ref{chap:antecedentes},
+y en particular la taxonomía de
+\ac{ISO}/IEC~5259-2~\citep{iso5259} expuesta en la
+sección~\ref{sec:alcance-metodologico}, permite estructurar las decisiones
+de alcance de \dataqual en dos niveles.  El primero distingue qué
+características son evaluables sobre el fichero de datos y cuáles requieren
+acceso a infraestructura o metadatos externos, criterio derivado
+directamente de la propia taxonomía.  El segundo nivel responde a
+decisiones de priorización del \ac{MVP}: algunas características
+técnicamente evaluables no fueron incluidas en esta versión por razones de
+alcance del proyecto, quedando como trabajo futuro.  La presente sección
+detalla la instanciación resultante.
+
+El Cuadro~\ref{tab:iso5259-cobertura} sintetiza la cobertura de \dataqual
+respecto a las cuatro categorías de \ac{ISO}/IEC~5259-2.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cobertura de \dataqual respecto al modelo de calidad de \ac{ISO}/IEC 5259-2}
+  \label{tab:iso5259-cobertura}
+  \footnotesize
+  \renewcommand{\arraystretch}{2.0}%
+  \begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{5cm} l >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Categoría} & \textbf{Características} & \textbf{\dataqual} & \textbf{Motivo} \\
+    \midrule
+    Inherentes
+      & Exactitud, Completitud, Consistencia, Actualidad
+      & Implementadas
+      & Extraíbles del dataset sin contexto externo \\
+      & Credibilidad
+      & Fuera de alcance
+      & No priorizada en el \ac{MVP}; candidata para versiones futuras \\
+    Mixtas
+      & Accesibilidad, Conformidad, Eficiencia, Precisión, Trazabilidad, Confidencialidad, Comprensibilidad
+      & Fuera de alcance
+      & Requieren información del sistema que aloja el dato \\
+    Dep.\ del sistema
+      & Disponibilidad, Portabilidad, Recuperabilidad
+      & Fuera de alcance
+      & Determinadas por la infraestructura TI de la organización \\
+    Adicionales (impl.)
+      & Equilibrio (\texttt{class\_balance}), Diversidad (\texttt{diversity})
+      & Implementadas
+      & Impacto directo en fiabilidad y cumplimiento normativo de modelos de \ac{IA} \\
+    Adicionales (técn.)
+      & Efectividad, Relevancia, Representatividad, Similitud
+      & Fuera de alcance
+      & Requieren metadatos organizativos externos al fichero de datos \\
+    Adicionales (futuro)
+      & Identificabilidad, Auditabilidad, Puntualidad
+      & Fuera de alcance
+      & No priorizadas en el \ac{MVP}; candidatas para versiones futuras \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Características implementadas algorítmicamente}
+\label{sec:caracteristicas-evaluables}
+
+Las características inherentes de \ac{ISO}/IEC~5259-2 son evaluables
+algorítmicamente porque sus métricas se calculan a partir de los propios
+valores del dataset, sin necesidad de acceder a sistemas externos ni de
+conocer el dominio de negocio.  La completitud se mide como la proporción
+de valores no nulos; la exactitud sintáctica, como la conformidad con
+patrones de formato definidos; la consistencia, como la ausencia de
+contradicciones lógicas entre columnas (sub-dimensión Con-ML-4 de
+\ac{ISO}/IEC~5259-2) y como la ausencia de registros duplicados
+(sub-dimensión Con-ML-1); y la actualidad, como la antigüedad del valor
+más reciente en columnas temporales.  Del grupo de características
+adicionales, el equilibrio de clases (\emph{balance}) y la diversidad
+(\emph{diversity}) son también evaluables algorítmicamente: el primero se
+cuantifica mediante la entropía de Shannon sobre los valores de la columna
+objetivo, y el segundo mide la cobertura de los valores y rangos esperados
+definidos por el usuario.
+
+Esta propiedad de \emph{auto-contención} es lo que ha hecho posible
+desarrollar una herramienta de análisis y evaluación que opera
+exclusivamente sobre el fichero de datos sin requerir integración con los
+sistemas de la organización.  El motor de métricas de \dataqual explota
+esta característica al procesar cada \texttt{AnalysisRun} de forma
+asíncrona y aislada, leyendo el dataset almacenado en MinIO y calculando
+las métricas configuradas sin acceso a los sistemas propios de la
+organización propietaria del dataset.
+
+\subsection{Características fuera del alcance}
+\label{sec:caracteristicas-fuera-alcance}
+
+Las características no implementadas en \dataqual responden a dos motivos
+distintos: imposibilidad técnica estructural y decisiones de priorización
+del \ac{MVP}.  Los tres primeros párrafos describen características
+técnicamente inviables sin acceso a infraestructura o metadatos externos;
+el último recoge las que quedaron fuera por decisión de alcance del
+proyecto.
+
+\paragraph{Dependencia de infraestructura organizativa.}
+Las características dependientes del sistema (disponibilidad, portabilidad
+y recuperabilidad) no describen propiedades del dato en sí, sino de la
+infraestructura que lo almacena y sirve.  La \emph{disponibilidad} mide si
+el dataset puede ser recuperado por usuarios autorizados dentro de un
+plazo acordado, lo que remite a acuerdos de nivel de servicio (\ac{SLA})
+y arquitecturas de almacenamiento.  La \emph{portabilidad} evalúa la
+capacidad de mover el dato entre sistemas preservando su calidad, lo que
+requiere acceso a los conectores y formatos de exportación propietarios de
+la organización.  La \emph{recuperabilidad} depende de las políticas de
+copia de seguridad y los mecanismos de restauración de datos.  Ninguna de
+estas características puede evaluarse analizando el contenido de un
+fichero: exigen acceso al entorno operativo de la organización, del que
+una herramienta de análisis externa no dispone por definición.
+
+\paragraph{Características mixtas con dependencia del sistema.}
+Las siete características mixtas (accesibilidad, conformidad, eficiencia,
+precisión, trazabilidad, confidencialidad y comprensibilidad) dependen
+tanto de las propiedades del dato como del entorno tecnológico que lo
+gestiona.  Su evaluación requiere información sobre el sistema que aloja
+el dato: los controles de acceso para la accesibilidad, los estándares
+aplicables para la conformidad, o las políticas de uso para la
+comprensibilidad.  Sin acceso a esa capa de contexto organizativo, su
+medición no puede realizarse sobre el fichero de datos de forma aislada.
+
+\paragraph{Dependencia de metadatos organizativos y contexto de negocio.}
+Un subconjunto de las características adicionales requiere información que
+trasciende el fichero de datos.  La \emph{representatividad} necesita la
+definición de la población objetivo del modelo, que es un requisito de
+negocio no inscrito en el dato.  La \emph{relevancia} y la
+\emph{efectividad} requieren un diccionario de datos y políticas de
+gobernanza privadas para determinar si el dataset es adecuado para la
+tarea prevista.  La \emph{similitud} presupone un conocimiento del espacio
+de características del dominio que no resulta accesible sin la
+colaboración directa de la organización propietaria.
+
+\paragraph{Decisiones de priorización del \ac{MVP}.}
+Algunas características técnicamente evaluables no fueron incluidas en
+esta versión por razones de alcance del proyecto.  La \emph{credibilidad}
+requiere la verificación de la procedencia de los datos, lo que, aunque
+factible, no se consideró prioritario para el caso de uso objetivo.  La
+\emph{identificabilidad}, la \emph{auditabilidad} y la \emph{puntualidad}
+son candidatas a implementarse en versiones futuras de \dataqual.
+
+\subsection{Criterios de priorización aplicados}
+\label{sec:priorizacion-mvp}
+
+Entre las características algorítmicamente evaluables, el desarrollo del
+\ac{MVP} de \dataqual ha priorizado aquellas con mayor impacto en la
+fiabilidad de los modelos de \ac{IA} y en el cumplimiento del marco
+normativo aplicable:
+
+\begin{enumerate}
+  \item \textbf{Las características inherentes de \ac{ISO}/IEC~25012}
+    (completitud, exactitud, consistencia y actualidad) implementadas a
+    través de cinco métricas: \texttt{completeness},
+    \texttt{syntactic\_accuracy}, \texttt{logical\_consistency},
+    \texttt{currentness} y \texttt{uniqueness}, siendo esta última la
+    sub-dimensión Con-ML-1 de consistencia definida en
+    \ac{ISO}/IEC~5259-2.  Esto proporciona cobertura directa de los
+    requisitos de \ac{ISO}/IEC~5259-2~\citep{iso5259} e
+    \ac{ISO}/IEC~25024~\citep{iso25024}.
+
+  \item \textbf{Equilibrio de clases} (\texttt{class\_balance}), medido
+    mediante la entropía de Shannon.  El desequilibrio de clases es uno de
+    los factores documentados de sesgo en sistemas de
+    \ac{IA}~\citep{amazon2018, buolamwini2018} y su corrección tiene un
+    impacto directo en la equidad y fiabilidad de los modelos de
+    clasificación.
+
+  \item \textbf{Diversidad del dataset} (\texttt{diversity}): evalúa, de
+    forma \emph{opt-in} con expectativas definidas por el usuario, si el
+    dataset cubre los valores y rangos esperados por columna, detectando
+    valores ausentes, categorías sub-representadas e intervalos numéricos
+    sin datos, lo que puede comprometer la capacidad de generalización de
+    los modelos entrenados con ese conjunto~\citep{iso5259}.
+\end{enumerate}
+
+Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado
+como herramienta de diagnóstico en el módulo de \ac{EDA}, sin ser
+computados como parte de la puntuación de calidad global.  Esta decisión
+sigue explícitamente la recomendación de
+\ac{ISO}/IEC~5259-2~\citep{iso5259}, que no considera los \emph{outliers}
+una dimensión de calidad inherente, sino un indicador diagnóstico cuya
+relevancia depende del dominio de aplicación.
+
+El resultado es una delimitación deliberada del alcance del proyecto:
+\dataqual proporciona una evaluación algorítmica y estadística de las
+características de calidad priorizadas para proyectos de \ac{IA}, aquellas
+medibles directamente sobre el fichero de datos con mayor impacto en la
+fiabilidad de los modelos.  Las características que requieren
+infraestructura externa, metadatos organizativos o que no fueron
+priorizadas en el \ac{MVP} quedan fuera de su ámbito actual,
+configurándose como líneas de trabajo futuro.
+
+
+%% =========================================================================
 \section{Resultados alcanzados}
 \label{sec:resultados-alcanzados}
 %% =========================================================================
@@ -286,7 +482,10 @@ simultáneamente.  Por último, la detección de valores atípicos en el
 módulo de perfilado se limita al método estadístico clásico del
 \ac{IQR}; algoritmos basados en aprendizaje automático como
 \emph{Isolation Forest} o DBSCAN, que detectarían anomalías
-multidimensionales más sutiles, quedan fuera del alcance de esta versión.
+multidimensionales más sutiles, quedan fuera del alcance de esta versión
+(la decisión de tratar los \emph{outliers} como herramienta de
+diagnóstico y no como dimensión de calidad se justifica en la
+sección~\ref{sec:priorizacion-mvp}).
 
 Un segundo grupo afecta a la \textbf{madurez de los servicios de
 plataforma} de cara a entornos corporativos.  La autenticación se limita

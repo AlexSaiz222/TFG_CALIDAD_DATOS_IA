@@ -6,45 +6,45 @@ The style file: apalike.bst
 Reallocating 'name_of_file' (item size: 1) to 5 items.
 Database file #1: main.bib
 Warning--can't use both volume and number fields in schelter2018
-You've used 48 entries,
+You've used 57 entries,
             1935 wiz_defined-function locations,
-            695 strings with 10427 characters,
-and the built_in function-call counts, 14597 in all, are:
-= -- 1493
-> -- 536
-< -- 46
-+ -- 180
-- -- 172
-* -- 1037
-:= -- 2762
-add.period$ -- 161
-call.type$ -- 48
-change.case$ -- 324
-chr.to.int$ -- 48
-cite$ -- 49
-duplicate$ -- 572
-empty$ -- 922
-format.name$ -- 228
-if$ -- 2757
+            731 strings with 11790 characters,
+and the built_in function-call counts, 17006 in all, are:
+= -- 1749
+> -- 621
+< -- 54
++ -- 208
+- -- 198
+* -- 1193
+:= -- 3241
+add.period$ -- 193
+call.type$ -- 57
+change.case$ -- 383
+chr.to.int$ -- 57
+cite$ -- 58
+duplicate$ -- 663
+empty$ -- 1060
+format.name$ -- 265
+if$ -- 3200
 int.to.chr$ -- 1
 int.to.str$ -- 0
 missing$ -- 20
-newline$ -- 257
-num.names$ -- 144
-pop$ -- 218
+newline$ -- 307
+num.names$ -- 171
+pop$ -- 246
 preamble$ -- 1
-purify$ -- 326
+purify$ -- 384
 quote$ -- 0
-skip$ -- 471
+skip$ -- 551
 stack$ -- 0
-substring$ -- 770
+substring$ -- 880
 swap$ -- 37
 text.length$ -- 4
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 276
+type$ -- 330
 warning$ -- 1
-while$ -- 112
+while$ -- 130
 width$ -- 0
-write$ -- 624
+write$ -- 743
 (There was 1 warning)

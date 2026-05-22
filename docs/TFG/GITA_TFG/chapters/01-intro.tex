@@ -51,35 +51,58 @@ al 60--80\% el tiempo que los profesionales de datos dedican a limpieza y
 preparación~\citep{kaggle2022}, tiempo que no se invierte en construir ni
 mejorar modelos.
 
-La calidad de los datos no es, además, únicamente una cuestión técnica.
-Los datos desequilibrados o no representativos son una fuente frecuente de
-sesgo con consecuencias éticas y sociales: el algoritmo de selección de
-personal de Amazon, descartado en 2018 por discriminar sistemáticamente a las
-candidatas femeninas~\citep{amazon2018}, y los sistemas de reconocimiento
-facial con tasas de error desproporcionadas para personas de piel oscura
-documentados por Buolamwini y Gebru~(\citeyear{buolamwini2018}) ilustran cómo las
-deficiencias en los datos de entrenamiento se trasladan al comportamiento del
-modelo.  El marco regulatorio refuerza esta dimensión: el Reglamento Europeo
-de \ac{IA}~\citep{aiact2024} establece requisitos explícitos de calidad,
-trazabilidad y documentación de los datos en sistemas de alto riesgo, y el
-\ac{RGPD}~\citep{rgpd2016} exige que los datos personales sean exactos y estén
-actualizados, convirtiendo la evaluación formal de la calidad en una
-obligación legal, no solo una buena práctica.
+La calidad de los datos no es, además, únicamente una cuestión técnica:
+constituye una fuente recurrente de sesgo con consecuencias éticas, sociales
+y económicas, y son numerosos los casos documentados públicamente en los
+que las deficiencias del dato de entrenamiento se trasladaron directamente
+al comportamiento del sistema desplegado.  El algoritmo de selección de
+personal de Amazon, descartado en 2018 tras comprobarse que penalizaba
+sistemáticamente las candidaturas femeninas~\citep{amazon2018}, y los
+sistemas de reconocimiento facial analizados por Buolamwini y
+Gebru~(\citeyear{buolamwini2018}), con tasas de error muy superiores para
+personas de piel oscura, ilustran cómo un conjunto de entrenamiento
+desequilibrado o poco representativo produce decisiones discriminatorias:
+ambos casos remiten a la dimensión de \emph{equilibrio de clases y
+representatividad} recogida por la \ac{ISO}/IEC~5259~\citep{iso5259} y
+evaluada por la herramienta desarrollada en este \ac{TFG}.  En la misma
+línea, el algoritmo COMPAS de predicción de reincidencia, auditado por
+ProPublica en 2016, asignaba puntuaciones de riesgo significativamente más
+altas a personas afroamericanas que a personas blancas con perfiles
+equivalentes~\citep{compas2016}; y el Apple Card, investigado en 2019 por
+ofrecer límites de crédito notablemente inferiores a las mujeres frente a
+hombres con el mismo perfil financiero~\citep{applecard2019}, evidenció que
+la opacidad del dato y del modelo puede convertirse en un riesgo
+reputacional y regulatorio de primer orden.  El cierre del programa
+\emph{Zillow Offers} en 2021, con cerca de 880~millones de dólares en
+pérdidas atribuidas a precios de vivienda estimados sobre datos
+desactualizados~\citep{zillow2021}, muestra que también las dimensiones de
+\emph{actualidad} y \emph{exactitud} contempladas en la
+\ac{ISO}/IEC~5259~\citep{iso5259}, igualmente evaluadas por la plataforma,
+tienen un impacto económico directo cuando se descuidan.
 
-Este trabajo nace del interés personal del autor por el tratamiento y la
-gestión de los datos como disciplina, y de su voluntad de profundizar en el
-ámbito de la inteligencia artificial y la ciencia de datos, campos en los que
-la calidad del dato de entrada resulta, precisamente, el factor más
-determinante.
+El marco regulatorio europeo refuerza esta dimensión y convierte la
+evaluación formal de la calidad en una obligación legal, no solo en una
+buena práctica.  El \ac{RGPD}~\citep{rgpd2016} exige que los datos
+personales sean exactos y estén actualizados; el Reglamento Europeo de
+\ac{IA}~\citep{aiact2024} establece requisitos explícitos de calidad,
+trazabilidad y documentación de los datos en los sistemas de alto riesgo;
+y el reciente Reglamento de Gobernanza de Datos~\citep{dga2022} y el
+Reglamento de Datos~\citep{dataact2023} extienden estas exigencias al
+intercambio y la reutilización de datos entre organizaciones, sentando la
+base jurídica de los espacios europeos comunes de datos
+sectoriales~\citep{eudataspaces2020} (salud, movilidad, industria,
+\emph{Green Deal}), cuya viabilidad descansa sobre la analítica de datos
+compartidos y, por tanto, sobre la garantía de calidad y trazabilidad de
+esos datos en origen.
 
 
 %% ---------------------------------------------------------------------------
 \section{Presentación de la solución}
 \label{sec:solucion}
 
-\dataqual es una plataforma web \emph{full-stack} para la evaluación
-automatizada de la calidad de datos en proyectos de \ac{IA}, concebida para
-que cualquier equipo pueda auditar sus datos sin necesidad de escribir código.
+\dataqual es una plataforma web para la evaluación semi-automatizada de la
+calidad de datos en proyectos de \ac{IA}, concebida para que cualquier
+equipo pueda auditar sus datos sin necesidad de escribir código.
 Unifica en un mismo entorno la carga de datos, la configuración de métricas,
 la ejecución de evaluaciones y la consulta de resultados, y expone además una
 \ac{API} \ac{REST}ful~\citep{fielding2000} para integrarse con herramientas
@@ -143,116 +166,116 @@ perfiles no técnicos.  Cada equipo termina definiendo sus propias métricas
 con sus propios umbrales, sin posibilidad de comparar resultados entre
 proyectos ni de detectar si la calidad se degrada de una ejecución a la
 siguiente.  \dataqual aborda ambas carencias con un catálogo de métricas
-alineado con \ac{ISO}/IEC~25012~\citep{iso25012} e
-\ac{ISO}/IEC~5259~\citep{iso5259} y un sistema de seguimiento entre
-ejecuciones basado en \emph{fingerprinting}.
+alineado con dos estándares complementarios: \ac{ISO}/IEC~25012~\citep{iso25012},
+que define el modelo general de calidad de datos a partir de quince
+características inherentes al dato y dependientes del sistema, e
+\ac{ISO}/IEC~5259~\citep{iso5259}, específico para la calidad de datos en
+analítica y aprendizaje automático.  A ello se suma un sistema de
+seguimiento entre ejecuciones basado en \emph{fingerprinting}.
 
-Herramientas más maduras como Great
-Expectations~\citep{greatexpectations} o Deequ de Amazon resuelven el
-problema de la estandarización, pero exigen que quien las configure sepa
-programar, lo que excluye a analistas y responsables de negocio.  \dataqual
-invierte esta restricción: la interfaz web permite configurar y lanzar
-evaluaciones sin instalar nada ni escribir una línea de código, mientras que
-la \ac{API} \ac{REST} queda disponible para los perfiles técnicos que
-prefieran integrar las evaluaciones en sus propios flujos.
+Herramientas como Great Expectations~\citep{greatexpectations}, Apache
+Deequ~\citep{schelter2018} o AWS Glue Data Quality~\citep{awsgluedq} de
+Amazon, DQOps~\citep{dqops}, Soda Core~\citep{sodacore} y
+Talend~\citep{talend} (analizadas en detalle en la
+sección~\ref{sec:estado-arte}) resuelven el problema de la estandarización,
+pero presentan barreras para los perfiles no técnicos: unas requieren
+conocimientos de programación, otras reservan su interfaz gráfica a
+versiones comerciales y otras operan exclusivamente como servicios
+gestionados en la nube.  \dataqual invierte esta restricción: la interfaz
+web permite configurar y lanzar evaluaciones sin instalar nada ni escribir
+una línea de código, mientras que la \ac{API} \ac{REST} queda disponible
+para los perfiles técnicos que prefieran integrar las evaluaciones en sus
+propios flujos.
 
 El tercer problema, compartido por todos los enfoques anteriores, es la
 ausencia de un veredicto claro: un \emph{script} puede detectar que el 12\%
 de una columna es nulo, pero no indica si eso es aceptable para el proyecto
-concreto.  \dataqual incorpora \emph{Quality Gates} configurables
-(puntuación mínima, límite de issues críticos y límite de issues nuevos)
-que producen un estado \texttt{PASSED}, \texttt{WARNING} o \texttt{FAILED},
-al modo en que SonarQube~\citep{sonarqube} lo hace para el código fuente.
+concreto.  \dataqual incorpora \emph{Quality Gates} personalizables y
+totalmente parametrizables por proyecto (puntuación mínima, límite de
+issues críticos y límite de issues nuevos), que producen un estado
+\texttt{PASSED}, \texttt{WARNING} o \texttt{FAILED}, al modo en que
+SonarQube~\citep{sonarqube} lo hace para el código fuente.
 
-
-%% ---------------------------------------------------------------------------
-\section{Público objetivo}
-\label{sec:publico}
-
-\dataqual está pensada para equipos multidisciplinares en los que conviven
-perfiles con distinto nivel técnico.  Los ingenieros de datos pueden invocar
-las evaluaciones desde sus propios \emph{scripts} o flujos mediante la
-\ac{API} \ac{REST}; los científicos de datos y los ingenieros de \ac{ML}
-disponen de un mecanismo sistemático para verificar la calidad del dataset
-antes de arrancar el entrenamiento; y los analistas sin perfil técnico pueden
-explorar los resultados directamente desde el navegador sin instalar nada.
-Los responsables de calidad y cumplimiento normativo encuentran en los
-informes de evaluación evidencias auditables que facilitan la justificación
-ante los requisitos del \ac{RGPD}~\citep{rgpd2016} y el Reglamento Europeo
-de \ac{IA}~\citep{aiact2024}.
-
-En todos los casos, la plataforma expone la misma información subyacente a
-través de dos canales complementarios: la interfaz web para exploración
-visual y la \ac{API} \ac{REST} para automatización, sin que el usuario deba
-elegir entre accesibilidad y capacidad de integración.
+\dataqual está pensada, en consecuencia, para equipos multidisciplinares en
+los que conviven perfiles con distinto nivel técnico: ingenieros de datos
+que invocan las evaluaciones desde sus propios flujos vía \ac{API}
+\ac{REST}, científicos de datos e ingenieros de \ac{ML} que verifican la
+calidad del dataset antes del entrenamiento, analistas sin perfil técnico
+que exploran los resultados desde el navegador, y responsables de calidad
+y cumplimiento normativo que disponen de evidencias auditables frente a
+los requisitos del \ac{RGPD}~\citep{rgpd2016} y el Reglamento Europeo de
+\ac{IA}~\citep{aiact2024}.
 
 
 %% ---------------------------------------------------------------------------
 \section{Alcance del proyecto}
 \label{sec:alcance-intro}
 
-\dataqual es una plataforma \emph{full-stack} orientada a proyectos de \ac{IA}
-y \ac{ML}, con soporte para conjuntos de datos tabulares en formato \ac{CSV}.  Cubre el ciclo completo de evaluación: carga y versionado
-de datasets, perfilado exploratorio, ejecución de siete métricas de calidad
-alineadas con \ac{ISO}/IEC~25012~\citep{iso25012},
+El alcance funcional del trabajo se concreta en un catálogo de
+\textbf{siete métricas de calidad evaluables} derivadas de las
+características recogidas en las normas \ac{ISO}/IEC~25012~\citep{iso25012},
 \ac{ISO}/IEC~25024~\citep{iso25024} e
-\ac{ISO}/IEC~5259~\citep{iso5259}, seguimiento de incidencias entre
-evaluaciones, \emph{Quality Gates} con veredicto automatizado y protección de
-datos personales.  El sistema se despliega en entorno local mediante
-Docker~Compose y expone una \ac{API} \ac{REST} con autenticación \ac{JWT}
-para su integración en flujos de trabajo externos.
+\ac{ISO}/IEC~5259~\citep{iso5259}: \emph{completitud}, \emph{unicidad},
+\emph{exactitud sintáctica}, \emph{consistencia lógica}, \emph{actualidad},
+\emph{equilibrio de clases} y \emph{diversidad}.  El sistema incorpora
+además la \emph{detección de valores atípicos} como métrica de
+diagnóstico, accesible desde el perfilado exploratorio pero no incluida en
+el cálculo agregado de calidad, en línea con el tratamiento que la
+\ac{ISO}/IEC~5259 reserva a esta dimensión.  Cada métrica es
+parametrizable a nivel de proyecto y de columna, y agrupa varias de las
+características de las normas anteriores; la correspondencia detallada
+entre métricas y características de las \ac{ISO} se desarrolla en la
+sección~\ref{sec:caracteristicas-evaluables} y se recoge íntegramente en
+el Anexo~B.
 
-Quedan \textbf{fuera del alcance} del presente trabajo: el procesamiento de
-conjuntos de datos que excedan la memoria disponible en la máquina de
-despliegue, la corrección automática de errores y la integración nativa con
-plataformas \emph{cloud} propietarias (AWS, Azure, GCP).
+Esta selección no pretende ser exhaustiva: las normas \ac{ISO}/IEC~25012 e
+\ac{ISO}/IEC~5259 recogen un conjunto mucho más amplio de características
+de calidad, y la priorización a estas siete métricas responde al alcance
+temporal de un \ac{TFG} y al criterio de incluir las dimensiones con mayor
+impacto demostrado sobre la fiabilidad de los modelos de \ac{IA} y sobre
+el cumplimiento del marco normativo aplicable.  Las características que
+quedan fuera del catálogo del \ac{MVP} y se reservan para versiones
+futuras, así como la justificación detallada de los criterios aplicados,
+se exponen en la sección~\ref{sec:priorizacion-mvp}.
+
+En cuanto a las limitaciones funcionales y operativas, el sistema procesa
+conjuntos de datos tabulares en formato \ac{CSV} que quepan en la memoria
+disponible de la máquina de despliegue, sin recurrir a motores
+distribuidos como Spark o Dask.  Quedan asimismo \textbf{fuera del
+alcance} la corrección automática de los errores detectados (el sistema
+los identifica y los reporta, pero no los repara) y la integración nativa
+con plataformas \emph{cloud} propietarias (AWS, Azure, GCP), reservada
+para trabajo futuro.
 
 %% ---------------------------------------------------------------------------
 \section{Estructura del documento}
 \label{sec:estructura}
 
-El presente documento se organiza en siete capítulos y ocho anexos.  A
-continuación se describe brevemente el contenido de cada uno de los capítulos
-restantes:
+El presente documento se organiza en siete capítulos y ocho anexos.
+Tras esta introducción, el capítulo~\ref{chap:objetivos},
+\emph{\nameref{chap:objetivos}}, define el objetivo general y los
+objetivos específicos del proyecto;
+el capítulo~\ref{chap:antecedentes}, \emph{\nameref{chap:antecedentes}},
+revisa los fundamentos de la calidad de datos, los estándares
+internacionales aplicables y las herramientas existentes;
+el capítulo~\ref{chap:metodologia}, \emph{\nameref{chap:metodologia}},
+describe la metodología de gestión, la pila tecnológica, la planificación
+y los costes;
+el capítulo~\ref{chap:desarrollo}, \emph{\nameref{chap:desarrollo}},
+recoge la implementación iterativa por sprints;
+el capítulo~\ref{chap:resultados}, \emph{\nameref{chap:resultados}},
+presenta los resultados globales y la comparativa con las herramientas
+existentes;
+y el capítulo~\ref{chap:conclusiones}, \emph{\nameref{chap:conclusiones}},
+cierra con la revisión de objetivos, las competencias adquiridas y las
+líneas de trabajo futuro.
 
-\begin{definitionlist}
-\item[Capítulo~\ref{chap:objetivos}: \nameref{chap:objetivos}]
-  Define el objetivo general y los objetivos específicos del proyecto,
-  estableciendo el alcance detallado y las restricciones del trabajo.
-
-\item[Capítulo~\ref{chap:antecedentes}: \nameref{chap:antecedentes}]
-  Revisa los fundamentos teóricos de la calidad de datos, los principales
-  estándares internacionales (\ac{ISO}/IEC~25012, \ac{ISO}/IEC~25024
-  e \ac{ISO}/IEC~5259), las dimensiones de calidad relevantes y las
-  herramientas existentes en el mercado, identificando las carencias que
-  justifican el desarrollo de \dataqual.
-
-\item[Capítulo~\ref{chap:metodologia}: \nameref{chap:metodologia}]
-  Describe la metodología de gestión y desarrollo adoptada, la pila
-  tecnológica, el backlog inicial, la planificación (Gantt), la
-  estimación de esfuerzo, los costes y la gestión de riesgos.
-
-\item[Capítulo~\ref{chap:desarrollo}: \nameref{chap:desarrollo}]
-  Desarrolla el proceso de implementación iterativo por sprints, incluyendo
-  para cada sprint la planificación, el trabajo realizado, cómo se ha hecho
-  (diseño, implementación, pruebas) y la retrospectiva.
-
-\item[Capítulo~\ref{chap:resultados}: \nameref{chap:resultados}]
-  Presenta los resultados globales obtenidos, analiza el cumplimiento de los
-  objetivos planteados y compara \dataqual con las herramientas existentes.
-
-\item[Capítulo~\ref{chap:conclusiones}: \nameref{chap:conclusiones}]
-  Recoge las conclusiones, la revisión de objetivos, la aportación del
-  proyecto, las competencias adquiridas, la valoración personal y las líneas
-  de trabajo futuro.
-\end{definitionlist}
-
-El documento incluye ocho anexos: especificación completa de la \ac{API}
-\ac{REST} (Anexo~A), catálogo de métricas de calidad (Anexo~B), backlog
-completo (Anexo~C), análisis retrospectivo de riesgos (Anexo~D), estimación
-de costes y viabilidad (Anexo~E), plan de pruebas integral (Anexo~F),
-manual de usuario (Anexo~G) y colección de diagramas \ac{UML} y modelo de
-datos (Anexo~H).
+Se incluyen además ocho anexos: la especificación completa de la \ac{API}
+\ac{REST} (Anexo~A), el catálogo de métricas de calidad (Anexo~B), el
+backlog completo (Anexo~C), el análisis retrospectivo de riesgos
+(Anexo~D), la estimación de costes y viabilidad (Anexo~E), el plan de
+pruebas integral (Anexo~F), el manual de usuario (Anexo~G) y la
+colección de diagramas \ac{UML} y modelo de datos (Anexo~H).
 
 
 % Local Variables:

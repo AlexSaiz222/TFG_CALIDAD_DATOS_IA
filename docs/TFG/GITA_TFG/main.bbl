@@ -11,9 +11,22 @@ Abedjan, Z., Golab, L., Naumann, F., and Papenbrock, T. (2018).
 \newblock \url{https://www.alteryx.com/}.
 \newblock Consultado: marzo 2026.
 
+\bibitem[{Amazon Web Services}, 2024]{awsgluedq}
+{Amazon Web Services} (2024).
+\newblock {AWS Glue Data Quality}.
+\newblock \url{https://aws.amazon.com/glue/features/data-quality/}.
+\newblock Consultado: marzo 2026.
+
 \bibitem[{Anaconda, Inc.}, 2022]{anaconda2022}
 {Anaconda, Inc.} (2022).
 \newblock State of data science 2022.
+
+\bibitem[Angwin et~al., 2016]{compas2016}
+Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016).
+\newblock Machine bias: There's software used across the country to predict
+  future criminals. and it's biased against blacks.
+\newblock ProPublica.
+\newblock Consultado: 2026.
 
 \bibitem[Bayer, 2024]{sqlalchemy}
 Bayer, M. (2024).
@@ -47,6 +60,12 @@ Buolamwini, J. and Gebru, T. (2018).
 \newblock Chart.js: Simple yet flexible {JavaScript} charting for designers \&
   developers.
 \newblock \url{https://www.chartjs.org/}.
+
+\bibitem[{Comisión Europea}, 2020]{eudataspaces2020}
+{Comisión Europea} (2020).
+\newblock A {European} strategy for data.
+\newblock COM(2020)~66 final, Bruselas.
+\newblock Espacios europeos comunes de datos sectoriales.
 
 \bibitem[{CrowdFlower}, 2016]{crowdflower2016}
 {CrowdFlower} (2016).
@@ -92,6 +111,11 @@ Fielding, R.~T. (2000).
 Gamma, E., Helm, R., Johnson, R., and Vlissides, J. (1994).
 \newblock {\em Design Patterns: Elements of Reusable Object-Oriented Software}.
 \newblock Addison-Wesley.
+
+\bibitem[{Gartner, Inc.}, 2021]{gartner2021dq}
+{Gartner, Inc.} (2021).
+\newblock How to improve your data quality.
+\newblock Smarter With Gartner.
 
 \bibitem[{Great Expectations}, 2024]{greatexpectations}
 {Great Expectations} (2024).
@@ -164,6 +188,12 @@ Ng, A. (2021).
 \newblock DeepLearning.AI, \url{https://www.youtube.com/watch?v=06-AZXmwHjo}.
 \newblock Consultado: 2026.
 
+\bibitem[Parker and Putzier, 2021]{zillow2021}
+Parker, W. and Putzier, K. (2021).
+\newblock {Zillow}'s shattered home-flipping dream has echoes of past failures.
+\newblock The Wall Street Journal.
+\newblock Consultado: 2026.
+
 \bibitem[{Parlamento Europeo y Consejo de la Unión Europea}, 2016]{rgpd2016}
 {Parlamento Europeo y Consejo de la Unión Europea} (2016).
 \newblock Reglamento ({UE}) 2016/679 del parlamento europeo y del consejo
@@ -171,6 +201,21 @@ Ng, A. (2021).
   tratamiento de datos personales ({Reglamento General de Protección de
   Datos}).
 \newblock Diario Oficial de la Unión Europea, L~119, pp.~1--88.
+
+\bibitem[{Parlamento Europeo y Consejo de la Unión Europea}, 2022]{dga2022}
+{Parlamento Europeo y Consejo de la Unión Europea} (2022).
+\newblock Reglamento ({UE}) 2022/868 del parlamento europeo y del consejo
+  relativo a la gobernanza europea de datos ({Reglamento de Gobernanza de
+  Datos}).
+\newblock Diario Oficial de la Unión Europea, L~152, pp.~1--44.
+
+\bibitem[{Parlamento Europeo y Consejo de la Unión Europea},
+  2023]{dataact2023}
+{Parlamento Europeo y Consejo de la Unión Europea} (2023).
+\newblock Reglamento ({UE}) 2023/2854 del parlamento europeo y del consejo
+  sobre normas armonizadas para un acceso justo a los datos y su utilización
+  ({Reglamento de Datos}).
+\newblock Diario Oficial de la Unión Europea.
 
 \bibitem[{Parlamento Europeo y Consejo de la Unión Europea}, 2024]{aiact2024}
 {Parlamento Europeo y Consejo de la Unión Europea} (2024).
@@ -260,6 +305,13 @@ Tukey, J.~W. (1977).
 \newblock {\em Exploratory Data Analysis}.
 \newblock Addison-Wesley.
 
+\bibitem[{UNE}, 2023]{une0081}
+{UNE} (2023).
+\newblock {UNE} 0081:2023 --- calidad de datos: Guía para la evaluación de la
+  calidad de los datos. refinación de la {ISO/IEC} 25024 para mejorar su
+  aplicabilidad.
+\newblock Norma, Asociación Española de Normalización.
+
 \bibitem[{Union.ai and Pandera Contributors}, 2024]{pandera}
 {Union.ai and Pandera Contributors} (2024).
 \newblock Pandera: A statistical data testing toolkit for {Python}.
@@ -270,6 +322,12 @@ Tukey, J.~W. (1977).
 {Vercel} (2024).
 \newblock Next.js: The react framework for the web.
 \newblock \url{https://nextjs.org/}.
+
+\bibitem[Vigdor, 2019]{applecard2019}
+Vigdor, N. (2019).
+\newblock {Apple Card} investigated after gender discrimination complaints.
+\newblock The New York Times.
+\newblock Consultado: 2026.
 
 \bibitem[Wang and Strong, 1996]{wang1996}
 Wang, R.~Y. and Strong, D.~M. (1996).
