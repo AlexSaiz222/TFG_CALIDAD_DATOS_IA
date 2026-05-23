@@ -333,7 +333,21 @@ de datos para analítica e \ac{IA} en cuatro grupos según su naturaleza y su
 grado de dependencia del contexto tecnológico.  Esta taxonomía constituye
 la base conceptual sobre la que, en el capítulo de resultados
 (sección~\ref{sec:instanciacion-iso5259}), se discutirán las decisiones de
-cobertura y priorización adoptadas en \dataqual.
+cobertura y priorización adoptadas en \dataqual.  La
+Figura~\ref{fig:iso5259-taxonomia} sintetiza visualmente las cuatro
+agrupaciones y sus dimensiones; los párrafos que siguen elaboran cada una
+de ellas.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/img/iso5259-taxonomia.png}
+  \caption[Taxonomía de características de calidad de \ac{ISO}/IEC~5259-2]{%
+    Taxonomía de características de calidad de datos para analítica e
+    \ac{IA} según \ac{ISO}/IEC~5259-2: características inherentes,
+    dependientes del sistema, mixtas (zona central) y adicionales
+    específicas para \ac{IA}/\ac{ML}. Fuente: \cite{iso25000web}.}
+  \label{fig:iso5259-taxonomia}
+\end{figure}
 
 \begin{itemize}
   \item \textbf{Características inherentes} (5): exactitud
@@ -367,14 +381,14 @@ cobertura y priorización adoptadas en \dataqual.
 
 
 %% =========================================================================
-\section{Estado del arte: herramientas existentes}
+\section{Soluciones similares existentes}
 \label{sec:estado-arte}
 %% =========================================================================
 
 Para contextualizar la contribución de \dataqual es necesario conocer qué
-existe ya. Las herramientas descritas a continuación representan el estado
-del arte en evaluación de calidad de datos; sus fortalezas y sus límites
-definen el espacio en el que \dataqual opera.
+existe ya. Las herramientas descritas a continuación representan las
+soluciones de referencia en evaluación de calidad de datos; sus fortalezas
+y sus límites definen el espacio en el que \dataqual opera.
 
 \subsection{Great Expectations}
 \label{sec:great-expectations}
@@ -578,126 +592,16 @@ relega además su interfaz web al nivel comercial de pago, mientras que DQOps
 sí ofrece una interfaz web gratuita en local, aunque sin las capacidades de
 colaboración en equipo de su versión en la nube.
 
-
-%% =========================================================================
-\section{Diferenciación de \dataqual}
-\label{sec:diferenciacion}
-%% =========================================================================
-
-El análisis anterior revela un espacio concreto que ninguna herramienta cubre
-en su totalidad. \dataqual lo ocupa a través de ocho capacidades que, tomadas
-en conjunto, no tienen equivalente directo en el ecosistema \emph{open source}:
-
-\begin{enumerate}
-  \item \textbf{Solución \emph{full-stack} con interfaz integrada y gratuita.}
-    Mientras que Great Expectations y Apache Deequ son herramientas
-    \emph{code-only} y Soda Core reserva su interfaz web al nivel comercial
-    de pago, \dataqual proporciona una interfaz web completa construida con
-    React~\citep{react} y Next.js~\citep{nextjs} disponible sin coste de
-    licencia y autoalojable, que permite a usuarios no técnicos configurar
-    métricas, lanzar evaluaciones y consultar resultados sin escribir código.
-
-  \item \textbf{Diseño centrado en \ac{IA}.} \dataqual incorpora métricas
-    específicas para proyectos de aprendizaje automático que no se encuentran
-    en las herramientas generalistas: equilibrio de clases (\texttt{class\_balance},
-    entropía de Shannon) y diversidad del dataset (\texttt{diversity}),
-    orientada a detectar subrepresentación de valores o rangos esperados por
-    columna.
-
-  \item \textbf{Interfaz multiidioma.} La plataforma soporta español e inglés
-    con cambio de idioma en tiempo real, lo que amplía su accesibilidad a
-    equipos internacionales sin coste adicional de configuración.
-
-  \item \textbf{Sistema de fingerprinting SHA-256.} Inspirado en
-    SonarQube~\citep{sonarqube}, \dataqual genera un hash \ac{SHA}-256 para cada
-    issue detectado, lo que permite rastrear su ciclo de vida a lo largo de
-    múltiples ejecuciones: issues nuevos, recurrentes y corregidos.
-
-  \item \textbf{Quality Gates como puntos de decisión.} Cada evaluación produce
-    un veredicto global (\texttt{PASSED}, \texttt{WARNING} o \texttt{FAILED})
-    basado en umbrales configurables, proporcionando una señal inequívoca
-    sobre la aptitud del dataset para su uso.
-
-  \item \textbf{Protección de \ac{PII} integrada.} La ocultación de los
-    valores de columnas sensibles en todos los outputs de la plataforma es
-    una funcionalidad nativa, no un complemento externo. Esto facilita el
-    cumplimiento del \ac{RGPD} y otras normativas de protección de datos.
-
-  \item \textbf{Arquitectura de plugins extensible.} El motor de métricas se
-    basa en una clase abstracta \texttt{BaseMetric} y un registro global
-    (\texttt{METRIC\_REGISTRY}) que permiten añadir nuevas métricas sin
-    modificar el código existente, siguiendo el principio abierto-cerrado
-    de los patrones de diseño~\citep{design_patterns}.
-
-  \item \textbf{Autoalojamiento con soberanía de datos.} \dataqual se despliega
-    mediante Docker Compose~\citep{docker} sin dependencias de servicios
-    en la nube. Todos los datos permanecen en la infraestructura del usuario,
-    facilitando la soberanía del dato y el cumplimiento normativo.
-\end{enumerate}
-
-
-%% =========================================================================
-\section{Justificación académica}
-\label{sec:justificacion-academica}
-%% =========================================================================
-
-\dataqual no es un ejercicio de una sola disciplina.  Su desarrollo ha
-requerido conocimientos de varias áreas del Grado en Ingeniería Informática:
-
-\paragraph{Arquitectura de software y sistemas distribuidos.}
-El proyecto despliega ocho servicios orquestados con Docker
-Compose~\citep{docker}, sin dependencias de infraestructura en la nube.
-El \emph{backend} estructura la lógica según el patrón \ac{MVC} sobre
-Flask~\citep{flask} y aplica dos patrones del catálogo clásico~\citep{design_patterns}:
-Strategy en la clase abstracta \texttt{BaseMetric} y Registry en
-\texttt{METRIC\_REGISTRY}, ambos bajo el principio abierto-cerrado.
-Un \emph{middleware} propio, \texttt{EvaluationWatchdog}, ejecuta un hilo
-de fondo que detecta evaluaciones bloqueadas y las retoma sin intervención
-manual.
-
-\paragraph{Capa de datos y procesamiento asíncrono.}
-La capa de persistencia usa PostgreSQL~\citep{postgresql} con campos
-\texttt{JSONB} para configuraciones flexibles, SQLAlchemy~\citep{sqlalchemy}
-como \ac{ORM} con migraciones versionadas en Alembic, y
-MinIO~\citep{minio} como almacén de objetos compatible con S3.
-Las evaluaciones se procesan de forma asíncrona con
-Celery~\citep{celery}, usando Redis~\citep{redis} como \emph{broker};
-Flower monitoriza el estado de los \emph{workers} en tiempo real.
-Cuando Celery no está disponible, \texttt{HybridEvaluationService} ejecuta
-la evaluación en un hilo local como \emph{fallback}.
-
-\paragraph{\emph{Frontend} y comunicación cliente-servidor.}
-La interfaz se construye con React~\citep{react}, Next.js~\citep{nextjs},
-TypeScript~\citep{typescript} y Material~\ac{UI}~\citep{materialui}, y se
-comunica con el \emph{backend} a través de una \ac{API} \ac{REST} protegida
-con \ac{JWT}.  Las visualizaciones interactivas~\textemdash gráficos de
-líneas, barras, \emph{doughnut} y \emph{scatter}~\textemdash se implementan
-con Chart.js~\citep{chartjs} mediante su adaptador para React.
-La internacionalización (español e inglés con cambio en tiempo real) se
-gestiona con react-i18next.
-
-\paragraph{Estadística aplicada y análisis exploratorio.}
-El motor de métricas usa la entropía de Shannon para medir el equilibrio
-de clases: produce un valor entre 0 y 100 donde 100 indica distribución
-uniforme y los valores próximos a 0 señalan desequilibrio severo.
-El módulo de \ac{EDA} detecta valores atípicos con el \ac{IQR} y ofrece
-histogramas, diagramas de caja, gráficos de barras y matrices de
-correlación (Pearson y Spearman).
-
-\paragraph{Seguridad y cumplimiento normativo.}
-La plataforma usa autenticación \ac{JWT} y derivación de contraseñas con
-\ac{PBKDF2}, y limita la tasa de peticiones con Flask-Limiter, respaldado
-por Redis en el despliegue con Docker Compose.  La validación de entradas
-en los puntos críticos se realiza con esquemas Marshmallow; las reglas de
-consistencia lógica se filtran mediante una lista de tokens prohibidos para
-evitar la ejecución de código arbitrario.  Las columnas marcadas como
-\ac{PII} se enmascaran en todos los \emph{outputs} de evaluación, lo que
-facilita el cumplimiento del \ac{RGPD}.
-
-Cada una de estas áreas ha dejado huella directa en la arquitectura:
-las decisiones de una capa condicionan las de las demás, lo que convierte
-el proyecto en un ejercicio de integración real, no solo de aplicación
-aislada de conocimientos.
+\paragraph{Hueco que ocupa \dataqual.}
+La comparativa anterior revela que ninguna de las herramientas revisadas
+combina simultáneamente una interfaz web accesible sin coste de licencia,
+métricas específicas para proyectos de \ac{IA} y un sistema de seguimiento
+entre ejecuciones con veredicto explícito sobre la aptitud del dataset.
+\dataqual se posiciona deliberadamente en ese hueco, articulando esas
+capacidades en un único producto autoalojable.  Las decisiones técnicas que
+las materializan se desarrollan en el capítulo~\ref{chap:desarrollo} y la
+aportación resultante al panorama de herramientas existentes se valora en
+el capítulo~\ref{chap:conclusiones}.
 
 
 % Local Variables:

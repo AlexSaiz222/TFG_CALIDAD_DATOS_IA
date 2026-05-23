@@ -22,9 +22,9 @@ de alcance de \dataqual en dos niveles.  El primero distingue qué
 características son evaluables sobre el fichero de datos y cuáles requieren
 acceso a infraestructura o metadatos externos, criterio derivado
 directamente de la propia taxonomía.  El segundo nivel responde a
-decisiones de priorización del \ac{MVP}: algunas características
+decisiones de priorización del propio proyecto: algunas características
 técnicamente evaluables no fueron incluidas en esta versión por razones de
-alcance del proyecto, quedando como trabajo futuro.  La presente sección
+alcance, quedando como trabajo futuro.  La presente sección
 detalla la instanciación resultante.
 
 El Cuadro~\ref{tab:iso5259-cobertura} sintetiza la cobertura de \dataqual
@@ -46,7 +46,7 @@ respecto a las cuatro categorías de \ac{ISO}/IEC~5259-2.
       & Extraíbles del dataset sin contexto externo \\
       & Credibilidad
       & Fuera de alcance
-      & No priorizada en el \ac{MVP}; candidata para versiones futuras \\
+      & No priorizada en esta versión del proyecto; candidata para versiones futuras \\
     Mixtas
       & Accesibilidad, Conformidad, Eficiencia, Precisión, Trazabilidad, Confidencialidad, Comprensibilidad
       & Fuera de alcance
@@ -66,7 +66,7 @@ respecto a las cuatro categorías de \ac{ISO}/IEC~5259-2.
     Adicionales (futuro)
       & Identificabilidad, Auditabilidad, Puntualidad
       & Fuera de alcance
-      & No priorizadas en el \ac{MVP}; candidatas para versiones futuras \\
+      & No priorizadas en esta versión del proyecto; candidatas para versiones futuras \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -104,7 +104,7 @@ organización propietaria del dataset.
 
 Las características no implementadas en \dataqual responden a dos motivos
 distintos: imposibilidad técnica estructural y decisiones de priorización
-del \ac{MVP}.  Los tres primeros párrafos describen características
+del propio proyecto.  Los tres primeros párrafos describen características
 técnicamente inviables sin acceso a infraestructura o metadatos externos;
 el último recoge las que quedaron fuera por decisión de alcance del
 proyecto.
@@ -145,7 +145,7 @@ tarea prevista.  La \emph{similitud} presupone un conocimiento del espacio
 de características del dominio que no resulta accesible sin la
 colaboración directa de la organización propietaria.
 
-\paragraph{Decisiones de priorización del \ac{MVP}.}
+\paragraph{Decisiones de priorización del proyecto.}
 Algunas características técnicamente evaluables no fueron incluidas en
 esta versión por razones de alcance del proyecto.  La \emph{credibilidad}
 requiere la verificación de la procedencia de los datos, lo que, aunque
@@ -156,10 +156,9 @@ son candidatas a implementarse en versiones futuras de \dataqual.
 \subsection{Criterios de priorización aplicados}
 \label{sec:priorizacion-mvp}
 
-Entre las características algorítmicamente evaluables, el desarrollo del
-\ac{MVP} de \dataqual ha priorizado aquellas con mayor impacto en la
-fiabilidad de los modelos de \ac{IA} y en el cumplimiento del marco
-normativo aplicable:
+Entre las características algorítmicamente evaluables, el desarrollo de
+\dataqual ha priorizado aquellas con mayor impacto en la fiabilidad de los
+modelos de \ac{IA} y en el cumplimiento del marco normativo aplicable:
 
 \begin{enumerate}
   \item \textbf{Las características inherentes de \ac{ISO}/IEC~25012}
@@ -201,7 +200,7 @@ características de calidad priorizadas para proyectos de \ac{IA}, aquellas
 medibles directamente sobre el fichero de datos con mayor impacto en la
 fiabilidad de los modelos.  Las características que requieren
 infraestructura externa, metadatos organizativos o que no fueron
-priorizadas en el \ac{MVP} quedan fuera de su ámbito actual,
+priorizadas en esta versión del proyecto quedan fuera de su ámbito actual,
 configurándose como líneas de trabajo futuro.
 
 
@@ -367,9 +366,58 @@ evidencia de su cumplimiento.
 Los cinco objetivos se cumplen con el sistema tal como está desplegado.  El
 único objetivo superado es OE3: la \ac{API} creció de seis a siete
 \emph{blueprints} funcionales durante el desarrollo, y los \emph{blueprints}
-de organización técnica elevaron el total a diez.  Los objetivos transversales
-de seguridad, escalabilidad, mantenibilidad y portabilidad se cumplen; las
-pruebas \emph{end-to-end} del \emph{frontend} quedan como trabajo futuro
+de organización técnica elevaron el total a diez.
+
+\subsection{Cumplimiento de los requisitos no funcionales}
+\label{sec:rnf-cumplimiento}
+
+A los cinco objetivos funcionales se añaden los requisitos no funcionales
+enunciados en la sección~\ref{sec:rnf-objetivos}.  El
+Cuadro~\ref{tab:rnf-cumplimiento} recoge, para cada uno, las decisiones
+de diseño que lo materializan y el estado de cumplimiento.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cumplimiento de los requisitos no funcionales}
+  \label{tab:rnf-cumplimiento}
+  \footnotesize
+  \renewcommand{\arraystretch}{1.4}%
+  \begin{tabularx}{\textwidth}{l X c}
+    \toprule
+    \textbf{RNF} & \textbf{Evidencia} & \textbf{Estado} \\
+    \midrule
+    Seguridad & Autenticación \ac{JWT} con \emph{tokens} de acceso y
+      refresco; \emph{hashing} de contraseñas con \ac{PBKDF2}; limitación
+      de tasa de peticiones (Flask-Limiter sobre Redis); validación de
+      entradas con esquemas Marshmallow; lista de tokens prohibidos en
+      las reglas de consistencia lógica para evitar la ejecución de
+      código arbitrario; enmascaramiento automático de las columnas
+      marcadas como \ac{PII} en todos los \emph{outputs}. & Cumplido \\
+    Escalabilidad & Procesamiento asíncrono con Celery y Redis como
+      \emph{broker}; arquitectura preparada para escalar
+      horizontalmente el número de \emph{workers}; separación de
+      responsabilidades entre los ocho servicios desplegados. & Cumplido \\
+    Mantenibilidad & Arquitectura modular basada en \emph{blueprints},
+      servicios y modelos; motor de métricas extensible mediante
+      \emph{plugins} (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY});
+      migraciones de base de datos versionadas con Alembic; separación
+      estricta entre \emph{frontend} y \emph{backend}. & Cumplido \\
+    Usabilidad & Interfaz basada en Material Design con validación en
+      tiempo real, notificaciones \emph{toast}, \emph{breadcrumbs} de
+      navegación y estados de carga/error diferenciados; soporte
+      español/inglés con cambio en tiempo real sin recargar la
+      aplicación. & Cumplido \\
+    Portabilidad & Despliegue íntegro del \emph{stack} con un único
+      \texttt{docker\,compose\,up}; configuración por variables de
+      entorno; sin dependencias de servicios propietarios en la nube;
+      ocho servicios orquestados conjuntamente. & Cumplido \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El único aspecto pendiente dentro de los requisitos no funcionales es la
+\textbf{cobertura de pruebas \emph{end-to-end} del \emph{frontend}}, que
+durante el desarrollo se validó manualmente y queda como trabajo futuro
 (sección~\ref{sec:trabajo-futuro}).
 
 %% =========================================================================
@@ -458,11 +506,13 @@ escenarios degradados.
 %% =========================================================================
 
 A pesar de los resultados alcanzados, la plataforma presenta limitaciones
-que conviene reconocer explícitamente.  Estas se pueden agrupar en cuatro
+que conviene reconocer explícitamente.  Estas se pueden agrupar en cinco
 ámbitos: la escalabilidad y el rendimiento del motor de procesamiento,
 la madurez de los servicios de plataforma de cara a entornos
-corporativos, la cobertura de las pruebas automatizadas y el alcance de
-la validación experimental.
+corporativos, la cobertura de las pruebas automatizadas, el alcance de
+la validación experimental y la frontera funcional del sistema en
+relación con la corrección de datos y la integración con fuentes
+externas.
 
 El primer grupo afecta a la \textbf{escalabilidad y al rendimiento} bajo
 cargas elevadas y constituye la restricción técnica más significativa de
@@ -520,6 +570,19 @@ adecuación del catálogo de métricas a casos de uso reales o el ajuste
 de los umbrales por defecto de los \emph{Quality Gates}.  La
 validación realizada acredita la corrección técnica del sistema, pero
 no su idoneidad operativa para perfiles externos al desarrollo.
+
+Un quinto ámbito es la \textbf{frontera funcional del sistema}.  Por un
+lado, \dataqual diagnostica y clasifica los problemas de calidad, pero la
+decisión y ejecución de las acciones correctoras (limpieza, imputación,
+deduplicación) corresponden al usuario: la incorporación de sugerencias
+de corrección automatizada queda como una de las líneas de trabajo
+futuro identificadas en la sección~\ref{sec:trabajo-futuro}.  Por otro,
+no se han desarrollado conectores específicos para bases de datos
+(MySQL, BigQuery, Snowflake) ni para servicios de almacenamiento en la
+nube (AWS~S3, Azure~Blob, Google~Cloud~Storage); aunque la arquitectura
+basada en MinIO es compatible con el protocolo S3, el usuario interactúa
+actualmente con la plataforma a través de ficheros \ac{CSV} cargados
+manualmente.
 
 
 %% =========================================================================

@@ -11,6 +11,23 @@
 \usepackage{amssymb}  % \checkmark, $\star$ y otros símbolos matemáticos
 \usepackage{amsmath}  % para \text{}, \!, \;, \max, etc. en fórmulas
 \usepackage{float}    % para fijar la posición de las tablas con [H]
+\usepackage[most]{tcolorbox} % cajas resaltadas para objetivos
+\tcbuselibrary{skins}
+
+%% -- Caja de Objetivo General/Específico
+\newtcolorbox{objbox}[2][]{%
+  enhanced,
+  colback=gray95,
+  colframe=black!75,
+  arc=2pt,
+  boxrule=0.6pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\bfseries\sffamily,
+  coltitle=white,
+  colbacktitle=black!75,
+  title={#2},
+  #1
+}
 
 %% -- Completar jerarquía de títulos sans-serif (gita-tfg.cls solo define
 %%    \titleformat hasta \subsection; \subsubsection y \paragraph heredan
