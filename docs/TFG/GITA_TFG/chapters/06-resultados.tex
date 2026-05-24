@@ -243,26 +243,13 @@ magnitudes del sistema implementado.
 \end{table}
 
 La batería de pruebas automatizadas se organiza en doce módulos pytest
-agrupados por dominio funcional, cubriendo autenticación, \ac{API} de
-proyectos, versionado de datasets a nivel de servicio y de \ac{API},
-motor de métricas en sus versiones base y extendida, \emph{Quality
-Score}, \emph{Quality Gates} con umbrales y veredicto,
-\emph{fingerprinting}, comparación con línea base y autorización contra
-accesos indebidos (\ac{IDOR}); el detalle de cada suite se describe en
-la sección~\ref{sec:impl-pruebas} y el plan de pruebas integral
-(estrategia, niveles, casos de prueba y trazabilidad con requisitos) se
-formaliza en el Anexo~\ref{anx:pruebas}.  Las pruebas se ejecutan
-con \texttt{pytest} desde el directorio \texttt{backend/} y pueden
-generar informes de cobertura mediante la opción \texttt{-{}-cov}.
-Estas suites unitarias y de integración se complementaron con pruebas
-manuales de extremo a extremo sobre los flujos completos de la
-plataforma (registro, creación de proyecto, carga de dataset,
-configuración de métricas, ejecución de evaluaciones y consulta de
-resultados), que verificaron la correcta integración de todos los
-componentes en escenarios realistas.  La automatización de estas
-pruebas \emph{end-to-end} con herramientas como Playwright o Cypress
-queda como tarea pendiente y se identifica explícitamente como
-limitación en la sección~\ref{sec:limitaciones}.
+agrupados por dominio funcional; las suites unitarias y de integración
+se complementaron con pruebas manuales de extremo a extremo sobre los
+flujos completos de la plataforma.  La automatización de estas pruebas
+\emph{end-to-end} queda como tarea pendiente y se identifica como
+limitación en la sección~\ref{sec:limitaciones}.  El plan de pruebas
+integral (estrategia, niveles, casos y trazabilidad con requisitos) se
+formaliza en el Anexo~\ref{anx:pruebas}.
 
 \subsection{Esfuerzo y desviaciones}
 \label{sec:esfuerzo}
@@ -310,23 +297,14 @@ al esfuerzo real invertido en cada sprint.
   \label{fig:commits-per-sprint}
 \end{figure}
 
-La Figura~\ref{fig:commits-per-sprint} ilustra el reparto real de \emph{commits}
-por sprint a partir del historial de Git: el grueso de la actividad de
-desarrollo se concentra en los sprints S1 (setup intensivo del entorno y el
-modelo de datos), S4 (desarrollo del \emph{frontend}) y S5 (funcionalidades
-avanzadas), que conjuntamente suman alrededor del 78\,\% de los \emph{commits}
-del proyecto.
-
-La desviación global del +16,8\,\% se mantiene dentro del rango habitual para
-proyectos de software individuales.  El sprint con mayor desviación fue el S5
-(+37,5\,\%), causado por problemas de integración entre el sistema de
-\emph{fingerprinting} y el módulo de comparación con la línea base que no
-fueron detectados en la planificación.  El sprint con menor desviación fue
-el S3 (+9,4\,\%), cuyo motor de métricas aprovechó la arquitectura de
-\emph{plugins} establecida en S2, reduciendo el esfuerzo de integración
-previsto.  La tendencia a subestimar el esfuerzo es consistente en todos los
-sprints y refleja la dificultad de estimar tareas de integración entre
-servicios distribuidos.
+La Figura~\ref{fig:commits-per-sprint} muestra el reparto real de
+\emph{commits} por sprint a partir del historial de Git, con la mayor
+actividad concentrada en S1, S4 y S5 (en torno al 78\,\% del total).
+La desviación global de +16,8\,\% se mantiene dentro del rango habitual
+para proyectos individuales; el sprint con mayor desviación fue S5
+(+37,5\,\%, problemas de integración del \emph{fingerprinting} con la
+línea base) y el de menor desviación, S3 (+9,4\,\%, gracias a la
+arquitectura de \emph{plugins} ya establecida en S2).
 
 \subsection{Verificación del cumplimiento de objetivos}
 
@@ -425,79 +403,52 @@ durante el desarrollo se validó manualmente y queda como trabajo futuro
 \label{sec:fortalezas}
 %% =========================================================================
 
-A partir de los resultados consolidados en la sección anterior, las
-fortalezas de \dataqual se pueden agrupar en cuatro ejes: una base
-arquitectónica extensible, un conjunto de capacidades funcionales
-diferenciadoras, una integración nativa de la protección de información
-personal y un modelo de despliegue y operación robusto.
+A partir de los resultados consolidados, las fortalezas de \dataqual se
+pueden agrupar en cuatro ejes: una base arquitectónica extensible, un
+conjunto de capacidades funcionales diferenciadoras, una integración
+nativa de la protección de \acs{PII} y un modelo de despliegue y operación
+robusto.  El desarrollo técnico de cada una se describe en los sprints
+correspondientes del capítulo~\ref{chap:desarrollo}; aquí se discute su
+valor desde la perspectiva del sistema acabado.
 
-La principal fortaleza arquitectónica reside en el \textbf{patrón de
-\emph{plugins} del motor de métricas}, materializado mediante la clase
-abstracta \texttt{BaseMetric} y el diccionario
-\texttt{METRIC\_REGISTRY}~\citep{design_patterns}.  Esta separación entre
-la interfaz pública del motor y las implementaciones concretas permite
-incorporar una nueva métrica sin modificar el código existente: basta con
-crear una clase heredera, registrarla en el diccionario y, opcionalmente,
-exponerla en la interfaz de configuración.  Su valor quedó demostrado
-durante el propio desarrollo, en el que el catálogo creció de tres
-métricas en el Sprint~3 a siete al cierre del Sprint~5 sin necesidad de
-reescribir el orquestador de evaluaciones.  La misma filosofía de
-extensibilidad se traslada al \emph{frontend}, organizado en torno a más
-de cincuenta componentes React reutilizables que permiten ensamblar
-nuevas pantallas con bajo coste marginal.
+La principal fortaleza arquitectónica es el \textbf{patrón de
+\emph{plugins} del motor de métricas}
+(\texttt{BaseMetric}~+~\texttt{METRIC\_REGISTRY}, descrito en la
+sección~\ref{sec:motor-metricas}).  Su valor quedó demostrado durante el
+propio desarrollo, en el que el catálogo creció de tres métricas en el
+Sprint~3 a siete al cierre del Sprint~5 sin necesidad de reescribir el
+orquestador de evaluaciones.  La misma filosofía de extensibilidad se
+traslada al \emph{frontend}, organizado en torno a más de cincuenta
+componentes React reutilizables.
 
-Sobre esa base arquitectónica, \dataqual incorpora cuatro capacidades
-funcionales que la diferencian de las herramientas analizadas en el
-capítulo~\ref{chap:antecedentes}.  El \textbf{sistema de
-\emph{fingerprinting}}, basado en un \emph{hash} \ac{SHA}-256 truncado y
-determinista por \emph{issue}, permite trazar la evolución de un mismo
-problema entre ejecuciones sucesivas y clasificar los \emph{issues}
-automáticamente como nuevos, recurrentes o corregidos: una capacidad
-poco común en herramientas de código abierto, que típicamente reportan
-listados planos sin continuidad temporal.  Los \textbf{\emph{Quality
-Gates}} trasladan al dominio de los datos un concepto consolidado en la
-calidad del código~\citep{sonarqube}, ofreciendo un veredicto
-PASSED/WARNING/FAILED automatizable que puede integrarse en
-\emph{pipelines} de \ac{MLOps} como criterio de promoción de datasets
-entre entornos.  El \textbf{módulo de perfilado interactivo} concentra
-en una sola pantalla histogramas, diagramas de caja, matrices de
-correlación de Pearson y Spearman y detección de \emph{outliers} con
-factor \ac{IQR} configurable, sin obligar al usuario a abandonar la
-plataforma.  Por último, las \textbf{métricas específicas para
-\emph{machine learning}} (equilibrio de clases basado en entropía de
-Shannon y diversidad del \emph{dataset}) responden a necesidades del
-ciclo de vida de modelos que las herramientas generalistas de calidad
-de datos no cubren.
+Sobre esa base, la plataforma incorpora cuatro \textbf{capacidades
+funcionales diferenciadoras} frente a las herramientas analizadas en el
+capítulo~\ref{chap:antecedentes}: el sistema de \emph{fingerprinting}
+\ac{SHA}-256 (Sprint~5), que permite trazar la evolución de cada
+\emph{issue} entre ejecuciones; los \emph{Quality Gates} con veredicto
+\texttt{PASSED}/\texttt{WARNING}/\texttt{FAILED}, integrables en
+\emph{pipelines} de \ac{MLOps}~\citep{sonarqube}; el módulo de perfilado
+interactivo (Sprint~4), que concentra histogramas, diagramas de caja,
+matrices de correlación y detección de \emph{outliers} en una sola
+pantalla; y las \textbf{métricas específicas para \ac{ML}} (equilibrio
+de clases y diversidad), ausentes en las herramientas generalistas.
 
-La \textbf{protección nativa de información personal identificable
-(\ac{PII})} es la fortaleza con mayor coste de implementación pero
-también la de mayor valor diferencial en contextos regulados por el
-\ac{RGPD}.  Lejos de tratarse de una capa filtro añadida \emph{a
-posteriori}, el enmascaramiento se ha implementado como un contrato que
-toda métrica debe respetar: las clases heredan de \texttt{BaseMetric}
-un método de enmascaramiento que se invoca antes de cualquier escritura
-de un valor a logs, \emph{issues} o respuestas de la \ac{API},
-garantizando que ninguna columna marcada como sensible filtre valores a
-través de cualquier camino del sistema.  Esta integración estructural
-marca la diferencia entre «la herramienta puede ofuscar \ac{PII} si se
-configura» y «la herramienta no puede revelar \ac{PII} por
-construcción».
+La \textbf{protección nativa de \acs{PII}} es la fortaleza con mayor
+valor diferencial en contextos regulados por el \ac{RGPD}.  Lejos de
+tratarse de una capa filtro añadida \emph{a posteriori}, el
+enmascaramiento es un contrato que toda métrica debe respetar
+(Sprint~5): marca la diferencia entre «la herramienta puede ofuscar
+\acs{PII} si se configura» y «la herramienta no puede revelar
+\acs{PII} por construcción».
 
-Desde el punto de vista operativo, la plataforma se distingue por ser
-\textbf{íntegramente autoalojada y desplegable con un único comando}
-(\texttt{docker-compose~up}): los ocho servicios se levantan en una red
-interna, sin dependencia de servicios en la nube propietarios y
-manteniendo los datos del usuario bajo su control total.  La capa de
-ingesta incorpora un \textbf{parseo robusto de \ac{CSV}} mediante una
-matriz de \emph{fallback} que combina cuatro codificaciones, seis
-estrategias de separador y los dos motores de Pandas, capaz de gestionar
-ficheros reales con BOM, codificaciones mixtas o delimitadores poco
-habituales que provocan errores en analizadores estándar.  El
-\textbf{procesamiento asíncrono con Celery}~\citep{celery} se complementa
-con un \emph{watchdog} que detecta evaluaciones atascadas y un servicio
-híbrido que recurre al modo síncrono ante indisponibilidad del
-\emph{worker}, asegurando que las evaluaciones se completen incluso en
-escenarios degradados.
+Desde el punto de vista operativo, \dataqual es \textbf{íntegramente
+autoalojable mediante Docker Compose} (ocho servicios en una red
+interna, sin dependencias de nube propietaria), incorpora un
+\textbf{parseo robusto de \ac{CSV}} mediante matriz de \emph{fallback}
+(Sprint~2), y orquesta el procesamiento asíncrono con
+Celery~\citep{celery} complementado por un \emph{watchdog} y un
+servicio híbrido de \emph{fallback} síncrono que garantizan la
+completitud de las evaluaciones incluso en escenarios degradados.
 
 
 %% =========================================================================

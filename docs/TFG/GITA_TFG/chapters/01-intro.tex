@@ -239,14 +239,11 @@ reservan para versiones futuras, así como la justificación detallada de
 los criterios aplicados, se exponen en la
 sección~\ref{sec:priorizacion-mvp}.
 
-En cuanto a las limitaciones funcionales y operativas, el sistema procesa
-conjuntos de datos tabulares en formato \ac{CSV} que quepan en la memoria
-disponible de la máquina de despliegue, sin recurrir a motores
-distribuidos como Spark o Dask.  Quedan asimismo \textbf{fuera del
-alcance} la corrección automática de los errores detectados (el sistema
-los identifica y los reporta, pero no los repara) y la integración nativa
-con plataformas \emph{cloud} propietarias (AWS, Azure, GCP), reservada
-para trabajo futuro.
+Las limitaciones funcionales y operativas del sistema (procesamiento
+limitado por memoria, ausencia de corrección automática y de
+integración nativa con plataformas \emph{cloud} propietarias) se
+detallan en la sección~\ref{sec:limitaciones} del capítulo de
+resultados.
 
 %% ---------------------------------------------------------------------------
 \section{Estructura del documento}

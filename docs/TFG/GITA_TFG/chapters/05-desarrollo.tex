@@ -351,78 +351,25 @@ Anexo~\ref{anx:diagramas}.
 \label{sec:modelo-datos}
 
 PostgreSQL~14~\citep{postgresql} almacena todos los datos relacionales y
-metadatos del sistema.  El esquema final comprende once tablas, aunque en
-este sprint solo se crearon las siete iniciales; las cuatro tablas del modelo
-Sonar-Lite (\texttt{analysis\_runs}, \texttt{data\_quality\_issues},
-\texttt{quality\_gates} y \texttt{validation\_patterns}) se incorporaron en
-el Sprint~5.  El diseño hace un uso extensivo de campos \textbf{JSONB} para
-almacenar datos semiestructurados cuya estructura varía según la métrica o
-la configuración.
-
-\begin{definitionlist}
-  \item[\texttt{users}]  Datos de usuario: nombre, correo electrónico,
-    \emph{hash} de contraseña y rol.
-
-  \item[\texttt{projects}]  Proyectos del usuario, con nombre, descripción y
-    configuración de métricas almacenada como JSONB
-    (\texttt{metrics\_config}).
-
-  \item[\texttt{datasets}]  Conjuntos de datos asociados a un proyecto, con
-    la ruta al archivo en MinIO, el esquema inferido (JSONB), las columnas
-    sensibles (JSONB), la versión y el indicador \texttt{is\_latest}.
-    Cada conjunto de datos puede tener un \texttt{parent\_dataset\_id} que
-    apunta a su versión anterior.
-
-  \item[\texttt{analysis\_runs}]  Ejecuciones de evaluación (modelo
-    Sonar-Lite): estado, puntuación de calidad, estado del \emph{Quality
-    Gate}, referencia a la evaluación base, contadores de \emph{issues}
-    nuevos, corregidos y recurrentes, y resultados detallados (JSONB).
-
-  \item[\texttt{data\_quality\_issues}]  Problemas de calidad detectados en
-    cada evaluación: \emph{fingerprint} \ac{SHA}-256, severidad, tipo,
-    descripción, columnas afectadas y muestras de filas.
-
-  \item[\texttt{quality\_gates}]  Configuración de \emph{Quality Gates} por
-    proyecto, con umbrales almacenados como JSONB
-    (\texttt{min\_score}, \texttt{max\_critical\_issues},
-    \texttt{max\_new\_issues}).
-
-  \item[\texttt{metric\_templates}]  Plantillas de configuración de métricas,
-    reutilizables entre proyectos.  Pueden ser del sistema
-    (\texttt{is\_system\,=\,true}) o del usuario.
-
-  \item[\texttt{metrics}]  Configuraciones de métricas activas por proyecto:
-    tipo de métrica, parámetros, umbrales y peso relativo en el
-    \emph{Quality Score}.  Enlazada a \texttt{projects} mediante clave
-    foránea.
-
-  \item[\texttt{evaluations}]  Registro de alto nivel de cada evaluación
-    (modelo original): estado (\texttt{PENDING}/\texttt{RUNNING}/
-    \texttt{COMPLETED}/\texttt{FAILED}), referencia al dataset y al
-    proyecto, y marca temporal.  Coexiste con \texttt{analysis\_runs}
-    por razones de retrocompatibilidad (véase la nota sobre arquitectura
-    dual más adelante).
-
-  \item[\texttt{issues}]  Incidencias de calidad del modelo original:
-    métrica origen, columna afectada, severidad y descripción textual.
-    Vinculadas a \texttt{evaluations}.  Las evaluaciones nuevas utilizan
-    \texttt{data\_quality\_issues}, que añade \emph{fingerprint}
-    \ac{SHA}-256 y muestras de filas.
-
-  \item[\texttt{validation\_patterns}]  Patrones de validación de formato
-    definidos por el usuario (expresiones regulares con ejemplos válidos e
-    inválidos), reutilizables entre proyectos.  Pueden ser del sistema
-    (\texttt{is\_system\,=\,true}) o propios del usuario.  Son la extensión
-    dinámica del catálogo estático de trece formatos de la métrica
-    \texttt{syntactic\_accuracy}, gestionados mediante el
-    \emph{blueprint} \texttt{patterns}.
-\end{definitionlist}
-
-El empleo de campos JSONB permite almacenar estructuras flexibles dentro del
-esquema relacional: \texttt{projects.metrics\_config} (lista de métricas con
-parámetros y peso), \texttt{datasets.schema} (tipos y estadísticas por columna),
-\texttt{datasets.sensitive\_columns} (columnas PII) y
-\texttt{analysis\_runs.results} (resultados completos por métrica).
+metadatos del sistema.  El esquema final comprende \textbf{once tablas}
+organizadas en tres grupos: identidad y proyectos (\texttt{users},
+\texttt{projects}, \texttt{datasets}, \texttt{metrics},
+\texttt{metric\_templates}), modelo \emph{Sonar-Lite}
+(\texttt{analysis\_runs}, \texttt{data\_quality\_issues},
+\texttt{quality\_gates}, \texttt{validation\_patterns}) y modelo original
+mantenido por retrocompatibilidad (\texttt{evaluations},
+\texttt{issues}).  En este sprint se crearon las siete iniciales; las
+cuatro del modelo \emph{Sonar-Lite} se incorporaron en el Sprint~5.  El
+diseño hace un uso extensivo de campos \textbf{JSONB} para almacenar
+estructuras semiestructuradas que varían según la métrica o
+configuración: \texttt{projects.metrics\_config},
+\texttt{datasets.schema}, \texttt{datasets.sensitive\_columns},
+\texttt{quality\_gates.thresholds} y \texttt{analysis\_runs.results}.
+El versionado de \emph{datasets} se implementa mediante el par
+\texttt{parent\_dataset\_id} + \texttt{is\_latest}.  El esquema
+completo (tablas, columnas, tipos y relaciones de clave foránea) se
+representa en la Figura~\ref{fig:er-diagram} del
+Anexo~\ref{anx:diagramas}.
 
 \subsection{Retrospectiva}
 
@@ -529,31 +476,18 @@ clara de responsabilidades.
 La aplicación Flask se crea mediante el \textbf{patrón factoría}
 (\texttt{create\_app()} en \texttt{app.py})~\citep{design_patterns}, que
 inicializa las extensiones, registra los \emph{blueprints} y configura el
-\emph{middleware}.  Los \textbf{seis módulos funcionales principales} de la \ac{API} se montan
-bajo el prefijo \texttt{/api}:
-
-\begin{itemize}
-  \item \texttt{/api/auth/}:autenticación (inicio de sesión, registro,
-    refresco de \emph{token}, perfil).
-  \item \texttt{/api/projects/}:\ac{CRUD} de proyectos y configuración de
-    métricas.
-  \item \texttt{/api/datasets/}:carga, consulta y versionado de conjuntos
-    de datos.
-  \item \texttt{/api/metrics/}:consulta de métricas y gestión de plantillas.
-  \item \texttt{/api/evaluations/}:lanzamiento y consulta de evaluaciones.
-  \item \texttt{/api/admin/}:rendimiento del sistema y comprobación de salud.
-\end{itemize}
-
-Siguiendo la convención REST de rutas anidadas, se implementaron adicionalmente
-tres \emph{blueprints} de organización técnica: \texttt{project\_metrics}
-(\texttt{/projects/<id>/metrics}), \texttt{project\_datasets}
-(\texttt{/projects/<id>/datasets}) y \texttt{dashboard} (agregaciones de solo
-lectura).  El total de \emph{blueprints} Flask registrados al cierre de
-este sprint asciende a \textbf{nueve}; durante el Sprint~5 se añadirá un
-séptimo módulo funcional (\texttt{patterns}, gestión de patrones de
-validación reutilizables) elevando el total final a diez, tal como se
-representa en el diagrama de arquitectura
-(Figura~\ref{fig:diagrama-arquitectura}).
+\emph{middleware}.  La \ac{API} se monta bajo el prefijo \texttt{/api}
+y queda organizada en este sprint en \textbf{seis módulos funcionales}
+(\texttt{auth}, \texttt{projects}, \texttt{datasets}, \texttt{metrics},
+\texttt{evaluations}, \texttt{admin}) más tres \emph{blueprints} de
+organización técnica derivados de la convención REST de rutas anidadas
+(\texttt{project\_metrics}, \texttt{project\_datasets},
+\texttt{dashboard}).  En el Sprint~5 se incorporará un séptimo módulo
+funcional (\texttt{patterns}), llegando al total final de diez
+\emph{blueprints} representado en el diagrama de arquitectura
+(Figura~\ref{fig:diagrama-arquitectura}).  La especificación completa
+de rutas, parámetros y formatos de respuesta se encuentra en el
+Anexo~\ref{anx:api}.
 
 La lógica de negocio se encapsula en servicios independientes.  En este
 sprint se establecieron los dos servicios fundamentales:
@@ -791,77 +725,26 @@ Para añadir una nueva métrica basta con: (1)~crear una clase heredera de
 \texttt{METRIC\_REGISTRY}; (3)~añadir la función de \emph{fingerprint};
 y (4)~documentarla en el Anexo~B.
 
-\subsubsection{Métricas implementadas}
+\subsubsection{Catálogo de métricas implementadas}
 
-A continuación se describen las \textbf{siete métricas evaluables} del motor
-de calidad (implementadas progresivamente en S3, S4 y S5) y la clase
-adicional de detección de valores atípicos, disponible
-en el módulo de perfilado.
+El motor incorpora progresivamente, a lo largo de los sprints S3, S4 y S5,
+\textbf{siete métricas evaluables} que contribuyen al \emph{Quality Score}:
+completitud (\texttt{completeness}), unicidad (\texttt{uniqueness}),
+exactitud sintáctica (\texttt{syntactic\_accuracy}), consistencia lógica
+(\texttt{logical\_consistency}), actualidad (\texttt{currentness}),
+equilibrio de clases (\texttt{class\_balance}) y diversidad
+(\texttt{diversity}).  Las fórmulas se alinean con \ac{ISO}/IEC~25024
+para las cuatro dimensiones inherentes y con \ac{ISO}/IEC~5259-2 para
+unicidad, equilibrio y diversidad.  Adicionalmente, la clase
+\texttt{OutliersMetric} detecta valores atípicos mediante \ac{IQR}; por
+recomendación de \ac{ISO}/IEC~5259, no figura en
+\texttt{METRIC\_REGISTRY} ni contribuye al \emph{Quality Score}, sino
+que se utiliza únicamente como herramienta de diagnóstico en el módulo
+\acs{EDA}.
 
-\paragraph{Completitud (\texttt{completeness})}
-Mide el grado en que los datos esperados están presentes, calculando la ratio
-de valores no nulos por columna.  La fórmula implementada corresponde
-directamente al \emph{Completeness Ratio} definido en
-\ac{ISO}/IEC~25024~\citep{iso25024}:
-\[
-  r_{\mathrm{comp}} = \frac{N - N_{\mathrm{null}}}{N}
-\]
-donde $N$ es el número total de valores esperados y $N_{\mathrm{null}}$ el
-número de valores nulos o ausentes.  La puntuación global es la media de
-$r_{\mathrm{comp}}$ sobre las columnas configuradas.  Se generan
-\emph{issues} si la completitud global queda por debajo del umbral (0,95
-por defecto) o si alguna columna cae por debajo de ese mismo umbral
-(equivalente a más del 5\,\% de nulos con la configuración por defecto).
-
-\paragraph{Unicidad (\texttt{uniqueness})}
-Evalúa la ausencia de duplicados a dos niveles: filas completas y
-variabilidad por columna.  La ratio de unicidad sigue la fórmula del
-\emph{Uniqueness Ratio} de \ac{ISO}/IEC~25024~\citep{iso25024}:
-\[
-  r_{\mathrm{uniq}} = \frac{N_{\mathrm{distinct}}}{N}
-\]
-Los umbrales de variabilidad se adaptan al tipo semántico inferido:
-0,95 para identificadores, 0,05 para categóricas y 0,30 para el resto.
-
-\paragraph{Detección de valores atípicos (\texttt{outliers}):solo perfilado}
-La clase \texttt{OutliersMetric} detecta \emph{outliers} en columnas
-numéricas mediante \ac{IQR} (Rango Intercuartílico)~\citep{tukey1977}
-y Z-score.
-\textbf{Esta clase no figura en el \texttt{METRIC\_REGISTRY} y no contribuye
-al \emph{Quality Score}:} siguiendo la recomendación de
-\ac{ISO}/IEC~5259~\citep{iso5259}, los valores atípicos no se consideran una
-dimensión de calidad intrínseca sino un indicador de diagnóstico.  La clase
-se instancia exclusivamente desde el módulo de perfilado de datos
-(\emph{EDA}), donde los histogramas de \emph{outliers} y los diagramas de
-caja se generan para orientar al usuario sin penalizar la puntuación global.
-
-\paragraph{Exactitud sintáctica (\texttt{syntactic\_accuracy})}
-Verifica la conformidad de los valores con patrones de formato predefinidos.
-El catálogo incluye trece tipos (\emph{email}, \emph{url}, teléfono español
-(\texttt{phone\_es}) e internacional (\texttt{phone\_intl}), DNI,
-fechas ISO y europeas, enteros, decimales, UUID, IPv4, código postal y tarjeta
-de crédito).  Para columnas sin configuración explícita, detecta el tipo más
-probable automáticamente.
-
-\paragraph{Consistencia lógica (\texttt{logical\_consistency})}
-Valida reglas de negocio entre columnas, expresadas como reglas
-\texttt{IF\,--\,THEN} evaluadas mediante
-\texttt{pandas.DataFrame.query()}.  Antes de ejecutar cualquier regla, se
-verifica la ausencia de \emph{tokens} prohibidos (\texttt{import},
-\texttt{exec}, \texttt{eval}) para prevenir inyección de código.
-
-\paragraph{Equilibrio de clases (\texttt{class\_balance})}
-Métrica específica para \ac{ML} supervisado.  Utiliza la entropía de
-Shannon~(\citeyear{shannon1948}) para cuantificar el equilibrio de la variable
-objetivo: 100 indica
-distribución uniforme; cercano a~0 indica desequilibrio total.  Se generan
-\emph{issues} cuando la clase dominante supera el 90\,\% o la minoritaria
-representa menos del 5\,\%.
-
-\paragraph{Actualidad (\texttt{currentness})}
-Mide la frescura de los datos calculando la antigüedad del valor de fecha más
-reciente respecto al momento actual.  La degradación de la puntuación es
-lineal entre el umbral de obsolescencia y el doble de dicho umbral.
+La especificación detallada de cada métrica (fórmula, parámetros,
+umbrales por defecto y generación de \emph{issues}) se recoge en el
+Anexo~\ref{anx:metricas}.
 
 \subsubsection{Fórmula del \emph{Quality Score}}
 
@@ -1065,8 +948,10 @@ La interfaz proporciona las siguientes visualizaciones principales:
 Las visualizaciones se implementan con Chart.js~\citep{chartjs} mediante el
 \emph{wrapper} \texttt{react-chartjs-2}.
 
-Las figuras~\ref{fig:dashboard}--\ref{fig:eda} muestran las pantallas
-principales de la interfaz de usuario desarrolladas en este sprint.
+Las figuras~\ref{fig:dashboard} y~\ref{fig:evaluation-results} muestran
+las dos pantallas más representativas de la interfaz; el resto de vistas
+(historial de análisis y módulo \ac{EDA}) se documentan en el Anexo
+G~(figuras~\ref{fig:manual-analysis-history} y~\ref{fig:manual-eda}).
 
 \begin{figure}[htbp]
   \centering
@@ -1079,29 +964,11 @@ principales de la interfaz de usuario desarrolladas en este sprint.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.92\textwidth]{img/analysis-history.png}
-  \caption{Historial de análisis de un proyecto: evolución temporal de la
-    puntuación de calidad, tendencia por \emph{dataset} y tabla de
-    ejecuciones con estado de \emph{Quality Gate}}
-  \label{fig:analysis-history}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
   \includegraphics[width=0.92\textwidth,height=0.85\textheight,keepaspectratio]{img/evaluation-results.png}
   \caption{Página de resultados de evaluación: puntuación de calidad global,
     resumen de métricas por dimensión, listado de \emph{issues} con
     severidad y columna afectada, y cálculo detallado de la puntuación final}
   \label{fig:evaluation-results}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.92\textwidth,height=0.85\textheight,keepaspectratio]{img/eda-profiling.png}
-  \caption{Módulo de exploración de datos (\acs{EDA}): resumen estadístico,
-    diagrama de caja (\emph{boxplot}), distribuciones por columna,
-    matriz de correlación Pearson/Spearman y diagrama de dispersión}
-  \label{fig:eda}
 \end{figure}
 
 \subsection{Retrospectiva}
@@ -1474,59 +1341,17 @@ de usuario y redactar la documentación técnica completa.
 \subsubsection{Estrategia de pruebas}
 \label{sec:impl-pruebas}
 
-Las pruebas automatizadas se organizan en \textbf{doce módulos} en
-\texttt{backend/tests/} agrupados por dominio funcional:
-
-\begin{itemize}
-  \item \textbf{Autenticación y \ac{API} de proyectos
-    (\texttt{test\_auth.py}, \texttt{test\_projects\_api.py}):} verifican
-    el flujo de autenticación completo (registro, inicio de sesión,
-    refresco de \emph{token}) y las operaciones \ac{CRUD} sobre proyectos.
-
-  \item \textbf{Versionado de datasets
-    (\texttt{test\_dataset\_versioning.py},
-    \texttt{test\_dataset\_versioning\_api.py}):} validan la relación
-    padre-hijo entre versiones y la actualización del indicador
-    \texttt{is\_latest} ante cargas sucesivas, tanto a nivel de servicio
-    como a través de los \emph{endpoints} de la \ac{API}.  Comprueban
-    que solo la versión más reciente tiene \texttt{is\_latest\,=\,true}
-    y que el historial se recupera ordenado.
-
-  \item \textbf{Motor de métricas (\texttt{test\_metrics\_engine.py},
-    \texttt{test\_metrics\_engine\_extended.py}):} cubren la ejecución
-    unitaria de cada métrica del \texttt{METRIC\_REGISTRY} sobre
-    \emph{DataFrames} sintéticos y casos límite (columnas vacías, tipos
-    mixtos, valores extremos).
-
-  \item \textbf{\emph{Quality Score} (\texttt{test\_quality\_score.py}):}
-    valida la fórmula del \emph{score} y su penalización por número de
-    \emph{issues} sobre escenarios controlados.
-
-  \item \textbf{\emph{Quality Gates} (\texttt{test\_quality\_gate.py},
-    \texttt{test\_quality\_gate\_verdict.py}):} verifican que los
-    umbrales configurados producen los estados \texttt{PASSED},
-    \texttt{WARNING} y \texttt{FAILED} para distintas combinaciones de
-    \emph{score} e \emph{issues}, incluyendo casos frontera (\emph{score}
-    exactamente en el umbral).
-
-  \item \textbf{\emph{Fingerprinting} y \emph{diff} contra línea base
-    (\texttt{test\_fingerprinting.py},
-    \texttt{test\_diff\_baseline.py}):} comprueban que el \emph{hash} es
-    determinista bajo distintos órdenes de parámetros y representaciones
-    flotantes, y que la clasificación de \emph{issues} en nuevos,
-    corregidos y recurrentes coincide con el resultado esperado al
-    comparar con la \emph{baseline}.
-
-  \item \textbf{Autorización \ac{IDOR}
-    (\texttt{test\_idor\_authorization.py}):} verifica que un usuario no
-    puede acceder a recursos (proyectos, datasets, evaluaciones) que
-    pertenecen a otro usuario, comprobando que los \emph{endpoints}
-    devuelven 403/404 ante referencias directas no autorizadas a
-    objetos.
-\end{itemize}
-
-Las pruebas se ejecutan con \texttt{pytest} desde \texttt{backend/} y
-pueden generar informes de cobertura con la opción \texttt{-{}-cov}.
+La batería se organiza en \textbf{doce módulos pytest} en
+\texttt{backend/tests/} agrupados por dominio funcional: autenticación
+y \ac{API} de proyectos, versionado de \emph{datasets} a nivel de
+servicio y de \ac{API}, motor de métricas (base y extendido),
+\emph{Quality Score}, \emph{Quality Gates} (umbrales y veredicto),
+\emph{fingerprinting} con comparación contra línea base, y
+autorización \ac{IDOR} contra accesos indebidos.  Las pruebas se
+ejecutan con \texttt{pytest} desde \texttt{backend/} y pueden generar
+informes de cobertura con la opción \texttt{-{}-cov}.  El plan
+completo, con la pirámide de niveles, la cobertura por dominio y el
+catálogo detallado de casos, se recoge en el Anexo~\ref{anx:pruebas}.
 
 \subsubsection{Defectos detectados y corregidos}
 

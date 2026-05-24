@@ -91,54 +91,28 @@ en un modelo orientado a sistemas informáticos que distingue entre
 características inherentes al dato y características dependientes del entorno
 tecnológico que lo aloja.
 
-\subsection{Impacto económico de la mala calidad de datos}
+\subsection{Impacto económico y de proceso}
 
-Redman~(\citeyear{redman1998}) estimó que los errores en datos consumen entre
-el 8\,\% y el 12\,\% de los ingresos de una organización, pudiendo alcanzar
-entre el 40\,\% y el 60\,\% de los gastos operativos en empresas de servicios;
-investigaciones posteriores del mismo autor~(\citeyear{redman2001}) elevaron
-ese rango hasta el 25\,\% en sectores con mayor dependencia de datos. Estudios posteriores del MIT Information Quality Program y del
-\ac{DMBOK}~\citep{dmbok2017} han reproducido estas cifras con resultados
-similares.
+Redman~(\citeyear{redman1998}) estimó que los errores en datos consumen
+entre el 8\,\% y el 12\,\% de los ingresos de una organización, pudiendo
+alcanzar entre el 40\,\% y el 60\,\% de los gastos operativos en empresas
+de servicios; investigaciones posteriores del mismo
+autor~(\citeyear{redman2001}) elevaron ese rango hasta el 25\,\% en
+sectores con mayor dependencia de datos.  Estudios posteriores del MIT
+Information Quality Program y del \ac{DMBOK}~\citep{dmbok2017} han
+reproducido estas cifras con resultados similares.
 
-En proyectos de \ac{IA}, el coste se multiplica: un modelo entrenado con datos
-defectuosos no solo produce resultados incorrectos, sino que las decisiones
-tomadas a partir de esas predicciones pueden tener consecuencias financieras,
-legales y reputacionales difíciles de revertir.
-Sambasivan et al.~(\citeyear{sambasivan2021}) demostraron, en un estudio con
-53 equipos de \ac{IA} de países en desarrollo realizado en Google Research,
-que el comportamiento de los sistemas de \ac{IA} está determinado
-críticamente por los datos, en mayor medida que por el código. Su
-contribución teórica central es el concepto de \emph{Data Cascades}
-(cascadas de datos): eventos compuestos originados por problemas de calidad
-que se propagan y amplifican a lo largo del \emph{pipeline}, causando fallos
-en etapas posteriores difíciles de trazar hasta su origen. El estudio reveló
-que el 92\,\% de los profesionales encuestados había experimentado al menos
-una cascada de datos. Su trabajo, titulado «Everyone wants to do the model
-work, not the data work», evidenció la paradoja central del campo: los datos
-son el factor más determinante del rendimiento y, al mismo tiempo, el aspecto
-menos valorado del proceso.
-
-Casos públicos ampliamente documentados como el algoritmo de selección de
-Amazon~\citep{amazon2018}, COMPAS~\citep{compas2016}, el Apple
-Card~\citep{applecard2019}, los sistemas de reconocimiento facial estudiados
-por Buolamwini y Gebru~(\citeyear{buolamwini2018}) o el cierre de
-Zillow~Offers~\citep{zillow2021} pueden leerse como cascadas de datos
-materializadas en producción, asociadas a deficiencias en las dimensiones
-de representatividad, equilibrio de clases o actualidad recogidas por la
-\ac{ISO}/IEC~5259~\citep{iso5259}.
-
-Según el \emph{Data Science Report} de CrowdFlower~\citep{crowdflower2016},
-los científicos de datos dedicaban en 2016 hasta el 60\,\% de su tiempo a
-limpiar y organizar datos y un 19\,\% adicional a recopilarlos, sumando cerca
-del 80\,\% en preparación. Encuestas más recientes~\citep{anaconda2022}
-muestran que ese porcentaje ha descendido hasta aproximadamente el 38\,\%,
-pero la preparación y limpieza sigue siendo con diferencia la tarea que más
-tiempo consume, por encima de la visualización (13\,\%) y el entrenamiento
-de modelos (9\,\%). La tendencia revela un problema estructural que,
-aunque ha mejorado, sigue siendo el principal cuello de botella del trabajo
-con datos y refuerza la necesidad de herramientas automatizadas de diagnóstico
-de calidad.
+A esta dimensión económica se suma una dimensión de proceso.  Según
+CrowdFlower~\citep{crowdflower2016}, los científicos de datos dedicaban
+en 2016 cerca del 80\,\% de su tiempo a preparación y limpieza de datos;
+encuestas más recientes~\citep{anaconda2022} sitúan esa cifra en torno
+al 38\,\%, pero sigue siendo la tarea que más tiempo consume, por encima
+de visualización (13\,\%) y entrenamiento de modelos (9\,\%).  El
+fenómeno se reconoce como un problema estructural --- las \emph{Data
+Cascades} descritas por Sambasivan et al.~(\citeyear{sambasivan2021}) y
+sus consecuencias prácticas se desarrollan en la
+sección~\ref{sec:motivacion} ---, lo que refuerza la necesidad de
+herramientas automatizadas de diagnóstico de calidad.
 
 \subsection{El paradigma data-centric AI}
 
@@ -164,13 +138,12 @@ Diversas iniciativas han consolidado este paradigma en la comunidad:
     entrenamiento de modelos.
 \end{itemize}
 
-El paradigma data-centric cobra especial relevancia cuando se considera que
-los propios datos pueden ser fuente de sesgo sistemático. Los datos
-desequilibrados o no representativos son la raíz de muchos casos documentados
-de sesgo en sistemas de \ac{IA}: desde algoritmos de contratación que discriminan por
-género~\citep{amazon2018} hasta sistemas de reconocimiento facial con tasas de
-error desproporcionadas para minorías étnicas~\citep{buolamwini2018}. El equilibrio de clases y la representatividad de los datos son factores
-determinantes en la equidad de los sistemas inteligentes.
+El paradigma data-centric subraya además que los propios datos son
+fuente recurrente de sesgo sistemático: los casos documentados
+(reconocimiento facial, contratación, reincidencia, valoración
+inmobiliaria) se discuten en la sección~\ref{sec:motivacion} y conectan
+con las dimensiones de equilibrio de clases, representatividad y
+actualidad recogidas por \ac{ISO}/IEC~5259.
 
 
 %% =========================================================================
@@ -277,7 +250,7 @@ taxonomía, analizada en detalle en la Sección~\ref{sec:alcance-metodologico},
 constituye el marco conceptual sobre el que se delimita el alcance técnico de
 \dataqual.
 
-\subsection{UNE 0081: Guía nacional para la evaluación de la calidad del dato}
+\subsection[UNE 0081: evaluación de la calidad del dato]{UNE 0081: evaluación de la calidad del dato}
 \label{sec:une0081}
 
 En el contexto español, la norma \ac{UNE} 0081~\citep{une0081}, publicada
@@ -324,7 +297,7 @@ cumplimiento normativo.
 
 
 %% =========================================================================
-\section{Taxonomía de características de calidad según ISO/IEC 5259-2}
+\section[Taxonomía de ISO/IEC 5259-2]{Taxonomía de ISO/IEC 5259-2}
 \label{sec:alcance-metodologico}
 %% =========================================================================
 
