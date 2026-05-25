@@ -354,12 +354,12 @@ PostgreSQL~14~\citep{postgresql} almacena todos los datos relacionales y
 metadatos del sistema.  El esquema final comprende \textbf{once tablas}
 organizadas en tres grupos: identidad y proyectos (\texttt{users},
 \texttt{projects}, \texttt{datasets}, \texttt{metrics},
-\texttt{metric\_templates}), modelo \emph{Sonar-Lite}
+\texttt{metric\_templates}), subsistema de análisis incremental
 (\texttt{analysis\_runs}, \texttt{data\_quality\_issues},
 \texttt{quality\_gates}, \texttt{validation\_patterns}) y modelo original
 mantenido por retrocompatibilidad (\texttt{evaluations},
 \texttt{issues}).  En este sprint se crearon las siete iniciales; las
-cuatro del modelo \emph{Sonar-Lite} se incorporaron en el Sprint~5.  El
+cuatro del subsistema de análisis incremental se incorporaron en el Sprint~5.  El
 diseño hace un uso extensivo de campos \textbf{JSONB} para almacenar
 estructuras semiestructuradas que varían según la métrica o
 configuración: \texttt{projects.metrics\_config},
@@ -509,7 +509,7 @@ de su evolución incremental.  El modelo original (\texttt{Evaluation} +
 \texttt{Issue}), implementado en el Sprint~2, ofrecía una estructura sencilla
 adecuada para la primera versión del proyecto.  Al diseñar en el Sprint~5 el sistema de
 \emph{fingerprinting} y los \emph{Quality Gates}, resultó necesario un modelo
-semánticamente más rico: el \textbf{modelo Sonar-Lite}
+semánticamente más rico: el \textbf{subsistema de análisis incremental}
 (\texttt{AnalysisRun} + \texttt{DataQualityIssue} + \texttt{QualityGate}),
 que soporta comparación con línea base, contadores de \emph{issues}
 nuevos/recurrentes/corregidos y configuración de umbrales por proyecto.

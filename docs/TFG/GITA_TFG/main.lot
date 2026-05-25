@@ -22,7 +22,7 @@
 \contentsline {table}{\numberline {5.2}{\ignorespaces Servicios Docker de \textsc {DataQual}\xspace }}{39}{table.5.2}%
 \contentsline {table}{\numberline {5.3}{\ignorespaces Protocolos de comunicación entre componentes}}{39}{table.5.3}%
 \contentsline {table}{\numberline {5.4}{\ignorespaces Sprint 2: Historias de usuario y estimación}}{42}{table.5.4}%
-\contentsline {table}{\numberline {5.5}{\ignorespaces Sprint 3: Historias de usuario y estimación}}{46}{table.5.5}%
+\contentsline {table}{\numberline {5.5}{\ignorespaces Sprint 3: Historias de usuario y estimación}}{47}{table.5.5}%
 \contentsline {table}{\numberline {5.6}{\ignorespaces Sprint 4: Historias de usuario y estimación}}{50}{table.5.6}%
 \contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{54}{table.5.7}%
 \contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph {hash} por tipo de \emph {issue}}}{56}{table.5.8}%
@@ -46,17 +46,17 @@
 \contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{96}{table.Alph3.5}%
 \contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{97}{table.Alph3.6}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{99}{table.Alph4.1}%
+\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{98}{table.Alph4.1}%
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{100}{table.Alph5.1}%
 \contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{101}{table.Alph5.2}%
 \contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{101}{table.Alph5.3}%
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{103}{table.Alph6.1}%
-\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{105}{table.Alph6.2}%
-\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio \emph {Sonar-Lite}}}{106}{table.Alph6.3}%
-\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{106}{table.Alph6.4}%
-\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{107}{table.Alph6.5}%
+\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{104}{table.Alph6.2}%
+\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio de análisis incremental}}{105}{table.Alph6.3}%
+\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{105}{table.Alph6.4}%
+\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{106}{table.Alph6.5}%
 \contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{107}{table.Alph6.6}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

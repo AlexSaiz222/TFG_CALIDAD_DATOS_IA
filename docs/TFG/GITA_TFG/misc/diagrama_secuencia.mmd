@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    actor Usuario as Usuario
+    participant Frontend as Frontend (Next.js)
+    participant Backend as Backend (Flask)
+    participant Worker as Celery Worker
+    participant ES as EvaluationService
+    participant MinIO as MinIO (S3)
+    participant DB as PostgreSQL
+
+    Usuario->>Frontend: Inicia evaluación
+    Frontend->>Backend: POST /api/evaluations/datasets/{id}
+    activate Backend
+    Backend->>DB: Crea registro Evaluation (PENDING)
+    Backend->>Worker: Encola tarea Celery (run_evaluation)
+    Backend-->>Frontend: Devuelve {evaluation_id}
+    deactivate Backend
+
+    loop Polling (cada 2s)
+        Frontend->>Backend: GET /api/evaluations/{id}/status
+        Backend->>DB: Consulta estado
+        DB-->>Backend: Retorna estado
+        Backend-->>Frontend: Retorna estado (PENDING/RUNNING)
+    end
+
+    activate Worker
+    Worker->>DB: Actualiza estado (RUNNING)
+    Worker->>MinIO: Descarga dataset
+    MinIO-->>Worker: Retorna CSV
+    Worker->>ES: Invoca evaluate()
+    activate ES
+    ES->>ES: Ejecuta métricas configuradas
+    ES->>ES: Calcula Quality Score
+    ES->>ES: Compara con baseline
+    ES->>ES: Evalúa Quality Gate
+    ES-->>Worker: Retorna MetricResult
+    deactivate ES
+    Worker->>DB: Actualiza Evaluation y crea AnalysisRun (COMPLETED)
+    deactivate Worker
+
+    Frontend->>Backend: GET /api/evaluations/{id}/status
+    Backend->>DB: Consulta estado
+    DB-->>Backend: Retorna COMPLETED
+    Backend-->>Frontend: Retorna estado (COMPLETED)
+    Frontend->>Usuario: Redirige a página de resultados

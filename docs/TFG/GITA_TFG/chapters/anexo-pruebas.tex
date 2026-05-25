@@ -22,10 +22,10 @@ iteraciones del producto.
         funcionales recogidos en el capítulo de objetivos.
   \item Detectar regresiones en los flujos críticos (autenticación, ejecución
         de análisis, \emph{Quality Gate}) antes de cada incremento.
-  \item Validar la lógica del dominio \emph{Sonar-Lite} (\texttt{AnalysisRun},
+  \item Validar la lógica del dominio de análisis incremental (\texttt{AnalysisRun},
         \emph{baseline} y \emph{fingerprinting} de incidencias).
   \item Garantizar la integridad de los datos almacenados en PostgreSQL y
-        \acs{MinIO}, incluyendo el versionado de \emph{datasets}.
+        MinIO, incluyendo el versionado de \emph{datasets}.
   \item Documentar de forma trazable el estado de calidad del producto en el
         momento de la defensa.
 \end{itemize}
@@ -37,7 +37,7 @@ iteraciones del producto.
 métricas, las tareas Celery, el modelo de datos y los flujos de interfaz
 crítica.\\
 \noindent\textbf{Fuera del alcance:} pruebas de penetración profundas,
-auditoría formal de accesibilidad \acs{WCAG} \acs{AA}, pruebas de carga
+auditoría formal de accesibilidad \acs{WCAG} AA, pruebas de carga
 sostenida en producción y pruebas de compatibilidad con navegadores
 heredados.
 
@@ -51,7 +51,7 @@ La estrategia se articula sobre cuatro niveles complementarios, distribuidos
 conforme a una pirámide de pruebas con peso mayoritario en los niveles
 inferiores (mayor velocidad, menor coste por ejecución):
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \small
   \caption{Niveles de prueba y distribución prevista}
@@ -83,7 +83,7 @@ inferiores (mayor velocidad, menor coste por ejecución):
   \item[Funcionales.]  Validan el comportamiento esperado de cada
         \emph{endpoint}, métrica y vista de la \acs{UI}.
   \item[Integración.]  Comprueban la colaboración correcta entre Flask,
-        SQLAlchemy, Celery, \acs{Redis} y \acs{MinIO}.
+        SQLAlchemy, Celery, Redis y MinIO.
   \item[Regresión.]  Suite ejecutada antes de cada \emph{merge} a
         \texttt{main} para garantizar que los cambios no rompen
         funcionalidad existente.
@@ -116,12 +116,12 @@ ejecución y evolución sin afectar al documento académico.
 
 \subsection{Capa de \emph{backend} (Flask + Celery)}
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \small
   \caption{Suites de \emph{backend}}
   \label{tab:suites-backend}
-  \begin{tabularx}{\textwidth}{l l X l}
+  \begin{tabularx}{\textwidth}{l >{\hsize=0.7\hsize}X >{\hsize=1.3\hsize}X l}
     \toprule
     \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
     \midrule
@@ -156,7 +156,7 @@ ejecución y evolución sin afectar al documento académico.
       diferidas.
       & Pendiente \\
     BE-09 & \texttt{test\_minio\_storage} &
-      Subida, descarga e integridad de ficheros en \acs{MinIO}.
+      Subida, descarga e integridad de ficheros en MinIO.
       & Pendiente \\
     BE-10 & \texttt{test\_idor\_authorization} &
       Control de acceso a recursos: un usuario no puede leer ni
@@ -168,14 +168,14 @@ ejecución y evolución sin afectar al documento académico.
   \end{tabularx}
 \end{table}
 
-\subsection{Capa de dominio (\emph{Sonar-Lite})}
+\subsection{Capa de dominio (análisis incremental)}
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \small
-  \caption{Suites de dominio \emph{Sonar-Lite}}
+  \caption{Suites de dominio de análisis incremental}
   \label{tab:suites-dominio}
-  \begin{tabularx}{\textwidth}{l l X l}
+  \begin{tabularx}{\textwidth}{l >{\hsize=0.7\hsize}X >{\hsize=1.3\hsize}X l}
     \toprule
     \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
     \midrule
@@ -203,12 +203,12 @@ ejecución y evolución sin afectar al documento académico.
 
 \subsection{Capa de \emph{frontend} (Next.js)}
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \small
   \caption{Suites de \emph{frontend}}
   \label{tab:suites-frontend}
-  \begin{tabularx}{\textwidth}{l l X l}
+  \begin{tabularx}{\textwidth}{l >{\hsize=0.7\hsize}X >{\hsize=1.3\hsize}X l}
     \toprule
     \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
     \midrule
@@ -241,12 +241,12 @@ ejecución y evolución sin afectar al documento académico.
 
 \subsection{Pruebas no funcionales}
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \small
   \caption{Suites no funcionales}
   \label{tab:suites-nofuncionales}
-  \begin{tabularx}{\textwidth}{l l X l}
+  \begin{tabularx}{\textwidth}{l >{\hsize=0.7\hsize}X >{\hsize=1.3\hsize}X l}
     \toprule
     \textbf{ID} & \textbf{Suite} & \textbf{Propósito} & \textbf{Estado} \\
     \midrule
@@ -288,7 +288,7 @@ ejecución y evolución sin afectar al documento académico.
   \item \textbf{Local (desarrollador).}  \texttt{pytest} con SQLite en
         memoria; ejecuta L1 y L2 en menos de 30\,s.
   \item \textbf{Docker compose.}  \emph{Stack} completo (PostgreSQL,
-        \acs{Redis}, \acs{MinIO}, Celery) para pruebas de integración
+        Redis, MinIO, Celery) para pruebas de integración
         realista y manuales.
   \item \textbf{Pre-producción.}  No disponible en el alcance del
         \acs{TFG}; queda planteado como trabajo futuro.
@@ -339,7 +339,7 @@ detalla en el documento técnico complementario.
 \label{sec:anx-pruebas-kpis}
 %% =========================================================================
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \small
   \caption{Indicadores de calidad del proceso de pruebas}

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fingerprinting SHA-256 — DataQualAI</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2b3650;
+    --txt:#e6edf3; --muted:#8b96a8; --code:#c9d6f0; --accent:#4f8cff;
+    --baseline:#4f8cff; --current:#9b7bff;
+    --new:#e5484d; --fixed:#00b37e; --recurrent:#ffb800;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--txt);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif; line-height:1.5;}
+  code,.mono{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+  header{padding:26px 24px 6px; text-align:center}
+  header h1{margin:0 0 4px; font-size:23px; font-weight:700}
+  header p{margin:0; color:var(--muted); font-size:13.5px}
+  .wrap{max-width:1100px; margin:0 auto; padding:14px 20px 60px}
+
+  .stage{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:6px}
+  svg{width:100%; height:auto; display:block}
+
+  .node{opacity:.5; transition:opacity .3s ease}
+  .node.active{opacity:1}
+  .node .box{fill:var(--panel2); stroke:var(--line); stroke-width:2; rx:10}
+  .node.active .box{stroke:var(--accent); stroke-width:2.6; filter:drop-shadow(0 0 9px rgba(79,140,255,.4))}
+  .node .title{font-size:13.5px; font-weight:700; text-anchor:middle; fill:var(--txt)}
+  .node .sub{font-size:10.5px; text-anchor:middle; fill:var(--muted); font-family:"JetBrains Mono",Consolas,monospace}
+  .node .field{font-size:11px; fill:var(--code); font-family:"JetBrains Mono",Consolas,monospace}
+  .node .fieldno{font-size:10.5px; fill:var(--new); font-family:"JetBrains Mono",Consolas,monospace}
+
+  .arrow{fill:none; stroke:#3a4869; stroke-width:2.2; opacity:.55; transition:all .25s ease}
+  .arrow.active{stroke:var(--accent); stroke-width:3.4; opacity:1}
+
+  .divider{stroke:var(--line); stroke-dasharray:4 5; opacity:.6}
+  .sectitle{font-size:11px; fill:var(--muted); letter-spacing:.07em; text-transform:uppercase; font-weight:600}
+
+  .venn circle{transition:all .3s ease}
+  .vgrp{opacity:.45; transition:opacity .3s ease}
+  .vgrp.active{opacity:1}
+  .clabel{font-size:12px; font-weight:700; font-family:"JetBrains Mono",Consolas,monospace}
+  .rlabel{font-size:12px; font-weight:800; letter-spacing:.05em}
+  .chip rect{rx:6}
+  .chip text{font-size:11px; font-family:"JetBrains Mono",Consolas,monospace; fill:var(--txt); text-anchor:middle}
+  .formula{font-size:12px; font-family:"JetBrains Mono",Consolas,monospace}
+
+  /* consola del ejemplo */
+  .tape{margin-top:12px; background:#0a0e14; border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace; font-size:12.5px; overflow-x:auto}
+  .tape .ln{display:flex; gap:10px; padding:3px 0; opacity:.4; transition:all .25s ease; white-space:nowrap}
+  .tape .ln.active{opacity:1}
+  .tape .k{color:var(--muted); min-width:96px; user-select:none}
+  .tape .v{color:var(--code)}
+  .tape .ln.active .v{color:#fff}
+  .tape .hi{color:var(--recurrent)}
+
+  .legend{display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:12px; font-size:11.5px; color:var(--muted)}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .legend i{width:13px; height:13px; border-radius:3px; display:inline-block}
+
+  .controls{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:16px; flex-wrap:wrap}
+  button{background:var(--panel2); color:var(--txt); border:1px solid var(--line);
+    padding:8px 15px; border-radius:8px; font-size:13.5px; cursor:pointer; transition:all .15s ease; font-weight:600}
+  button:hover{border-color:var(--accent); color:#fff}
+  button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  button:disabled{opacity:.35; cursor:not-allowed}
+  .step-count{color:var(--muted); font-size:13px; min-width:58px; text-align:center; font-family:monospace}
+
+  .desc{background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--accent);
+    border-radius:10px; padding:16px 18px; margin-top:16px; min-height:118px}
+  .desc .num{display:inline-block; background:var(--accent); color:#fff; font-weight:800;
+    border-radius:6px; width:26px; height:26px; line-height:26px; text-align:center; margin-right:9px; font-size:14px}
+  .desc h3{display:inline; font-size:16px; vertical-align:middle}
+  .desc p{margin:11px 0 0; color:#d7deec; font-size:14.5px}
+  .desc code{background:#0d1117; border:1px solid var(--line); border-radius:5px; padding:1px 5px; color:var(--code)}
+  .desc .src{margin-top:11px; font-size:12px; color:var(--muted); font-family:"JetBrains Mono",Consolas,monospace}
+  .desc .src::before{content:"src "; color:var(--accent); font-weight:700}
+
+  .note{margin-top:14px; background:rgba(79,140,255,.06); border:1px dashed var(--accent);
+    border-radius:9px; padding:12px 15px; color:#bcd0ff; font-size:13px}
+  .note b{color:#fff}
+  .note code{background:#0d1117; padding:1px 5px; border-radius:4px}
+
+  details{margin-top:20px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:2px 18px}
+  summary{cursor:pointer; padding:12px 0; font-weight:700; font-size:14.5px}
+  table{width:100%; border-collapse:collapse; margin:6px 0 16px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-size:12.5px; vertical-align:top}
+  th{color:var(--muted); font-weight:600}
+  td code{font-family:"JetBrains Mono",Consolas,monospace; color:var(--code); font-size:11.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Fingerprinting con SHA-256 — DataQualAI</h1>
+  <p>Cómo se genera un identificador estable por issue y cómo se usa para el diff contra el baseline (nuevos · recurrentes · resueltos)</p>
+</header>
+
+<div class="wrap">
+  <div class="stage">
+    <svg viewBox="0 0 980 620" role="img" aria-label="Diagrama de fingerprinting SHA-256">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L7.5,3 L0,6 Z" fill="#3a4869"/></marker>
+        <marker id="ah-on" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L7.5,3 L0,6 Z" fill="#4f8cff"/></marker>
+      </defs>
+
+      <text class="sectitle" x="28" y="34">1 · construcción del fingerprint de un issue</text>
+
+      <!-- arrows -->
+      <path id="ar1" class="arrow" d="M198,143 L218,143" marker-end="url(#ah)"/>
+      <path id="ar2" class="arrow" d="M344,143 L364,143" marker-end="url(#ah)"/>
+      <path id="ar3" class="arrow" d="M502,143 L522,143" marker-end="url(#ah)"/>
+      <path id="ar4" class="arrow" d="M648,143 L668,143" marker-end="url(#ah)"/>
+
+      <!-- P1 entradas -->
+      <g class="node" data-node="p1">
+        <rect class="box" x="28" y="74" width="170" height="138"/>
+        <text class="title" x="113" y="94">Entradas del issue</text>
+        <text class="field" x="40" y="116">issue_type</text>
+        <text class="field" x="40" y="133">column_name</text>
+        <text class="field" x="40" y="150">row_identifier</text>
+        <text class="field" x="40" y="167">rule_key</text>
+        <text class="field" x="40" y="184">extra_params</text>
+        <text class="fieldno" x="40" y="203">✗ no entra: valor/recuento</text>
+      </g>
+      <!-- P2 normalizar -->
+      <g class="node" data-node="p2">
+        <rect class="box" x="218" y="114" width="126" height="58"/>
+        <text class="title" x="281" y="139">Normalizar</text>
+        <text class="sub" x="281" y="157">lower · trim · sort</text>
+      </g>
+      <!-- P3 concatenar -->
+      <g class="node" data-node="p3">
+        <rect class="box" x="364" y="114" width="138" height="58"/>
+        <text class="title" x="433" y="139">Concatenar</text>
+        <text class="sub" x="433" y="157">join("|")</text>
+      </g>
+      <!-- P4 sha256 -->
+      <g class="node" data-node="p4">
+        <rect class="box" x="522" y="114" width="126" height="58"/>
+        <text class="title" x="585" y="139">SHA-256</text>
+        <text class="sub" x="585" y="157">hexdigest (64)</text>
+      </g>
+      <!-- P5 truncar -->
+      <g class="node" data-node="p5">
+        <rect class="box" x="668" y="114" width="150" height="58"/>
+        <text class="title" x="743" y="139">Truncar [:16]</text>
+        <text class="sub" x="743" y="157">= fingerprint · 64 bits</text>
+      </g>
+
+      <!-- divider -->
+      <line class="divider" x1="28" y1="252" x2="952" y2="252"/>
+      <text class="sectitle" x="28" y="280">2 · tracking entre ejecuciones — diff contra baseline (conjuntos de fingerprints)</text>
+
+      <!-- VENN -->
+      <g class="venn">
+        <g class="vgrp" data-node="baseline">
+          <circle cx="392" cy="455" r="118" fill="rgba(79,140,255,.16)" stroke="var(--baseline)" stroke-width="2.5"/>
+          <text class="clabel" x="300" y="320" fill="var(--baseline)" text-anchor="middle">baseline (run N-1)</text>
+        </g>
+        <g class="vgrp" data-node="current">
+          <circle cx="540" cy="455" r="118" fill="rgba(155,123,255,.16)" stroke="var(--current)" stroke-width="2.5"/>
+          <text class="clabel" x="640" y="320" fill="var(--current)" text-anchor="middle">current (run N)</text>
+        </g>
+
+        <!-- FIXED (baseline only) -->
+        <g class="vgrp chip" data-node="fixed">
+          <text class="rlabel" x="300" y="400" fill="var(--fixed)" text-anchor="middle">FIXED</text>
+          <rect x="248" y="438" width="104" height="26" fill="rgba(0,179,126,.18)" stroke="var(--fixed)" stroke-width="1.5"/>
+          <text x="300" y="455">6b98af09…</text>
+          <text x="300" y="485" font-size="10.5" fill="var(--muted)" text-anchor="middle" font-family="monospace">uniqueness/id</text>
+        </g>
+
+        <!-- RECURRENT (overlap) -->
+        <g class="vgrp chip" data-node="recurrent">
+          <text class="rlabel" x="466" y="372" fill="var(--recurrent)" text-anchor="middle">RECURRENT</text>
+          <rect x="414" y="430" width="104" height="26" fill="rgba(255,184,0,.16)" stroke="var(--recurrent)" stroke-width="1.5"/>
+          <text x="466" y="447">20c12ead…</text>
+          <rect x="414" y="466" width="104" height="26" fill="rgba(255,184,0,.16)" stroke="var(--recurrent)" stroke-width="1.5"/>
+          <text x="466" y="483">c32a53ed…</text>
+        </g>
+
+        <!-- NEW (current only) -->
+        <g class="vgrp chip" data-node="new">
+          <text class="rlabel" x="632" y="400" fill="var(--new)" text-anchor="middle">NEW</text>
+          <rect x="580" y="438" width="104" height="26" fill="rgba(229,72,77,.18)" stroke="var(--new)" stroke-width="1.5"/>
+          <text x="632" y="455">f10c1170…</text>
+          <text x="632" y="485" font-size="10.5" fill="var(--muted)" text-anchor="middle" font-family="monospace">syntactic/phone</text>
+        </g>
+
+        <!-- formulas -->
+        <g class="vgrp" data-node="formula">
+          <rect class="box" x="720" y="368" width="232" height="176" fill="var(--panel2)" stroke="var(--line)" stroke-width="2" rx="10"/>
+          <text class="formula" x="736" y="396" fill="var(--new)">NEW = current − baseline</text>
+          <text class="formula" x="736" y="416" fill="var(--muted)">  = {f10c1170…} → 1</text>
+          <text class="formula" x="736" y="446" fill="var(--recurrent)">RECURRENT = base ∩ curr</text>
+          <text class="formula" x="736" y="466" fill="var(--muted)">  = {20c1…, c32a…} → 2</text>
+          <text class="formula" x="736" y="496" fill="var(--fixed)">FIXED = baseline − current</text>
+          <text class="formula" x="736" y="516" fill="var(--muted)">  = {6b98af09…} → 1</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- consola del ejemplo -->
+  <div class="tape" id="tape">
+    <div class="ln" id="tp-raw"><span class="k">entradas</span><span class="v">issue_type=<span class="hi">completeness</span> · column=<span class="hi">email</span> · rule_key=<span class="hi">completeness_column_check</span></span></div>
+    <div class="ln" id="tp-norm"><span class="k">normalizar</span><span class="v">["completeness", "email", "", "completeness_column_check"]</span></div>
+    <div class="ln" id="tp-concat"><span class="k">join("|")</span><span class="v">"completeness|email||completeness_column_check"</span></div>
+    <div class="ln" id="tp-sha"><span class="k">sha256()</span><span class="v">20c12ead6745c197 2b002c472640f112 24780495dcc43e8d e76e04a529030324</span></div>
+    <div class="ln" id="tp-fp"><span class="k">[:16]</span><span class="v hi">20c12ead6745c197</span><span class="v" style="color:var(--muted)">  ← fingerprint</span></div>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--baseline)"></i> baseline (run anterior)</span>
+    <span><i style="background:var(--current)"></i> current (run actual)</span>
+    <span><i style="background:var(--new)"></i> nuevo</span>
+    <span><i style="background:var(--recurrent)"></i> recurrente</span>
+    <span><i style="background:var(--fixed)"></i> resuelto</span>
+  </div>
+
+  <div class="controls">
+    <button id="prev">◀ Anterior</button>
+    <button id="play" class="primary">▶ Reproducir</button>
+    <button id="next">Siguiente ▶</button>
+    <span class="step-count" id="count"></span>
+    <button id="reset">↺ Reiniciar</button>
+  </div>
+
+  <div class="desc" id="desc">
+    <span class="num" id="d-num">0</span><h3 id="d-title">¿Qué resuelve el fingerprinting?</h3>
+    <p id="d-text">Cada ejecución detecta issues, pero la base de datos les asigna IDs distintos. Para saber si un problema es <b>nuevo</b>, sigue <b>presente</b> o se ha <b>resuelto</b> entre dos runs hace falta un identificador <b>estable y determinista</b> de cada issue, independiente de su ID de fila. Eso es el fingerprint. Avanza paso a paso.</p>
+    <div class="src" id="d-src" style="display:none"></div>
+  </div>
+
+  <div class="note">
+    <b>Por qué SHA-256:</b> es <b>determinista</b> (misma entrada → mismo hash siempre), de <b>longitud fija</b> y con buena dispersión, así que entradas casi iguales dan hashes muy distintos. No se usa por seguridad sino como ID reproducible. Se trunca a <code>[:16]</code> (64 bits): suficiente para identificar issues dentro de un proyecto con probabilidad de colisión despreciable. El <b>valor de la métrica y los recuentos NO entran</b> en el hash a propósito: así el mismo problema lógico conserva su fingerprint aunque cambie cuántas filas afecta.
+  </div>
+
+  <details>
+    <summary>Entradas del hash y funciones especializadas por métrica</summary>
+    <table>
+      <tr><th>Campo</th><th>¿Entra en el hash?</th><th>Para qué</th></tr>
+      <tr><td><code>issue_type</code></td><td>Sí</td><td>Tipo: completeness, uniqueness, outliers…</td></tr>
+      <tr><td><code>column_name</code></td><td>Sí</td><td>Columna afectada</td></tr>
+      <tr><td><code>row_identifier</code></td><td>Sí (si aplica)</td><td>Índices de fila ordenados (issues a nivel de fila)</td></tr>
+      <tr><td><code>rule_key</code></td><td>Sí</td><td>Regla concreta que disparó el issue</td></tr>
+      <tr><td><code>extra_params</code></td><td>Sí (ordenado)</td><td>Patrón, umbral, método… ordenados alfabéticamente</td></tr>
+      <tr><td>valor de métrica / recuentos</td><td><b style="color:var(--new)">No</b></td><td>Cambian entre runs sin cambiar el problema lógico</td></tr>
+    </table>
+    <table>
+      <tr><th>Función (utils/fingerprint_utils.py)</th><th>Caso de uso</th></tr>
+      <tr><td><code>generate_column_issue_fingerprint</code></td><td>Issue de columna completa (completeness/uniqueness bajos)</td></tr>
+      <tr><td><code>generate_row_issue_fingerprint</code></td><td>Filas concretas; ordena y limita a <code>max_rows_in_hash=10</code></td></tr>
+      <tr><td><code>generate_outlier_issue_fingerprint</code></td><td>Outliers, con <code>method</code> y <code>factor</code></td></tr>
+      <tr><td><code>generate_syntactic_accuracy_fingerprint</code></td><td>Conformidad de tipo (email, phone_es, dni_es…)</td></tr>
+      <tr><td><code>generate_pattern / duplicate / class_balance / currentness / diversity</code></td><td>Especializaciones que fijan <code>rule_key</code> y <code>extra_params</code></td></tr>
+    </table>
+  </details>
+</div>
+
+<script>
+const STEPS = [
+  { num:1, title:"El problema: un ID estable por issue", color:"#4f8cff",
+    nodes:[], tape:null,
+    text:"Cada run guarda issues con IDs distintos en la BD. Para comparar runs hace falta un identificador <b>determinista</b> que represente el <i>problema lógico</i> (tipo + columna + regla), no la fila concreta. Ese identificador es el <b>fingerprint</b>.",
+    src:"models/analysis.py · DataQualityIssue.fingerprint" },
+  { num:2, title:"Entradas del fingerprint", color:"#4f8cff",
+    nodes:["p1"], tape:"tp-raw",
+    text:"Se toman los campos que <b>identifican el problema</b>: <code>issue_type</code>, <code>column_name</code>, <code>row_identifier</code>, <code>rule_key</code> y <code>extra_params</code>. <b>NO</b> se incluyen el valor de la métrica ni los recuentos: cambian entre runs sin que el problema sea otro.",
+    src:"utils/fingerprint_utils.py:14 · generate_issue_fingerprint()" },
+  { num:3, title:"Normalizar para determinismo", color:"#4f8cff",
+    nodes:["p2"], tape:"tp-norm",
+    text:"Cada valor se normaliza: minúsculas, <code>strip()</code>, <code>None → \"\"</code>. Las listas y diccionarios se <b>ordenan</b> antes de serializar. Así dos detecciones equivalentes producen exactamente la misma cadena de entrada.",
+    src:"utils/fingerprint_utils.py:72 · _normalize_value()" },
+  { num:4, title:"Concatenar con delimitador", color:"#4f8cff",
+    nodes:["p3"], tape:"tp-concat",
+    text:"Los componentes normalizados se unen con <code>\"|\"</code> (un carácter que no aparece en los datos). El campo vacío (<code>row_identifier</code>) deja un <code>||</code>. Resultado: una cadena canónica única por problema.",
+    src:"utils/fingerprint_utils.py:65 · \"|\".join(components)" },
+  { num:5, title:"Hash SHA-256 (UTF-8)", color:"#4f8cff",
+    nodes:["p4"], tape:"tp-sha",
+    text:"Se codifica la cadena a UTF-8 y se calcula <code>hashlib.sha256(...).hexdigest()</code>: 64 caracteres hexadecimales (256 bits). Determinista y con efecto avalancha: cambiar un solo carácter de entrada altera todo el hash.",
+    src:"utils/fingerprint_utils.py:68 · hashlib.sha256(...).hexdigest()" },
+  { num:6, title:"Truncar a 16 hex = el fingerprint", color:"#4f8cff",
+    nodes:["p5"], tape:"tp-fp",
+    text:"Se toman los <b>primeros 16 caracteres</b> (<code>[:16]</code>, 64 bits). Es el fingerprint que se guarda en cada <code>DataQualityIssue</code>. Corto para indexar/comparar y con colisión despreciable a la escala de un proyecto.",
+    src:"utils/fingerprint_utils.py:69 · hexdigest()[:16]" },
+  { num:7, title:"Determinismo = trazabilidad", color:"#4f8cff",
+    nodes:["p1","p2","p3","p4","p5"], tape:"tp-fp",
+    text:"Como todo el proceso es determinista, el <b>mismo problema lógico</b> genera <b>siempre el mismo fingerprint</b>, en cualquier run y dataset. Eso es lo que permite cruzar dos ejecuciones y clasificar cada issue.",
+    src:"utils/fingerprint_utils.py · pipeline completo" },
+  { num:8, title:"Conjuntos de fingerprints por run", color:"#9b7bff",
+    nodes:["baseline","current"], tape:null,
+    text:"Para el diff se reduce cada run a un <b>conjunto (set) de fingerprints</b>: el del <b>baseline</b> (run anterior) y el del <b>current</b> (run actual). El baseline se toma del <code>baseline_analysis_id</code> o, si no, del último run COMPLETED del proyecto.",
+    src:"services/evaluation_service.py:238 · _compare_issues_with_baseline()" },
+  { num:9, title:"Operaciones de conjuntos: new / recurrent / fixed", color:"#00b37e",
+    nodes:["baseline","current","new","recurrent","fixed","formula"], tape:null,
+    text:"<b style='color:#e5484d'>NEW</b> = en current pero no en baseline · <b style='color:#ffb800'>RECURRENT</b> = en ambos (<code>is_new=False</code>) · <b style='color:#00b37e'>FIXED</b> = en baseline pero no en current (<code>baseline − current</code>). Esos contadores alimentan el Quality Gate (<code>max_new_issues</code>).",
+    src:"services/evaluation_service.py:300 · baseline_fingerprints − current_fingerprints" }
+];
+
+let cur = 0, playing = false, timer = null;
+const $ = id => document.getElementById(id);
+const allNodes = ["p1","p2","p3","p4","p5","baseline","current","new","recurrent","fixed","formula"];
+const allArrows = ["ar1","ar2","ar3","ar4"];
+const allTape = ["tp-raw","tp-norm","tp-concat","tp-sha","tp-fp"];
+const arrowForStep = {3:["ar1"],4:["ar2"],5:["ar3"],6:["ar4"],7:["ar1","ar2","ar3","ar4"]};
+
+function clearHighlights(){
+  allNodes.forEach(n=>{ const el=document.querySelector(`[data-node="${n}"]`); if(el) el.classList.remove('active'); });
+  allArrows.forEach(a=>{const e=$(a); e.classList.remove('active'); e.setAttribute('marker-end','url(#ah)');});
+  allTape.forEach(t=>$(t).classList.remove('active'));
+}
+function render(){
+  clearHighlights();
+  $('count').textContent = cur===0 ? "—/9" : cur + "/9";
+  $('prev').disabled = cur<=0; $('next').disabled = cur>=9;
+  if(cur===0){
+    $('d-num').textContent="0"; $('d-num').style.background="#4f8cff"; $('desc').style.borderLeftColor="#4f8cff";
+    $('d-title').textContent="¿Qué resuelve el fingerprinting?";
+    $('d-text').innerHTML="Cada ejecución detecta issues, pero la base de datos les asigna IDs distintos. Para saber si un problema es <b>nuevo</b>, sigue <b>presente</b> o se ha <b>resuelto</b> entre dos runs hace falta un identificador <b>estable y determinista</b> de cada issue, independiente de su ID de fila. Eso es el fingerprint. Avanza paso a paso.";
+    $('d-src').style.display="none"; return;
+  }
+  const s = STEPS[cur-1];
+  s.nodes.forEach(n=>{ const el=document.querySelector(`[data-node="${n}"]`); if(el) el.classList.add('active'); });
+  (arrowForStep[cur]||[]).forEach(a=>{const e=$(a); e.classList.add('active'); e.setAttribute('marker-end','url(#ah-on)');});
+  if(s.tape) $(s.tape).classList.add('active');
+  $('d-num').textContent=s.num; $('d-num').style.background=s.color; $('desc').style.borderLeftColor=s.color;
+  $('d-title').textContent=s.title; $('d-text').innerHTML=s.text;
+  $('d-src').style.display="block"; $('d-src').textContent=s.src;
+}
+function next(){ if(cur<9){cur++; render();} else stop(); }
+function prev(){ if(cur>0){cur--; render();} }
+function stop(){ playing=false; clearInterval(timer); $('play').innerHTML="▶ Reproducir"; }
+function play(){
+  if(playing){ stop(); return; }
+  if(cur>=9) cur=0;
+  playing=true; $('play').innerHTML="⏸ Pausar"; next();
+  timer=setInterval(()=>{ if(cur>=9) stop(); else next(); }, 2600);
+}
+$('next').onclick=()=>{stop(); next();};
+$('prev').onclick=()=>{stop(); prev();};
+$('play').onclick=play;
+$('reset').onclick=()=>{stop(); cur=0; render();};
+document.addEventListener('keydown',e=>{
+  if(e.key==="ArrowRight"){stop();next();}
+  if(e.key==="ArrowLeft"){stop();prev();}
+  if(e.key===" "){e.preventDefault();play();}
+});
+render();
+</script>
+</body>
+</html>

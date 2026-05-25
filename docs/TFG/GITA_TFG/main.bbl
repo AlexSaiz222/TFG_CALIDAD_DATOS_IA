@@ -28,6 +28,11 @@ Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016).
 \newblock ProPublica.
 \newblock Consultado: 2026.
 
+\bibitem[Bayer, 2024]{sqlalchemy}
+Bayer, M. (2024).
+\newblock {SQLAlchemy}: The database toolkit for {Python}.
+\newblock \url{https://www.sqlalchemy.org/}.
+
 \bibitem[Beck et~al., 2001]{agilemanifesto}
 Beck, K., Beedle, M., van Bennekum, A., Cockburn, A., Cunningham, W., Fowler,
   M., Grenning, J., Highsmith, J., Hunt, A., Jeffries, R., Kern, J., Marick,
@@ -156,6 +161,27 @@ Kilkenny, M.~F. and Robinson, K.~M. (2018).
 \newblock Data quality: ``garbage in -- garbage out''.
 \newblock {\em Health Information Management Journal}, 47(3):103--105.
 
+\bibitem[{Meta Platforms, Inc.}, 2024]{react}
+{Meta Platforms, Inc.} (2024).
+\newblock React: A javascript library for building user interfaces.
+\newblock \url{https://react.dev/}.
+
+\bibitem[{Microsoft}, 2024]{typescript}
+{Microsoft} (2024).
+\newblock {TypeScript}: Javascript with syntax for types.
+\newblock \url{https://www.typescriptlang.org/}.
+
+\bibitem[{MinIO, Inc.}, 2024]{minio}
+{MinIO, Inc.} (2024).
+\newblock {MinIO}: High performance object storage.
+\newblock \url{https://min.io/}.
+
+\bibitem[{MUI}, 2024]{materialui}
+{MUI} (2024).
+\newblock {Material UI}: React components for faster and easier web
+  development.
+\newblock \url{https://mui.com/}.
+
 \bibitem[Ng, 2021]{ng2021datacentric}
 Ng, A. (2021).
 \newblock A chat with {Andrew} on {MLOps}: From model-centric to data-centric
@@ -219,6 +245,11 @@ Redman, T.~C. (1998).
 Redman, T.~C. (2001).
 \newblock {\em Data Quality: The Field Guide}.
 \newblock Digital Press.
+
+\bibitem[Ronacher, 2024]{flask}
+Ronacher, A. (2024).
+\newblock Flask: A python microframework.
+\newblock \url{https://flask.palletsprojects.com/}.
 
 \bibitem[Sambasivan et~al., 2021]{sambasivan2021}
 Sambasivan, N., Kapania, S., Highfill, H., Akrong, D., Paritosh, P., and Aroyo,
