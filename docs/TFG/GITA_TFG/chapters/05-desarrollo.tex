@@ -98,10 +98,10 @@ documentación y no consume \emph{story points}).
 El progreso real se mantuvo próximo a la línea ideal en todos los sprints,
 con convergencia total en S5.  La posición favorable de la línea real
 respecto a la ideal desde S2 en adelante se debe a que los sprints centrales
-tenían más puntos asignados que la media uniforme (S2:~18~SP, S3:~16~SP,
-frente a los 14{,}2~SP/sprint de la distribución lineal), no a que se
+tenían más puntos asignados que la media uniforme (S2:~18~\ac{SP}, S3:~16~\ac{SP},
+frente a los 14{,}2~\ac{SP}/sprint de la distribución lineal), no a que se
 completara menos trabajo del planificado.  Esta diferencia se mantiene en S4
-y se anula en S5, donde ambas líneas convergen.  Sin embargo, registrar un avance superior al estimado en SP no implica
+y se anula en S5, donde ambas líneas convergen.  Sin embargo, registrar un avance superior al estimado en \ac{SP} no implica
 menor carga de trabajo: las horas reales superaron las
 estimadas en todos los sprints, poniendo de manifiesto que los
 \emph{story points} subestiman la complejidad de las tareas técnicas de
@@ -118,7 +118,10 @@ infraestructura.
 
 \textbf{Objetivo del sprint:} diseñar la arquitectura completa del sistema,
 definir el modelo de datos inicial y poner en marcha el entorno de desarrollo
-Docker con todos los servicios básicos operativos.
+Docker con todos los servicios básicos operativos. Este sprint sentó las bases
+para la autenticación de usuarios mediante tokens \ac{JWT}, el diseño del
+diagrama entidad-relación (\ac{ERD}) y la posterior implementación de las
+operaciones \ac{CRUD} sobre los recursos.
 
 \begin{table}[htbp]
   \centering
@@ -131,10 +134,10 @@ Docker con todos los servicios básicos operativos.
     \midrule
     HU-01 & Registro e inicio de sesión básico & 3 & 10 \\
     HU-02 & JWT: access + refresh token & 2 & 8 \\
-    --    & Setup Docker Compose (8 servicios) & 3 & 14 \\
-    --    & Diseño del modelo de datos (ERD) & 3 & 12 \\
-    --    & Migraciones iniciales (Flask-Migrate) & 2 & 16 \\
-    --    & Prueba de concepto: subida de dataset CSV & 0 & --- \\
+    T-01  & Setup Docker Compose (8 servicios) & 3 & 14 \\
+    T-02  & Diseño del modelo de datos (\ac{ERD}) & 3 & 12 \\
+    T-03  & Migraciones iniciales (Flask-Migrate) & 2 & 16 \\
+    --    & Prueba de concepto: subida de dataset \ac{CSV} & 0 & --- \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{13 SP} & \textbf{60 h} \\
     \bottomrule
@@ -156,9 +159,9 @@ Se completaron los ítems del sprint con las siguientes observaciones:
     flexibilidad futura.  El esquema evolucionó en sprints posteriores hasta
     alcanzar las once tablas del sistema final.
   \item Se implementó el módulo de autenticación JWT completo con registro,
-    login, refresco de token y revocación por JTI (en memoria; los tokens
+    login, refresco de token y revocación por \ac{JTI} (en memoria; los tokens
     revocados no persisten entre reinicios del servidor).
-  \item Se realizó una prueba de concepto de subida de archivo CSV al sistema:
+  \item Se realizó una prueba de concepto de subida de archivo \ac{CSV} al sistema:
     el endpoint básico de carga almacena el fichero en MinIO y registra los
     metadatos en la tabla \texttt{datasets}.  La implementación completa del
     módulo de ingesta se completó en el Sprint~2.
@@ -286,7 +289,7 @@ Anexo~\ref{anx:diagramas}.
       \texttt{patterns} \\
       \emph{Técnicos:} \texttt{project\_metrics} $\cdot$
       \texttt{project\_datasets} $\cdot$ \texttt{dashboard}};
-    \node[pkg-tab, fill=green!20] at (api.north west) {API REST};
+    \node[pkg-tab, fill=green!20] at (api.north west) {API \ac{REST}};
 
     %% --- Capa de Servicios ---
     \node[package, fill=orange!10, below=of api] (svc) {%
@@ -375,11 +378,11 @@ Anexo~\ref{anx:diagramas}.
 
 \textbf{Conseguido:} entorno de desarrollo completamente operativo,
 arquitectura documentada, autenticación JWT funcional y prueba de concepto
-de subida de dataset CSV al sistema.
+de subida de dataset \ac{CSV} al sistema.
 
 \textbf{Estado del producto:} \emph{backend} operativo con ocho servicios
 Docker en marcha, modelo de datos inicial en PostgreSQL, autenticación JWT
-funcional y capacidad básica de ingesta de ficheros CSV, constituyendo una
+funcional y capacidad básica de ingesta de ficheros \ac{CSV}, constituyendo una
 base funcional sobre la que desarrollar los sprints sucesivos.  La
 plataforma carece aún de motor de métricas e interfaz de usuario.
 
@@ -424,11 +427,11 @@ capas, la \ac{API} \ac{REST} y la gestión de proyectos.
     \toprule
     \textbf{ID} & \textbf{Ítem} & \textbf{Est. (SP)} & \textbf{Real (h)} \\
     \midrule
-    HU-03 & CRUD de proyectos + configuración de métricas & 3 & 12 \\
-    HU-05 & Carga y parseo robusto de archivos CSV & 5 & 22 \\
+    HU-03 & \ac{CRUD} de proyectos + configuración de métricas & 3 & 12 \\
+    HU-05 & Carga y parseo robusto de archivos \ac{CSV} & 5 & 22 \\
     HU-06 & Versionado de datasets (parent-child, is\_latest) & 3 & 10 \\
-    --    & Arquitectura del backend en capas (blueprints, servicios) & 4 & 18 \\
-    --    & Especificación y pruebas manuales de la API REST & 3 & 23 \\
+    T-04  & Arquitectura del backend en capas (blueprints, servicios) & 4 & 18 \\
+    T-05  & Especificación y pruebas manuales de la API \ac{REST} & 3 & 23 \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{18 SP} & \textbf{85 h} \\
     \bottomrule
@@ -437,7 +440,7 @@ capas, la \ac{API} \ac{REST} y la gestión de proyectos.
 
 \textbf{Dependencias}: requiere Sprint~1 completado (base de datos y
 autenticación operativos).  \textbf{Riesgo principal}: la diversidad de
-formatos de archivo y codificaciones de CSV puede generar una estrategia de
+formatos de archivo y codificaciones de \ac{CSV} puede generar una estrategia de
 \emph{fallback} más compleja de lo previsto (R-03).
 
 \subsection{Trabajo realizado}
@@ -445,9 +448,9 @@ formatos de archivo y codificaciones de CSV puede generar una estrategia de
 \begin{itemize}
   \item Implementada la arquitectura del \emph{backend} en capas: \emph{blueprints}
     Flask, capa de servicio y \emph{middleware}.
-  \item Desarrollado el módulo de ingesta CSV con estrategia de
+  \item Desarrollado el módulo de ingesta \ac{CSV} con estrategia de
     \emph{fallback} múltiple: cuatro codificaciones (UTF-8, UTF-8 con
-    BOM, CP1252, Latin-1), seis estrategias de separador (los cuatro
+    \ac{BOM}, CP1252, Latin-1), seis estrategias de separador (los cuatro
     candidatos explícitos más el delimitador inferido por
     \texttt{csv.Sniffer} y la autodetección de Pandas) y los dos motores
     de \emph{parsing} de Pandas.
@@ -455,13 +458,13 @@ formatos de archivo y codificaciones de CSV puede generar una estrategia de
   \item Completados los seis módulos funcionales de la \ac{API} \ac{REST}
     con formato de respuesta estandarizado y paginación.  Durante la
     implementación se añadieron tres \emph{blueprints} adicionales por
-    convención REST: \texttt{project\_metrics} y \texttt{project\_datasets}
+    convención \ac{REST}: \texttt{project\_metrics} y \texttt{project\_datasets}
     (sub-rutas anidadas \texttt{/projects/<id>/…}) y \texttt{dashboard}
     (agregación de solo lectura), elevando el total a nueve \emph{blueprints}
     Flask registrados, que en el Sprint~5 ascenderían a diez con la
     incorporación de \texttt{patterns}.
-  \item \textbf{Cambio respecto a lo planificado}: el parseo robusto de CSV
-    requirió una semana adicional por la casuística de ficheros con BOM,
+  \item \textbf{Cambio respecto a lo planificado}: el parseo robusto de \ac{CSV}
+    requirió una semana adicional por la casuística de ficheros con \ac{BOM},
     delimitadores inusuales y codificaciones mixtas.
 \end{itemize}
 
@@ -480,7 +483,7 @@ inicializa las extensiones, registra los \emph{blueprints} y configura el
 y queda organizada en este sprint en \textbf{seis módulos funcionales}
 (\texttt{auth}, \texttt{projects}, \texttt{datasets}, \texttt{metrics},
 \texttt{evaluations}, \texttt{admin}) más tres \emph{blueprints} de
-organización técnica derivados de la convención REST de rutas anidadas
+organización técnica derivados de la convención \ac{REST} de rutas anidadas
 (\texttt{project\_metrics}, \texttt{project\_datasets},
 \texttt{dashboard}).  En el Sprint~5 se incorporará un séptimo módulo
 funcional (\texttt{patterns}), llegando al total final de diez
@@ -546,7 +549,7 @@ robusta de \ac{CSV} estructurada en tres fases:
   \item \textbf{Matriz de \emph{fallback}:} si la detección del
     delimitador no es concluyente o la lectura no produce un
     \emph{DataFrame} válido, se ensayan exhaustivamente combinaciones de
-    cuatro codificaciones (UTF-8, UTF-8 con BOM, CP1252, Latin-1), seis
+    cuatro codificaciones (UTF-8, UTF-8 con \ac{BOM}, CP1252, Latin-1), seis
     estrategias de separador (el detectado, la inferencia automática de
     Pandas y los cuatro candidatos explícitos) y los dos motores de
     \emph{parsing} de Pandas (Python y C).  Se retorna el primer intento
@@ -612,8 +615,8 @@ módulos principales, \ac{API} \ac{REST} operativa y datasets versionados.
 
 \textbf{Estado del producto:} \emph{backend} completo con nueve
 \emph{blueprints} Flask registrados (seis módulos funcionales más tres de
-organización técnica REST: \texttt{project\_metrics},
-\texttt{project\_datasets} y \texttt{dashboard}), módulo de ingesta CSV,
+organización técnica \ac{REST}: \texttt{project\_metrics},
+\texttt{project\_datasets} y \texttt{dashboard}), módulo de ingesta \ac{CSV},
 versionado de datasets y autenticación JWT.  La plataforma
 puede almacenar y gestionar conjuntos de datos, pero carece aún de motor
 de métricas e interfaz de usuario.
@@ -625,7 +628,7 @@ S4 respectivamente.
 \textbf{Qué fue bien:} la separación en capas (\emph{blueprints} + servicios)
 facilita significativamente las pruebas y la extensión futura.
 
-\textbf{Qué fue mal:} el parseo robusto de CSV fue mucho más complejo de lo
+\textbf{Qué fue mal:} el parseo robusto de \ac{CSV} fue mucho más complejo de lo
 esperado.  La diversidad de codificaciones y delimitadores reales encontrados
 en datasets de prueba obligó a extender el sprint una semana.
 
@@ -636,7 +639,7 @@ variados e irregulares de lo que sugieren los formatos estándar; es
 preferible implementar estrategias defensivas desde el inicio.
 
 \textbf{Acción de mejora:} crear una batería de datasets de prueba con
-casos extremos (BOM, delimitadores inusuales, caracteres especiales) para
+casos extremos (\ac{BOM}, delimitadores inusuales, caracteres especiales) para
 validar el parseo en el siguiente sprint.
 
 
@@ -650,7 +653,7 @@ validar el parseo en el siguiente sprint.
 
 \textbf{Objetivo del sprint:} diseñar e implementar el motor de métricas con
 arquitectura de \emph{plugins} y las tres primeras métricas de calidad,
-alineadas con \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259.
+alineadas con \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259.
 
 \begin{table}[htbp]
   \centering
@@ -663,7 +666,7 @@ alineadas con \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259.
     \midrule
     HU-07 & Configuración de métricas con parámetros y pesos & 5 & 20 \\
     HU-08 & Plantillas de métricas del sistema & 3 & 10 \\
-    HU-09 & Lanzamiento de evaluación (tarea Celery) & 5 & 22 \\
+    HU-09 & Lanzamiento de evaluación (tarea Celery, parte 1 de 2) & 5 & 22 \\
     HU-10 & Listado de issues con severidad & 3 & 18 \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{16 SP} & \textbf{70 h} \\
@@ -671,7 +674,7 @@ alineadas con \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259.
   \end{tabularx}
 \end{table}
 
-\textbf{Dependencias}: requiere Sprint~2 completado (API REST y datasets
+\textbf{Dependencias}: requiere Sprint~2 completado (API \ac{REST} y datasets
 operativos).
 
 \subsection{Trabajo realizado}
@@ -733,11 +736,11 @@ completitud (\texttt{completeness}), unicidad (\texttt{uniqueness}),
 exactitud sintáctica (\texttt{syntactic\_accuracy}), consistencia lógica
 (\texttt{logical\_consistency}), actualidad (\texttt{currentness}),
 equilibrio de clases (\texttt{class\_balance}) y diversidad
-(\texttt{diversity}).  Las fórmulas se alinean con \ac{ISO}/IEC~25024
-para las cuatro dimensiones inherentes y con \ac{ISO}/IEC~5259-2 para
+(\texttt{diversity}).  Las fórmulas se alinean con \ac{ISO}/\ac{IEC}~25024
+para las cuatro dimensiones inherentes y con \ac{ISO}/\ac{IEC}~5259-2 para
 unicidad, equilibrio y diversidad.  Adicionalmente, la clase
 \texttt{OutliersMetric} detecta valores atípicos mediante \ac{IQR}; por
-recomendación de \ac{ISO}/IEC~5259, no figura en
+recomendación de \ac{ISO}/\ac{IEC}~5259, no figura en
 \texttt{METRIC\_REGISTRY} ni contribuye al \emph{Quality Score}, sino
 que se utiliza únicamente como herramienta de diagnóstico en el módulo
 \acs{EDA}.
@@ -861,9 +864,9 @@ de datos (\ac{EDA}).
     \textbf{ID} & \textbf{Ítem} & \textbf{Est. (SP)} & \textbf{Real (h)} \\
     \midrule
     HU-04 & Cuadro de mando principal con resumen & 5 & 20 \\
-    HU-09 & Progreso de evaluación en tiempo real (polling) & 3 & 14 \\
-    HU-13 & EDA: histogramas, boxplots, correlaciones & 5 & 24 \\
-    HU-14 & Marcado de columnas PII en la UI & 1 & 7 \\
+    HU-09 & Progreso de evaluación en tiempo real (polling, parte 2 de 2) & 3 & 14 \\
+    HU-13 & \ac{EDA}: histogramas, boxplots, correlaciones & 5 & 24 \\
+    HU-14 & Marcado de columnas \ac{PII} en la \ac{UI} & 1 & 7 \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{14 SP} & \textbf{65 h} \\
     \bottomrule
@@ -974,7 +977,7 @@ G~(figuras~\ref{fig:manual-analysis-history} y~\ref{fig:manual-eda}).
 \subsection{Retrospectiva}
 
 \textbf{Conseguido:} interfaz de usuario completa y funcional con todas las
-pantallas principales y el módulo EDA.  Incorporadas además tres métricas
+pantallas principales y el módulo \ac{EDA}.  Incorporadas además tres métricas
 evaluables al catálogo (\texttt{syntactic\_accuracy}, \texttt{class\_balance}
 y \texttt{currentness}), completando seis de las siete métricas del sistema.
 
@@ -988,7 +991,7 @@ avanzadas.
 \textbf{Pendiente:} fingerprinting SHA-256 (HU-12) y Quality Gates (HU-11)
 programados para S5.
 
-\textbf{Qué fue bien:} el uso de Material UI aceleró significativamente el
+\textbf{Qué fue bien:} el uso de Material \ac{UI} aceleró significativamente el
 desarrollo de componentes, especialmente tablas, tarjetas y diálogos modales.
 
 \textbf{Qué fue mal:} la complejidad del componente \texttt{DataProfilingTab.tsx}
@@ -1031,7 +1034,7 @@ medidas de seguridad avanzadas.
     \midrule
     HU-11 & Quality Gates con tres estados (PASSED/WARNING/FAILED) & 5 & 18 \\
     HU-12 & Fingerprinting SHA-256 para trazabilidad de issues & 5 & 22 \\
-    --    & Seguridad: rate limiting, cabeceras, PBKDF2 & 0 & 15 \\
+    T-07  & Seguridad: rate limiting, cabeceras, PBKDF2 & 0 & 15 \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{10 SP} & \textbf{55 h} \\
     \bottomrule
@@ -1168,7 +1171,7 @@ La seguridad de la plataforma se aborda desde múltiples capas:
 
 \begin{itemize}
   \item \textbf{Autenticación JWT:} \emph{access token} (24~h) +
-    \emph{refresh token} (30~días) con revocación por JTI.
+    \emph{refresh token} (30~días) con revocación por \ac{JTI}.
 
   \item \textbf{\emph{Hashing} de contraseñas:} \ac{PBKDF2}-SHA256 con
     \emph{salt} aleatorio por contraseña (Werkzeug).
@@ -1231,7 +1234,7 @@ evaluable (\texttt{DiversityMetric}) y el \emph{blueprint} \texttt{patterns}
 para patrones de validación reutilizables.
 
 \textbf{Estado del producto:} \dataqual es una plataforma completa con todas
-las funcionalidades principales: ingesta CSV, siete métricas de
+las funcionalidades principales: ingesta \ac{CSV}, siete métricas de
 calidad evaluables, interfaz web integrada, \emph{fingerprinting} SHA-256,
 \emph{Quality Gates} y seguridad multicapa.  El producto está
 funcionalmente cerrado; S6 se dedicará a pruebas, corrección de defectos y
@@ -1288,12 +1291,12 @@ de usuario y redactar la documentación técnica completa.
     \toprule
     \textbf{ID} & \textbf{Actividad} & \textbf{Est. (h)} & \textbf{Real (h)} \\
     \midrule
-    --    & Pruebas unitarias del motor de métricas y \emph{Quality Score} (pytest) & 18 & 22 \\
-    --    & Pruebas de integración: versionado, Quality Gates y autorización IDOR & 14 & 16 \\
-    --    & Pruebas de \emph{fingerprinting} y comparación con \emph{baseline} & 4 & 6 \\
-    --    & Corrección de defectos detectados en pruebas & 16 & 18 \\
-    --    & Internacionalización del \emph{frontend} (ES/EN, i18next) & 0 & --- \\
-    --    & Redacción de la memoria (TFG) & 20 & 20 \\
+    T-10  & Pruebas unitarias del motor de métricas y \emph{Quality Score} (pytest) & 18 & 22 \\
+    T-11  & Pruebas de integración: versionado, Quality Gates y autorización IDOR & 14 & 16 \\
+    T-12  & Pruebas de \emph{fingerprinting} y comparación con \emph{baseline} & 4 & 6 \\
+    T-13  & Corrección de defectos detectados en pruebas & 16 & 18 \\
+    T-14  & Redacción de la memoria (\ac{TFG}) & 20 & 20 \\
+    T-15  & Internacionalización del \emph{frontend} (ES/EN, i18next) & 0 & --- \\
     --    & Preparación de la defensa & 8 & 8 \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total}} & \textbf{80 h} & \textbf{90 h} \\

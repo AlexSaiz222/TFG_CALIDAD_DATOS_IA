@@ -145,7 +145,7 @@ ejecución y evolución sin afectar al documento académico.
       Comportamiento de las ocho clases de métricas frente a casos
       límite: completitud, unicidad, actualidad, exactitud sintáctica,
       equilibrio de clases, diversidad, valores atípicos y consistencia
-      lógica (42 casos).
+      lógica (41 casos).
       & Implementada \\
     BE-07 & \texttt{test\_analysis\_run} &
       Creación de \texttt{AnalysisRun}, comparación con \emph{baseline}
@@ -161,7 +161,7 @@ ejecución y evolución sin afectar al documento académico.
     BE-10 & \texttt{test\_idor\_authorization} &
       Control de acceso a recursos: un usuario no puede leer ni
       modificar \emph{datasets} de otro propietario, ni acceder sin
-      \acs{JWT} (14 casos cubriendo \acs{IDOR} en lectura, escritura y
+      \acs{JWT} (15 casos cubriendo \acs{IDOR} en lectura, escritura y
       enumeración).
       & Implementada \\
     \bottomrule
@@ -181,7 +181,7 @@ ejecución y evolución sin afectar al documento académico.
     \midrule
     DM-01 & \texttt{test\_fingerprinting} &
       Estabilidad del \emph{fingerprint} de \texttt{DataQualityIssue} entre
-      ejecuciones (mismo \emph{issue} $\Rightarrow$ misma huella; 28 casos).
+      ejecuciones (mismo \emph{issue} $\Rightarrow$ misma huella; 29 casos).
       & Implementada \\
     DM-02 & \texttt{test\_diff\_baseline} &
       Cálculo correcto de incidencias \emph{nuevas}, \emph{resueltas} y
@@ -337,6 +337,11 @@ detalla en el documento técnico complementario.
 %% =========================================================================
 \section{Métricas y \acs{KPI} del plan}
 \label{sec:anx-pruebas-kpis}
+
+Las métricas y los indicadores clave del plan de pruebas permiten evaluar
+cuantitativamente el proceso de verificación. Entre ellos se incluye la densidad
+de defectos medida en relación al tamaño del código en miles de líneas de
+código (\ac{KLOC}), cuyos valores se recogen en la Tabla~\ref{tab:kpis-pruebas}.
 %% =========================================================================
 
 \begin{table}[H]
@@ -357,7 +362,7 @@ detalla en el documento técnico complementario.
                           & 0           & 0 \\
     Tiempo suite L1+L2    & Duración total en local.
                           & \textless\,60\,s & $\sim$17\,s \\
-    Densidad de defectos  & Defectos \,/\,KLOC en el periodo.
+    Densidad de defectos  & Defectos \,/\,\ac{KLOC} en el periodo.
                           & Decreciente   & N/A \\
     \bottomrule
   \end{tabularx}
@@ -422,8 +427,8 @@ las revisiones de cada \emph{sprint} (capítulo de metodología).
 \label{sec:anx-pruebas-estado}
 %% =========================================================================
 
-A la fecha de redacción de la memoria se han implementado doce
-\emph{suites} automatizadas que cubren las áreas de mayor riesgo:
+A la fecha de redacción de la memoria se han implementado once
+\emph{suites} automatizadas (doce módulos \texttt{pytest}) que cubren las áreas de mayor riesgo:
 BE-01 a BE-05 (autenticación, proyectos, versionado y \emph{Quality
 Gate} básico), BE-06 (motor completo de métricas: 8 clases), BE-10
 (autorización cruzada \acs{IDOR}) y DM-01 a DM-04

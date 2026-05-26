@@ -158,8 +158,8 @@ siguientes actividades:
 
   \item \textbf{Diseño:} definición de la arquitectura y el modelo de datos
     necesarios para las funcionalidades seleccionadas, tomando como referencia
-    los estándares \ac{ISO}/IEC~25012~\citep{iso25012} e
-    \ac{ISO}/IEC~5259~\citep{iso5259} para el diseño de las métricas de
+    los estándares \ac{ISO}/\ac{IEC}~25012~\citep{iso25012} e
+    \ac{ISO}/\ac{IEC}~5259~\citep{iso5259} para el diseño de las métricas de
     calidad.
 
   \item \textbf{Implementación:} desarrollo del código del \emph{backend} y
@@ -211,15 +211,7 @@ las competencias adquiridas durante el grado en Ingeniería Informática.
 \subsection{\emph{Frontend}}
 \label{sec:tech-frontend}
 
-La capa de presentación se construyó sobre Next.js y React, combinación que
-ofrece enrutamiento basado en ficheros, reescritura de rutas para actuar
-como \emph{proxy} hacia el \emph{backend} y generación de contenido
-estático.  Se descartó Vue.js por su ecosistema de componentes de
-visualización menos maduro en el momento del desarrollo.  TypeScript se
-incorporó desde el inicio para garantizar la seguridad de tipos en un
-\emph{frontend} que superó los cuarenta componentes reutilizables al
-cierre del Sprint~4 y los cincuenta al cierre del proyecto.
-La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
+La capa de presentación se construyó sobre Next.js y React para ofrecer una interfaz de usuario (\ac{UI}) interactiva y fluida, combinación que ofrece enrutamiento basado en ficheros, reescritura de rutas para actuar como \emph{proxy} hacia el \emph{backend}, comunicación segura mediante tokens \ac{JWT} y generación de contenido estático. Se descartó Vue.js por su ecosistema de componentes de visualización menos maduro en el momento del desarrollo. TypeScript se incorporó desde el inicio para garantizar la seguridad de tipos en un \emph{frontend} que superó los cuarenta componentes reutilizables al cierre del Sprint~4 y los cincuenta al cierre del proyecto. La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
 
 
 \begin{table}[htbp]
@@ -257,7 +249,7 @@ La Tabla~\ref{tab:tech-frontend} recoge el detalle de cada tecnología.
 \label{sec:tech-backend}
 
 El \emph{backend} se implementó en Python con Flask como \emph{framework}
-web.  Python fue la elección natural por su integración nativa con las
+web, interactuando con la base de datos a través de un \ac{ORM} y sirviendo las peticiones mediante una interfaz \ac{WSGI} en producción.  Python fue la elección natural por su integración nativa con las
 bibliotecas de análisis de datos (Pandas, NumPy) que sustentan el motor de
 métricas.  Flask se prefirió frente a Django porque no impone una estructura
 monolítica, lo que permitió diseñar una arquitectura modular basada en
@@ -422,8 +414,8 @@ licencia.
 El desarrollo del proyecto se ha distribuido a lo largo del curso académico
 2025--2026 en seis fases consecutivas.  Las dos primeras sentaron las bases del
 sistema: entre agosto y septiembre~2025 se estudió el estado del arte y se
-analizaron los estándares \ac{ISO}/IEC~25012~\citep{iso25012} e
-\ac{ISO}/IEC~5259~\citep{iso5259}, lo que permitió diseñar la arquitectura
+analizaron los estándares \ac{ISO}/\ac{IEC}~25012~\citep{iso25012} e
+\ac{ISO}/\ac{IEC}~5259~\citep{iso5259}, lo que permitió diseñar la arquitectura
 general; durante enero~2026 se implementó el núcleo del
 \emph{backend}: modelos de datos, autenticación \ac{JWT}, módulo de ingesta
 multiformato con almacenamiento en MinIO y esqueleto de la \ac{API}
@@ -501,9 +493,9 @@ cascada~\citep{sommerville2016}.
 La Tabla~\ref{tab:backlog-hu} recoge el backlog inicial del proyecto,
 organizado por épicas.  Cada historia de usuario sigue el formato
 \textit{«Como [rol], quiero [acción] para [beneficio]»} y se estima en
-\emph{story points} (SP) usando la escala de Fibonacci.  Las historias
+\emph{story points} (\ac{SP}) usando la escala de Fibonacci.  Las historias
 de usuario se formalizaron al inicio del proyecto como marco de
-planificación; las estimaciones en SP se ajustaron retrospectivamente
+planificación; las estimaciones en \ac{SP} se ajustaron retrospectivamente
 al cierre de cada sprint con los tiempos aproximados de cada tarea.
 El backlog completo con la asignación a sprints se incluye en el
 Anexo~C.
@@ -526,7 +518,7 @@ Anexo~C.
       conjuntos de datos relacionados. & Alta & 3 \\
     HU-04 & Proyectos & Como usuario, quiero ver el resumen de calidad de mi
       proyecto en un cuadro de mando. & Alta & 5 \\
-    HU-05 & Datasets  & Como usuario, quiero cargar un fichero CSV
+    HU-05 & Datasets  & Como usuario, quiero cargar un fichero \ac{CSV}
       para evaluarlo. & Alta & 5 \\
     HU-06 & Datasets  & Como usuario, quiero ver el versionado de mis datasets
       para rastrear cambios. & Media & 3 \\
@@ -537,20 +529,20 @@ Anexo~C.
     HU-09 & Evaluación & Como usuario, quiero lanzar una evaluación y ver el
       progreso en tiempo real. & Alta & 8 \\
     HU-10 & Evaluación & Como usuario, quiero ver los problemas detectados con
-      su severidad y columna afectada. & Alta & 5 \\
+      su severidad y columna afectada. & Alta & 3 \\
     HU-11 & Quality Gates & Como usuario, quiero definir un Quality Gate para
       saber si mi dataset es apto. & Alta & 5 \\
     HU-12 & Fingerprinting & Como usuario, quiero que los issues se tracen
-      entre evaluaciones para detectar recurrencias. & Media & 8 \\
-    HU-13 & EDA       & Como usuario, quiero explorar distribuciones, nulos y
-      correlaciones de mis datos visualmente. & Media & 8 \\
-    HU-14 & PII       & Como usuario, quiero marcar columnas sensibles para que
-      sus valores no aparezcan en resultados. & Media & 5 \\
+      entre evaluaciones para detectar recurrencias. & Media & 5 \\
+    HU-13 & \ac{EDA}       & Como usuario, quiero explorar distribuciones, nulos y
+      correlaciones de mis datos visualmente. & Media & 5 \\
+    HU-14 & \ac{PII}       & Como usuario, quiero marcar columnas sensibles para que
+      sus valores no aparezcan en resultados. & Media & 1 \\
     HU-15$^{\dagger}$ & Admin & Como administrador, quiero gestionar usuarios y
       ver el estado del sistema. & Baja & 3 \\
     \midrule
-    \multicolumn{4}{r}{\textbf{Total SP planificados}} & \textbf{71} \\
-    \multicolumn{4}{r}{\textbf{Total SP entregados (sin HU-15)}} & \textbf{68} \\
+    \multicolumn{4}{r}{\textbf{Total SP planificados}} & \textbf{59} \\
+    \multicolumn{4}{r}{\textbf{Total SP entregados (sin HU-15)}} & \textbf{56} \\
     \bottomrule
   \end{tabularx}
   \medskip\par\small
@@ -560,14 +552,13 @@ Anexo~C.
   con endpoints de salud y rendimiento únicamente.
 \end{table}
 
-El backlog inicial planificado sumaba \textbf{71 puntos de historia},
-de los cuales se entregaron \textbf{68}: HU-15 (panel de administración,
-3 SP, prioridad baja) se descartó del alcance final ante la decisión de
+El backlog inicial planificado sumaba \textbf{59 puntos de historia},
+de los cuales se entregaron \textbf{56}: HU-15 (panel de administración,
+3 \ac{SP}, prioridad baja) se descartó del alcance final ante la decisión de
 centrar el desarrollo en las funcionalidades del rol de usuario, que son
 las que aportan el valor diferencial de la plataforma.  Las épicas de
-mayor peso entre las entregadas son Evaluación (13~SP) y, en segundo
-lugar, Proyectos, Datasets, Métricas, \emph{Fingerprinting} y \ac{EDA}
-(8~SP cada una).
+mayor peso entre las entregadas son Evaluación (11~\ac{SP}) y, en segundo
+lugar, Proyectos, Datasets y Métricas (8~\ac{SP} cada una).
 
 
 %% =========================================================================
@@ -589,7 +580,7 @@ de cada tarea.
     estimación relativa de las historias de usuario (véase
     Tabla~\ref{tab:backlog-hu}).  Se estableció una equivalencia
     orientativa de 4~horas por punto, lo que arroja una estimación
-    base de 284~horas para las 71~SP del backlog.  Esta cifra no
+    base de 236~horas para las 59~\ac{SP} del backlog.  Esta cifra no
     incluye las tareas técnicas adicionales ni el sprint de
     documentación (S6), que se estimaron directamente en horas.
 
@@ -614,38 +605,35 @@ estimación inicial y el tiempo real invertido en cada sprint.
       \textbf{SP} & \textbf{Est. (h)} & \textbf{Real (h)} \\
     \midrule
     S1 & Análisis, arquitectura y setup inicial  & 13 &  52 &  60 \\
-    S2 & Backend core (auth, datasets, API REST) & 18 &  72 &  85 \\
+    S2 & Backend core (auth, datasets, API \ac{REST}) & 18 &  72 &  85 \\
     S3 & Motor de métricas (3 métricas iniciales) & 16 &  64 &  70 \\
     S4 & Frontend y visualizaciones              & 14 &  56 &  65 \\
-    S5 & Features avanzadas (fingerprinting, QG, PII) & 10 & 40 & 55 \\
+    S5 & Features avanzadas (fingerprinting, Quality Gates, \ac{PII}) & 10 & 40 & 55 \\
     S6 & Documentación, pruebas y defensa        &  0 &  80 &  90 \\
     \midrule
     \textbf{Total} & & \textbf{71} & \textbf{364} & \textbf{425} \\
     \bottomrule
   \end{tabularx}
   \medskip\par\footnotesize\raggedright
-  \textit{Nota.}~La columna SP de esta tabla agrega, por sprint, las
+  \textit{Nota.}~La columna \ac{SP} de esta tabla agrega, por sprint, las
   historias de usuario más las tareas técnicas que conformaron el plan
   de cada iteración. El backlog original
-  (Tabla~\ref{tab:backlog-hu}) contabiliza 71~SP en historias de
-  usuario, de los cuales se entregaron 68~SP tras descartar HU-15 del
-  alcance final; las tareas técnicas asociadas a infraestructura,
-  arquitectura y \ac{API} \ac{REST} se computan adicionalmente como
-  esfuerzo ejecutado, de modo que el total por sprint coincide
-  numéricamente con los 71~SP del backlog inicial pero refleja una
-  composición distinta (HU efectivamente entregadas más tareas
-  técnicas).
+  (Tabla~\ref{tab:backlog-hu}) contabiliza 59~\ac{SP} en historias de
+  usuario, de los cuales se entregaron 56~\ac{SP} tras descartar HU-15 del
+  alcance final; sumando las tareas técnicas asociadas a infraestructura,
+  arquitectura y \ac{API} \ac{REST} (15~\ac{SP}), el esfuerzo ejecutado
+  asciende a los 71~\ac{SP} que recoge esta tabla.
 \end{table}
 
 La desviación media del \textbf{+16,8\,\%} sobre la estimación inicial es
 consistente con la literatura sobre proyectos de software de tamaño similar.
-Los sprints con mayor desviación fueron S5~(+38\,\%), S2~(+18\,\%) y
-S1~(+15\,\%), causados respectivamente por la complejidad del sistema de
-\emph{fingerprinting}, el parseo robusto de CSV y la configuración de la
+Los sprints con mayor desviación fueron S5~(+37,5\,\%), S2~(+18,1\,\%) y
+S1~(+15,4\,\%), causados respectivamente por la complejidad del sistema de
+\emph{fingerprinting}, el parseo robusto de \ac{CSV} y la configuración de la
 infraestructura Docker.  S6 registró una desviación del~+12,5\,\%, atribuible
 al mayor volumen de documentación respecto a lo estimado inicialmente.  S3 fue
-el sprint más ajustado ($\approx$\,9\,\%), mientras que S4 se situó en torno
-al $\approx$\,+16\,\%, próximo a la media global, dentro del margen de
+el sprint más ajustado (+9,4\,\%), mientras que S4 se situó en el
++16,1\,\%, próximo a la media global, dentro del margen de
 incertidumbre habitual en proyectos de este tipo.
 
 
@@ -702,7 +690,7 @@ tutores) y 274~€ de infraestructura (252~€ de amortización del equipo y
 código abierto y el despliegue es local, el coste de licencias es nulo.
 Para un escenario de producción con despliegue en nube, el Anexo~E estima
 un coste adicional de aproximadamente 90~€/mes con servicios equivalentes
-de AWS (RDS, S3, ElastiCache, ECS).
+de \ac{AWS} (\ac{RDS}, S3, ElastiCache, \ac{ECS}).
 
 
 %% =========================================================================

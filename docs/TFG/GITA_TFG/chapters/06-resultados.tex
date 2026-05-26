@@ -10,13 +10,13 @@ revisadas en el capítulo~\ref{chap:antecedentes}.
 
 
 %% =========================================================================
-\section{Instanciación del marco ISO/IEC 5259 en DataQual}
+\section{Instanciación del marco \ac{ISO}/\ac{IEC} 5259 en DataQual}
 \label{sec:instanciacion-iso5259}
 %% =========================================================================
 
 El marco normativo descrito en el capítulo~\ref{chap:antecedentes},
 y en particular la taxonomía de
-\ac{ISO}/IEC~5259-2~\citep{iso5259} expuesta en la
+\ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} expuesta en la
 sección~\ref{sec:alcance-metodologico}, permite estructurar las decisiones
 de alcance de \dataqual en dos niveles.  El primero distingue qué
 características son evaluables sobre el fichero de datos y cuáles requieren
@@ -28,11 +28,11 @@ alcance, quedando como trabajo futuro.  La presente sección
 detalla la instanciación resultante.
 
 El Cuadro~\ref{tab:iso5259-cobertura} sintetiza la cobertura de \dataqual
-respecto a las cuatro categorías de \ac{ISO}/IEC~5259-2.
+respecto a las cuatro categorías de \ac{ISO}/\ac{IEC}~5259-2.
 
 \begin{table}[htbp]
   \centering
-  \caption{Cobertura de \dataqual respecto al modelo de calidad de \ac{ISO}/IEC 5259-2}
+  \caption{Cobertura de \dataqual respecto al modelo de calidad de \ac{ISO}/\ac{IEC} 5259-2}
   \label{tab:iso5259-cobertura}
   \footnotesize
   \renewcommand{\arraystretch}{2.0}%
@@ -74,14 +74,14 @@ respecto a las cuatro categorías de \ac{ISO}/IEC~5259-2.
 \subsection{Características implementadas algorítmicamente}
 \label{sec:caracteristicas-evaluables}
 
-Las características inherentes de \ac{ISO}/IEC~5259-2 son evaluables
+Las características inherentes de \ac{ISO}/\ac{IEC}~5259-2 son evaluables
 algorítmicamente porque sus métricas se calculan a partir de los propios
 valores del dataset, sin necesidad de acceder a sistemas externos ni de
 conocer el dominio de negocio.  La completitud se mide como la proporción
 de valores no nulos; la exactitud sintáctica, como la conformidad con
 patrones de formato definidos; la consistencia, como la ausencia de
 contradicciones lógicas entre columnas (sub-dimensión Con-ML-4 de
-\ac{ISO}/IEC~5259-2) y como la ausencia de registros duplicados
+\ac{ISO}/\ac{IEC}~5259-2) y como la ausencia de registros duplicados
 (sub-dimensión Con-ML-1); y la actualidad, como la antigüedad del valor
 más reciente en columnas temporales.  Del grupo de características
 adicionales, el equilibrio de clases (\emph{balance}) y la diversidad
@@ -161,15 +161,15 @@ Entre las características algorítmicamente evaluables, el desarrollo de
 modelos de \ac{IA} y en el cumplimiento del marco normativo aplicable:
 
 \begin{enumerate}
-  \item \textbf{Las características inherentes de \ac{ISO}/IEC~25012}
+  \item \textbf{Las características inherentes de \ac{ISO}/\ac{IEC}~25012}
     (completitud, exactitud, consistencia y actualidad) implementadas a
     través de cinco métricas: \texttt{completeness},
     \texttt{syntactic\_accuracy}, \texttt{logical\_consistency},
     \texttt{currentness} y \texttt{uniqueness}, siendo esta última la
     sub-dimensión Con-ML-1 de consistencia definida en
-    \ac{ISO}/IEC~5259-2.  Esto proporciona cobertura directa de los
-    requisitos de \ac{ISO}/IEC~5259-2~\citep{iso5259} e
-    \ac{ISO}/IEC~25024~\citep{iso25024}.
+    \ac{ISO}/\ac{IEC}~5259-2.  Esto proporciona cobertura directa de los
+    requisitos de \ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} e
+    \ac{ISO}/\ac{IEC}~25024~\citep{iso25024}.
 
   \item \textbf{Equilibrio de clases} (\texttt{class\_balance}), medido
     mediante la entropía de Shannon.  El desequilibrio de clases es uno de
@@ -190,7 +190,7 @@ Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado
 como herramienta de diagnóstico en el módulo de \ac{EDA}, sin ser
 computados como parte de la puntuación de calidad global.  Esta decisión
 sigue explícitamente la recomendación de
-\ac{ISO}/IEC~5259-2~\citep{iso5259}, que no considera los \emph{outliers}
+\ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259}, que no considera los \emph{outliers}
 una dimensión de calidad inherente, sino un indicador diagnóstico cuya
 relevancia depende del dominio de aplicación.
 
@@ -227,12 +227,12 @@ magnitudes del sistema implementado.
     \textbf{Dimensión} & \textbf{Cantidad} \\
     \midrule
     Métricas de calidad evaluables (Quality Score) & 7     \\
-    Clases de métricas implementadas (incl.\ outliers para EDA) & 8 \\
+    Clases de métricas implementadas (incl.\ outliers para \ac{EDA}) & 8 \\
     Servicios Docker orquestados                    & 8     \\
     Rutas / páginas del \emph{frontend}             & 20    \\
     Componentes React reutilizables                 & 50+   \\
     Módulos funcionales de \ac{API} (\emph{blueprints} principales) & 7 \\
-    \emph{Blueprints} Flask totales (incl.\ sub-rutas REST)        & 10 \\
+    \emph{Blueprints} Flask totales (incl.\ sub-rutas \ac{REST})        & 10 \\
     Tablas en base de datos                         & 11    \\
     Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
     Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
@@ -278,13 +278,13 @@ al esfuerzo real invertido en cada sprint.
     \bottomrule
   \end{tabularx}
   \medskip\par\footnotesize\raggedright
-  \textit{Nota.}~La columna SP agrega, por sprint, las historias de
+  \textit{Nota.}~La columna \ac{SP} agrega, por sprint, las historias de
   usuario más las tareas técnicas que conformaron el plan de cada
   iteración (véase Anexo~\ref{anx:backlog}).  El backlog original
-  (Tabla~\ref{tab:backlog-hu}) contabiliza 71~SP en historias de
-  usuario, de los cuales se entregaron 68~SP (HU-15 fue descartada
-  del alcance final); las tareas técnicas se computan adicionalmente
-  como esfuerzo ejecutado.
+  (Tabla~\ref{tab:backlog-hu}) contabiliza 59~\ac{SP} en historias de
+  usuario, de los cuales se entregaron 56~\ac{SP} (HU-15 fue descartada
+  del alcance final); sumando las tareas técnicas (15~\ac{SP}), el
+  esfuerzo ejecutado asciende a los 71~\ac{SP} de esta tabla.
 \end{table}
 
 \begin{figure}[H]
@@ -482,7 +482,7 @@ innecesaria contra la \ac{API} cuando se ejecutan muchas evaluaciones
 simultáneamente.  Por último, la detección de valores atípicos en el
 módulo de perfilado se limita al método estadístico clásico del
 \ac{IQR}; algoritmos basados en aprendizaje automático como
-\emph{Isolation Forest} o DBSCAN, que detectarían anomalías
+\emph{Isolation Forest} o \ac{DBSCAN}, que detectarían anomalías
 multidimensionales más sutiles, quedan fuera del alcance de esta versión
 (la decisión de tratar los \emph{outliers} como herramienta de
 diagnóstico y no como dimensión de calidad se justifica en la
@@ -494,7 +494,7 @@ a \ac{JWT} con usuario y contraseña: no se han implementado OAuth~2.0,
 \emph{Single Sign-On} corporativo ni autenticación multifactor, por lo
 que la plataforma no está preparada todavía para integrarse en entornos
 empresariales con identidad federada.  Los resultados, además, no pueden
-exportarse a formatos de informe formal como PDF o Excel, lo que
+exportarse a formatos de informe formal como \ac{PDF} o Excel, lo que
 dificulta el reporte a perfiles ajenos al equipo técnico y la
 incorporación de los hallazgos a documentación de auditoría.
 
@@ -530,7 +530,7 @@ de corrección automatizada queda como una de las líneas de trabajo
 futuro identificadas en la sección~\ref{sec:trabajo-futuro}.  Por otro,
 no se han desarrollado conectores específicos para bases de datos
 (MySQL, BigQuery, Snowflake) ni para servicios de almacenamiento en la
-nube (AWS~S3, Azure~Blob, Google~Cloud~Storage); aunque la arquitectura
+nube (\ac{AWS}~S3, Azure~Blob, Google~Cloud~Storage); aunque la arquitectura
 basada en MinIO es compatible con el protocolo S3, el usuario interactúa
 actualmente con la plataforma a través de ficheros \ac{CSV} cargados
 manualmente.

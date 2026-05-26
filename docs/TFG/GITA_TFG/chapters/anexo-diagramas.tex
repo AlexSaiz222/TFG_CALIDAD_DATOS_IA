@@ -31,7 +31,7 @@ es la siguiente:
     siete \emph{blueprints} funcionales (\texttt{auth}, \texttt{projects},
     \texttt{datasets}, \texttt{metrics}, \texttt{evaluations},
     \texttt{admin}, \texttt{patterns}) y tres de organización técnica
-    REST (\texttt{project\_metrics}, \texttt{project\_datasets},
+    \ac{REST} (\texttt{project\_metrics}, \texttt{project\_datasets},
     \texttt{dashboard}).
 
   \item \textbf{Servicios} (lógica de negocio):
@@ -97,7 +97,7 @@ de uso se enumera a continuación.
     \node[usecase] (uc03) at (0, 1.8)  {UC-03 Configurar métricas};
     \node[usecase] (uc04) at (0, 0.9)  {UC-04 Ejecutar evaluación};
     \node[usecase] (uc05) at (0, 0)    {UC-05 Gestionar Quality Gate};
-    \node[usecase] (uc06) at (0,-0.9)  {UC-06 Explorar datos (EDA)};
+    \node[usecase] (uc06) at (0,-0.9)  {UC-06 Explorar datos (\ac{EDA})};
     \node[usecase] (uc07) at (0,-2.1)  {UC-07 Ejecutar tarea asíncrona};
     \node[usecase] (uc08) at (0,-3.0)  {UC-08 Detectar evaluaciones atascadas};
 
@@ -131,11 +131,11 @@ de uso se enumera a continuación.
   \item \textbf{Actor: Usuario autenticado}
     \begin{itemize}
       \item UC-01: Gestionar proyectos (crear, editar, eliminar, listar)
-      \item UC-02: Gestionar datasets (cargar, versionar, marcar PII)
+      \item UC-02: Gestionar datasets (cargar, versionar, marcar \ac{PII})
       \item UC-03: Configurar métricas (seleccionar, parametrizar, plantillas)
       \item UC-04: Ejecutar evaluación (lanzar, monitorizar progreso, ver resultados)
       \item UC-05: Gestionar Quality Gate (configurar umbrales, consultar estado)
-      \item UC-06: Explorar datos (EDA: histogramas, boxplots, correlaciones)
+      \item UC-06: Explorar datos (\ac{EDA}: histogramas, boxplots, correlaciones)
     \end{itemize}
   \item \textbf{Actor: Sistema Celery} (interno)
     \begin{itemize}

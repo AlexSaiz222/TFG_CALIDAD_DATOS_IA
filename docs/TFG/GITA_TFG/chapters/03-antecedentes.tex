@@ -85,7 +85,7 @@ cubre la disponibilidad del dato y la seguridad en su acceso.
   \label{fig:wang-strong}
 \end{figure}
 
-El estándar \ac{ISO}/IEC~25012 recoge el vocabulario conceptual de este
+El estándar \ac{ISO}/\ac{IEC}~25012 recoge el vocabulario conceptual de este
 marco (completitud, exactitud, consistencia y accesibilidad) rearticulándolo
 en un modelo orientado a sistemas informáticos que distingue entre
 características inherentes al dato y características dependientes del entorno
@@ -143,7 +143,7 @@ fuente recurrente de sesgo sistemático: los casos documentados
 (reconocimiento facial, contratación, reincidencia, valoración
 inmobiliaria) se discuten en la sección~\ref{sec:motivacion} y conectan
 con las dimensiones de equilibrio de clases, representatividad y
-actualidad recogidas por \ac{ISO}/IEC~5259.
+actualidad recogidas por \ac{ISO}/\ac{IEC}~5259.
 
 
 %% =========================================================================
@@ -153,17 +153,17 @@ actualidad recogidas por \ac{ISO}/IEC~5259.
 
 La evaluación de la calidad de datos se enmarca dentro de un conjunto de
 estándares internacionales publicados por la \ac{ISO}. \dataqual toma como
-referencia conceptual los estándares \ac{ISO}/IEC~25012 e
-\ac{ISO}/IEC~25024, que definen respectivamente el modelo de calidad de datos
+referencia conceptual los estándares \ac{ISO}/\ac{IEC}~25012 e
+\ac{ISO}/\ac{IEC}~25024, que definen respectivamente el modelo de calidad de datos
 y sus métricas de medición, y se alinea de forma explícita con
-\ac{ISO}/IEC~5259, el estándar específico para calidad de datos en analítica
+\ac{ISO}/\ac{IEC}~5259, el estándar específico para calidad de datos en analítica
 e \ac{IA}, cuya taxonomía de características estructura las decisiones de
 alcance del proyecto.
 
-\subsection{ISO/IEC 25012: Modelo de calidad de datos}
+\subsection{\ac{ISO}/\ac{IEC} 25012: Modelo de calidad de datos}
 \label{sec:iso25012}
 
-El estándar \ac{ISO}/IEC 25012~\citep{iso25012} forma parte de la familia
+El estándar \ac{ISO}/\ac{IEC} 25012~\citep{iso25012} forma parte de la familia
 \ac{SQuaRE} y define un modelo de calidad de datos que comprende 15
 características distribuidas en tres agrupaciones. La \textbf{calidad
 inherente} recoge cinco propiedades intrínsecas del dato (exactitud,
@@ -185,7 +185,7 @@ características normativas y las métricas implementadas en \dataqual.
 
 \begin{table}[htbp]
   \centering
-  \caption{Correspondencia entre las dimensiones de calidad de \ac{ISO}/IEC~25012 e \ac{ISO}/IEC~5259-2 y las métricas implementadas en \dataqual}
+  \caption{Correspondencia entre las dimensiones de calidad de \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259-2 y las métricas implementadas en \dataqual}
   \label{tab:iso25012-dataqual}
   \footnotesize
   \newcommand{\tblnote}{\textsuperscript{a}}%
@@ -193,28 +193,28 @@ características normativas y las métricas implementadas en \dataqual.
     \toprule
     \textbf{Característica} & \textbf{Norma} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
     \midrule
-    Completitud          & ISO 25012 + 25024  & \texttt{completeness}          & Ratio de valores no nulos por columna \\[10pt]
-    Exactitud            & ISO 25012 + 25024  & \texttt{syntactic\_accuracy}    & Conformidad con patrones de formato \\[10pt]
-    Consistencia\tblnote & ISO 5259-2          & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
-    Consistencia\tblnote & ISO 5259-2 + 25024  & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
-    Actualidad           & ISO 5259-2          & \texttt{currentness}            & Antigüedad del dato más reciente \\
+    Completitud          & \ac{ISO}~25012 + 25024  & \texttt{completeness}          & Ratio de valores no nulos por columna \\[10pt]
+    Exactitud            & \ac{ISO}~25012 + 25024  & \texttt{syntactic\_accuracy}    & Conformidad con patrones de formato \\[10pt]
+    Consistencia\tblnote & \ac{ISO}~5259-2          & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
+    Consistencia\tblnote & \ac{ISO}~5259-2 + 25024  & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
+    Actualidad           & \ac{ISO}~5259-2          & \texttt{currentness}            & Antigüedad del dato más reciente \\
     \midrule
-    \multicolumn{4}{l}{\emph{Características adicionales para \ac{IA} (ISO/IEC 5259-2)}} \\
+    \multicolumn{4}{l}{\emph{Características adicionales para \ac{IA} (\ac{ISO}/\ac{IEC} 5259-2)}} \\
     \midrule
-    Equilibrio (Balance) & ISO 5259-2          & \texttt{class\_balance}         & Entropía de Shannon \\[10pt]
-    Diversidad           & ISO 5259-2          & \texttt{diversity}              & Cobertura de valores esperados por columna \\
+    Equilibrio (Balance) & \ac{ISO}~5259-2          & \texttt{class\_balance}         & Entropía de Shannon \\[10pt]
+    Diversidad           & \ac{ISO}~5259-2          & \texttt{diversity}              & Cobertura de valores esperados por columna \\
     \bottomrule
   \end{tabularx}
   \medskip\par\footnotesize\raggedright
   \textsuperscript{a}~La consistencia se operacionaliza en dos métricas: coherencia lógica
   entre columnas y ausencia de duplicados, siguiendo las sub-dimensiones
-  Con-ML-4 y Con-ML-1 de \ac{ISO}/IEC~5259-2 respectivamente.
+  Con-ML-4 y Con-ML-1 de \ac{ISO}/\ac{IEC}~5259-2 respectivamente.
 \end{table}
 
-\subsection{ISO/IEC 5259: Calidad de datos para analítica e IA}
+\subsection{\ac{ISO}/\ac{IEC} 5259: Calidad de datos para analítica e IA}
 \label{sec:iso5259}
 
-El estándar \ac{ISO}/IEC 5259~\citep{iso5259} aborda específicamente la
+El estándar \ac{ISO}/\ac{IEC} 5259~\citep{iso5259} aborda específicamente la
 calidad de datos en contextos de analítica e inteligencia artificial y
 aprendizaje automático. La serie consta de cinco partes, de las cuales la
 Parte~2 (medidas de calidad de datos) fue publicada en noviembre de
@@ -241,7 +241,7 @@ versionado (Parte~3) y ofrece un flujo de evaluación integrado en el ciclo de
 vida del proyecto (Parte~4).
 
 Desde el punto de vista del alcance, la contribución más relevante de
-\ac{ISO}/IEC 5259-2 es la organización de las características de calidad en
+\ac{ISO}/\ac{IEC} 5259-2 es la organización de las características de calidad en
 cuatro grupos según su naturaleza y su dependencia del contexto tecnológico:
 \emph{características inherentes}, \emph{características mixtas} (inherentes y
 dependientes del sistema), \emph{características dependientes del sistema} y
@@ -250,26 +250,26 @@ taxonomía, analizada en detalle en la Sección~\ref{sec:alcance-metodologico},
 constituye el marco conceptual sobre el que se delimita el alcance técnico de
 \dataqual.
 
-\subsection[UNE 0081: evaluación de la calidad del dato]{UNE 0081: evaluación de la calidad del dato}
+\subsection[\ac{UNE} 0081: evaluación de la calidad del dato]{\ac{UNE} 0081: evaluación de la calidad del dato}
 \label{sec:une0081}
 
 En el contexto español, la norma \ac{UNE} 0081~\citep{une0081}, publicada
 en 2023 por la Asociación Española de Normalización dentro de la familia
-UNE 0078--0081 sobre gobierno, gestión y calidad del dato (Comité Técnico
+\ac{UNE} 0078--0081 sobre gobierno, gestión y calidad del dato (Comité Técnico
 de Normalización CTN~320/SC~1), complementa este ecosistema concibiéndose
-como una refinación de la \ac{ISO}/IEC~25024 orientada a mejorar su
+como una refinación de la \ac{ISO}/\ac{IEC}~25024 orientada a mejorar su
 aplicabilidad: formaliza un proceso operativo de evaluación de la calidad
 del dato en organizaciones y precisa las medidas existentes con criterios
 de cálculo más concretos.  \dataqual se alinea con su enfoque al adoptar
-las medidas cuantitativas de \ac{ISO}/IEC~25024 dentro de un proceso
+las medidas cuantitativas de \ac{ISO}/\ac{IEC}~25024 dentro de un proceso
 reproducible de evaluación con trazabilidad y comparación entre
 ejecuciones, lo que facilita la auditoría de resultados en entornos
 sujetos a esta normativa.
 
-\subsection{ISO/IEC 25024: Medición de la calidad de datos}
+\subsection{\ac{ISO}/\ac{IEC} 25024: Medición de la calidad de datos}
 \label{sec:iso25024}
 
-El estándar \ac{ISO}/IEC 25024~\citep{iso25024} complementa al 25012
+El estándar \ac{ISO}/\ac{IEC} 25024~\citep{iso25024} complementa al 25012
 proporcionando métricas concretas y fórmulas de medición para cada
 característica de calidad. De este modo, se pasa de un modelo conceptual
 abstracto a un conjunto de indicadores cuantificables.
@@ -297,11 +297,11 @@ cumplimiento normativo.
 
 
 %% =========================================================================
-\section[Taxonomía de ISO/IEC 5259-2]{Taxonomía de ISO/IEC 5259-2}
+\section[Taxonomía de \ac{ISO}/\ac{IEC} 5259-2]{Taxonomía de \ac{ISO}/\ac{IEC} 5259-2}
 \label{sec:alcance-metodologico}
 %% =========================================================================
 
-\ac{ISO}/IEC~5259-2~\citep{iso5259} organiza las características de calidad
+\ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} organiza las características de calidad
 de datos para analítica e \ac{IA} en cuatro grupos según su naturaleza y su
 grado de dependencia del contexto tecnológico.  Esta taxonomía constituye
 la base conceptual sobre la que, en el capítulo de resultados
@@ -314,9 +314,9 @@ de ellas.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.95\textwidth]{figures/img/iso5259-taxonomia.png}
-  \caption[Taxonomía de características de calidad de \ac{ISO}/IEC~5259-2]{%
+  \caption[Taxonomía de características de calidad de \ac{ISO}/\ac{IEC}~5259-2]{%
     Taxonomía de características de calidad de datos para analítica e
-    \ac{IA} según \ac{ISO}/IEC~5259-2: características inherentes,
+    \ac{IA} según \ac{ISO}/\ac{IEC}~5259-2: características inherentes,
     dependientes del sistema, mixtas (zona central) y adicionales
     específicas para \ac{IA}/\ac{ML}. Fuente: \cite{iso25000web}.}
   \label{fig:iso5259-taxonomia}
@@ -473,16 +473,16 @@ foco es la transformación de datos, no la evaluación de calidad para
 proyectos de \ac{IA}.
 
 \paragraph{Herramientas gestionadas en la nube.}
-AWS Glue Data Quality~\citep{awsgluedq} es el servicio de calidad de datos
+\ac{AWS} Glue Data Quality~\citep{awsgluedq} es el servicio de calidad de datos
 gestionado de Amazon Web Services, integrado en el catálogo de \ac{AWS}~Glue
 y construido sobre Apache Deequ.  Permite definir reglas mediante el
 lenguaje declarativo DQDL, aplicarlas sobre tablas catalogadas y programar
 evaluaciones periódicas con alertas en CloudWatch.  Su principal ventaja es
-la integración nativa con el ecosistema AWS (S3, Glue Catalog, Lake
+la integración nativa con el ecosistema \ac{AWS} (S3, Glue Catalog, Lake
 Formation, EMR) y la escalabilidad sin gestión de infraestructura.  A
 cambio, presenta limitaciones que la sitúan fuera del espacio competitivo
 de \dataqual: opera exclusivamente como \ac{SaaS} con coste por DPU
-consumida, requiere que los datos residan ya en el ecosistema AWS
+consumida, requiere que los datos residan ya en el ecosistema \ac{AWS}
 (\emph{vendor lock-in}) y carece de métricas específicas para proyectos de
 \ac{IA} como el equilibrio de clases o la diversidad del dataset.
 
@@ -550,7 +550,7 @@ ninguna de las herramientas analizadas ofrece en su totalidad.  La cifra de mét
 herramientas: Great Expectations y DQOps contabilizan aserciones atómicas
 individuales (una por cada regla o patrón sobre una columna concreta),
 mientras que \dataqual implementa siete dimensiones de calidad de alto nivel
-alineadas con \ac{ISO}/IEC 5259-2, cada una configurable para evaluar
+alineadas con \ac{ISO}/\ac{IEC} 5259-2, cada una configurable para evaluar
 cualquier número de columnas y reglas. Este enfoque basado en dimensiones
 normalizadas produce resultados comparables entre proyectos y equipos;
 las aserciones atómicas son, por el contrario, específicas de cada dataset

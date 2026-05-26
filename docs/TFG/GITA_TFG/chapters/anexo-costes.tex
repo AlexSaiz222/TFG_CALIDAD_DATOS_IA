@@ -62,7 +62,7 @@ un desglose detallado por sprint y un análisis de viabilidad económica.
 \section*{Análisis de viabilidad}
 
 Para evaluar la viabilidad de convertir \dataqual en un producto SaaS, se
-estiman los costes de infraestructura en un entorno AWS:
+estiman los costes de infraestructura en un entorno \ac{AWS}:
 
 \begin{table}[htbp]
   \centering
@@ -71,10 +71,10 @@ estiman los costes de infraestructura en un entorno AWS:
     \toprule
     \textbf{Servicio AWS} & \textbf{Equivalente} & \textbf{€/mes} \\
     \midrule
-    Amazon RDS (db.t3.small) & PostgreSQL & 30~€ \\
+    Amazon \ac{RDS} (db.t3.small) & PostgreSQL & 30~€ \\
     Amazon S3 (10~GB) & MinIO & 0,25~€ \\
     Amazon ElastiCache (cache.t3.micro) & Redis & 15~€ \\
-    Amazon ECS (2 tareas) & Backend + Celery & 40~€ \\
+    Amazon \ac{ECS} (2 tareas) & Backend + Celery & 40~€ \\
     Amazon CloudFront + S3 & Frontend estático & 5~€ \\
     \midrule
     \multicolumn{2}{l}{\textbf{Total infraestructura cloud/mes}} & \textbf{\(\sim\)90~€} \\

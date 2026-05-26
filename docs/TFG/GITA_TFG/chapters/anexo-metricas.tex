@@ -9,7 +9,7 @@ organizadas en cuatro categorías:
   \item \textbf{Métricas fundamentales} (siempre puntuables): completitud,
         unicidad, exactitud sintáctica y actualidad.
   \item \textbf{Métricas condicionales} (\emph{opt-in}): equilibrio de clases
-        y diversidad ---solo contribuyen al \emph{Quality Score} cuando el
+        y diversidad, que solo contribuyen al \emph{Quality Score} cuando el
         usuario configura explícitamente las columnas a evaluar.
   \item \textbf{Consistencia lógica}: puntuable solo si se definen reglas de
         negocio; devuelve \texttt{score\,=\,None} en caso contrario.
@@ -54,7 +54,7 @@ calificación independientemente del ancho del conjunto de datos.
 \textbf{Objetivo.}\quad
 Mide el grado en que los valores esperados están presentes en el conjunto de
 datos, alineada con la dimensión de completitud de
-\ac{ISO}/IEC~25012~\citep{iso25012}.
+\ac{ISO}/\ac{IEC}~25012~\citep{iso25012}.
 
 \textbf{Algoritmo.}\quad
 Para cada columna se calcula la ratio de valores no nulos:
@@ -88,7 +88,6 @@ Se emiten dos tipos de \emph{issues}:
 \texttt{columns}        & lista   & todas & Columnas a evaluar. \\
 \texttt{threshold}      & float   & 0,95  & Umbral mínimo de completitud. \\
 \texttt{null\_patterns}  & dict    & ---   & \texttt{\{presets:~[...], custom:~[...]\}}: patrones de nulidad adicionales. \\
-\texttt{weight}         & float   & 1,0   & Peso de la métrica. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -150,7 +149,6 @@ Se emiten tres tipos de \emph{issues}:
 \midrule
 \texttt{threshold} & float & 1,0  & Umbral mínimo de unicidad de filas. \\
 \texttt{columns}   & lista & ---  & Columnas que deben ser estrictamente únicas. \\
-\texttt{weight}    & float & 1,0  & Peso de la métrica. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -163,8 +161,9 @@ Se emiten tres tipos de \emph{issues}:
 
 \textbf{Objetivo.}\quad
 Verifica que los valores de cada columna se ajustan a patrones de formato
-predefinidos (correo electrónico, teléfono, DNI, etc.), alineada con la
-dimensión de exactitud de \ac{ISO}/IEC~25012~\citep{iso25012}.
+predefinidos (correo electrónico, teléfono, \ac{DNI}, etc.) o identificadores
+únicos globales (\ac{UUID}), alineada con la dimensión de exactitud de
+\ac{ISO}/\ac{IEC}~25012~\citep{iso25012}.
 
 \textbf{Catálogo de patrones integrados.}\quad
 El sistema incluye 13~expresiones regulares predefinidas:
@@ -179,12 +178,12 @@ El sistema incluye 13~expresiones regulares predefinidas:
 \texttt{url}             & \texttt{https://...} \\
 \texttt{phone\_es}       & Teléfono español: \texttt{+34 6XXXXXXXX} \\
 \texttt{phone\_intl}     & Teléfono internacional genérico \\
-\texttt{dni\_es}          & DNI español: 8 dígitos + letra \\
+\texttt{dni\_es}          & \ac{DNI} español: 8 dígitos + letra \\
 \texttt{date\_iso}        & Fecha ISO: \texttt{AAAA-MM-DD} \\
 \texttt{date\_eu}         & Fecha europea: \texttt{DD/MM/AAAA} \\
 \texttt{integer}         & Número entero (con signo) \\
 \texttt{decimal}         & Número decimal (coma o punto) \\
-\texttt{uuid}            & Identificador UUID v4 \\
+\texttt{uuid}            & Identificador \ac{UUID} (cualquier versión) \\
 \texttt{ip\_v4}           & Dirección IPv4 \\
 \texttt{postal\_code\_es} & Código postal español (5 dígitos) \\
 \texttt{credit\_card}    & Tarjeta de crédito (4 grupos de 4 dígitos) \\
@@ -217,7 +216,6 @@ arbitrariamente un tipo.
 \texttt{auto\_detect\_types} & bool  & true & Activar auto-detección para columnas sin tipo. \\
 \texttt{custom\_patterns}   & dict  & \{\} & Mapa \texttt{\{columna: regex\}} adicional. \\
 \texttt{threshold}         & float & 0,95 & Umbral mínimo de conformidad. \\
-\texttt{weight}            & float & 1,0  & Peso de la métrica. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -270,7 +268,6 @@ y no contribuye al \emph{Quality Score}.
 \tabhead{Parámetro} & \tabhead{Tipo} & \tabhead{Defecto} & \tabhead{Descripción} \\
 \midrule
 \texttt{rules}  & lista & --- & Lista de reglas: \texttt{\{name, type, expression, condition, assertion\}}. \\
-\texttt{weight} & float & 1,0 & Peso de la métrica. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -304,7 +301,7 @@ La métrica distingue dos modos de operación:
         resultados son solo informativos y \textbf{no} penalizan la
         calificación global, ya que el desequilibrio natural (p.~ej.,
         97/3 en detección de fraude) no es un defecto de calidad per~se
-        según \ac{ISO}/IEC~5259~\citep{iso5259}.
+        según \ac{ISO}/\ac{IEC}~5259~\citep{iso5259}.
 \end{itemize}
 
 \textbf{Conformidad con distribución esperada.}\quad
@@ -326,7 +323,6 @@ de su rango, y la puntuación final combina entropía y conformidad al 50\,\%.
 \texttt{imbalance\_threshold\_high} & float & 0,90 & Umbral de clase dominante. \\
 \texttt{imbalance\_threshold\_low}  & float & 0,05 & Umbral de clase minoritaria. \\
 \texttt{expected\_distribution} & dict & \{\} & Rangos esperados por clase: \texttt{\{clase: [min\%, max\%]\}}. \\
-\texttt{weight}              & float & 1,0  & Peso de la métrica. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -340,7 +336,7 @@ de su rango, y la puntuación final combina entropía y conformidad al 50\,\%.
 \textbf{Objetivo.}\quad
 Mide la frescura de los datos calculando la antigüedad del registro de fecha
 más reciente de cada columna temporal.  Implementa la dimensión
-\emph{Currentness} ($\Delta T_2$) de ISO/IEC~5259-2:2024 §6.2.5, medida
+\emph{Currentness} ($\Delta T_2$) de \ac{ISO}/\ac{IEC}~5259-2:2024 §6.2.5, medida
 Cur-ML-1 (\emph{Feature currentness}).  No debe confundirse con
 \emph{Timeliness} ($\Delta T_1$), que mide la latencia de ingesta y requiere
 \emph{timestamps} externos.
@@ -384,7 +380,6 @@ La severidad se determina por la ratio $d / U$:
 \texttt{columns}                  & lista & ---  & Columnas temporales a evaluar. \\
 \texttt{auto\_detect}              & bool  & true & Activar auto-detección. \\
 \texttt{staleness\_threshold\_days} & int   & 30   & Umbral de obsolescencia en días. \\
-\texttt{weight}                   & float & 1,0  & Peso de la métrica. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -398,7 +393,7 @@ La severidad se determina por la ratio $d / U$:
 \textbf{Objetivo.}\quad
 Mide si el dataset cubre adecuadamente los valores o rangos que el usuario
 espera encontrar en cada columna, alineada con la dimensión de diversidad
-de ISO/IEC~5259-2~\citep{iso5259}.
+de \ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259}.
 
 Esta métrica es \textbf{opt-in por columna}: solo se evalúan las columnas
 para las que el usuario define expectativas.  Si no hay expectativas
@@ -448,7 +443,7 @@ Esta clase \textbf{no es una métrica evaluable}: no produce puntuación
 ni contribuye al \emph{Quality Score}.  No está registrada en el
 \texttt{METRIC\_REGISTRY} y se invoca exclusivamente desde el módulo
 de perfilado de datos (\emph{Data Profiling}), en línea con la
-recomendación de \ac{ISO}/IEC~5259~\citep{iso5259}.
+recomendación de \ac{ISO}/\ac{IEC}~5259~\citep{iso5259}.
 
 \textbf{Métodos de detección.}\quad
 El sistema soporta dos métodos:
@@ -464,7 +459,7 @@ El sistema soporta dos métodos:
 
 Cada incidencia reporta la proporción de valores atípicos, hasta
 5~valores de ejemplo (enmascarados si la columna es sensible) y las
-estadísticas de la distribución ($Q_1$, $Q_3$, IQR o $\mu$, $\sigma$).
+estadísticas de la distribución ($Q_1$, $Q_3$, \ac{IQR} o $\mu$, $\sigma$).
 
 \textbf{Parámetros de configuración:}
 \begin{table}[htbp]

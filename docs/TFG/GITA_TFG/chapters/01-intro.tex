@@ -63,7 +63,7 @@ Gebru~(\citeyear{buolamwini2018}), con tasas de error muy superiores para
 personas de piel oscura, ilustran cómo un conjunto de entrenamiento
 desequilibrado o poco representativo produce decisiones discriminatorias:
 ambos casos remiten a la dimensión de \emph{equilibrio de clases y
-representatividad} recogida por la \ac{ISO}/IEC~5259~\citep{iso5259} y
+representatividad} recogida por la \ac{ISO}/\ac{IEC}~5259~\citep{iso5259} y
 evaluada por la herramienta desarrollada en este \ac{TFG}.  En la misma
 línea, el algoritmo COMPAS de predicción de reincidencia, auditado por
 ProPublica en 2016, asignaba puntuaciones de riesgo significativamente más
@@ -77,7 +77,7 @@ reputacional y regulatorio de primer orden.  El cierre del programa
 pérdidas atribuidas a precios de vivienda estimados sobre datos
 desactualizados~\citep{zillow2021}, muestra que también las dimensiones de
 \emph{actualidad} y \emph{exactitud} contempladas en la
-\ac{ISO}/IEC~5259~\citep{iso5259}, igualmente evaluadas por la plataforma,
+\ac{ISO}/\ac{IEC}~5259~\citep{iso5259}, igualmente evaluadas por la plataforma,
 tienen un impacto económico directo cuando se descuidan.
 
 El marco regulatorio europeo refuerza esta dimensión y convierte la
@@ -123,9 +123,9 @@ Sus capacidades principales son:
 
   \item \textbf{Configuración de métricas de calidad} adaptadas al tipo de
     proyecto, con parámetros y umbrales personalizables alineados con los
-    estándares \ac{ISO}/IEC~25012~\citep{iso25012},
-    \ac{ISO}/IEC~25024~\citep{iso25024} e
-    \ac{ISO}/IEC~5259~\citep{iso5259}.
+    estándares \ac{ISO}/\ac{IEC}~25012~\citep{iso25012},
+    \ac{ISO}/\ac{IEC}~25024~\citep{iso25024} e
+    \ac{ISO}/\ac{IEC}~5259~\citep{iso5259}.
 
   \item \textbf{Ejecución asíncrona de evaluaciones}, que analiza los
     conjuntos de datos frente a las métricas configuradas sin bloquear la
@@ -166,15 +166,15 @@ perfiles no técnicos.  Cada equipo termina definiendo sus propias métricas
 con sus propios umbrales, sin posibilidad de comparar resultados entre
 proyectos ni de detectar si la calidad se degrada de una ejecución a la
 siguiente.  \dataqual aborda ambas carencias con un catálogo de métricas
-alineado con dos estándares complementarios: \ac{ISO}/IEC~25012~\citep{iso25012},
+alineado con dos estándares complementarios: \ac{ISO}/\ac{IEC}~25012~\citep{iso25012},
 que define el modelo general de calidad de datos a partir de quince
 características inherentes al dato y dependientes del sistema, e
-\ac{ISO}/IEC~5259~\citep{iso5259}, específico para la calidad de datos en
+\ac{ISO}/\ac{IEC}~5259~\citep{iso5259}, específico para la calidad de datos en
 analítica y aprendizaje automático.  A ello se suma un sistema de
 seguimiento entre ejecuciones basado en \emph{fingerprinting}.
 
 Herramientas como Great Expectations~\citep{greatexpectations}, Apache
-Deequ~\citep{schelter2018} o AWS Glue Data Quality~\citep{awsgluedq} de
+Deequ~\citep{schelter2018} o \ac{AWS} Glue Data Quality~\citep{awsgluedq} de
 Amazon, DQOps~\citep{dqops}, Soda Core~\citep{sodacore} y
 Talend~\citep{talend} (analizadas en detalle en la
 sección~\ref{sec:estado-arte}) resuelven el problema de la estandarización,
@@ -213,23 +213,23 @@ los requisitos del \ac{RGPD}~\citep{rgpd2016} y el Reglamento Europeo de
 
 El alcance funcional del trabajo se concreta en un catálogo de
 \textbf{siete métricas de calidad evaluables} derivadas de las
-características recogidas en las normas \ac{ISO}/IEC~25012~\citep{iso25012},
-\ac{ISO}/IEC~25024~\citep{iso25024} e
-\ac{ISO}/IEC~5259~\citep{iso5259}: \emph{completitud}, \emph{unicidad},
+características recogidas en las normas \ac{ISO}/\ac{IEC}~25012~\citep{iso25012},
+\ac{ISO}/\ac{IEC}~25024~\citep{iso25024} e
+\ac{ISO}/\ac{IEC}~5259~\citep{iso5259}: \emph{completitud}, \emph{unicidad},
 \emph{exactitud sintáctica}, \emph{consistencia lógica}, \emph{actualidad},
 \emph{equilibrio de clases} y \emph{diversidad}.  El sistema incorpora
 además la \emph{detección de valores atípicos} como métrica de
 diagnóstico, accesible desde el perfilado exploratorio pero no incluida en
 el cálculo agregado de calidad, en línea con el tratamiento que la
-\ac{ISO}/IEC~5259 reserva a esta dimensión.  Cada métrica es
+\ac{ISO}/\ac{IEC}~5259 reserva a esta dimensión.  Cada métrica es
 parametrizable a nivel de proyecto y de columna, y agrupa varias de las
 características de las normas anteriores; la correspondencia detallada
 entre métricas y características de las \ac{ISO} se desarrolla en la
 sección~\ref{sec:caracteristicas-evaluables} y se recoge íntegramente en
 el Anexo~B.
 
-Esta selección no pretende ser exhaustiva: las normas \ac{ISO}/IEC~25012 e
-\ac{ISO}/IEC~5259 recogen un conjunto mucho más amplio de características
+Esta selección no pretende ser exhaustiva: las normas \ac{ISO}/\ac{IEC}~25012 e
+\ac{ISO}/\ac{IEC}~5259 recogen un conjunto mucho más amplio de características
 de calidad, y la priorización a estas siete métricas responde al alcance
 temporal de un \ac{TFG} y al criterio de incluir las dimensiones con mayor
 impacto demostrado sobre la fiabilidad de los modelos de \ac{IA} y sobre
