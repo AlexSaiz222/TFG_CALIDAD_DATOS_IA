@@ -1,91 +1,61 @@
 classDiagram
     direction TB
 
-    %% Modelos principales
-    class User {
-        +Integer id
-        +String email
-        +String password_hash
-        +String role
-        +login()
-    }
-
-    class Project {
-        +Integer id
-        +String name
-        +String description
-        +DateTime created_at
-    }
-
-    class Dataset {
-        +Integer id
-        +String filename
-        +Integer file_size
-        +String status
-        +String minio_object_name
-    }
-
-    class Evaluation {
-        +Integer id
-        +String status
-        +Float quality_score
-        +DateTime started_at
-        +DateTime completed_at
-    }
-
-    class Issue {
-        +Integer id
-        +String metric_type
-        +String severity
-        +String description
-        +JSONB details
-    }
-    
-    class ValidationPattern {
-        +Integer id
-        +String name
-        +String pattern_type
-        +String regex
-    }
-
-    %% Relaciones del modelo de datos
-    User "1" -- "*" Project : creates
-    Project "1" -- "*" Dataset : owns
-    Dataset "1" -- "*" Evaluation : undergoes
-    Evaluation "1" -- "*" Issue : produces
-    Project "1" -- "*" ValidationPattern : configures
-
-    %% Servicios y Lógica
     namespace Services {
         class EvaluationService {
-            +startEvaluation(datasetId)
-            +cancelEvaluation(evalId)
-            +getEvaluationStatus(evalId)
+            +run_evaluation(evaluation_id, analysis_run_id)
         }
         class DatasetService {
-            +uploadDataset(file)
-            +extractSchema(datasetId)
+            +process_dataset(file_obj, project_id)
+            +analyze_dataset(file_path)
+            +get_dataset_columns(file_path)
         }
         class MinioService {
-            +putObject(bucket, file)
-            +getObject(bucket, filename)
+            +upload_file(file_obj)
+            +download_file(object_name)
+            +get_presigned_url(object_name)
         }
     }
-    
+
     namespace MetricsEngine {
         class BaseMetric {
             <<abstract>>
-            +String name
-            +evaluate(dataframe, config)*
+            +String log_prefix
+            +evaluate(df, parameters, dataset, evaluation_id, metrics_map)*
+            +calculate_dynamic_severity()$
+            +infer_column_type()$
+            +mask_sensitive()$
+            +generate_histogram()$
+            +apply_null_patterns()$
+        }
+        class MetricResult {
+            <<dataclass>>
+            +String metric_id
+            +Optional~float~ score
+            +dict results
+            +list issues
         }
         class CompletenessMetric
         class UniquenessMetric
         class SyntacticAccuracyMetric
+        class LogicalConsistencyMetric
+        class ClassBalanceMetric
+        class CurrentnessMetric
+        class DiversityMetric
+        class OutliersMetric
     }
 
     BaseMetric <|-- CompletenessMetric
     BaseMetric <|-- UniquenessMetric
     BaseMetric <|-- SyntacticAccuracyMetric
+    BaseMetric <|-- LogicalConsistencyMetric
+    BaseMetric <|-- ClassBalanceMetric
+    BaseMetric <|-- CurrentnessMetric
+    BaseMetric <|-- DiversityMetric
+    BaseMetric <|-- OutliersMetric
+    note for OutliersMetric "No se registra en METRIC_REGISTRY (uso exclusivo del módulo de perfilado EDA)"
 
-    EvaluationService ..> BaseMetric : executes
-    DatasetService ..> MinioService : uses
+    BaseMetric ..> MetricResult : produce
+    EvaluationService ..> BaseMetric : ejecuta
+    EvaluationService ..> MetricResult : agrega
+    DatasetService ..> MinioService : usa

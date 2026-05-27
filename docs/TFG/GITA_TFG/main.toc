@@ -3,9 +3,9 @@
 \contentsline {chapter}{Abstract}{\es@scroman {iv}}{chapter*.3}%
 \contentsline {chapter}{Agradecimientos}{\es@scroman {v}}{chapter*.4}%
 \contentsline {chapter}{\'{I}ndice general}{\es@scroman {vi}}{chapter*.5}%
-\contentsline {chapter}{\'{I}ndice de cuadros}{\es@scroman {xii}}{chapter*.14}%
-\contentsline {chapter}{\'{I}ndice de figuras}{\es@scroman {xiv}}{chapter*.15}%
-\contentsline {chapter}{Listado de acrónimos}{\es@scroman {xvii}}{chapter*.21}%
+\contentsline {chapter}{\'{I}ndice de cuadros}{\es@scroman {xiii}}{chapter*.14}%
+\contentsline {chapter}{\'{I}ndice de figuras}{\es@scroman {xv}}{chapter*.15}%
+\contentsline {chapter}{Listado de acrónimos}{\es@scroman {xviii}}{chapter*.21}%
 \contentsline {chapter}{\numberline {1}Introducción}{1}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Motivación}{1}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Presentación de la solución}{3}{section.1.2}%
@@ -65,7 +65,7 @@
 \contentsline {section}{\numberline {4.7}Estimación de esfuerzo}{30}{section.4.7}%
 \contentsline {subsection}{\numberline {4.7.1}Técnica de estimación}{30}{subsection.4.7.1}%
 \contentsline {subsection}{\numberline {4.7.2}Estimación inicial vs.\ real}{32}{subsection.4.7.2}%
-\contentsline {section}{\numberline {4.8}Estimación de costes}{33}{section.4.8}%
+\contentsline {section}{\numberline {4.8}Estimación de costes}{32}{section.4.8}%
 \contentsline {section}{\numberline {4.9}Gestión de riesgos}{33}{section.4.9}%
 \contentsline {chapter}{\numberline {5}Desarrollo iterativo por sprints}{36}{chapter.5}%
 \contentsline {section}{\numberline {5.1}Requisitos globales del sistema}{36}{section.5.1}%
@@ -185,5 +185,17 @@
 \contentsline {section}{\numberline {F.10}Trazabilidad y herramientas}{108}{section.Alph6.10}%
 \contentsline {section}{\numberline {F.11}Estado actual y trabajo futuro}{108}{section.Alph6.11}%
 \contentsline {chapter}{\numberline {G}Manual de usuario}{109}{appendix.Alph7}%
-\contentsline {chapter}{\numberline {H}Diagramas UML del sistema}{121}{appendix.Alph8}%
+\contentsline {section}{\numberline {G.1}Requisitos previos}{109}{section.Alph7.1}%
+\contentsline {section}{\numberline {G.2}Arranque del sistema}{109}{section.Alph7.2}%
+\contentsline {section}{\numberline {G.3}Navegación general}{109}{section.Alph7.3}%
+\contentsline {section}{\numberline {G.4}Cuadro de mando}{110}{section.Alph7.4}%
+\contentsline {section}{\numberline {G.5}Flujo principal de uso}{110}{section.Alph7.5}%
+\contentsline {section}{\numberline {G.6}Monitorización del sistema}{120}{section.Alph7.6}%
+\contentsline {section}{\numberline {G.7}Apagado del sistema}{120}{section.Alph7.7}%
+\contentsline {chapter}{\numberline {H}Diagramas del sistema}{121}{appendix.Alph8}%
+\contentsline {section}{\numberline {H.1}Diagrama de paquetes}{121}{section.Alph8.1}%
+\contentsline {section}{\numberline {H.2}Diagrama de casos de uso}{122}{section.Alph8.2}%
+\contentsline {section}{\numberline {H.3}Diagrama relacional de la base de datos}{123}{section.Alph8.3}%
+\contentsline {section}{\numberline {H.4}Diagrama de secuencia: Ejecución de evaluación}{123}{section.Alph8.4}%
+\contentsline {section}{\numberline {H.5}Diagrama de clases: Motor de métricas}{126}{section.Alph8.5}%
 \contentsline {chapter}{Referencias}{128}{appendix*.79}%

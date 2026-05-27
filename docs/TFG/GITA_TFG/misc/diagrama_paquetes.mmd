@@ -1,21 +1,33 @@
 graph TB
-    subgraph Frontend ["Frontend (React + Next.js)"]
+    subgraph Frontend ["Presentación - Frontend (React + Next.js)"]
         components[components]
         pages[pages]
         front_services[services]
+        contexts[contexts]
     end
 
     subgraph Backend ["Backend (Flask)"]
-        api["app.api (Blueprints)"]
-        services["app.services (Lógica)"]
-        metrics["app.services.metrics (Motor)"]
-        models["app.models (ORM SQLAlchemy)"]
-        infra["app.infrastructure"]
+        api["app.api - API REST (10 blueprints)"]
+        services["app.services - Servicios (lógica)"]
+        metrics["app.services.metrics - Motor de métricas"]
+        models["app.models - Datos (ORM SQLAlchemy)"]
+    end
+
+    subgraph Infra ["Infraestructura externa (Docker Compose)"]
+        postgres[(PostgreSQL)]
+        minio[(MinIO)]
+        redis[(Redis)]
+        celery["Celery Worker / Beat"]
+        flower["Flower"]
     end
 
     front_services -.->|HTTP/JSON| api
     api -.-> services
-    services -.-> models
     services -.-> metrics
+    services -.-> models
     metrics -.-> models
-    services -.-> infra
+    models -.-> postgres
+    services -.-> minio
+    celery -.->|tareas asíncronas| services
+    celery -.-> redis
+    flower -.->|monitoriza| celery

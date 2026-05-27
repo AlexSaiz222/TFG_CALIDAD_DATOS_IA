@@ -1,12 +1,12 @@
-\chapter{Diagramas UML del sistema}
+\chapter{Diagramas del sistema}
 \label{anx:diagramas}
 
 Este anexo recoge las descripciones estructuradas y las representaciones gráficas
-de los principales diagramas \ac{UML} del sistema. El diagrama de arquitectura
+de los principales diagramas \ac{UML} y del modelo relacional del sistema. El diagrama de arquitectura
 a alto nivel se incluye en el cuerpo del documento (Figura~\ref{fig:diagrama-arquitectura});
 el resto de diagramas se incluyen y detallan en este anexo.
 
-\section*{Diagrama de paquetes}
+\section{Diagrama de paquetes}
 
 La arquitectura del sistema se organiza en seis paquetes principales, representados
 gráficamente en la Figura~\ref{fig:diagrama-paquetes}. La descripción detallada de cada paquete
@@ -68,11 +68,12 @@ Las dependencias siguen una topología estrictamente vertical
 salvo la conexión adicional Celery~Worker~$\to$~Servicios para la ejecución
 asíncrona de tareas.
 
-\section*{Diagrama de casos de uso}
+\section{Diagrama de casos de uso}
 
 La Figura~\ref{fig:casos-uso} representa los ocho casos de uso del
 sistema y su asignación a los dos actores: Usuario autenticado y
-Sistema Celery (actor interno).  La especificación textual de cada caso
+Sistema (actor interno, que agrupa el \emph{worker} de Celery y el
+\emph{watchdog} del backend).  La especificación textual de cada caso
 de uso se enumera a continuación.
 
 \begin{figure}[htbp]
@@ -113,7 +114,7 @@ de uso se enumera a continuación.
     \node[font=\small, align=center] at (-5.6, 0.55) {Usuario\\autenticado};
 
     \pic at (5.6,-2.55) {actor};
-    \node[font=\small, align=center] at (5.6,-3.35) {Sistema\\Celery};
+    \node[font=\small, align=center] at (5.6,-3.35) {Sistema\\(interno)};
 
     %% Asociaciones del Usuario con UC-01..UC-06
     \foreach \uc in {uc01,uc02,uc03,uc04,uc05,uc06}
@@ -137,14 +138,14 @@ de uso se enumera a continuación.
       \item UC-05: Gestionar Quality Gate (configurar umbrales, consultar estado)
       \item UC-06: Explorar datos (\ac{EDA}: histogramas, boxplots, correlaciones)
     \end{itemize}
-  \item \textbf{Actor: Sistema Celery} (interno)
+  \item \textbf{Actor: Sistema} (procesos internos)
     \begin{itemize}
-      \item UC-07: Ejecutar tarea de evaluación asíncrona
-      \item UC-08: Detectar evaluaciones atascadas (Watchdog)
+      \item UC-07: Ejecutar tarea de evaluación asíncrona (\emph{worker} de Celery)
+      \item UC-08: Detectar evaluaciones atascadas (\emph{watchdog}: hilo del backend Flask)
     \end{itemize}
 \end{itemize}
 
-\section*{Diagrama relacional de la base de datos}
+\section{Diagrama relacional de la base de datos}
 
 La Figura~\ref{fig:er-diagram} muestra el esquema relacional completo de
 \dataqual, generado a partir de la base de datos PostgreSQL desplegada.
@@ -165,9 +166,9 @@ del dominio.
   \label{fig:er-diagram}
 \end{figure}
 
-\section*{Diagrama de secuencia: Ejecución de evaluación}
+\section{Diagrama de secuencia: Ejecución de evaluación}
 
-La ejecución de una evaluación de calidad asíncrona sigue el flujo representado
+La ejecución de un análisis de calidad asíncrono (Sonar-Lite) sigue el flujo representado
 gráficamente en la Figura~\ref{fig:diagrama-secuencia}. Los pasos correspondientes
 al camino feliz se describen a continuación:
 
@@ -180,27 +181,33 @@ al camino feliz se describen a continuación:
 
 \begin{enumerate}
   \item \textbf{Frontend} → POST
-    \texttt{/api/evaluations/datasets/<dataset\_id>}
-  \item \textbf{Backend} → Crea registro \texttt{Evaluation} (estado:
-    \texttt{PENDING})
-  \item \textbf{Backend} → Encola tarea Celery \texttt{run\_evaluation}
-  \item \textbf{Backend} → Devuelve \texttt{\{evaluation\_id\}} al Frontend
+    \texttt{/api/evaluations/projects/<project\_id>/analyze} (con
+    \texttt{dataset\_id} y la configuración de métricas)
+  \item \textbf{Backend} → Crea un \texttt{AnalysisRun} (estado
+    \texttt{PENDING}) y una \texttt{Evaluation} legacy asociada por
+    compatibilidad
+  \item \textbf{Backend} → Encola la tarea Celery \texttt{run\_evaluation}
+  \item \textbf{Backend} → Responde \texttt{202 Accepted} con
+    \texttt{\{analysis\_run\_id\}}
   \item \textbf{Frontend} → Polling GET
-    \texttt{/api/evaluations/<id>/status} (cada 2\,s)
-  \item \textbf{Celery Worker} → Descarga \emph{dataset} de MinIO
-  \item \textbf{Celery Worker} → Invoca \texttt{EvaluationService}
+    \texttt{/api/evaluations/analysis/<run\_id>/status} cada pocos segundos
+  \item \textbf{Celery Worker} → Marca el \texttt{AnalysisRun} como
+    \texttt{RUNNING} y descarga el \emph{dataset} de MinIO
+  \item \textbf{Celery Worker} → Invoca
+    \texttt{EvaluationService.run\_evaluation()}
   \item \textbf{EvaluationService} → Ejecuta cada métrica configurada
-  \item \textbf{EvaluationService} → Calcula \emph{Quality Score}
+  \item \textbf{EvaluationService} → Calcula el \emph{Quality Score}
   \item \textbf{EvaluationService} → Genera \emph{fingerprints} y compara
-    con \emph{baseline}
-  \item \textbf{EvaluationService} → Evalúa \emph{Quality Gate}
-  \item \textbf{Celery Worker} → Actualiza \texttt{Evaluation} y
-    \texttt{AnalysisRun} en PostgreSQL (estado: \texttt{COMPLETED})
-  \item \textbf{Frontend} → Detecta estado \texttt{COMPLETED} → Redirige
-    a la página de resultados
+    con el \emph{baseline}
+  \item \textbf{EvaluationService} → Evalúa el \emph{Quality Gate}
+  \item \textbf{Celery Worker} → Persiste resultados y marca el
+    \texttt{AnalysisRun} (y la \texttt{Evaluation}) como
+    \texttt{COMPLETED}
+  \item \textbf{Frontend} → Detecta \texttt{COMPLETED} y redirige a la
+    página de resultados
 \end{enumerate}
 
-\section*{Diagrama de clases: Motor de métricas}
+\section{Diagrama de clases: Motor de métricas}
 
 La jerarquía de clases principales y servicios del motor de métricas se representa
 en la Figura~\ref{fig:diagrama-clases}. La descripción de los componentes principales se detalla a continuación.
@@ -208,7 +215,7 @@ en la Figura~\ref{fig:diagrama-clases}. La descripción de los componentes princ
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth,keepaspectratio]{img/diagrama_clases.png}
-  \caption{Diagrama de clases del motor de métricas y servicios asociados}
+  \caption{Diagrama de clases del motor de métricas y los servicios asociados}
   \label{fig:diagrama-clases}
 \end{figure}
 

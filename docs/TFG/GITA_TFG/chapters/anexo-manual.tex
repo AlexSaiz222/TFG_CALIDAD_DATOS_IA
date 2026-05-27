@@ -8,7 +8,7 @@ La interfaz está disponible en español e inglés y el idioma se puede
 alternar en cualquier momento desde el selector \texttt{ES~/~EN}
 situado en la parte inferior de la barra lateral.
 
-\section*{Requisitos previos}
+\section{Requisitos previos}
 
 \begin{enumerate}
   \item Docker Desktop instalado y en ejecución.
@@ -18,7 +18,7 @@ situado en la parte inferior de la barra lateral.
     \texttt{backend/.env.example}.
 \end{enumerate}
 
-\section*{Arranque del sistema}
+\section{Arranque del sistema}
 
 \begin{verbatim}
 cd TFG_CALIDAD_DATOS_IA
@@ -30,7 +30,7 @@ El sistema tarda aproximadamente 30--60 segundos en estar completamente
 operativo.  Una vez listos los servicios, acceder a
 \texttt{http://localhost:3000}.
 
-\section*{Navegación general}
+\section{Navegación general}
 
 La interfaz se organiza en torno a tres elementos: una barra lateral
 persistente que agrupa la navegación principal, una zona central de
@@ -51,7 +51,7 @@ activo y el botón de cierre de sesión.  La barra lateral se puede
 colapsar a un panel de iconos pulsando el \emph{chevron} de su
 cabecera, lo que maximiza el área útil para el contenido.
 
-\section*{Cuadro de mando}
+\section{Cuadro de mando}
 
 Tras iniciar sesión el sistema redirige al cuadro de mando
 (\texttt{/dashboard}), que ofrece una visión global del estado de
@@ -79,7 +79,7 @@ Si el usuario aún no ha creado ningún proyecto, el cuadro de mando
 muestra un estado vacío con una llamada a la acción \textbf{Crear
 proyecto}.
 
-\section*{Flujo principal de uso}
+\section{Flujo principal de uso}
 
 \subsection*{1. Registro e inicio de sesión}
 
@@ -161,7 +161,7 @@ lateral.
   \item \textbf{Añade un archivo:} arrastrar y soltar un fichero
     \ac{CSV} en la zona de carga o pulsar para abrir el selector de
     archivos.  El sistema solo admite ficheros con extensión
-    \texttt{.csv} y un tamaño máximo de 10\,MB, y aplica una
+    \texttt{.csv} y un tamaño máximo de 100\,MB, y aplica una
     estrategia de \emph{fallback} para codificaciones y
     delimitadores poco habituales descrita en la
     sección~\ref{sec:impl-ingesta}.
@@ -216,7 +216,7 @@ pestañas:
     sintáctica, reglas \texttt{IF--THEN} para la consistencia
     lógica, etc.).
   \item \textbf{Plantillas:} aplicar una plantilla predefinida del
-    sistema o una creada por el usuario (véase paso 10) para
+    sistema o una creada por el usuario (véase paso 11) para
     reutilizar configuraciones entre proyectos similares sin tener
     que repetir el ajuste manual.
 \end{enumerate}
@@ -268,8 +268,8 @@ del proyecto pulsando el botón \textbf{Ejecutar análisis}.
 \subsection*{6. Consultar resultados}
 
 Los resultados de los análisis son accesibles desde tres puntos
-de entrada: la pestaña \textbf{Análisis} de la página del proyecto
-(histórico de análisis del proyecto), el listado global en
+de entrada: la pestaña \textbf{Historial de análisis} de la página
+del proyecto, el listado global en
 \texttt{/evaluations} (histórico cruzado de todos los proyectos),
 y la pestaña \textbf{Evaluaciones} de la página del \emph{dataset}.
 
@@ -327,7 +327,7 @@ visualizaciones habituales del análisis exploratorio de datos:
 
 Las columnas previamente marcadas como sensibles aparecen con sus
 valores ofuscados en todas las visualizaciones, garantizando que la
-exploración exploratoria no exponga información personal.
+exploración no exponga información personal.
 
 \begin{figure}[htbp]
   \centering
@@ -340,7 +340,7 @@ exploración exploratoria no exponga información personal.
 
 \subsection*{8. Seguir la evolución temporal del proyecto}
 
-La pestaña \textbf{Analysis history} de la página de un proyecto
+La pestaña \textbf{Historial de análisis} de la página de un proyecto
 concentra el historial completo de análisis ejecutados, con una
 perspectiva de seguimiento longitudinal:
 
@@ -358,7 +358,7 @@ perspectiva de seguimiento longitudinal:
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{img/analysis-history.png}
-  \caption{Pestaña \emph{Analysis history} de un proyecto: gráfico de
+  \caption{Pestaña \emph{Historial de análisis} de un proyecto: gráfico de
     evolución temporal de la puntuación de calidad por \emph{dataset}
     y tabla de ejecuciones con estado de \emph{Quality Gate}}
   \label{fig:manual-analysis-history}
@@ -441,7 +441,7 @@ métricas de un proyecto existente.  Esta funcionalidad ahorra
 configuración manual repetitiva entre proyectos similares y
 favorece la consistencia de criterios de calidad entre equipos.
 
-\section*{Monitorización del sistema}
+\section{Monitorización del sistema}
 
 Más allá de la interfaz de usuario, dos paneles auxiliares permiten
 supervisar el estado del \emph{stack} desde el navegador:
@@ -458,7 +458,7 @@ supervisar el estado del \emph{stack} desde el navegador:
     que los \emph{datasets} se han subido correctamente.
 \end{itemize}
 
-\section*{Apagado del sistema}
+\section{Apagado del sistema}
 
 \begin{verbatim}
 docker-compose down           # Apagar (conserva datos en volúmenes)

@@ -8,37 +8,37 @@ sequenceDiagram
     participant MinIO as MinIO (S3)
     participant DB as PostgreSQL
 
-    Usuario->>Frontend: Inicia evaluación
-    Frontend->>Backend: POST /api/evaluations/datasets/{id}
+    Usuario->>Frontend: Inicia análisis
+    Frontend->>Backend: POST /api/evaluations/projects/{project_id}/analyze
     activate Backend
-    Backend->>DB: Crea registro Evaluation (PENDING)
+    Backend->>DB: Crea AnalysisRun (PENDING) + Evaluation legacy
     Backend->>Worker: Encola tarea Celery (run_evaluation)
-    Backend-->>Frontend: Devuelve {evaluation_id}
+    Backend-->>Frontend: 202 Accepted {analysis_run_id}
     deactivate Backend
 
-    loop Polling (cada 2s)
-        Frontend->>Backend: GET /api/evaluations/{id}/status
+    loop Polling (cada pocos segundos)
+        Frontend->>Backend: GET /api/evaluations/analysis/{run_id}/status
         Backend->>DB: Consulta estado
         DB-->>Backend: Retorna estado
         Backend-->>Frontend: Retorna estado (PENDING/RUNNING)
     end
 
     activate Worker
-    Worker->>DB: Actualiza estado (RUNNING)
+    Worker->>DB: Actualiza AnalysisRun (RUNNING)
     Worker->>MinIO: Descarga dataset
     MinIO-->>Worker: Retorna CSV
-    Worker->>ES: Invoca evaluate()
+    Worker->>ES: run_evaluation(evaluation_id, analysis_run_id)
     activate ES
     ES->>ES: Ejecuta métricas configuradas
     ES->>ES: Calcula Quality Score
-    ES->>ES: Compara con baseline
+    ES->>ES: Genera fingerprints y compara con baseline
     ES->>ES: Evalúa Quality Gate
     ES-->>Worker: Retorna MetricResult
     deactivate ES
-    Worker->>DB: Actualiza Evaluation y crea AnalysisRun (COMPLETED)
+    Worker->>DB: AnalysisRun + Evaluation (COMPLETED)
     deactivate Worker
 
-    Frontend->>Backend: GET /api/evaluations/{id}/status
+    Frontend->>Backend: GET /api/evaluations/analysis/{run_id}/status
     Backend->>DB: Consulta estado
     DB-->>Backend: Retorna COMPLETED
     Backend-->>Frontend: Retorna estado (COMPLETED)
