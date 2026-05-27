@@ -180,22 +180,22 @@
 \contentsline {section}{\numberline {F.5}Entornos y datos de prueba}{106}{section.Alph6.5}%
 \contentsline {section}{\numberline {F.6}Criterios de entrada, salida y aceptación}{106}{section.Alph6.6}%
 \contentsline {section}{\numberline {F.7}Métricas y \acs {KPI} del plan}{107}{section.Alph6.7}%
-\contentsline {section}{\numberline {F.8}Riesgos del plan de pruebas}{107}{section.Alph6.8}%
+\contentsline {section}{\numberline {F.8}Riesgos del plan de pruebas}{108}{section.Alph6.8}%
 \contentsline {section}{\numberline {F.9}Roles y responsabilidades}{108}{section.Alph6.9}%
 \contentsline {section}{\numberline {F.10}Trazabilidad y herramientas}{108}{section.Alph6.10}%
 \contentsline {section}{\numberline {F.11}Estado actual y trabajo futuro}{108}{section.Alph6.11}%
-\contentsline {chapter}{\numberline {G}Manual de usuario}{109}{appendix.Alph7}%
-\contentsline {section}{\numberline {G.1}Requisitos previos}{109}{section.Alph7.1}%
-\contentsline {section}{\numberline {G.2}Arranque del sistema}{109}{section.Alph7.2}%
-\contentsline {section}{\numberline {G.3}Navegación general}{109}{section.Alph7.3}%
-\contentsline {section}{\numberline {G.4}Cuadro de mando}{110}{section.Alph7.4}%
-\contentsline {section}{\numberline {G.5}Flujo principal de uso}{110}{section.Alph7.5}%
-\contentsline {section}{\numberline {G.6}Monitorización del sistema}{120}{section.Alph7.6}%
-\contentsline {section}{\numberline {G.7}Apagado del sistema}{120}{section.Alph7.7}%
-\contentsline {chapter}{\numberline {H}Diagramas del sistema}{121}{appendix.Alph8}%
-\contentsline {section}{\numberline {H.1}Diagrama de paquetes}{121}{section.Alph8.1}%
-\contentsline {section}{\numberline {H.2}Diagrama de casos de uso}{122}{section.Alph8.2}%
-\contentsline {section}{\numberline {H.3}Diagrama relacional de la base de datos}{123}{section.Alph8.3}%
-\contentsline {section}{\numberline {H.4}Diagrama de secuencia: Ejecución de evaluación}{123}{section.Alph8.4}%
-\contentsline {section}{\numberline {H.5}Diagrama de clases: Motor de métricas}{126}{section.Alph8.5}%
-\contentsline {chapter}{Referencias}{128}{appendix*.79}%
+\contentsline {chapter}{\numberline {G}Manual de usuario}{110}{appendix.Alph7}%
+\contentsline {section}{\numberline {G.1}Requisitos previos}{110}{section.Alph7.1}%
+\contentsline {section}{\numberline {G.2}Arranque del sistema}{110}{section.Alph7.2}%
+\contentsline {section}{\numberline {G.3}Navegación general}{110}{section.Alph7.3}%
+\contentsline {section}{\numberline {G.4}Cuadro de mando}{111}{section.Alph7.4}%
+\contentsline {section}{\numberline {G.5}Flujo principal de uso}{111}{section.Alph7.5}%
+\contentsline {section}{\numberline {G.6}Monitorización del sistema}{121}{section.Alph7.6}%
+\contentsline {section}{\numberline {G.7}Apagado del sistema}{121}{section.Alph7.7}%
+\contentsline {chapter}{\numberline {H}Diagramas del sistema}{122}{appendix.Alph8}%
+\contentsline {section}{\numberline {H.1}Diagrama de paquetes}{122}{section.Alph8.1}%
+\contentsline {section}{\numberline {H.2}Diagrama de casos de uso}{123}{section.Alph8.2}%
+\contentsline {section}{\numberline {H.3}Diagrama relacional de la base de datos}{124}{section.Alph8.3}%
+\contentsline {section}{\numberline {H.4}Diagrama de secuencia: Ejecución de evaluación}{124}{section.Alph8.4}%
+\contentsline {section}{\numberline {H.5}Diagrama de clases: Motor de métricas}{127}{section.Alph8.5}%
+\contentsline {chapter}{Referencias}{129}{appendix*.79}%

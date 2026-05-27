@@ -7,10 +7,10 @@ graph TB
     end
 
     subgraph Backend ["Backend (Flask)"]
-        api["app.api - API REST (10 blueprints)"]
-        services["app.services - Servicios (lógica)"]
-        metrics["app.services.metrics - Motor de métricas"]
-        models["app.models - Datos (ORM SQLAlchemy)"]
+        api["api - API REST (10 blueprints)"]
+        services["services - Servicios (lógica)"]
+        metrics["services.metrics - Motor de métricas"]
+        models["models - Datos (ORM SQLAlchemy)"]
     end
 
     subgraph Infra ["Infraestructura externa (Docker Compose)"]

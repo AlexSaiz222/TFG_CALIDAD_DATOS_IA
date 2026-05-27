@@ -33,7 +33,7 @@ sequenceDiagram
     ES->>ES: Calcula Quality Score
     ES->>ES: Genera fingerprints y compara con baseline
     ES->>ES: Evalúa Quality Gate
-    ES-->>Worker: Retorna MetricResult
+    ES-->>Worker: Retorna resultado de la evaluación (dict)
     deactivate ES
     Worker->>DB: AnalysisRun + Evaluation (COMPLETED)
     deactivate Worker

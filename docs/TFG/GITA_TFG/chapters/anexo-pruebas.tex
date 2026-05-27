@@ -322,8 +322,9 @@ usuarios, proyectos y \emph{datasets} de referencia en cada ejecución.
   \item 100\,\% de los casos críticos (P1) ejecutados y \emph{aprobados}.
   \item Ningún defecto de severidad \emph{bloqueante} o \emph{crítica}
         abierto.
-  \item Cobertura de líneas $\geq 70$\,\% en módulos críticos
-        (\texttt{api/auth}, \texttt{api/datasets}, \texttt{tasks/}).
+  \item Cobertura de líneas $\geq 70$\,\% en el núcleo analítico
+        (\texttt{services/metrics/}), donde se concentra la lógica de
+        dominio de mayor riesgo.
   \item Suite \emph{smoke} verde en el último \emph{commit} de \texttt{main}.
 \end{itemize}
 
@@ -338,10 +339,10 @@ detalla en el documento técnico complementario.
 \section{Métricas y \acs{KPI} del plan}
 \label{sec:anx-pruebas-kpis}
 
-Las métricas y los indicadores clave del plan de pruebas permiten evaluar
-cuantitativamente el proceso de verificación. Entre ellos se incluye la densidad
-de defectos medida en relación al tamaño del código en miles de líneas de
-código (\ac{KLOC}), cuyos valores se recogen en la Tabla~\ref{tab:kpis-pruebas}.
+Las métricas e indicadores clave del plan de pruebas, recogidos en la
+Tabla~\ref{tab:kpis-pruebas}, permiten evaluar cuantitativamente el proceso
+de verificación: cobertura de código, tasa de paso, defectos críticos
+abiertos y tiempo de ejecución de la batería.
 %% =========================================================================
 
 \begin{table}[H]
@@ -354,8 +355,10 @@ código (\ac{KLOC}), cuyos valores se recogen en la Tabla~\ref{tab:kpis-pruebas}
     \textbf{KPI} & \textbf{Descripción} & \textbf{Objetivo} &
       \textbf{Estado} \\
     \midrule
-    Cobertura líneas      & \texttt{pytest --cov} sobre \texttt{backend/}.
-                          & $\geq 70$\,\% & Por medir \\
+    Cobertura motor de métricas & \texttt{pytest --cov} sobre \texttt{services/metrics/}.
+                          & $\geq 70$\,\% & $\sim$80\,\% \\
+    Cobertura global \emph{backend} & \texttt{pytest --cov} sobre \texttt{backend/}.
+                          & --- & $\sim$36\,\% \\
     Tasa de paso          & Casos \emph{passed}\,/\,total ejecutados.
                           & $\geq 95$\,\% & 100\,\% (232/232, 1 \emph{skipped}) \\
     Defectos críticos abiertos & Bugs P1 sin resolver al cierre.
@@ -367,6 +370,15 @@ código (\ac{KLOC}), cuyos valores se recogen en la Tabla~\ref{tab:kpis-pruebas}
     \bottomrule
   \end{tabularx}
 \end{table}
+
+El esfuerzo de pruebas se concentró en el núcleo analítico ---motor de
+métricas, cálculo del \emph{Quality Score}, \emph{fingerprinting} y
+veredicto del \emph{Quality Gate}---, que alcanza una cobertura de línea
+en torno al 80\,\%.  La cobertura global del \emph{backend}, en torno al
+36\,\%, es inferior porque los manejadores \acs{CRUD} de la \acs{API} y
+las tareas Celery se validan sobre todo mediante pruebas de integración y
+comprobaciones manuales; elevar su cobertura de línea queda recogido como
+trabajo futuro.
 
 
 %% =========================================================================
@@ -440,8 +452,9 @@ sobre SQLite en memoria.
 
 Las suites pendientes (BE-07--BE-09 y FE-07) se han priorizado para
 una próxima iteración del producto, junto con la integración continua
-mediante GitHub Actions y la generación automatizada de informes de
-cobertura.
+mediante GitHub Actions, la generación automatizada de informes de
+cobertura y el aumento de la cobertura de línea de los manejadores
+\acs{CRUD} de la \acs{API} y las tareas Celery.
 
 Este plan deberá revisarse al inicio de cada nueva fase de desarrollo
 para incorporar las funcionalidades añadidas y reajustar los criterios

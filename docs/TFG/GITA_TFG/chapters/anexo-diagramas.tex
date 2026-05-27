@@ -63,10 +63,10 @@ es la siguiente:
     Docker~Compose.
 \end{itemize}
 
-Las dependencias siguen una topología estrictamente vertical
-(\emph{depends-on}): cada capa solo depende de la inmediatamente inferior,
-salvo la conexión adicional Celery~Worker~$\to$~Servicios para la ejecución
-asíncrona de tareas.
+Las dependencias fluyen de las capas superiores hacia las inferiores
+(presentación $\to$ \ac{API} REST $\to$ servicios $\to$ motor de métricas
+y datos $\to$ infraestructura), con la conexión adicional
+Celery~Worker~$\to$~Servicios para la ejecución asíncrona de tareas.
 
 \section{Diagrama de casos de uso}
 
@@ -120,7 +120,7 @@ de uso se enumera a continuación.
     \foreach \uc in {uc01,uc02,uc03,uc04,uc05,uc06}
       \draw[uses] (-5.25, 1.35) -- (\uc.west);
 
-    %% Asociaciones del Sistema Celery con UC-07, UC-08
+    %% Asociaciones del Sistema (interno) con UC-07, UC-08
     \draw[uses] (5.25,-2.55) -- (uc07.east);
     \draw[uses] (5.25,-2.55) -- (uc08.east);
   \end{tikzpicture}
