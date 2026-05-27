@@ -142,10 +142,11 @@ ejecución y evolución sin afectar al documento académico.
       & Implementada \\
     BE-06 & \texttt{test\_metrics\_engine} +
             \texttt{test\_metrics\_engine\_extended} &
-      Comportamiento de las ocho clases de métricas frente a casos
-      límite: completitud, unicidad, actualidad, exactitud sintáctica,
-      equilibrio de clases, diversidad, valores atípicos y consistencia
-      lógica (41 casos).
+      Comportamiento frente a casos límite de las siete métricas de
+      calidad (completitud, unicidad, actualidad, exactitud sintáctica,
+      equilibrio de clases, diversidad y consistencia lógica) y de la
+      detección de valores atípicos como herramienta de diagnóstico
+      (41 casos).
       & Implementada \\
     BE-07 & \texttt{test\_analysis\_run} &
       Creación de \texttt{AnalysisRun}, comparación con \emph{baseline}
@@ -371,9 +372,9 @@ abiertos y tiempo de ejecución de la batería.
   \end{tabularx}
 \end{table}
 
-El esfuerzo de pruebas se concentró en el núcleo analítico ---motor de
+El esfuerzo de pruebas se concentró en el núcleo analítico (motor de
 métricas, cálculo del \emph{Quality Score}, \emph{fingerprinting} y
-veredicto del \emph{Quality Gate}---, que alcanza una cobertura de línea
+veredicto del \emph{Quality Gate}), que alcanza una cobertura de línea
 en torno al 80\,\%.  La cobertura global del \emph{backend}, en torno al
 36\,\%, es inferior porque los manejadores \acs{CRUD} de la \acs{API} y
 las tareas Celery se validan sobre todo mediante pruebas de integración y

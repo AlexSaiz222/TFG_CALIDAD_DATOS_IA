@@ -331,6 +331,12 @@ INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsbsy.sty
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\amsmath\amsopn.sty
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\float\float.sty
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\float\float.sty
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\pdflscape\pdflscape.sty
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\pdflscape\pdflscape.sty
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\pdflscape\pdflscape-nometadata.sty
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\pdflscape\pdflscape-nometadata.sty
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\graphics\lscape.sty
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\graphics\lscape.sty
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\tcolorbox\tcolorbox.sty
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\tcolorbox\tcolorbox.sty
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\tex\latex\tools\verbatim.sty
@@ -928,6 +934,8 @@ INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\c
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmr8.pfb
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy10.pfb
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy10.pfb
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy7.pfb
+INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy7.pfb
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy8.pfb
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmsy8.pfb
 INPUT C:\Users\aleja\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmti12.pfb

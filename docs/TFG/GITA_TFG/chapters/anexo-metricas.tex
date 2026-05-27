@@ -2,8 +2,9 @@
 \label{anx:metricas}
 
 Este anexo recoge el catálogo completo de las métricas de calidad de datos
-implementadas en \dataqual.  El sistema define \textbf{ocho clases de métricas}
-organizadas en cuatro categorías:
+implementadas en \dataqual.  El sistema define \textbf{siete métricas de
+calidad}, organizadas en tres categorías según su modo de puntuación, más una
+herramienta de diagnóstico no puntuable:
 
 \begin{itemize}
   \item \textbf{Métricas fundamentales} (siempre puntuables): completitud,
@@ -481,27 +482,35 @@ estadísticas de la distribución ($Q_1$, $Q_3$, \ac{IQR} o $\mu$, $\sigma$).
 \label{sec:met-severidad}
 %% =========================================================================
 
-Todas las métricas comparten un modelo de \textbf{severidad dinámica}
-implementado en \texttt{BaseMetric.calculate\_dynamic\_severity()}.
-La severidad de cada incidencia se calcula automáticamente en función de
-la distancia entre el valor real y el umbral configurado, y varía según
-el tipo de métrica.  El Cuadro~\ref{tab:severidad} resume los criterios.
+Las métricas asignan a cada incidencia una \textbf{severidad dinámica} en
+función de la distancia entre el valor real y el umbral configurado.  Los
+criterios se definen en \texttt{BaseMetric.calculate\_dynamic\_severity()} y
+dependen del tipo de incidencia, no de la métrica concreta: las cuatro
+dimensiones en las que «mayor es mejor» (completitud, unicidad, exactitud
+sintáctica y consistencia lógica) comparten un mismo criterio, mientras que
+equilibrio de clases, actualidad y diversidad emplean criterios propios.  El
+Cuadro~\ref{tab:severidad} los resume.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Criterios de severidad dinámica por tipo de métrica.}
+\caption{Criterios de severidad dinámica por tipo de incidencia.}
 \label{tab:severidad}
-\begin{tabularx}{\linewidth}{lXXXX}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.7cm}XXXX@{}}
 \toprule
-\tabhead{Tipo de métrica} & \tabhead{Critical} & \tabhead{High} & \tabhead{Medium} & \tabhead{Low} \\
+\tabhead{Tipo de incidencia} & \tabhead{Critical} & \tabhead{High} & \tabhead{Medium} & \tabhead{Low} \\
 \midrule
-Completitud / Unicidad & $< 50\,$\% & $< 70\,$\% o dist.\,$> 15$\,pp & dist.\,$> 5$\,pp & dist.\,$\leq 5$\,pp \\
-Outliers (proporción) & $\geq 20\,$\% & $\geq 10\,$\% & $\geq 5\,$\% & $< 5\,$\% \\
-Clase dominante & $\geq 99\,$\% & $\geq 95\,$\% & $\geq 90\,$\% & $< 90\,$\% \\
+Completitud, unicidad, exactitud sintáctica, consistencia lógica & $< 50\,$\% & $< 70\,$\% o dist.\,$> 15$\,pp & dist.\,$> 5$\,pp & dist.\,$\leq 5$\,pp \\
+Equilibrio: clase dominante & $\geq 99\,$\% & $\geq 95\,$\% & $\geq 90\,$\% & $< 90\,$\% \\
+Equilibrio: desviación de distribución esperada & $\geq 20$\,pp & $\geq 10$\,pp & $\geq 5$\,pp & $< 5$\,pp \\
 Actualidad (ratio $d/U$) & $\geq 10\times$ & $\geq 3\times$ & $\geq 1\times$ & $< 1\times$ \\
 Diversidad & $\leq 20\,$\% & $\leq 40\,$\% & $<$ umbral & $\geq$ umbral \\
+Outliers (proporción)\,$^{*}$ & $\geq 20\,$\% & $\geq 10\,$\% & $\geq 5\,$\% & $< 5\,$\% \\
 \bottomrule
 \end{tabularx}
+\par\smallskip
+{\footnotesize $^{*}$\,Outliers es una herramienta de \emph{profiling}: no
+contribuye al \emph{Quality Score} ni figura en el registro de métricas, pero
+sus incidencias reciben severidad con el mismo modelo.}
 \end{table}
 
 
