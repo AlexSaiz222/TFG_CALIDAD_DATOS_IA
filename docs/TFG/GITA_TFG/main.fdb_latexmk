@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1779896387.11508 "main.aux" "main.bbl" "main" 1779897088.87612 0
+["bibtex main"] 1779896387.11508 "main.aux" "main.bbl" "main" 1779898720.16413 0
   "./main.bib" 1779661894.5565 15870 d3f66c7b4b5c7538b4194b52906af22d ""
   "C:/Users/aleja/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/apalike.bst" 1291972791 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main.aux" 1779897086.32909 90758 f910849cc6983a7b650f53c11f7d6b17 "pdflatex"
+  "main.aux" 1779898715.96404 90758 f910849cc6983a7b650f53c11f7d6b17 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1779897075.06628 "main.tex" "main.pdf" "main" 1779897088.87843 0
+["pdflatex"] 1779898702.27789 "main.tex" "main.pdf" "main" 1779898720.16622 0
   "C:/Users/aleja/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1779896289.75209 83486 9208647d054da4672a050e7ed94c9aa5 ""
   "C:/Users/aleja/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrm1095.pk" 1776345945.7784 12668 49789b6c889595ebca0e57072dadef91 ""
   "C:/Users/aleja/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrm1200.pk" 1776345947.05015 14064 06224b5692a113f9c6a295b3b337c5f6 ""
@@ -401,14 +401,14 @@
   "figures/img/version-comparison.png" 1779142559.86921 236974 1c6a406ae4f4a3f803a6dd396f4d0268 ""
   "figures/img/versiones-lista.png" 1779142477.04082 117423 22876e8240d1a2a1f536e7d2d24bc945 ""
   "figures/roadmap.png" 1779378194.62398 120044 184a0c3cb3a0331ee9049bffdabbcb6f ""
-  "gita-tfg.cls" 1779810619.05967 19654 55512f7710165b02958f125034413dd3 ""
-  "main.aux" 1779897086.32909 90758 f910849cc6983a7b650f53c11f7d6b17 "pdflatex"
-  "main.bbl" 1779896990.29437 13151 75bebdd92b2d36149ba237eccfbdfb60 "bibtex main"
-  "main.lof" 1779897086.38808 7085 d2ac9afe3f25711ffcf9e0e51f3e08ae "pdflatex"
-  "main.lot" 1779897086.38808 5404 6975399d29a8039633b44f19ff123362 "pdflatex"
-  "main.out" 1779897086.38577 33681 01408520bc3e332c897c876457a698cb "pdflatex"
+  "gita-tfg.cls" 1779898543.95731 19389 d13a8aadda28791ae47628e8ef70fa71 ""
+  "main.aux" 1779898715.96404 90758 f910849cc6983a7b650f53c11f7d6b17 "pdflatex"
+  "main.bbl" 1779898582.61123 13151 75bebdd92b2d36149ba237eccfbdfb60 "bibtex main"
+  "main.lof" 1779898716.00852 7085 d2ac9afe3f25711ffcf9e0e51f3e08ae "pdflatex"
+  "main.lot" 1779898716.00852 5404 6975399d29a8039633b44f19ff123362 "pdflatex"
+  "main.out" 1779898716.00205 33681 01408520bc3e332c897c876457a698cb "pdflatex"
   "main.tex" 1779213485.09672 1127 e998c516a45db3f0060925e473237155 ""
-  "main.toc" 1779897086.38808 18422 928463534c61a4ede6221359598b205f "pdflatex"
+  "main.toc" 1779898716.00796 18422 928463534c61a4ede6221359598b205f "pdflatex"
   "misc/acro.tex" 1779811158.77037 2958 34ba541458b49da16e1f7c2fed74918e ""
   "misc/metadata.tex" 1777563739.82904 637 267ca51db32871a0b98f0d1d74998e77 ""
   "misc/resumen.tex" 1778781693.07287 3993 edf5a349da208730500ba19cf22e2521 ""
