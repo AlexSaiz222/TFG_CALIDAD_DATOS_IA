@@ -1,0 +1,191 @@
+\chapter{Análisis estático de calidad de código con SonarQube}
+\label{anx:sonarqube}
+
+Este anexo detalla el proceso de análisis estático del código y aseguramiento de la calidad del software aplicado al propio desarrollo de \dataqual. Mientras que la evaluación de la calidad de los datos se rige por los estándares \ac{ISO}/\ac{IEC}~5259 y \ac{ISO}/\ac{IEC}~25012 (descritos en el Capítulo~\ref{chap:antecedentes}), la calidad de la base de código del software desarrollado se ha evaluado bajo el marco normativo de la norma \textbf{ISO/IEC 25010} (Calidad del Producto de Software), centrándose en las características de \emph{Mantenibilidad}, \emph{Fiabilidad} y \emph{Seguridad}.
+
+Para llevar a cabo esta evaluación, se ha integrado en el entorno de desarrollo local la herramienta estándar de la industria \textbf{SonarQube Community Build (versión v26.4.0.121862)}, ejecutada localmente en el puerto \texttt{9003}. El analizador procesa la base de código completa del \emph{frontend} (TypeScript y React) y del \emph{backend} (Python y Flask), proporcionando una auditoría cuantitativa del estado de la implementación.
+
+%% =========================================================================
+\section{Configuración e integración del análisis}
+\label{sec:sonar-config}
+%% =========================================================================
+
+El análisis se gestiona a través del archivo de propiedades del analizador,
+\texttt{sonar-project.properties}, ubicado en la raíz del proyecto.
+Este archivo define el alcance del análisis, excluyendo los directorios de
+dependencias, entornos virtuales y código autogenerado por herramientas de
+persistencia y compilación.
+
+A continuación se muestra la configuración real implementada para el análisis:
+
+\begin{verbatim}
+sonar.projectKey=TFG_CALIDAD_DATOS_IA
+sonar.projectName=TFG Calidad de Datos IA
+sonar.projectVersion=1.0
+sonar.host.url=http://localhost:9003
+
+# Fuentes analizadas
+sonar.sources=frontend/src,backend
+
+# Tests
+sonar.tests=backend/tests
+sonar.test.inclusions=backend/tests/**/*
+
+# Exclusiones (node_modules, migraciones, venv, archivos generados)
+sonar.exclusions=\
+  frontend/node_modules/**,\
+  frontend/.next/**,\
+  frontend/pnpm-lock.yaml,\
+  frontend/package-lock.json,\
+  backend/venv/**,\
+  backend/__pycache__/**,\
+  backend/migrations/**,\
+  backend/.pytest_cache/**,\
+  **/celerybeat-schedule,\
+  **/*.pyc
+
+# Cobertura de Python (generada por pytest-cov)
+sonar.python.coverage.reportPaths=backend/coverage.xml
+sonar.python.version=3.11
+sonar.sourceEncoding=UTF-8
+\end{verbatim}
+
+\subsection*{Procedimiento de ejecución del escaneo}
+El ciclo de análisis estático opera bajo demanda y de manera local en el entorno del desarrollador, constando de los siguientes pasos:
+\begin{enumerate}
+  \item \textbf{Generación de cobertura:} Se lanza la suite de pruebas del backend con \texttt{pytest-cov} para generar el reporte de cobertura en formato XML:
+        \begin{verbatim}
+        pytest --cov=backend --cov-report=xml:backend/coverage.xml
+        \end{verbatim}
+  \item \textbf{Ejecución del escaneo:} Se ejecuta la herramienta cliente de escaneo mediante el comando:
+        \begin{verbatim}
+        sonar-scanner -Dsonar.token=<TOKEN>
+        \end{verbatim}
+        El analizador compila las métricas del código fuente, correlaciona las líneas analizadas con el archivo \texttt{coverage.xml} y sube los resultados al servidor web de SonarQube para su visualización.
+\end{enumerate}
+
+%% =========================================================================
+\section{Métricas detalladas y calidad de la base de código}
+\label{sec:sonar-metrics}
+%% =========================================================================
+
+El volumen total analizado en el proyecto asciende a \textbf{44.518 líneas de código físico} (NCLOC). La distribución global de la calidad de software del proyecto se resume en la Tabla~\ref{tab:sonar-resumen}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Resumen cualitativo y cuantitativo de SonarQube}
+  \label{tab:sonar-resumen}
+  \renewcommand{\arraystretch}{1.6}%
+  \begin{tabularx}{\textwidth}{
+    >{\hsize=0.8\hsize\raggedright\arraybackslash}X 
+    >{\hsize=0.7\hsize\centering\arraybackslash}X 
+    >{\hsize=0.7\hsize\raggedleft\arraybackslash}X 
+    >{\hsize=1.8\hsize\raggedright\arraybackslash}X
+  }
+    \toprule
+    \textbf{Métrica} & \textbf{Grado/Calificación} & \textbf{Valor} & \textbf{Significado técnico} \\
+    \midrule
+    Estado del Quality Gate             & --- & Failed        & No supera el umbral del 80\,\% de cobertura en código nuevo. \\
+    Fiabilidad (\emph{Reliability})     & Grado D & 82 Bugs        & Presencia de bugs menores y advertencias de tipado. \\
+    Seguridad (\emph{Security})         & Grado A & 0 Vulnerab.   & Ausencia de brechas y fallos de seguridad críticos. \\
+    Revisión de Hotspots                & Grado E & 12 (0,0\,\% rev.) & Puntos calientes identificados pendientes de revisión formal. \\
+    Mantenibilidad                      & Grado A & 748 Smells    & Deuda técnica muy baja relativa al tamaño del código. \\
+    Duplicación de código               & --- & 3,5\,\%     & Óptima reutilización del código (DRY). \\
+    Cobertura global                    & --- & 18,3\,\%    & Cobertura de pruebas agregada (Front + Back). \\
+    Cobertura del Backend               & --- & 36,5\,\%    & Cobertura de la lógica de servidor y API REST. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+A continuación se detalla el análisis de cada dimensión de calidad conforme al estándar \ac{ISO}/\ac{IEC}~25010:
+
+\subsection{Fiabilidad (Bugs)}
+Se han detectado un total de 82 incidencias de fiabilidad. Esta cifra da como resultado una calificación de \textbf{Grado D} en SonarQube, debido principalmente a reglas estrictas sobre el tipado en TypeScript y llamadas obsoletas de SQLAlchemy:
+\begin{itemize}
+  \item En el \emph{backend}, corresponden a advertencias sobre tipos implícitos en declaraciones de relaciones de SQLAlchemy y al uso de ciertas sentencias condicionales redundantes que pueden simplificarse.
+  \item En el \emph{frontend}, corresponden a declaraciones de tipos de TypeScript que no se utilizan en la representación visual y que la herramienta recomienda sustituir por interfaces vacías o tipados explícitos.
+\end{itemize}
+
+\subsection{Seguridad (Vulnerabilidades y Puntos Calientes)}
+El análisis estático no detectó ninguna vulnerabilidad de seguridad conocida (Grado A). No obstante, se marcaron \textbf{12 Puntos Calientes de Seguridad (Security Hotspots)}, lo que resulta en una calificación de \textbf{Grado E} por mantenerse con un 0,0\,\% de revisión manual dentro de la plataforma (ver Figura~\ref{fig:sonar-hotspots}). El desglose por categoría es el siguiente:
+\begin{itemize}
+  \item \textbf{Cross-Site Request Forgery, CSRF (2 incidencias, prioridad alta):} La API REST del backend de Flask no implementa tokens CSRF, ya que la autenticación se gestiona íntegramente mediante tokens \ac{JWT} en cabeceras HTTP. Este patrón es el estándar para APIs REST stateless, pero SonarQube lo marca como punto a revisar.
+  \item \textbf{Permisos (4 incidencias, prioridad media):} Asociados a la configuración de CORS permisivo (\texttt{origins: "*"}) en el backend de Flask, que permite solicitudes desde cualquier origen. Se configuró deliberadamente para facilitar el desarrollo local (Next.js en el puerto 3000 y la API en el puerto 5000), pero requiere ser sustituido por una lista blanca de dominios específicos en un despliegue de producción.
+  \item \textbf{Criptografía débil (3 incidencias, prioridad media):} Relacionados con el uso del algoritmo HS256 para la firma de tokens \ac{JWT} y con credenciales de MinIO en texto plano (\texttt{minioadmin}/\texttt{minioadmin}). Estas credenciales se utilizan exclusivamente para el desarrollo local en contenedores Docker y están aisladas de la infraestructura real.
+  \item \textbf{Denegación de servicio, DoS (2 incidencias, prioridad media):} Vinculados al uso de expresiones regulares en la validación de patrones de formato del módulo de exactitud sintáctica. El riesgo de \emph{ReDoS} (denegación de servicio por expresión regular) es bajo dado que los patrones son predefinidos por la plataforma y no por el usuario final.
+  \item \textbf{Configuración insegura (1 incidencia, prioridad baja):} Relacionada con la configuración del entorno de desarrollo local. No aplica en un despliegue de producción con variables de entorno gestionadas.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth,height=0.65\textheight,keepaspectratio]{img/sonar-hotspots.png}
+  \caption{Listado de Puntos Calientes de Seguridad (Security Hotspots) pendientes de revisión en la interfaz de SonarQube.}
+  \label{fig:sonar-hotspots}
+\end{figure}
+
+\subsection{Mantenibilidad (Deuda Técnica y Code Smells)}
+Se identificaron 748 observaciones sobre estilo y mantenibilidad. SonarQube califica esta deuda técnica con la máxima nota (Grado A) debido a que el ratio de esfuerzo para corregir estas observaciones frente al tamaño total del código es inferior al 1\,\%. La tipología de estas incidencias incluye:
+\begin{itemize}
+  \item Comentarios de código desactivados o temporales (por ejemplo, directivas \texttt{TODO} o bloques comentados durante la depuración).
+  \item Falta de tipado explícito en algunas funciones JavaScript/TypeScript del frontend.
+  \item Estructuras de control \texttt{if-else} con una alta complejidad cognitiva que pueden refactorizarse utilizando diccionarios o patrones de estrategia en Python.
+\end{itemize}
+
+\subsection{Duplicación de código}
+El índice del \textbf{3,5\,\%} es sumamente bajo y denota una arquitectura bien estructurada. La mayor parte de la duplicación detectada se localiza en los archivos de migración autogenerados por Alembic, donde se repiten instrucciones estructuradas de creación de tablas de base de datos, y en ciertos componentes visuales del frontend que representan tablas de datos similares pero no idénticas.
+
+\subsection{Cobertura de pruebas unitarias y Estado del Quality Gate}
+El resultado consolidado arroja un 18,3\,\% global. La asimetría de la cobertura responde al alcance metodológico establecido:
+\begin{itemize}
+  \item \textbf{Capa de Backend (36,5\,\%):} La suite de 13 módulos de prueba automatiza los casos de negocio críticos. En la ruta central del proyecto correspondiente a la lógica analítica de cálculo de métricas (\texttt{backend/services/metrics/}), la cobertura es superior al \textbf{84,6\,\%} de media, garantizando la robustez del núcleo algorítmico (ver desglose detallado por fichero en la Tabla~\ref{tab:sonar-cobertura-metrics}).
+  \item \textbf{Capa de Frontend (0\,\%):} Debido a la alta variabilidad del diseño visual de la interfaz y a las restricciones de tiempo inherentes a un TFG, la suite de pruebas end-to-end con Playwright no se automatizó (quedando como prueba manual). Al no disponer de cobertura automatizada del frontend, el porcentaje combinado global decae, representando una limitación que deberá ser abordada en futuras iteraciones.
+\end{itemize}
+
+Esta falta de cobertura en el frontend y la falta de revisión manual de los hotspots en la consola local explican el veredicto de \textbf{Failed} del \emph{Quality Gate} por defecto de SonarQube, que exige coberturas mínimas superiores al 80\,\% en código nuevo para marcar el proyecto como superado.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Desglose de cobertura de pruebas en el motor de métricas (\texttt{backend/services/metrics/})}
+  \label{tab:sonar-cobertura-metrics}
+  \renewcommand{\arraystretch}{1.4}%
+  \begin{tabularx}{\textwidth}{X r}
+    \toprule
+    \textbf{Fichero de métrica} & \textbf{Cobertura de línea} \\
+    \midrule
+    \texttt{completeness.py} (Completitud)             & 100,0\,\% \\
+    \texttt{outliers.py} (Valores atípicos)            & 94,5\,\% \\
+    \texttt{uniqueness.py} (Unicidad)                  & 91,2\,\% \\
+    \texttt{diversity.py} (Diversidad)                  & 87,7\,\% \\
+    \texttt{class\_balance.py} (Equilibrio de clases)   & 87,5\,\% \\
+    \texttt{registry.py} (Registro de métricas)         & 81,8\,\% \\
+    \texttt{logical\_consistency.py} (Consistencia)    & 80,0\,\% \\
+    \texttt{currentness.py} (Actualidad)                & 74,7\,\% \\
+    \texttt{base.py} (Clase base de métricas)           & 67,2\,\% \\
+    \texttt{syntactic\_accuracy.py} (Exactitud)         & 63,2\,\% \\
+    \midrule
+    \textbf{Media ponderada del módulo}                 & \textbf{84,6\,\%} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/sonar-coverage.png}
+  \caption{Detalle de la cobertura de código analizada por SonarQube, destacando el porcentaje en el backend.}
+  \label{fig:sonar-coverage}
+\end{figure}
+
+\clearpage
+%% =========================================================================
+\section{Trabajo futuro para el aseguramiento de la calidad}
+\label{sec:sonar-futuro}
+%% =========================================================================
+
+El análisis de SonarQube establece una base de control de calidad clara. Para elevar la calidad en futuras fases del proyecto, se plantean las siguientes acciones técnicas:
+\begin{enumerate}
+  \item \textbf{Inyección de Secretos:} Reemplazar el almacenamiento local de contraseñas y claves de cifrado en texto plano en la configuración del backend y los contenedores Docker por un almacén de secretos (por ejemplo, AWS Secrets Manager o HashiCorp Vault).
+  \item \textbf{Políticas CORS Dinámicas:} Implementar un cargador de configuraciones dinámico que restrinja los orígenes CORS al dominio del despliegue cuando el entorno de ejecución sea producción.
+  \item \textbf{Automatización de Pruebas Frontend:} Implementar al menos una prueba de humo automatizada con Playwright en la integración continua para cubrir la renderización de la pantalla principal de la aplicación, incrementando el porcentaje de cobertura global de código.
+\end{enumerate}
+
+\vfill

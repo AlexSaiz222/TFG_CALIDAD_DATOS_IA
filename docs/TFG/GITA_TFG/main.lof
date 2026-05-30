@@ -24,7 +24,8 @@
 \contentsline {figure}{\numberline {5.9}{\ignorespaces \emph {Quality Gate} de \dataqual : condiciones de aprobación configuradas (puntuación mínima, máximo de \emph {issues} críticos y máximo de \emph {issues} nuevos) con etiquetas de nivel de rigor por umbral (STRICT / MODERATE / PERMISSIVE)}}{58}{figure.5.9}%
 \contentsline {figure}{\numberline {5.10}{\ignorespaces Paso de revisión y confirmación del asistente de carga de \emph {dataset}: panel de privacidad de datos con selección de columnas \acs {PII} cuyos valores se enmascararán automáticamente en todas las salidas del sistema}}{59}{figure.5.10}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Número de \emph {commits} reales por sprint en el repositorio Git. Refleja la actividad de desarrollo medida a partir del historial de \texttt {git log}; complementa los datos de esfuerzo estimado de la Tabla~\ref {tab:esfuerzo}.}}{68}{figure.6.1}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Panel general de control de calidad de SonarQube para el proyecto \dataqual , mostrando el estado del Quality Gate.}}{68}{figure.6.1}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Número de \emph {commits} reales por sprint en el repositorio Git. Refleja la actividad de desarrollo medida a partir del historial de \texttt {git log}; complementa los datos de esfuerzo estimado de la Tabla~\ref {tab:esfuerzo}.}}{69}{figure.6.2}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
@@ -33,19 +34,22 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {G.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{112}{figure.Alph7.1}%
-\contentsline {figure}{\numberline {G.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{113}{figure.Alph7.2}%
-\contentsline {figure}{\numberline {G.3}{\ignorespaces Paso 2 del asistente de carga: zona de \emph {drag-and-drop} con nombre y descripción del \emph {dataset}}}{114}{figure.Alph7.3}%
-\contentsline {figure}{\numberline {G.4}{\ignorespaces Paso 3 del asistente de carga: resumen del \emph {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}}{115}{figure.Alph7.4}%
-\contentsline {figure}{\numberline {G.5}{\ignorespaces Configurador de métricas (pestaña \emph {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}}{115}{figure.Alph7.5}%
-\contentsline {figure}{\numberline {G.6}{\ignorespaces Pestaña \emph {Evaluaciones} de un \emph {dataset}: evaluación recién lanzada con estado \emph {Queued} y botón \emph {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}}{116}{figure.Alph7.6}%
-\contentsline {figure}{\numberline {G.7}{\ignorespaces Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}}{117}{figure.Alph7.7}%
-\contentsline {figure}{\numberline {G.8}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}}{119}{figure.Alph7.8}%
-\contentsline {figure}{\numberline {G.9}{\ignorespaces Pestaña \emph {Historial de análisis} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{120}{figure.Alph7.9}%
-\contentsline {figure}{\numberline {G.10}{\ignorespaces Pestaña \emph {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}}{120}{figure.Alph7.10}%
+\contentsline {figure}{\numberline {G.1}{\ignorespaces Listado de Puntos Calientes de Seguridad (Security Hotspots) pendientes de revisión en la interfaz de SonarQube.}}{115}{figure.Alph7.1}%
+\contentsline {figure}{\numberline {G.2}{\ignorespaces Detalle de la cobertura de código analizada por SonarQube, destacando el porcentaje en el backend.}}{116}{figure.Alph7.2}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {H.1}{\ignorespaces Diagrama de paquetes del sistema (Frontend y Backend)}}{122}{figure.Alph8.1}%
-\contentsline {figure}{\numberline {H.2}{\ignorespaces Diagrama \ac {UML} de casos de uso de \dataqual }}{124}{figure.Alph8.2}%
-\contentsline {figure}{\numberline {H.3}{\ignorespaces Esquema relacional de la base de datos \texttt {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}}{125}{figure.Alph8.3}%
-\contentsline {figure}{\numberline {H.4}{\ignorespaces Diagrama de secuencia del flujo de ejecución de una evaluación}}{126}{figure.Alph8.4}%
-\contentsline {figure}{\numberline {H.5}{\ignorespaces Diagrama de clases del motor de métricas y los servicios asociados}}{128}{figure.Alph8.5}%
+\contentsline {figure}{\numberline {H.1}{\ignorespaces Pantalla unificada de autenticación con pestañas de inicio de sesión y registro}}{121}{figure.Alph8.1}%
+\contentsline {figure}{\numberline {H.2}{\ignorespaces Asistente de creación de un nuevo proyecto en tres pasos}}{122}{figure.Alph8.2}%
+\contentsline {figure}{\numberline {H.3}{\ignorespaces Paso 2 del asistente de carga: zona de \emph {drag-and-drop} con nombre y descripción del \emph {dataset}}}{123}{figure.Alph8.3}%
+\contentsline {figure}{\numberline {H.4}{\ignorespaces Paso 3 del asistente de carga: resumen del \emph {dataset} y selección de columnas \ac {PII} para enmascaramiento automático}}{124}{figure.Alph8.4}%
+\contentsline {figure}{\numberline {H.5}{\ignorespaces Configurador de métricas (pestaña \emph {Métricas seleccionadas}): tarjetas de las métricas activas con acceso a configuración detallada y opción de guardar como plantilla reutilizable}}{124}{figure.Alph8.5}%
+\contentsline {figure}{\numberline {H.6}{\ignorespaces Pestaña \emph {Evaluaciones} de un \emph {dataset}: evaluación recién lanzada con estado \emph {Queued} y botón \emph {Run evaluation} en curso, junto a una evaluación anterior con resultado PASSED}}{125}{figure.Alph8.6}%
+\contentsline {figure}{\numberline {H.7}{\ignorespaces Detalle de un análisis: \emph {Quality Score}, métricas e \emph {issues} con \emph {badges} de trazabilidad entre ejecuciones}}{126}{figure.Alph8.7}%
+\contentsline {figure}{\numberline {H.8}{\ignorespaces Módulo de perfilado interactivo (\ac {EDA}): histogramas, diagramas de caja, correlaciones y detección de \emph {outliers}}}{128}{figure.Alph8.8}%
+\contentsline {figure}{\numberline {H.9}{\ignorespaces Pestaña \emph {Historial de análisis} de un proyecto: gráfico de evolución temporal de la puntuación de calidad por \emph {dataset} y tabla de ejecuciones con estado de \emph {Quality Gate}}}{129}{figure.Alph8.9}%
+\contentsline {figure}{\numberline {H.10}{\ignorespaces Pestaña \emph {Quality Gate} de un proyecto: condición de aprobación activa, umbrales configurables con deslizadores y etiquetas de nivel de rigor por umbral}}{129}{figure.Alph8.10}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {I.1}{\ignorespaces Diagrama de paquetes del sistema (Frontend y Backend)}}{131}{figure.Alph9.1}%
+\contentsline {figure}{\numberline {I.2}{\ignorespaces Diagrama \ac {UML} de casos de uso de \dataqual }}{133}{figure.Alph9.2}%
+\contentsline {figure}{\numberline {I.3}{\ignorespaces Esquema relacional de la base de datos \texttt {dataquality}: tablas, columnas, tipos y relaciones de clave foránea}}{134}{figure.Alph9.3}%
+\contentsline {figure}{\numberline {I.4}{\ignorespaces Diagrama de secuencia del flujo de ejecución de una evaluación}}{135}{figure.Alph9.4}%
+\contentsline {figure}{\numberline {I.5}{\ignorespaces Diagrama de clases del motor de métricas y los servicios asociados}}{137}{figure.Alph9.5}%

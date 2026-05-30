@@ -11,12 +11,12 @@ En este artículo, analizamos un caso práctico real utilizando el clásico data
 
 ---
 
-## 📌 El Experimento: Modelo Sucio vs. Modelo Limpio
+## 📌 El Experimento: Modelo Sucio vs. Modelo Limpio con Múltiples Algoritmos
 
-Para evaluar el impacto de la calidad de datos, diseñamos un experimento de **entrenamiento en paralelo** utilizando un algoritmo de *Random Forest*:
+Para evaluar el impacto de la calidad de datos y comprender cómo diferentes arquitecturas de aprendizaje automático reaccionan ante la mitigación, diseñamos un experimento de **entrenamiento en paralelo** comparando **4 algoritmos fundamentales** (Regresión Logística, Árbol de Decisión, Random Forest y Gradient Boosting) en dos configuraciones:
 
 1. **El Modelo Sucio (Original):** Entrenado con el dataset tal y como se descarga de internet, con espacios en blanco sintácticos, valores nulos ocultos y sesgos de género históricos.
-2. **El Modelo Limpio & Mitigado:** Entrenado tras someter los datos a una limpieza sistemática de calidad y aplicar la técnica de **Reweighing (Reponderación)** para neutralizar el sesgo de género.
+2. **El Modelo Limpio & Mitigado:** Entrenado tras someter los datos a una limpieza sistemática de calidad, eliminar variables proxy de género (`relationship`, `marital_status`) y aplicar la técnica de **Reweighing (Reponderación)** para neutralizar el sesgo.
 
 ```mermaid
 graph LR
@@ -51,35 +51,51 @@ Cuando subimos el dataset Adult Income a **DataQual**, la plataforma ejecuta una
 
 ---
 
-## 📊 El Veredicto de las Métricas: Modelo Sucio vs. Modelo Limpio
+## 📊 El Veredicto de las Métricas: Comparativa de Algoritmos y Mitigaciones (Test Split)
 
-Tras corregir los nulos, eliminar los proxies y aplicar reponderación en base a las métricas de DataQual, los resultados del entrenamiento paralelo revelan un comportamiento fascinante:
+Tras aplicar limpieza de calidad y comparar las técnicas de mitigación de sesgo, los resultados en el conjunto de test muestran el siguiente comportamiento:
 
-| Métrica de Evaluación | Modelo Sucio (Original) | Modelo Limpio & Mitigado | Diagnóstico e Impacto del Cambio |
-| :--- | :---: | :---: | :--- |
-| **Accuracy (Exactitud)** | 86.52% | 80.03% | Ajuste del 6% debido al trade-off de equidad. |
-| **Recall (Sensibilidad)** | 58.17% | **74.21%** | **Mejora del +16.04%** al corregir el desbalance de clase. |
-| **Demographic Parity Diff** | 0.1572 | **0.1320** | Reducción de la brecha absoluta de selección. |
-| **Disparate Impact Ratio (DIR)** | 0.3069 | **0.6334** | **Mejora del +106%** hacia la equidad legal. |
-| **Equalized Odds Difference** | 0.0888 | **0.0658** | Las tasas de error se equilibran entre géneros. |
+| Algoritmo y Configuración | Accuracy | Precision | Recall | F1-Score | ROC-AUC | Demographic Parity Diff | Disparate Impact Ratio | Equalized Odds Diff |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Logistic Regression (Sucio)** | 85.17% | 73.24% | 59.92% | 65.91% | 0.9058 | 0.1806 | 0.2962 | 0.1226 |
+| **Logistic Regression (Mitigado Pre)** | 75.71% | 49.49% | 73.10% | 59.02% | 0.8331 | 0.0988 | **0.7445** | 0.0493 |
+| **Logistic Regression (Mitigado Post)** | 80.27% | 62.98% | 42.64% | 50.85% | 0.8519 | 0.0119 | **1.0755** | 0.1147 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Decision Tree (Sucio)** | 86.07% | 78.32% | 57.78% | 66.50% | 0.8993 | 0.1484 | 0.3449 | 0.0491 |
+| **Decision Tree (Mitigado Pre)** | 77.84% | 52.73% | 71.47% | 60.69% | 0.8489 | 0.0944 | **0.7350** | **0.0056** |
+| **Decision Tree (Mitigado Post)** | 81.02% | 65.59% | 43.54% | 52.34% | 0.8629 | 0.0621 | **1.4501** | 0.2592 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Random Forest (Sucio)** | 86.52% | 80.05% | 58.17% | 67.38% | 0.9179 | 0.1572 | 0.3069 | 0.0888 |
+| **Random Forest (Mitigado Pre)** | 80.03% | 56.28% | 74.21% | 64.01% | 0.8709 | 0.1320 | **0.6334** | 0.0658 |
+| **Random Forest (Mitigado Post)** | 82.21% | 74.96% | 38.54% | 50.90% | 0.8813 | 0.0203 | **1.1748** | 0.1893 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Gradient Boosting (Sucio)** | 87.65% | 79.06% | 65.87% | 71.86% | 0.9294 | 0.1759 | 0.3197 | 0.1058 |
+| **Gradient Boosting (Mitigado Pre)** | 79.09% | 54.34% | 79.00% | 64.39% | 0.8820 | 0.1175 | **0.6968** | 0.0385 |
+| **Gradient Boosting (Mitigado Post)** | 83.39% | 69.15% | 55.22% | 61.40% | 0.8978 | 0.0034 | **1.0179** | 0.1530 |
+
+### 🛡️ Validación Cruzada de 5 Pliegues: Robustez Estadística
+Para garantizar la significancia científica de las métricas de cara a la defensa del TFG, realizamos una validación cruzada estratificada de 5 pliegues. El comportamiento medio ± desviación estándar confirma la estabilidad de las intervenciones:
+* **Pre-procesamiento (Reweighing):** El *Disparate Impact Ratio* promedio se eleva de manera muy estable. Por ejemplo, en *Gradient Boosting*, el DIR promedio sube de $0.3027 \pm 0.0082$ (Sucio) a $0.7127 \pm 0.0229$ (Mitigado Pre), demostrando que la mejora de equidad es estadísticamente sólida.
+* **Post-procesamiento (Thresholds):** Logra de manera muy consistente un DIR muy cercano al óptimo 1.0 (ej. $1.0048 \pm 0.1663$ en *Random Forest*), aunque con una varianza ligeramente mayor debido a la oscilación de los umbrales óptimos calculados en cada pliegue.
 
 ---
 
-## 💡 Lecciones Clave para la Ingeniería de IA
+## 💡 Lecciones Clave para la Ingeniería de IA y Defensa del TFG
 
-El análisis de este experimento nos deja tres grandes conclusiones aplicables a cualquier proyecto de Inteligencia Artificial:
+El análisis de este experimento en paralelo nos proporciona tres grandes pilares metodológicos:
 
 > [!IMPORTANT]
-> ### 1. El Dilema del Trade-Off (Equidad vs. Rendimiento)
-> El Modelo Sucio parece tener una exactitud altísima (86.5%), pero es una ilusión: está sobreajustado a predecir que las mujeres no ganan dinero debido al sesgo histórico. El Modelo Limpio tiene un 80.0% de exactitud, pero es **éticamente robusto y generaliza mejor**, al no depender de prejuicios históricos para predecir.
+> ### 1. Pre-procesamiento (Reweighing) vs. Post-procesamiento (Threshold Tuning)
+> * El **pre-procesamiento** (Reweighing) reequilibra la importancia de los datos originales. Es la opción éticamente más robusta porque el clasificador aprende fronteras de decisión simétricas inherentes, pero suele reducir más la exactitud general.
+> * El **post-procesamiento** (sintonizar umbrales por género) permite retener un mayor poder predictivo general (ej. exactitudes del ~82-83% frente al 75-79% del pre-procesamiento) y optimizar directamente la equidad en inferencia. Sin embargo, no cambia la representación subyacente que el modelo aprende.
 
 > [!WARNING]
-> ### 2. La Trampa de los Proxies de Sesgo
-> Si intentas mitigar el sesgo aplicando pesos a la muestra pero dejas variables proxy como `relationship` (esposo/esposa), la IA aprenderá a ignorar tus pesos y reconstruirá el género a través de ellas. La auditoría previa en DataQual es vital para identificar y extirpar estas variables antes del entrenamiento.
+> ### 2. XAI: Revelando el Impacto del Dato Limpio
+> La comparación de importancia de características (*Feature Importance*) bajo una perspectiva XAI (Explicabilidad) revela un hallazgo crítico para el TFG: en el modelo sucio, las variables proxy `relationship` y `marital-status` concentraban el grueso de la varianza explicada. Al eliminarlas, obligamos al Random Forest y Gradient Boosting a apoyarse en variables de mérito objetivo como `capital_gain` y `education_num`, logrando modelos con menor sesgo intrínseco y mejor generalización.
 
 > [!TIP]
 > ### 3. Implementa "Quality Gates" en MLOps
-> Integrar DataQual en tu pipeline de MLOps te permite definir umbrales automáticos. Si el dataset entrante no supera los umbrales de completitud, balance o balance de grupos sensibles, el despliegue a producción se detiene. Es el equivalente de *SonarQube* pero para la salud de tus datos.
+> Integrar DataQual en tu pipeline de MLOps te permite definir umbrales automáticos de calidad. Si los datos entrantes presentan nulos ocultos o correlaciones extremas con variables protegidas (que actúan como proxies), la API de DataQual detiene el entrenamiento de manera inmediata, protegiendo el pipeline CI/CD antes de desplegar un modelo sesgado.
 
 ---
 

@@ -151,7 +151,7 @@ ejecución y evolución sin afectar al documento académico.
     BE-07 & \texttt{test\_analysis\_run} &
       Creación de \texttt{AnalysisRun}, comparación con \emph{baseline}
       y cálculo de \emph{new/fixed issues}.
-      & Pendiente \\
+      & Implementada \\
     BE-08 & \texttt{test\_celery\_tasks} &
       Ejecución asíncrona, reintentos y manejo de errores en tareas
       diferidas.
@@ -361,11 +361,11 @@ abiertos y tiempo de ejecución de la batería.
     Cobertura global \emph{backend} & \texttt{pytest --cov} sobre \texttt{backend/}.
                           & --- & $\sim$36\,\% \\
     Tasa de paso          & Casos \emph{passed}\,/\,total ejecutados.
-                          & $\geq 95$\,\% & 100\,\% (232/232, 1 \emph{skipped}) \\
+                          & $\geq 95$\,\% & 100\,\% (236/236, 1 \emph{skipped}) \\
     Defectos críticos abiertos & Bugs P1 sin resolver al cierre.
                           & 0           & 0 \\
     Tiempo suite L1+L2    & Duración total en local.
-                          & \textless\,60\,s & $\sim$17\,s \\
+                          & \textless\,60\,s & $\sim$30\,s \\
     Densidad de defectos  & Defectos \,/\,\ac{KLOC} en el periodo.
                           & Decreciente   & N/A \\
     \bottomrule
@@ -425,7 +425,7 @@ las revisiones de cada \emph{sprint} (capítulo de metodología).
   \item \textbf{Pruebas \emph{frontend}.}  Pruebas manuales guiadas;
         Playwright planificado para FE-07.
   \item \textbf{Análisis estático.}  \texttt{ruff}, \texttt{eslint} y
-        \texttt{tsc --noEmit}; SonarCloud configurado vía
+        \texttt{tsc --noEmit}; SonarQube local integrado para análisis de calidad y cobertura, configurado vía
         \texttt{sonar-project.properties}.
   \item \textbf{Gestión de defectos.}  \emph{Issues} de GitHub etiquetados
         \texttt{bug/P1..P4}.
@@ -440,18 +440,18 @@ las revisiones de cada \emph{sprint} (capítulo de metodología).
 \label{sec:anx-pruebas-estado}
 %% =========================================================================
 
-A la fecha de redacción de la memoria se han implementado once
-\emph{suites} automatizadas (doce módulos \texttt{pytest}) que cubren las áreas de mayor riesgo:
-BE-01 a BE-05 (autenticación, proyectos, versionado y \emph{Quality
+A la fecha de redacción de la memoria se han implementado doce
+\emph{suites} automatizadas (trece módulos \texttt{pytest}) que cubren las áreas de mayor riesgo:
+BE-01 a BE-05 y BE-07 (autenticación, proyectos, versionado, ciclo de vida de \texttt{AnalysisRun} y \emph{Quality
 Gate} básico), BE-06 (motor completo de métricas: 8 clases), BE-10
 (autorización cruzada \acs{IDOR}) y DM-01 a DM-04
 (\emph{fingerprinting}, comparación con \emph{baseline}, \emph{Quality
 Score} y combinaciones de veredicto del \emph{gate}).  En conjunto,
-la suite acumula 233 casos de prueba (232 \emph{passed} y 1
-\emph{skipped}) y se ejecuta completa en aproximadamente 17~segundos
+la suite acumula 237 casos de prueba (236 \emph{passed} y 1
+\emph{skipped}) y se ejecuta completa en aproximadamente 30~segundos
 sobre SQLite en memoria.
 
-Las suites pendientes (BE-07--BE-09 y FE-07) se han priorizado para
+Las suites pendientes (BE-08--BE-09 y FE-07) se han priorizado para
 una próxima iteración del producto, junto con la integración continua
 mediante GitHub Actions, la generación automatizada de informes de
 cobertura y el aumento de la cobertura de línea de los manejadores

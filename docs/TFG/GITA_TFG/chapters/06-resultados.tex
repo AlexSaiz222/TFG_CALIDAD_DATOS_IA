@@ -237,12 +237,12 @@ magnitudes del sistema implementado.
     Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
     Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
     Migraciones de base de datos (Alembic)          & 5     \\
-    Módulos de pruebas automatizadas (pytest)       & 12    \\
+    Módulos de pruebas automatizadas (pytest)       & 13    \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-La batería de pruebas automatizadas se organiza en doce módulos pytest
+La batería de pruebas automatizadas se organiza en trece módulos pytest
 agrupados por dominio funcional; las suites unitarias y de integración
 se complementaron con pruebas manuales de extremo a extremo sobre los
 flujos completos de la plataforma.  La automatización de estas pruebas
@@ -250,6 +250,30 @@ flujos completos de la plataforma.  La automatización de estas pruebas
 limitación en la sección~\ref{sec:limitaciones}.  El plan de pruebas
 integral (estrategia, niveles, casos y trazabilidad con requisitos) se
 formaliza en el Anexo~\ref{anx:pruebas}.
+
+\subsection{Calidad del código y análisis estático (SonarQube)}
+\label{sec:calidad-sonarqube-resumen}
+
+Como corresponde a un proyecto cuyo núcleo teórico gira en torno a la calidad, los principios de aseguramiento de la calidad y el análisis métrico se han aplicado rigurosamente al propio desarrollo de \dataqual. Para ello, se ha integrado y ejecutado la herramienta estándar de la industria \textbf{SonarQube}, evaluando la totalidad de la base de código tanto del \emph{frontend} (TypeScript y React) como del \emph{backend} (Python y Flask).
+
+El volumen total analizado asciende a \textbf{44.518 líneas de código} (NCLOC). El análisis estático de SonarQube ha verificado la solidez del software, otorgando al proyecto la máxima calificación de \textbf{Grado A} en seguridad y mantenibilidad. Los resultados consolidados se resumen en los siguientes puntos:
+
+\begin{itemize}
+  \item \textbf{Seguridad:} 0 vulnerabilidades de seguridad detectadas (Grado A).
+  \item \textbf{Fiabilidad:} Grado D con 82 incidencias de tipo bug, en su mayoría warnings de tipado y avisos de compatibilidad.
+  \item \textbf{Mantenibilidad:} Deuda técnica muy baja con Grado A (748 \emph{code smells}).
+  \item \textbf{Duplicación de código:} Un porcentaje de duplicación del \textbf{3,5\,\%}, demostrando una correcta modularización.
+  \item \textbf{Cobertura de pruebas:} Un 18,3\,\% global, con el \emph{Quality Gate} en estado \emph{Failed} (Fallo), provocado por no alcanzar el umbral exigido del 80\,\% en código nuevo debido a la exclusión de pruebas del frontend.
+\end{itemize}
+
+El desglose detallado de la configuración utilizada, el análisis minucioso de las métricas de calidad y la justificación de los puntos calientes de seguridad se detallan en el \textbf{Anexo~\ref{anx:sonarqube}}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/sonar-dashboard.png}
+  \caption{Panel general de control de calidad de SonarQube para el proyecto \dataqual, mostrando el estado del Quality Gate.}
+  \label{fig:sonar-dashboard}
+\end{figure}
 
 \subsection{Esfuerzo y desviaciones}
 \label{sec:esfuerzo}
