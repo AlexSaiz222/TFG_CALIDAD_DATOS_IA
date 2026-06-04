@@ -17,6 +17,11 @@ esfuerzo, el análisis de costes y el plan de gestión de riesgos.
 \label{sec:gestion-proyecto}
 %% =========================================================================
 
+Esta sección describe cómo se ha gestionado el desarrollo de \dataqual: la
+metodología ágil escogida y su justificación, las adaptaciones necesarias para
+aplicar Scrum en un proyecto unipersonal y las herramientas empleadas para el
+seguimiento del trabajo.
+
 \subsection{Metodología ágil adoptada: Scrum adaptado}
 
 Para la gestión del proyecto se adoptó \textbf{Scrum adaptado a un proyecto
@@ -79,9 +84,9 @@ adaptaciones adoptadas se detallan a continuación.
     se seleccionan las historias de usuario del backlog y se descomponen en
     tareas concretas registradas en Trello con estimación en horas.
 
-  \item[Daily standup]  Sustituido por una \textbf{revisión personal diaria}
-    informal: al comenzar cada sesión de trabajo se repasaba el estado de
-    las tareas en curso y se decidía el foco de la jornada.
+  \item[Daily standup]  No aplicable en un proyecto unipersonal.  En su lugar,
+    cada sesión de trabajo comenzaba con un breve repaso del estado de las
+    tareas en Trello para fijar el foco de la jornada.
 
   \item[Sprint review]  Al finalizar cada sprint (o cada dos en los meses de
     mayor densidad de trabajo) se acordaba una reunión con los tutores para
@@ -89,11 +94,12 @@ adaptaciones adoptadas se detallan a continuación.
     La convocatoria era bajo demanda, sin cadencia fija, para adaptarla al
     ritmo real del proyecto.
 
-  \item[Sprint retrospective]  Reflexión escrita al cierre de cada sprint
-    siguiendo un guión estructurado: logros del sprint, estado acumulado del
-    producto, incidencias detectadas, estimación frente a tiempo real y
-    acción de mejora para el sprint siguiente.  Las retrospectivas completas
-    se recogen en el Capítulo~\ref{chap:desarrollo}.
+  \item[Sprint retrospective]  Realizada en la misma sesión que la
+    \emph{sprint review}: una reflexión sobre el sprint estructurada en torno
+    a los logros alcanzados, el estado acumulado del producto, las incidencias
+    detectadas, la estimación frente al tiempo real y la acción de mejora para
+    el sprint siguiente.  El detalle de cada retrospectiva se desarrolla en el
+    Capítulo~\ref{chap:desarrollo}.
 \end{definitionlist}
 
 Esta adaptación conserva los elementos esenciales de Scrum (iteraciones
@@ -137,12 +143,16 @@ en la estimación de costes de la Sección~\ref{sec:costes}.
 \label{sec:metodologia-desarrollo}
 %% =========================================================================
 
-El desarrollo de \dataqual ha seguido una \textbf{metodología iterativa e
-incremental}, donde cada sprint produce un incremento funcional desplegable
-que amplía las capacidades de la plataforma.  Los principios que han guiado
-todo el proceso (entrega frecuente, retroalimentación continua y adaptación
-del plan ante nuevos requisitos) son coherentes con los valores del
-\emph{Agile Manifesto}~\citep{agilemanifesto}.
+El desarrollo de \dataqual ha seguido una \textbf{metodología ágil basada en
+OpenUP} (\emph{Open Unified Process})~\citep{openup}, adaptada a un proyecto
+unipersonal, sobre un \textbf{ciclo de vida iterativo e incremental} en el que
+cada sprint produce un incremento funcional desplegable que amplía las
+capacidades de la plataforma.  OpenUP es una variante ligera del Proceso
+Unificado, organizada en iteraciones y de baja formalidad documental, idónea
+para proyectos de equipo reducido.  Los principios que han guiado todo el
+proceso (entrega frecuente, retroalimentación continua y adaptación del plan
+ante nuevos requisitos) son coherentes con los valores del \emph{Agile
+Manifesto}~\citep{agilemanifesto}.
 
 \subsection{Desarrollo iterativo}
 
@@ -207,6 +217,15 @@ La selección de cada tecnología responde a tres criterios: adecuación al
 tipo de problema (evaluación de calidad de datos, procesamiento asíncrono,
 visualización interactiva), madurez y soporte comunitario, y coherencia con
 las competencias adquiridas durante el grado en Ingeniería Informática.
+La Figura~\ref{fig:stack-tecnologico} resume el conjunto de tecnologías
+empleadas, organizadas por capa.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/img/herramientas-frameworks.png}
+  \caption{Pila tecnológica de \dataqual organizada por capas.}
+  \label{fig:stack-tecnologico}
+\end{figure}
 
 \subsection{\emph{Frontend}}
 \label{sec:tech-frontend}
@@ -565,6 +584,10 @@ lugar, Proyectos, Datasets y Métricas (8~\ac{SP} cada una).
 \section{Estimación de esfuerzo}
 \label{sec:estimacion}
 %% =========================================================================
+
+Esta sección expone la técnica de estimación empleada y contrasta la previsión
+inicial con el esfuerzo realmente invertido, lo que permite valorar la
+fiabilidad de la planificación.
 
 \subsection{Técnica de estimación}
 

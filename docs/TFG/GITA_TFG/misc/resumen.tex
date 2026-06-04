@@ -16,8 +16,9 @@ La plataforma implementa siete métricas de calidad alineadas con los
 estándares ISO/IEC~5259 (calidad de datos para \ac{IA}) e ISO/IEC~25012
 (modelo general de calidad de datos), un motor modular y extensible, un
 sistema de \emph{fingerprinting} SHA-256 para la trazabilidad de incidencias
-entre evaluaciones y \emph{Quality Gates} configurables inspirados en
-SonarQube.  El sistema se despliega como ocho servicios Docker orquestados
+entre evaluaciones y \emph{Quality Gates} configurables que automatizan la
+decisión de aceptación o rechazo de cada conjunto de datos.  El sistema se
+despliega como ocho servicios Docker orquestados
 con Docker~Compose, combinando una interfaz web interactiva (Next.js, React)
 con una API RESTful (Flask, Python) y procesamiento asíncrono
 (Celery, Redis).
@@ -25,12 +26,12 @@ con una API RESTful (Flask, Python) y procesamiento asíncrono
 La plataforma ha sido validada con conjuntos de datos ampliamente utilizados
 en el ámbito de la \ac{IA} y la ciencia de datos, confirmando la detección
 efectiva de problemas de calidad, la trazabilidad de incidencias entre
-evaluaciones sucesivas y la correcta clasificación de datasets mediante
-\emph{Quality Gates} con estados PASSED, WARNING y FAILED.
+evaluaciones sucesivas y la correcta clasificación automática de datasets
+mediante \emph{Quality Gates}.
 
 \dataqual contribuye a democratizar el acceso a la evaluación estandarizada
-de calidad de datos, eliminando la barrera técnica que suponen las
-herramientas basadas en código.  Su alineación con el Reglamento Europeo de
+de calidad de datos en proyectos de \ac{IA}, eliminando la barrera técnica
+que suponen las herramientas basadas en código.  Su alineación con el Reglamento Europeo de
 Inteligencia Artificial facilita el cumplimiento normativo en un contexto
 regulatorio cada vez más exigente, contribuyendo al desarrollo de sistemas
 de \ac{IA} más fiables, equitativos y auditables.
@@ -51,18 +52,20 @@ automated data quality evaluation.  The platform implements seven quality
 metrics aligned with the ISO/IEC~5259 (data quality for AI) and ISO/IEC~25012
 (general data quality model) standards, a modular and extensible engine,
 a SHA-256 fingerprinting system for issue traceability across evaluations,
-and configurable Quality Gates inspired by SonarQube.  The system is deployed
+and configurable Quality Gates that automate the accept/reject decision for
+each dataset.  The system is deployed
 as eight Docker services orchestrated with Docker~Compose, combining an
 interactive web interface (Next.js, React) with a RESTful API
 (Flask, Python) and asynchronous processing (Celery, Redis).
 
 The platform has been validated with widely used datasets in the field of
 AI and data science, confirming the effective detection of quality issues,
-issue traceability across successive evaluations, and correct dataset
-classification through Quality Gates with PASSED, WARNING and FAILED states.
+issue traceability across successive evaluations, and correct automatic
+dataset classification through Quality Gates.
 
 \dataqual contributes to democratising access to standardised data quality
-evaluation by removing the technical barrier imposed by code-based tools.
+evaluation for AI projects by removing the technical barrier imposed by
+code-based tools.
 Its alignment with the European Artificial Intelligence Act supports
 regulatory compliance in an increasingly demanding landscape, fostering the
 development of more reliable, fair and auditable AI systems.

@@ -28,6 +28,17 @@ Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016).
 \newblock ProPublica.
 \newblock Consultado: 2026.
 
+\bibitem[Balduino, 2007]{openup}
+Balduino, R. (2007).
+\newblock Introduction to {OpenUP} (open unified process).
+\newblock Eclipse Foundation.
+\newblock Consultado: junio 2026.
+
+\bibitem[Barocas and Selbst, 2016]{barocas2016}
+Barocas, S. and Selbst, A.~D. (2016).
+\newblock Big data's disparate impact.
+\newblock {\em California Law Review}, 104(3):671--732.
+
 \bibitem[Bayer, 2024]{sqlalchemy}
 Bayer, M. (2024).
 \newblock {SQLAlchemy}: The database toolkit for {Python}.
@@ -94,6 +105,11 @@ Dastin, J. (2018).
 \newblock \url{https://dqops.com/}.
 \newblock Consultado: marzo 2026.
 
+\bibitem[Ehrlinger and Wöß, 2022]{ehrlinger2022}
+Ehrlinger, L. and Wöß, W. (2022).
+\newblock A survey of data quality measurement and monitoring tools.
+\newblock {\em Frontiers in Big Data}, 5:850611.
+
 \bibitem[{Evidently AI}, 2024]{evidentlyai}
 {Evidently AI} (2024).
 \newblock Evidently: Open-source {ML} monitoring and data quality framework.
@@ -111,6 +127,14 @@ Fielding, R.~T. (2000).
 Gamma, E., Helm, R., Johnson, R., and Vlissides, J. (1994).
 \newblock {\em Design Patterns: Elements of Reusable Object-Oriented Software}.
 \newblock Addison-Wesley.
+
+\bibitem[{Gartner}, 2025]{gartner2025adq}
+{Gartner} (2025).
+\newblock Magic quadrant for augmented data quality solutions.
+\newblock Gartner Research.
+\newblock Resumen divulgativo disponible en
+  \url{https://www.ataccama.com/blog/whats-new-in-the-2025-gartner-magic-quadrant-for-augmented-data-quality-solutions}.
+  Consultado: junio 2026.
 
 \bibitem[{Gartner, Inc.}, 2021]{gartner2021dq}
 {Gartner, Inc.} (2021).
@@ -161,6 +185,11 @@ Kilkenny, M.~F. and Robinson, K.~M. (2018).
 \newblock Data quality: ``garbage in -- garbage out''.
 \newblock {\em Health Information Management Journal}, 47(3):103--105.
 
+\bibitem[Mehrabi et~al., 2021]{mehrabi2021}
+Mehrabi, N., Morstatter, F., Saxena, N., Lerman, K., and Galstyan, A. (2021).
+\newblock A survey on bias and fairness in machine learning.
+\newblock {\em ACM Computing Surveys}, 54(6):1--35.
+
 \bibitem[{Meta Platforms, Inc.}, 2024]{react}
 {Meta Platforms, Inc.} (2024).
 \newblock React: A javascript library for building user interfaces.
@@ -175,6 +204,13 @@ Kilkenny, M.~F. and Robinson, K.~M. (2018).
 {MinIO, Inc.} (2024).
 \newblock {MinIO}: High performance object storage.
 \newblock \url{https://min.io/}.
+
+\bibitem[Mohammed et~al., 2025]{mohammed2025}
+Mohammed, S., Budach, L., Feuerpfeil, M., Ihde, N., Nathansen, A., Noack, N.,
+  Patzlaff, H., Naumann, F., and Harmouch, H. (2025).
+\newblock The effects of data quality on machine learning performance on
+  tabular data.
+\newblock {\em Information Systems}, 132:102549.
 
 \bibitem[{MUI}, 2024]{materialui}
 {MUI} (2024).

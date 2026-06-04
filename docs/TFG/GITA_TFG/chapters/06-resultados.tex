@@ -373,10 +373,12 @@ de organización técnica elevaron el total a diez.
 \subsection{Cumplimiento de los requisitos no funcionales}
 \label{sec:rnf-cumplimiento}
 
-A los cinco objetivos funcionales se añaden los requisitos no funcionales
-enunciados en la sección~\ref{sec:rnf-objetivos}.  El
-Cuadro~\ref{tab:rnf-cumplimiento} recoge, para cada uno, las decisiones
-de diseño que lo materializan y el estado de cumplimiento.
+Más allá de los objetivos funcionales, el diseño de \dataqual ha prestado
+atención a cinco requisitos no funcionales que han orientado sus decisiones
+arquitectónicas y tecnológicas: \textbf{seguridad}, \textbf{escalabilidad},
+\textbf{mantenibilidad}, \textbf{usabilidad} y \textbf{portabilidad}.  El
+Cuadro~\ref{tab:rnf-cumplimiento} recoge, para cada uno, las decisiones de
+diseño que lo materializan y su estado.
 
 \begin{table}[htbp]
   \centering
@@ -394,11 +396,15 @@ de diseño que lo materializan y el estado de cumplimiento.
       entradas con esquemas Marshmallow; lista de tokens prohibidos en
       las reglas de consistencia lógica para evitar la ejecución de
       código arbitrario; enmascaramiento automático de las columnas
-      marcadas como \ac{PII} en todos los \emph{outputs}. & Cumplido \\
+      marcadas como \ac{PII} en todos los \emph{outputs}.  No se ha
+      realizado una auditoría de seguridad ni pruebas de penetración
+      formales. & Parcial \\
     Escalabilidad & Procesamiento asíncrono con Celery y Redis como
       \emph{broker}; arquitectura preparada para escalar
       horizontalmente el número de \emph{workers}; separación de
-      responsabilidades entre los ocho servicios desplegados. & Cumplido \\
+      responsabilidades entre los ocho servicios desplegados.  No se han
+      realizado pruebas de carga con grandes volúmenes ni usuarios
+      concurrentes. & Parcial \\
     Mantenibilidad & Arquitectura modular basada en \emph{blueprints},
       servicios y modelos; motor de métricas extensible mediante
       \emph{plugins} (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY});
@@ -408,7 +414,7 @@ de diseño que lo materializan y el estado de cumplimiento.
       tiempo real, notificaciones \emph{toast}, \emph{breadcrumbs} de
       navegación y estados de carga/error diferenciados; soporte
       español/inglés con cambio en tiempo real sin recargar la
-      aplicación. & Cumplido \\
+      aplicación.  No se ha realizado una evaluación de usabilidad. & Parcial \\
     Portabilidad & Despliegue íntegro del \emph{stack} con un único
       \texttt{docker\,compose\,up}; configuración por variables de
       entorno; sin dependencias de servicios propietarios en la nube;
@@ -417,9 +423,11 @@ de diseño que lo materializan y el estado de cumplimiento.
   \end{tabularx}
 \end{table}
 
-El único aspecto pendiente dentro de los requisitos no funcionales es la
-\textbf{cobertura de pruebas \emph{end-to-end} del \emph{frontend}}, que
-durante el desarrollo se validó manualmente y queda como trabajo futuro
+Quedan como verificación pendiente una \textbf{auditoría de seguridad}, la
+\textbf{validación de escalabilidad mediante pruebas de carga} y una
+\textbf{evaluación de usabilidad}, así como la \textbf{cobertura de pruebas
+\emph{end-to-end} del \emph{frontend}}, que durante el desarrollo se validó
+manualmente.  Estas tareas se recogen como trabajo futuro
 (sección~\ref{sec:trabajo-futuro}).
 
 %% =========================================================================

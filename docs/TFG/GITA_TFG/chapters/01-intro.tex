@@ -2,7 +2,8 @@
 \label{chap:intro}
 
 \drop{U}{n} modelo de \ac{IA} es, en última instancia, tan fiable como los
-datos con los que fue entrenado.  Esta dependencia, evidente en teoría, tiene
+datos con los que fue entrenado~\citep{sambasivan2021, ng2021datacentric}.
+Esta dependencia, evidente en teoría, tiene
 consecuencias prácticas graves y documentadas: sistemas que discriminan,
 predicciones que fallan en producción, auditorías imposibles de realizar
 porque nadie registró el estado de los datos en el momento del entrenamiento.
@@ -53,9 +54,10 @@ mejorar modelos.
 
 La calidad de los datos no es, además, únicamente una cuestión técnica:
 constituye una fuente recurrente de sesgo con consecuencias éticas, sociales
-y económicas, y son numerosos los casos documentados públicamente en los
-que las deficiencias del dato de entrenamiento se trasladaron directamente
-al comportamiento del sistema desplegado.  El algoritmo de selección de
+y económicas~\citep{mehrabi2021, barocas2016}, y son numerosos los casos
+documentados públicamente en los que las deficiencias del dato de
+entrenamiento se trasladaron directamente al comportamiento del sistema
+desplegado.  El algoritmo de selección de
 personal de Amazon, descartado en 2018 tras comprobarse que penalizaba
 sistemáticamente las candidaturas femeninas~\citep{amazon2018}, y los
 sistemas de reconocimiento facial analizados por Buolamwini y
@@ -81,7 +83,7 @@ desactualizados~\citep{zillow2021}, muestra que también las dimensiones de
 tienen un impacto económico directo cuando se descuidan.
 
 El marco regulatorio europeo refuerza esta dimensión y convierte la
-evaluación formal de la calidad en una obligación legal, no solo en una
+evaluación formal de la calidad del dato en una obligación legal, no solo en una
 buena práctica.  El \ac{RGPD}~\citep{rgpd2016} exige que los datos
 personales sean exactos y estén actualizados; el Reglamento Europeo de
 \ac{IA}~\citep{aiact2024} establece requisitos explícitos de calidad,
@@ -101,8 +103,9 @@ esos datos en origen.
 \label{sec:solucion}
 
 \dataqual es una plataforma web para la evaluación semi-automatizada de la
-calidad de datos en proyectos de \ac{IA}, concebida para que cualquier
-equipo pueda auditar sus datos sin necesidad de escribir código.
+calidad de datos en proyectos de \ac{IA}, aunque no se limita a este campo,
+concebida para que cualquier equipo pueda auditar sus datos sin necesidad de
+escribir código.
 Unifica en un mismo entorno la carga de datos, la configuración de métricas,
 la ejecución de evaluaciones y la consulta de resultados, y expone además una
 \ac{API} \ac{REST}ful~\citep{fielding2000} para integrarse con herramientas
@@ -194,7 +197,9 @@ concreto.  \dataqual incorpora \emph{Quality Gates} personalizables y
 totalmente parametrizables por proyecto (puntuación mínima, límite de
 issues críticos y límite de issues nuevos), que producen un estado
 \texttt{PASSED}, \texttt{WARNING} o \texttt{FAILED}, al modo en que
-SonarQube~\citep{sonarqube} lo hace para el código fuente.
+SonarQube~\citep{sonarqube} lo hace para el código fuente.  Las reglas
+aplicadas y sus umbrales se agrupan, además, en perfiles reutilizables
+entre proyectos.
 
 \dataqual está pensada, en consecuencia, para equipos multidisciplinares en
 los que conviven perfiles con distinto nivel técnico: ingenieros de datos
@@ -213,7 +218,8 @@ los requisitos del \ac{RGPD}~\citep{rgpd2016} y el Reglamento Europeo de
 
 El alcance funcional del trabajo se concreta en un catálogo de
 \textbf{siete métricas de calidad evaluables} derivadas de las
-características recogidas en las normas \ac{ISO}/\ac{IEC}~25012~\citep{iso25012},
+características y propiedades de calidad de datos recogidas en las normas
+\ac{ISO}/\ac{IEC}~25012~\citep{iso25012},
 \ac{ISO}/\ac{IEC}~25024~\citep{iso25024} e
 \ac{ISO}/\ac{IEC}~5259~\citep{iso5259}: \emph{completitud}, \emph{unicidad},
 \emph{exactitud sintáctica}, \emph{consistencia lógica}, \emph{actualidad},
@@ -231,9 +237,10 @@ el Anexo~B.
 Esta selección no pretende ser exhaustiva: las normas \ac{ISO}/\ac{IEC}~25012 e
 \ac{ISO}/\ac{IEC}~5259 recogen un conjunto mucho más amplio de características
 de calidad, y la priorización a estas siete métricas responde al alcance
-temporal de un \ac{TFG} y al criterio de incluir las dimensiones con mayor
-impacto demostrado sobre la fiabilidad de los modelos de \ac{IA} y sobre
-el cumplimiento del marco normativo aplicable.  Las características que
+acotado de un \ac{TFG} y al criterio de incluir las dimensiones con mayor
+impacto demostrado sobre la fiabilidad de los modelos de
+\ac{IA}~\citep{mohammed2025} y sobre el cumplimiento del marco normativo
+aplicable.  Las características que
 quedan fuera del catálogo de esta primera versión del proyecto y se
 reservan para versiones futuras, así como la justificación detallada de
 los criterios aplicados, se exponen en la
@@ -250,30 +257,42 @@ resultados.
 \label{sec:estructura}
 
 El presente documento se organiza en siete capítulos y ocho anexos.
-Tras esta introducción, el capítulo~\ref{chap:objetivos},
-\emph{\nameref{chap:objetivos}}, define el objetivo principal y los
-objetivos específicos del proyecto;
-el capítulo~\ref{chap:antecedentes}, \emph{\nameref{chap:antecedentes}},
-revisa los fundamentos de la calidad de datos, los estándares
-internacionales aplicables y las herramientas existentes;
-el capítulo~\ref{chap:metodologia}, \emph{\nameref{chap:metodologia}},
-describe la metodología de gestión, la pila tecnológica, la planificación
-y los costes;
-el capítulo~\ref{chap:desarrollo}, \emph{\nameref{chap:desarrollo}},
-recoge la implementación iterativa por sprints;
-el capítulo~\ref{chap:resultados}, \emph{\nameref{chap:resultados}},
-presenta los resultados globales y la comparativa con las herramientas
-existentes;
-y el capítulo~\ref{chap:conclusiones}, \emph{\nameref{chap:conclusiones}},
-cierra con la revisión de objetivos, las competencias adquiridas y las
-líneas de trabajo futuro.
+Tras esta introducción, los capítulos restantes son:
 
-Se incluyen además ocho anexos: la especificación completa de la \ac{API}
-\ac{REST} (Anexo~A), el catálogo de métricas de calidad (Anexo~B), el
-backlog completo (Anexo~C), el análisis retrospectivo de riesgos
-(Anexo~D), la estimación de costes y viabilidad (Anexo~E), el plan de
-pruebas integral (Anexo~F), el manual de usuario (Anexo~G) y la
-colección de diagramas \ac{UML} y modelo de datos (Anexo~H).
+\begin{itemize}
+  \item \textbf{Capítulo~\ref{chap:objetivos}, \nameref{chap:objetivos}.}
+        Define el objetivo principal y los objetivos específicos del
+        proyecto.
+  \item \textbf{Capítulo~\ref{chap:antecedentes},
+        \nameref{chap:antecedentes}.} Revisa los fundamentos de la calidad
+        de datos, los estándares internacionales aplicables y las
+        herramientas existentes.
+  \item \textbf{Capítulo~\ref{chap:metodologia},
+        \nameref{chap:metodologia}.} Describe la metodología de gestión, la
+        pila tecnológica, la planificación y los costes.
+  \item \textbf{Capítulo~\ref{chap:desarrollo},
+        \nameref{chap:desarrollo}.} Recoge la implementación iterativa por
+        sprints.
+  \item \textbf{Capítulo~\ref{chap:resultados},
+        \nameref{chap:resultados}.} Presenta los resultados globales y la
+        comparativa con las herramientas existentes.
+  \item \textbf{Capítulo~\ref{chap:conclusiones},
+        \nameref{chap:conclusiones}.} Cierra con la revisión de objetivos,
+        las competencias adquiridas y las líneas de trabajo futuro.
+\end{itemize}
+
+Se incluyen además ocho anexos:
+
+\begin{itemize}
+  \item \textbf{Anexo~A.} Especificación completa de la \ac{API} \ac{REST}.
+  \item \textbf{Anexo~B.} Catálogo de métricas de calidad.
+  \item \textbf{Anexo~C.} Backlog completo.
+  \item \textbf{Anexo~D.} Análisis retrospectivo de riesgos.
+  \item \textbf{Anexo~E.} Estimación de costes y viabilidad.
+  \item \textbf{Anexo~F.} Plan de pruebas integral.
+  \item \textbf{Anexo~G.} Manual de usuario.
+  \item \textbf{Anexo~H.} Colección de diagramas \ac{UML} y modelo de datos.
+\end{itemize}
 
 
 % Local Variables:

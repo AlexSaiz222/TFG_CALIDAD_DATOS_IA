@@ -20,9 +20,12 @@ del capítulo de resultados.  En síntesis, los cinco objetivos específicos
 se cumplen y OE3 se supera (la \ac{API} creció a diez \emph{blueprints}
 registrados con la incorporación de \texttt{patterns} en el Sprint~5);
 los cinco requisitos no funcionales (seguridad, escalabilidad,
-mantenibilidad, usabilidad y portabilidad) se cumplen, con la única
-salvedad de las pruebas \emph{end-to-end} del \emph{frontend} que quedan
-como trabajo futuro.
+mantenibilidad, usabilidad y portabilidad) se atienden satisfactoriamente.
+La seguridad, la escalabilidad y la usabilidad quedan como cumplimiento
+parcial, pendientes de una auditoría de seguridad, de pruebas de carga y de
+una evaluación de usabilidad respectivamente, junto con las pruebas
+\emph{end-to-end} del \emph{frontend}.  Todo ello se recoge como trabajo
+futuro.
 
 \textbf{Valoración global del proyecto:} \dataqual es una plataforma
 funcional de extremo a extremo que supera en funcionalidades específicas
@@ -200,7 +203,11 @@ analítica} aborda tanto las pruebas del propio software como la
 sofisticación analítica del producto.  La automatización de pruebas
 \emph{end-to-end} con Cypress o Playwright cubriría los flujos
 principales de la interfaz y cerraría la mayor brecha actual en la
-estrategia de \ac{QA} del proyecto.  En el plano analítico, la
+estrategia de \ac{QA} del proyecto.  A ella se suman tres verificaciones
+no funcionales pendientes: pruebas de carga que validen la escalabilidad
+con grandes volúmenes de datos y usuarios concurrentes, una auditoría de
+seguridad con pruebas de penetración, y una evaluación de usabilidad con
+usuarios reales.  En el plano analítico, la
 incorporación de algoritmos de detección de anomalías basados en
 aprendizaje automático (\emph{Isolation Forest},
 \emph{Autoencoders}) ampliaría el catálogo de métricas más allá del

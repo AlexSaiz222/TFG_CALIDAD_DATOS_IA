@@ -10,11 +10,28 @@ revisa ambos frentes para situar \dataqual en su contexto: qué se sabe sobre
 la calidad de datos en \ac{IA}, qué normas la regulan, qué herramientas ya
 existen y por qué ninguna cubre exactamente el espacio que \dataqual ocupa.
 
+Para ello, el capítulo se organiza en tres bloques.  La
+sección~\ref{sec:importancia-calidad} revisa la importancia de la calidad de
+datos en proyectos de \ac{IA} y sus marcos conceptuales fundacionales.  La
+sección~\ref{sec:marco-normativo} examina el marco normativo de estándares
+\ac{ISO} aplicables, incluida la taxonomía de \ac{ISO}/\ac{IEC}~5259-2
+(sección~\ref{sec:alcance-metodologico}) que delimita el alcance del proyecto.
+Por último, la sección~\ref{sec:estado-arte} analiza las soluciones
+existentes y cierra con su análisis comparativo
+(sección~\ref{sec:analisis-comparativo}), del que se desprende el hueco que
+\dataqual viene a cubrir.
+
 
 %% =========================================================================
 \section[Importancia de la calidad de datos en IA]{La importancia de la calidad de datos en proyectos de~\ac{IA}}
 \label{sec:importancia-calidad}
 %% =========================================================================
+
+La calidad de los datos cuenta con una base teórica consolidada que conviene
+revisar antes de abordar su medición.  Esta sección recorre los marcos
+conceptuales fundacionales que la definieron, su impacto económico y de
+proceso, y el cambio de enfoque que supone el paradigma
+\emph{data-centric AI}.
 
 \subsection{Marcos conceptuales fundacionales}
 
@@ -87,7 +104,7 @@ cubre la disponibilidad del dato y la seguridad en su acceso.
 
 El estándar \ac{ISO}/\ac{IEC}~25012 recoge el vocabulario conceptual de este
 marco (completitud, exactitud, consistencia y accesibilidad) rearticulándolo
-en un modelo orientado a sistemas informáticos que distingue entre
+en un modelo orientado a sistemas de información que distingue entre
 características inherentes al dato y características dependientes del entorno
 tecnológico que lo aloja.
 
@@ -100,7 +117,11 @@ de servicios; investigaciones posteriores del mismo
 autor~(\citeyear{redman2001}) elevaron ese rango hasta el 25\,\% en
 sectores con mayor dependencia de datos.  Estudios posteriores del MIT
 Information Quality Program y del \ac{DMBOK}~\citep{dmbok2017} han
-reproducido estas cifras con resultados similares.
+reproducido estas cifras con resultados similares.  Trabajos recientes
+confirman que el problema sigue plenamente vigente: la revisión de
+Ehrlinger y Wöß~(\citeyear{ehrlinger2022}) documenta la proliferación de
+herramientas de medición y monitorización de calidad de datos como
+respuesta a este coste sostenido.
 
 A esta dimensión económica se suma una dimensión de proceso.  Según
 CrowdFlower~\citep{crowdflower2016}, los científicos de datos dedicaban
@@ -108,10 +129,10 @@ en 2016 cerca del 80\,\% de su tiempo a preparación y limpieza de datos;
 encuestas más recientes~\citep{anaconda2022} sitúan esa cifra en torno
 al 38\,\%, pero sigue siendo la tarea que más tiempo consume, por encima
 de visualización (13\,\%) y entrenamiento de modelos (9\,\%).  El
-fenómeno se reconoce como un problema estructural --- las \emph{Data
+fenómeno se reconoce como un problema estructural, ya que las \emph{Data
 Cascades} descritas por Sambasivan et al.~(\citeyear{sambasivan2021}) y
 sus consecuencias prácticas se desarrollan en la
-sección~\ref{sec:motivacion} ---, lo que refuerza la necesidad de
+sección~\ref{sec:motivacion}, lo que refuerza la necesidad de
 herramientas automatizadas de diagnóstico de calidad.
 
 \subsection{El paradigma data-centric AI}
@@ -147,12 +168,12 @@ actualidad recogidas por \ac{ISO}/\ac{IEC}~5259.
 
 
 %% =========================================================================
-\section{Marco normativo: estándares ISO}
+\section{Marco normativo: estándares \ac{ISO}/\ac{IEC}}
 \label{sec:marco-normativo}
 %% =========================================================================
 
 La evaluación de la calidad de datos se enmarca dentro de un conjunto de
-estándares internacionales publicados por la \ac{ISO}. \dataqual toma como
+estándares internacionales publicados por \ac{ISO}/\ac{IEC}. \dataqual toma como
 referencia conceptual los estándares \ac{ISO}/\ac{IEC}~25012 e
 \ac{ISO}/\ac{IEC}~25024, que definen respectivamente el modelo de calidad de datos
 y sus métricas de medición, y se alinea de forma explícita con
@@ -179,13 +200,17 @@ entorno que lo gestiona.
 
 \dataqual implementa métricas que cubren las principales características
 inherentes del estándar, añadiendo además métricas específicas para proyectos
-de \ac{IA} que no están contempladas en la norma. El
-Cuadro~\ref{tab:iso25012-dataqual} muestra la correspondencia entre las
-características normativas y las métricas implementadas en \dataqual.
+de \ac{IA} que no están contempladas en la norma. Conviene precisar que
+\ac{ISO}/\ac{IEC}~25012 define las \emph{características} de calidad, mientras
+que \ac{ISO}/\ac{IEC}~25024 las descompone en \emph{medidas} concretas y
+cuantificables; cada métrica de \dataqual se ancla, por tanto, a una medida
+específica de 25024 y no a la característica genérica. El
+Cuadro~\ref{tab:iso25012-dataqual} muestra esa correspondencia, indicando
+entre paréntesis la medida de 25024 sobre la que se pone el foco.
 
 \begin{table}[htbp]
   \centering
-  \caption{Correspondencia entre las dimensiones de calidad de \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259-2 y las métricas implementadas en \dataqual}
+  \caption{Correspondencia entre las características de calidad de \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259-2, sus medidas en \ac{ISO}/\ac{IEC}~25024 y las métricas implementadas en \dataqual}
   \label{tab:iso25012-dataqual}
   \footnotesize
   \newcommand{\tblnote}{\textsuperscript{a}}%
@@ -193,10 +218,10 @@ características normativas y las métricas implementadas en \dataqual.
     \toprule
     \textbf{Característica} & \textbf{Norma} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
     \midrule
-    Completitud          & \ac{ISO}~25012 + 25024  & \texttt{completeness}          & Ratio de valores no nulos por columna \\[10pt]
-    Exactitud            & \ac{ISO}~25012 + 25024  & \texttt{syntactic\_accuracy}    & Conformidad con patrones de formato \\[10pt]
-    Consistencia\tblnote & \ac{ISO}~5259-2          & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
-    Consistencia\tblnote & \ac{ISO}~5259-2 + 25024  & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
+    Completitud          & \ac{ISO}~25012; 25024 (Compl\_04)  & \texttt{completeness}          & Ratio de valores no nulos por columna \\[10pt]
+    Exactitud            & \ac{ISO}~25012; 25024 (Exac\_01)   & \texttt{syntactic\_accuracy}    & Conformidad con patrones de formato \\[10pt]
+    Consistencia\tblnote & \ac{ISO}~5259-2                    & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
+    Consistencia\tblnote & \ac{ISO}~5259-2; 25024 (Cons\_03)  & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
     Actualidad           & \ac{ISO}~5259-2          & \texttt{currentness}            & Antigüedad del dato más reciente \\
     \midrule
     \multicolumn{4}{l}{\emph{Características adicionales para \ac{IA} (\ac{ISO}/\ac{IEC} 5259-2)}} \\
@@ -209,6 +234,11 @@ características normativas y las métricas implementadas en \dataqual.
   \textsuperscript{a}~La consistencia se operacionaliza en dos métricas: coherencia lógica
   entre columnas y ausencia de duplicados, siguiendo las sub-dimensiones
   Con-ML-4 y Con-ML-1 de \ac{ISO}/\ac{IEC}~5259-2 respectivamente.
+  \par\smallskip
+  Los códigos entre paréntesis identifican la medida concreta de
+  \ac{ISO}/\ac{IEC}~25024: Compl\_04 (completitud de valores de datos),
+  Exac\_01 (exactitud sintáctica de los datos) y Cons\_03 (riesgo de
+  inconsistencia por duplicación del valor de los datos).
 \end{table}
 
 \subsection{\ac{ISO}/\ac{IEC} 5259: Calidad de datos para analítica e IA}
@@ -241,65 +271,12 @@ versionado (Parte~3) y ofrece un flujo de evaluación integrado en el ciclo de
 vida del proyecto (Parte~4).
 
 Desde el punto de vista del alcance, la contribución más relevante de
-\ac{ISO}/\ac{IEC} 5259-2 es la organización de las características de calidad en
-cuatro grupos según su naturaleza y su dependencia del contexto tecnológico:
-\emph{características inherentes}, \emph{características mixtas} (inherentes y
-dependientes del sistema), \emph{características dependientes del sistema} y
-\emph{características adicionales} específicas para \ac{IA}/\ac{ML}. Esta
-taxonomía, analizada en detalle en la Sección~\ref{sec:alcance-metodologico},
-constituye el marco conceptual sobre el que se delimita el alcance técnico de
-\dataqual.
+\ac{ISO}/\ac{IEC} 5259-2 es su taxonomía de características de calidad, que se
+detalla a continuación y constituye el marco conceptual sobre el que se delimita
+el alcance técnico de \dataqual.
 
-\subsection[\ac{UNE} 0081: evaluación de la calidad del dato]{\ac{UNE} 0081: evaluación de la calidad del dato}
-\label{sec:une0081}
-
-En el contexto español, la norma \ac{UNE} 0081~\citep{une0081}, publicada
-en 2023 por la Asociación Española de Normalización dentro de la familia
-\ac{UNE} 0078--0081 sobre gobierno, gestión y calidad del dato (Comité Técnico
-de Normalización CTN~320/SC~1), complementa este ecosistema concibiéndose
-como una refinación de la \ac{ISO}/\ac{IEC}~25024 orientada a mejorar su
-aplicabilidad: formaliza un proceso operativo de evaluación de la calidad
-del dato en organizaciones y precisa las medidas existentes con criterios
-de cálculo más concretos.  \dataqual se alinea con su enfoque al adoptar
-las medidas cuantitativas de \ac{ISO}/\ac{IEC}~25024 dentro de un proceso
-reproducible de evaluación con trazabilidad y comparación entre
-ejecuciones, lo que facilita la auditoría de resultados en entornos
-sujetos a esta normativa.
-
-\subsection{\ac{ISO}/\ac{IEC} 25024: Medición de la calidad de datos}
-\label{sec:iso25024}
-
-El estándar \ac{ISO}/\ac{IEC} 25024~\citep{iso25024} complementa al 25012
-proporcionando métricas concretas y fórmulas de medición para cada
-característica de calidad. De este modo, se pasa de un modelo conceptual
-abstracto a un conjunto de indicadores cuantificables.
-
-\dataqual implementa directamente tres de las métricas definidas en este
-estándar: el \textbf{ratio de completitud} (proporción de valores no nulos
-sobre el total de valores esperados en una columna o dataset), el
-\textbf{ratio de unicidad} (proporción de valores únicos respecto al total de
-registros, utilizada para detectar duplicados) y el \textbf{ratio de
-conformidad sintáctica} (proporción de valores que se ajustan a un patrón o
-formato predefinido mediante expresiones regulares, rangos numéricos o
-conjuntos de valores permitidos).
-
-La adopción de estas fórmulas estandarizadas garantiza que los resultados de
-\dataqual sean comparables con los obtenidos por otras herramientas que
-implementen el mismo estándar, facilitando la comparabilidad entre
-herramientas y la auditoría de resultados.
-
-El Reglamento Europeo de Inteligencia Artificial~\citep{aiact2024} refuerza
-la relevancia del conjunto de estándares descrito en esta sección: exige que
-las organizaciones puedan demostrar la calidad y trazabilidad de los datos
-utilizados en sus modelos, lo que convierte la evaluación estandarizada de
-calidad de datos en una necesidad no solo técnica, sino también de
-cumplimiento normativo.
-
-
-%% =========================================================================
-\section[Taxonomía de \ac{ISO}/\ac{IEC} 5259-2]{Taxonomía de \ac{ISO}/\ac{IEC} 5259-2}
+\subsection[Taxonomía de \ac{ISO}/\ac{IEC} 5259-2]{Taxonomía de \ac{ISO}/\ac{IEC} 5259-2}
 \label{sec:alcance-metodologico}
-%% =========================================================================
 
 \ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} organiza las características de calidad
 de datos para analítica e \ac{IA} en cuatro grupos según su naturaleza y su
@@ -351,6 +328,55 @@ de ellas.
     necesidades específicas del aprendizaje automático que los marcos
     generalistas de calidad de datos no contemplan.
 \end{itemize}
+
+
+\subsection[\ac{UNE} 0081: evaluación de la calidad del dato]{\ac{UNE} 0081: evaluación de la calidad del dato}
+\label{sec:une0081}
+
+En el contexto español, la norma \ac{UNE} 0081~\citep{une0081}, publicada
+en 2023 por la Asociación Española de Normalización dentro de la familia
+\ac{UNE} 0078--0081 sobre gobierno, gestión y calidad del dato (Comité Técnico
+de Normalización CTN~320/SC~1), complementa este ecosistema concibiéndose
+como una refinación de la \ac{ISO}/\ac{IEC}~25024 orientada a mejorar su
+aplicabilidad: formaliza un proceso operativo de evaluación de la calidad
+del dato en organizaciones y precisa las medidas existentes con criterios
+de cálculo más concretos.  \dataqual se alinea con su enfoque al adoptar
+las medidas cuantitativas de \ac{ISO}/\ac{IEC}~25024 dentro de un proceso
+reproducible de evaluación con trazabilidad y comparación entre
+ejecuciones, lo que facilita la auditoría de resultados en entornos
+sujetos a esta normativa.
+
+\subsection{\ac{ISO}/\ac{IEC} 25024: Medición de la calidad de datos}
+\label{sec:iso25024}
+
+El estándar \ac{ISO}/\ac{IEC} 25024~\citep{iso25024} complementa al 25012
+proporcionando métricas concretas y fórmulas de medición para cada
+característica de calidad. De este modo, se pasa de un modelo conceptual
+abstracto a un conjunto de indicadores cuantificables.
+
+\dataqual pone el foco en tres medidas concretas de este estándar: la
+\textbf{completitud de valores de datos} (Compl\_04: proporción de valores no
+nulos sobre el total de valores esperados en una columna o dataset), la
+\textbf{exactitud sintáctica de los datos} (Exac\_01: proporción de valores
+que se ajustan a un patrón o formato predefinido mediante expresiones
+regulares, rangos numéricos o conjuntos de valores permitidos) y el
+\textbf{riesgo de inconsistencia por duplicación} (Cons\_03), que se
+operacionaliza como detección de registros duplicados. La elección de estas
+tres medidas, frente al amplio catálogo que 25024 define para cada
+característica, responde al criterio de priorizar las de mayor impacto y
+aplicabilidad directa sobre datasets tabulares.
+
+La adopción de estas fórmulas estandarizadas garantiza que los resultados de
+\dataqual sean comparables con los obtenidos por otras herramientas que
+implementen el mismo estándar, facilitando la comparabilidad entre
+herramientas y la auditoría de resultados.
+
+El Reglamento Europeo de Inteligencia Artificial~\citep{aiact2024} refuerza
+la relevancia del conjunto de estándares descrito en esta sección: exige que
+las organizaciones puedan demostrar la calidad y trazabilidad de los datos
+utilizados en sus modelos, lo que convierte la evaluación estandarizada de
+calidad de datos en una necesidad no solo técnica, sino también de
+cumplimiento normativo.
 
 
 %% =========================================================================
@@ -472,6 +498,19 @@ como \ac{SaaS}, lo que impide que la organización controle dónde residen sus d
 foco es la transformación de datos, no la evaluación de calidad para
 proyectos de \ac{IA}.
 
+En un segmento más maduro y especializado se encuentran las
+\emph{soluciones de calidad de datos aumentada}, plataformas empresariales de
+perfilado, reglas, monitorización y gobierno del dato que Gartner evalúa
+anualmente en su \emph{Cuadrante Mágico}~\citep{gartner2025adq}, con
+proveedores de larga trayectoria como Ataccama, Qlik, IBM o Ab~Initio. Estas
+suites superan a \dataqual en amplitud funcional y madurez, pero se
+han excluido de la comparativa sistemática del Cuadro~\ref{tab:comparativa} por
+dos motivos: son productos propietarios bajo licencia o \ac{SaaS} que no pueden
+instalarse ni probarse de primera mano, lo que impediría una comparación
+funcional rigurosa y justa; y su foco es la calidad de datos de propósito
+general y el gobierno corporativo del dato, no la evaluación orientada
+específicamente a datasets de \ac{IA}/\ac{ML} en la que se centra \dataqual.
+
 \paragraph{Herramientas gestionadas en la nube.}
 \ac{AWS} Glue Data Quality~\citep{awsgluedq} es el servicio de calidad de datos
 gestionado de Amazon Web Services, integrado en el catálogo de \ac{AWS}~Glue
@@ -504,7 +543,10 @@ calidad, pero sin motor de evaluación configurable ni Quality Gates.
 \label{sec:analisis-comparativo}
 
 El Cuadro~\ref{tab:comparativa} presenta una comparación sistemática de
-\dataqual con las cuatro herramientas de código abierto analizadas. Se han
+\dataqual con las cuatro herramientas de código abierto analizadas,
+seleccionadas por ser instalables y evaluables de primera mano; las suites
+comerciales de calidad de datos quedan fuera del cotejo directo por los motivos
+expuestos más arriba. Se han
 seleccionado dieciséis características que cubren la funcionalidad, la
 accesibilidad, las capacidades específicas para \ac{IA} y los aspectos
 operativos.
@@ -517,9 +559,9 @@ operativos.
   \setlength{\tabcolsep}{4pt}
   \begin{tabularx}{\textwidth}{X c c c c c}
     \toprule
-    \textbf{Característica} & \textbf{\dataqual} & \textbf{Gr. Exp.} & \textbf{Deequ} & \textbf{DQOps} & \textbf{Soda} \\
+    \textbf{Característica} & \textbf{\dataqual}\textsuperscript{$\ast$} & \textbf{Gr. Exp.}\textsuperscript{a} & \textbf{Deequ}\textsuperscript{b} & \textbf{DQOps}\textsuperscript{c} & \textbf{Soda}\textsuperscript{d} \\
     \midrule
-    Interfaz web                  & Sí      & Parcial\textsuperscript{b} & No      & Sí      & Parcial\textsuperscript{a} \\
+    Interfaz web                  & Sí      & Parcial\textsuperscript{a} & No      & Sí      & Parcial\textsuperscript{d} \\
     Interfaz multiidioma          & Sí      & ---     & ---     & No      & No \\
     Requiere programación         & No      & Sí      & Sí      & Parcial & No \\
     Métricas predefinidas         & 7       & 300+    & 20+     & 260+    & 30+ \\
@@ -538,8 +580,11 @@ operativos.
     \bottomrule
   \end{tabularx}
   \medskip\par\footnotesize\raggedright
-  \textsuperscript{a}~La interfaz web de Soda (Soda Cloud) está disponible únicamente en el nivel comercial.
-  \textsuperscript{b}~GX Cloud proporciona una interfaz web gestionada (\emph{SaaS}) con nivel gratuito para desarrolladores y planes de pago para equipos.
+  \textsuperscript{$\ast$}~\dataqual: herramienta desarrollada en este \ac{TFG}.
+  \textsuperscript{a}~Great Expectations: \url{https://greatexpectations.io/}. GX Cloud proporciona una interfaz web gestionada (\emph{SaaS}) con nivel gratuito para desarrolladores y planes de pago para equipos.
+  \textsuperscript{b}~Apache Deequ: \url{https://github.com/awslabs/deequ}.
+  \textsuperscript{c}~DQOps: \url{https://dqops.com/}.
+  \textsuperscript{d}~Soda Core: \url{https://github.com/sodadata/soda-core}. La interfaz web (Soda Cloud) está disponible únicamente en el nivel comercial.
 \end{table}
 
 Como se puede observar, \dataqual ocupa un nicho diferenciado al combinar una
