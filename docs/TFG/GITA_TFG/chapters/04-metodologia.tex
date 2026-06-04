@@ -423,6 +423,14 @@ licencia.
 
   \item[Pruebas]  pytest como \emph{framework} de pruebas del
     \emph{backend}, con soporte para pruebas unitarias y de integración.
+
+  \item[Asistencia basada en \ac{IA}]  Durante el desarrollo se empleó el
+    asistente conversacional Claude como apoyo, sobre todo en la generación
+    de código del \emph{frontend} y de las pruebas automatizadas, además de
+    en la consulta de dudas técnicas y la depuración de errores.  Su uso se
+    limitó a un rol de asistencia: el diseño de la arquitectura, las
+    decisiones técnicas y la revisión y validación de todo el código generado
+    fueron responsabilidad del autor.
 \end{definitionlist}
 
 %% =========================================================================
@@ -730,12 +738,13 @@ repositorio remoto, fijación de versiones en \texttt{requirements.txt}
 y \texttt{package.json}, \emph{healthchecks} en los servicios de Docker
 Compose, pruebas automatizadas del flujo de autenticación, etc.), y las
 acciones correctivas se decidieron \emph{ad hoc} cuando aparecía una
-incidencia, dejando constancia en la retrospectiva del sprint
-correspondiente.
+incidencia; esas incidencias se recopilaron más tarde en las
+retrospectivas (Capítulo~\ref{chap:desarrollo}).
 
 El análisis que se presenta a continuación tiene, por tanto, carácter
-\textbf{retrospectivo}: a partir de las incidencias documentadas en las
-retrospectivas del Capítulo~\ref{chap:desarrollo}, se reconstruyen los
+\textbf{retrospectivo}: a partir del historial de desarrollo del
+repositorio y de las incidencias recogidas en las retrospectivas del
+Capítulo~\ref{chap:desarrollo}, se reconstruyen los
 principales factores de riesgo a los que se enfrentó el proyecto, las
 prácticas que actuaron como mitigación preventiva y las acciones
 correctivas que efectivamente se aplicaron cuando alguno se
@@ -809,8 +818,8 @@ trabajo.  La principal lección extraída es que, en proyectos
 individuales de alcance acotado, un registro formal de riesgos puede
 sustituirse por un conjunto de prácticas preventivas integradas en el
 flujo de trabajo (control de versiones, fijación de dependencias,
-contenedorización, pruebas automatizadas) junto con la documentación
-de incidencias en las retrospectivas.  El análisis detallado de
+contenedorización, pruebas automatizadas) junto con la recopilación
+a posteriori de las incidencias en las retrospectivas.  El análisis detallado de
 ocurrencia se recoge en el Anexo~D.
 
 
