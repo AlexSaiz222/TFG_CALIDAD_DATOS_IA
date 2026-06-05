@@ -18,48 +18,46 @@
 \contentsline {table}{\numberline {4.7}{\ignorespaces Estimación de costes del proyecto}}{34}{table.4.7}%
 \contentsline {table}{\numberline {4.8}{\ignorespaces Plan de gestión de riesgos}}{35}{table.4.8}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces Sprint 1: Historias de usuario y estimación}}{38}{table.5.1}%
-\contentsline {table}{\numberline {5.2}{\ignorespaces Servicios Docker de \dataqual }}{39}{table.5.2}%
-\contentsline {table}{\numberline {5.3}{\ignorespaces Protocolos de comunicación entre componentes}}{39}{table.5.3}%
-\contentsline {table}{\numberline {5.4}{\ignorespaces Sprint 2: Historias de usuario y estimación}}{42}{table.5.4}%
-\contentsline {table}{\numberline {5.5}{\ignorespaces Sprint 3: Historias de usuario y estimación}}{47}{table.5.5}%
-\contentsline {table}{\numberline {5.6}{\ignorespaces Sprint 4: Historias de usuario y estimación}}{50}{table.5.6}%
-\contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{54}{table.5.7}%
-\contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph {hash} por tipo de \emph {issue}}}{56}{table.5.8}%
-\contentsline {table}{\numberline {5.9}{\ignorespaces Sprint 6: Actividades y estimación}}{59}{table.5.9}%
-\addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Cobertura de \dataqual respecto al modelo de calidad de \ac {ISO}/\ac {IEC} 5259-2}}{64}{table.6.1}%
-\contentsline {table}{\numberline {6.2}{\ignorespaces Resultados cuantitativos de la implementación}}{67}{table.6.2}%
-\contentsline {table}{\numberline {6.3}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{69}{table.6.3}%
-\contentsline {table}{\numberline {6.4}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{70}{table.6.4}%
-\contentsline {table}{\numberline {6.5}{\ignorespaces Cumplimiento de los requisitos no funcionales}}{71}{table.6.5}%
-\contentsline {table}{\numberline {6.6}{\ignorespaces Comparación de \dataqual con herramientas existentes (perspectiva post-implementación)}}{74}{table.6.6}%
+\contentsline {table}{\numberline {5.1}{\ignorespaces Sprint 1: Historias de usuario y estimación}}{39}{table.5.1}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Servicios Docker de \dataqual }}{40}{table.5.2}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Protocolos de comunicación entre componentes}}{40}{table.5.3}%
+\contentsline {table}{\numberline {5.4}{\ignorespaces Sprint 2: Historias de usuario y estimación}}{43}{table.5.4}%
+\contentsline {table}{\numberline {5.5}{\ignorespaces Sprint 3: Historias de usuario y estimación}}{48}{table.5.5}%
+\contentsline {table}{\numberline {5.6}{\ignorespaces Sprint 4: Historias de usuario y estimación}}{51}{table.5.6}%
+\contentsline {table}{\numberline {5.7}{\ignorespaces Sprint 5: Historias de usuario y estimación}}{55}{table.5.7}%
+\contentsline {table}{\numberline {5.8}{\ignorespaces Inputs al \emph {hash} por tipo de \emph {issue}}}{57}{table.5.8}%
+\contentsline {table}{\numberline {5.9}{\ignorespaces Sprint 6: Actividades y estimación}}{60}{table.5.9}%
+\contentsline {table}{\numberline {5.10}{\ignorespaces Resultados cuantitativos de la implementación}}{63}{table.5.10}%
+\contentsline {table}{\numberline {5.11}{\ignorespaces Esfuerzo estimado vs.\ real por sprint}}{65}{table.5.11}%
+\contentsline {table}{\numberline {5.12}{\ignorespaces Verificación del cumplimiento de los objetivos específicos}}{67}{table.5.12}%
+\contentsline {table}{\numberline {5.13}{\ignorespaces Cumplimiento de los requisitos no funcionales}}{67}{table.5.13}%
+\contentsline {table}{\numberline {5.14}{\ignorespaces Cobertura de \dataqual respecto al modelo de calidad de \ac {ISO}/\ac {IEC} 5259-2}}{68}{table.5.14}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de incidencia.}}{96}{table.Alph2.1}%
+\contentsline {table}{\numberline {B.1}{\ignorespaces Criterios de severidad dinámica por tipo de incidencia.}}{94}{table.Alph2.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{97}{table.Alph3.1}%
-\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{97}{table.Alph3.2}%
-\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{98}{table.Alph3.3}%
-\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{98}{table.Alph3.4}%
-\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{98}{table.Alph3.5}%
-\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{99}{table.Alph3.6}%
+\contentsline {table}{\numberline {C.1}{\ignorespaces Backlog Sprint 1}}{95}{table.Alph3.1}%
+\contentsline {table}{\numberline {C.2}{\ignorespaces Backlog Sprint 2}}{95}{table.Alph3.2}%
+\contentsline {table}{\numberline {C.3}{\ignorespaces Backlog Sprint 3}}{96}{table.Alph3.3}%
+\contentsline {table}{\numberline {C.4}{\ignorespaces Backlog Sprint 4}}{96}{table.Alph3.4}%
+\contentsline {table}{\numberline {C.5}{\ignorespaces Backlog Sprint 5}}{96}{table.Alph3.5}%
+\contentsline {table}{\numberline {C.6}{\ignorespaces Backlog Sprint 6}}{97}{table.Alph3.6}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{100}{table.Alph4.1}%
+\contentsline {table}{\numberline {D.1}{\ignorespaces Reconstrucción retrospectiva de riesgos con ocurrencia y acciones aplicadas}}{98}{table.Alph4.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{102}{table.Alph5.1}%
-\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{103}{table.Alph5.2}%
-\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{103}{table.Alph5.3}%
+\contentsline {table}{\numberline {E.1}{\ignorespaces Horas reales de desarrollo por sprint y categoría}}{100}{table.Alph5.1}%
+\contentsline {table}{\numberline {E.2}{\ignorespaces Desglose completo de costes del proyecto}}{101}{table.Alph5.2}%
+\contentsline {table}{\numberline {E.3}{\ignorespaces Estimación de costes de producción en AWS (por mes)}}{101}{table.Alph5.3}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{105}{table.Alph6.1}%
-\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{106}{table.Alph6.2}%
-\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio de análisis incremental}}{107}{table.Alph6.3}%
-\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{107}{table.Alph6.4}%
-\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{108}{table.Alph6.5}%
-\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{109}{table.Alph6.6}%
+\contentsline {table}{\numberline {F.1}{\ignorespaces Niveles de prueba y distribución prevista}}{103}{table.Alph6.1}%
+\contentsline {table}{\numberline {F.2}{\ignorespaces Suites de \emph {backend}}}{104}{table.Alph6.2}%
+\contentsline {table}{\numberline {F.3}{\ignorespaces Suites de dominio de análisis incremental}}{105}{table.Alph6.3}%
+\contentsline {table}{\numberline {F.4}{\ignorespaces Suites de \emph {frontend}}}{105}{table.Alph6.4}%
+\contentsline {table}{\numberline {F.5}{\ignorespaces Suites no funcionales}}{106}{table.Alph6.5}%
+\contentsline {table}{\numberline {F.6}{\ignorespaces Indicadores de calidad del proceso de pruebas}}{107}{table.Alph6.6}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {G.1}{\ignorespaces Resumen cualitativo y cuantitativo de SonarQube}}{114}{table.Alph7.1}%
-\contentsline {table}{\numberline {G.2}{\ignorespaces Desglose de cobertura de pruebas en el motor de métricas (\texttt {backend/services/metrics/})}}{118}{table.Alph7.2}%
+\contentsline {table}{\numberline {G.1}{\ignorespaces Resumen cualitativo y cuantitativo de SonarQube}}{112}{table.Alph7.1}%
+\contentsline {table}{\numberline {G.2}{\ignorespaces Desglose de cobertura de pruebas en el motor de métricas (\texttt {backend/services/metrics/})}}{116}{table.Alph7.2}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

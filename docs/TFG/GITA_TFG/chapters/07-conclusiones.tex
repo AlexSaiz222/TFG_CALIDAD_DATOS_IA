@@ -2,8 +2,9 @@
 \label{chap:conclusiones}
 
 \drop{E}{ste} capítulo final recoge la revisión punto por punto de los
-objetivos del proyecto, las conclusiones y valoración global, las lecciones
-aprendidas, las líneas de trabajo futuro, las competencias adquiridas y una
+objetivos del proyecto, las fortalezas y limitaciones de la plataforma, la
+discusión de los resultados, las lecciones aprendidas, las líneas de trabajo
+futuro, la aportación del proyecto, las competencias adquiridas y una
 valoración personal del proceso.
 
 
@@ -28,24 +29,155 @@ una evaluación de usabilidad respectivamente, junto con las pruebas
 futuro.
 
 \textbf{Valoración global del proyecto:} \dataqual es una plataforma
-funcional de extremo a extremo que supera en funcionalidades específicas
-para \ac{ML} (equilibrio de clases, \emph{fingerprinting}, \emph{Quality
-Gates} y \acs{PII} nativo) a las alternativas \emph{open source}
-revisadas.  Su madurez es la de un prototipo funcional, no de una
-herramienta de producción, lo cual está alineado con el alcance de un
-\ac{TFG}.
+funcional de extremo a extremo cuyas fortalezas se detallan en la
+sección~\ref{sec:fortalezas}.  Su madurez es la de un prototipo funcional,
+no de una herramienta de producción, lo cual está alineado con el alcance
+de un \ac{TFG}.
 
-\textbf{Limitaciones encontradas:} las restricciones técnicas y de
-alcance identificadas durante el desarrollo se analizan en detalle en la
-sección~\ref{sec:limitaciones} del capítulo de resultados (escalabilidad
-del motor en memoria, madurez de los servicios de autenticación,
-cobertura de pruebas \emph{end-to-end} del \emph{frontend} y alcance de
-la validación experimental).  Las líneas de trabajo derivadas se recogen
-en la sección~\ref{sec:trabajo-futuro}.
+\textbf{Limitaciones encontradas:} las restricciones técnicas y de alcance
+del sistema se analizan en la sección~\ref{sec:limitaciones}, y las líneas
+de trabajo derivadas, en la sección~\ref{sec:trabajo-futuro}.
 
 %% =========================================================================
-\section{Conclusiones}
-\label{sec:conclusiones}
+\section{Fortalezas de la plataforma}
+\label{sec:fortalezas}
+%% =========================================================================
+
+A partir de los resultados consolidados, las fortalezas de \dataqual se
+pueden agrupar en cuatro ejes: una base arquitectónica extensible, un
+conjunto de capacidades funcionales diferenciadoras, una integración
+nativa de la protección de \acs{PII} y un modelo de despliegue y operación
+robusto.  El desarrollo técnico de cada una se describe en los sprints
+correspondientes del capítulo~\ref{chap:desarrollo}; aquí se discute su
+valor desde la perspectiva del sistema acabado.
+
+La principal fortaleza arquitectónica es el \textbf{patrón de
+\emph{plugins} del motor de métricas}
+(\texttt{BaseMetric}~+~\texttt{METRIC\_REGISTRY}, descrito en la
+sección~\ref{sec:motor-metricas}).  Su valor quedó demostrado durante el
+propio desarrollo, en el que el catálogo creció de tres métricas en el
+Sprint~3 a siete al cierre del Sprint~5 sin necesidad de reescribir el
+orquestador de evaluaciones.  La misma filosofía de extensibilidad se
+traslada al \emph{frontend}, organizado en torno a más de cincuenta
+componentes React reutilizables.
+
+Sobre esa base, la plataforma incorpora cuatro \textbf{capacidades
+funcionales diferenciadoras} frente a las herramientas analizadas en el
+capítulo~\ref{chap:antecedentes}: el sistema de \emph{fingerprinting}
+\ac{SHA}-256 (Sprint~5), que permite trazar la evolución de cada
+\emph{issue} entre ejecuciones; los \emph{Quality Gates} con veredicto
+\texttt{PASSED}/\texttt{WARNING}/\texttt{FAILED}, integrables en
+\emph{pipelines} de \ac{MLOps}~\citep{sonarqube}; el módulo de perfilado
+interactivo (Sprint~4), que concentra histogramas, diagramas de caja,
+matrices de correlación y detección de \emph{outliers} en una sola
+pantalla; y las \textbf{métricas específicas para \ac{ML}} (equilibrio
+de clases y diversidad), ausentes en las herramientas generalistas.
+
+La \textbf{protección nativa de \acs{PII}} es la fortaleza con mayor
+valor diferencial en contextos regulados por el \ac{RGPD}.  Lejos de
+tratarse de una capa filtro añadida \emph{a posteriori}, el
+enmascaramiento es un contrato que toda métrica debe respetar
+(Sprint~5): marca la diferencia entre «la herramienta puede ofuscar
+\acs{PII} si se configura» y «la herramienta no puede revelar
+\acs{PII} por construcción».
+
+Desde el punto de vista operativo, \dataqual es \textbf{íntegramente
+autoalojable mediante Docker Compose} (ocho servicios en una red
+interna, sin dependencias de nube propietaria), incorpora un
+\textbf{parseo robusto de \ac{CSV}} mediante matriz de \emph{fallback}
+(Sprint~2), y orquesta el procesamiento asíncrono con
+Celery~\citep{celery} complementado por un \emph{watchdog} y un
+servicio híbrido de \emph{fallback} síncrono que garantizan la
+completitud de las evaluaciones incluso en escenarios degradados.
+
+
+%% =========================================================================
+\section{Limitaciones y desafíos}
+\label{sec:limitaciones}
+%% =========================================================================
+
+A pesar de los resultados alcanzados, la plataforma presenta limitaciones
+que conviene reconocer explícitamente.  Estas se pueden agrupar en cinco
+ámbitos: la escalabilidad y el rendimiento del motor de procesamiento,
+la madurez de los servicios de plataforma de cara a entornos
+corporativos, la cobertura de las pruebas automatizadas, el alcance de
+la validación experimental y la frontera funcional del sistema en
+relación con la corrección de datos y la integración con fuentes
+externas.
+
+El primer grupo afecta a la \textbf{escalabilidad y al rendimiento} bajo
+cargas elevadas y constituye la restricción técnica más significativa de
+la plataforma.  El motor de métricas opera sobre \emph{DataFrames} de
+Pandas cargados íntegramente en memoria, lo que impone como cota
+superior el tamaño de la RAM disponible y descarta procesar
+\emph{datasets} de varios GB sin migrar a un motor distribuido como Dask
+o Spark.  La capa de procesamiento, además, no se ha validado con
+múltiples \emph{workers} de Celery en paralelo, por lo que la
+escalabilidad horizontal que el diseño permite es todavía teórica.  El
+\emph{frontend}, por su parte, obtiene el estado de las evaluaciones
+mediante \emph{polling} periódico en lugar de notificaciones \emph{push}
+por \emph{WebSocket}: aunque el patrón es funcionalmente correcto y
+simplifica la arquitectura, introduce latencia perceptible y carga
+innecesaria contra la \ac{API} cuando se ejecutan muchas evaluaciones
+simultáneamente.  Por último, la detección de valores atípicos en el
+módulo de perfilado se limita al método estadístico clásico del
+\ac{IQR}; algoritmos basados en aprendizaje automático como
+\emph{Isolation Forest} o \ac{DBSCAN}, que detectarían anomalías
+multidimensionales más sutiles, quedan fuera del alcance de esta versión
+(la decisión de tratar los \emph{outliers} como herramienta de
+diagnóstico y no como dimensión de calidad se justifica en la
+sección~\ref{sec:priorizacion-mvp}).
+
+Un segundo grupo afecta a la \textbf{madurez de los servicios de
+plataforma} de cara a entornos corporativos.  La autenticación se limita
+a \ac{JWT} con usuario y contraseña: no se han implementado OAuth~2.0,
+\emph{Single Sign-On} corporativo ni autenticación multifactor, por lo
+que la plataforma no está preparada todavía para integrarse en entornos
+empresariales con identidad federada.  Los resultados, además, no pueden
+exportarse a formatos de informe formal como \ac{PDF} o Excel, lo que
+dificulta el reporte a perfiles ajenos al equipo técnico y la
+incorporación de los hallazgos a documentación de auditoría.
+
+El tercer ámbito es la cobertura de \textbf{pruebas automatizadas}, que
+aunque amplia en componentes individuales (motor de métricas,
+\emph{Quality Score}, \emph{Quality Gates}, \emph{fingerprinting},
+comparación con línea base, autorización \ac{IDOR} y versionado de
+\emph{datasets}), no incluye pruebas \emph{end-to-end} que validen el
+flujo completo desde la subida de un \emph{dataset} hasta la emisión del
+veredicto del \emph{Quality Gate}.  Esta validación se realizó de forma
+manual durante el desarrollo, pero su automatización con herramientas
+como Playwright o Cypress queda como tarea pendiente y constituye la
+mayor brecha en la estrategia de aseguramiento de calidad del propio
+proyecto.
+
+Finalmente, conviene reconocer también una limitación de carácter
+metodológico relativa al \textbf{alcance de la validación
+experimental}.  La verificación funcional del sistema se ha realizado
+por el propio autor, complementada con un conjunto amplio de pruebas
+automatizadas, pero no se ha llevado a cabo una validación con usuarios
+externos del dominio de calidad de datos o de ingeniería de \ac{ML} que
+permita evaluar empíricamente la usabilidad de la interfaz, la
+adecuación del catálogo de métricas a casos de uso reales o el ajuste
+de los umbrales por defecto de los \emph{Quality Gates}.  La
+validación realizada acredita la corrección técnica del sistema, pero
+no su idoneidad operativa para perfiles externos al desarrollo.
+
+Un quinto ámbito es la \textbf{frontera funcional del sistema}.  Por un
+lado, \dataqual diagnostica y clasifica los problemas de calidad, pero la
+decisión y ejecución de las acciones correctoras (limpieza, imputación,
+deduplicación) corresponden al usuario: la incorporación de sugerencias
+de corrección automatizada queda como una de las líneas de trabajo
+futuro identificadas en la sección~\ref{sec:trabajo-futuro}.  Por otro,
+no se han desarrollado conectores específicos para bases de datos
+(MySQL, BigQuery, Snowflake) ni para servicios de almacenamiento en la
+nube (\ac{AWS}~S3, Azure~Blob, Google~Cloud~Storage); aunque la arquitectura
+basada en MinIO es compatible con el protocolo S3, el usuario interactúa
+actualmente con la plataforma a través de ficheros \ac{CSV} cargados
+manualmente.
+
+%% =========================================================================
+\section{Discusión}
+\label{sec:discusion}
 %% =========================================================================
 
 El presente \ac{TFG} ha abordado el diseño, la implementación y la validación
@@ -57,12 +189,10 @@ los cinco objetivos específicos establecidos en el
 capítulo~\ref{chap:objetivos}, tal como se ha verificado en la
 sección~\ref{sec:resultados-alcanzados}.
 
-Las conclusiones que se extraen del trabajo se articulan en torno a
-cuatro ejes: la respuesta a una necesidad práctica del ecosistema actual
-de calidad de datos, el valor de los estándares internacionales como
-marco de rigor metodológico, la validez de las decisiones arquitectónicas
-fundacionales y la contribución diferencial de las dos funcionalidades
-distintivas de la plataforma.
+Más allá de las fortalezas y limitaciones ya descritas, del trabajo se
+desprenden dos conclusiones de fondo: la respuesta a una necesidad
+práctica del ecosistema actual de calidad de datos y el valor de los
+estándares internacionales como marco de rigor metodológico.
 
 En primer lugar, el proyecto confirma que \textbf{la calidad de datos
 para \ac{IA} requiere herramientas más accesibles} que los enfoques
@@ -83,32 +213,6 @@ ha aportado un vocabulario común que facilita la comparabilidad entre
 proyectos.  La adopción explícita de estándares como referencia, lejos
 de constreñir el diseño, ha aportado claridad a decisiones que de otro
 modo habrían requerido justificación \emph{ad hoc}.
-
-En tercer lugar, \textbf{las decisiones arquitectónicas fundacionales se
-han demostrado acertadas}.  La arquitectura de \emph{plugins} del motor
-de métricas, basada en una clase base abstracta y un registro dinámico,
-permitió incorporar nuevas métricas en sprints sucesivos sin tocar el
-orquestador de evaluaciones, materializando en la práctica el principio
-de abierto-cerrado~\citep{design_patterns}: las siete métricas
-evaluables se implementaron de forma independiente y el proceso para
-añadir una nueva quedó formalizado en cuatro pasos.  La contenerización
-con Docker Compose~\citep{docker}, por su parte, garantiza que la
-plataforma pueda reproducirse en cualquier entorno sin enviar datos a
-servicios externos, alineando el diseño con los requisitos de soberanía
-del dato propios del \ac{RGPD}.
-
-Por último, las dos funcionalidades distintivas de la plataforma (el
-sistema de \emph{fingerprinting} y los \emph{Quality Gates}) aportan
-capacidades que no están presentes en la mayoría de las herramientas de
-código abierto analizadas en el estado del arte.  El
-\emph{fingerprinting} habilita la trazabilidad de \emph{issues} entre
-ejecuciones mediante \emph{hashes} deterministas que permiten clasificar
-automáticamente cada problema como nuevo, recurrente o corregido.  Los
-\emph{Quality Gates}, inspirados en el concepto homónimo de
-SonarQube~\citep{sonarqube}, trasladan a la calidad de datos una señal
-objetiva y automatizable (PASSED, WARNING, FAILED) sobre la aptitud de
-un conjunto de datos para su uso, integrable en \emph{pipelines} de
-\ac{MLOps} como criterio de promoción entre entornos.
 
 
 %% =========================================================================

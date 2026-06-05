@@ -1,13 +1,17 @@
-\chapter{Desarrollo iterativo por sprints}
-\chaptermark{Desarrollo iterativo}
+\chapter{Resultados}
+\chaptermark{Resultados}
 \label{chap:desarrollo}
 
-\drop{E}{ste} capítulo constituye el núcleo del trabajo y describe el proceso
-de desarrollo de \dataqual en su dimensión real: qué se planificó hacer, qué
-se hizo efectivamente y cómo se hizo, iteración por iteración.  El capítulo
-comienza con la definición global de requisitos y se estructura a continuación
-en seis sprints, cada uno con sus subsecciones de planificación, trabajo
-realizado, evidencias técnicas (\emph{cómo se ha hecho}) y retrospectiva.
+\drop{E}{ste} capítulo constituye el núcleo del trabajo y presenta los
+resultados del desarrollo de \dataqual en su dimensión real: qué se planificó
+hacer, qué se hizo efectivamente y cómo se hizo, iteración por iteración.
+Comienza con el análisis funcional del sistema (sus casos de uso) y se
+estructura a continuación en seis sprints, cada uno con sus subsecciones de
+planificación, trabajo realizado, evidencias técnicas (\emph{cómo se ha
+hecho}) y retrospectiva.  Tras los sprints, varias secciones transversales
+recogen los resultados globales del sistema (cuantitativos, calidad del
+código, esfuerzo y cumplimiento de requisitos no funcionales) y la cobertura
+alcanzada respecto al marco \ac{ISO}/\ac{IEC}~5259.
 
 La estructura por sprints agrupa el desarrollo en \textbf{dominios
 funcionales}: análisis y arquitectura (S1), núcleo del \emph{backend}
@@ -25,20 +29,17 @@ versión funcional definitiva.
 
 
 %% =========================================================================
-\section{Requisitos globales del sistema}
+\section{Análisis funcional}
 \label{sec:requisitos-globales}
 %% =========================================================================
 
-\subsection{Historias de usuario}
-
-Las quince historias de usuario que se planificaron inicialmente para \dataqual
-se recogen en la Tabla~\ref{tab:backlog-hu} del
-capítulo~\ref{chap:metodologia} (sección~\ref{sec:backlog-inicial}), donde
-se detallan también la épica, la prioridad y la estimación en \emph{story
-points}.  El backlog completo con todas las tareas técnicas y la asignación
-sprint a sprint se incluye en el Anexo~C.
-
-\subsection{Casos de uso principales}
+El comportamiento esperado de \dataqual se especificó mediante historias de
+usuario y casos de uso.  Las quince historias de usuario planificadas, con su
+épica, prioridad y estimación en \emph{story points}, se recogen en la
+Tabla~\ref{tab:backlog-hu} (capítulo~\ref{chap:metodologia},
+sección~\ref{sec:backlog-inicial}), y el backlog completo con las tareas
+técnicas en el Anexo~C; esta sección se centra en los casos de uso, que
+describen las interacciones del usuario con el sistema.
 
 El sistema soporta dos actores: \textbf{Usuario autenticado} (actor
 principal, único rol con interfaz de usuario en esta versión, con acceso
@@ -50,8 +51,10 @@ la totalidad del comportamiento funcional de \dataqual.  El diagrama
 \ac{UML} de casos de uso y la especificación textual de cada uno se
 recogen en el Anexo~\ref{anx:diagramas}.
 
-\subsection{Burndown global del proyecto}
+%% =========================================================================
+\section{Burndown global del proyecto}
 \label{sec:burndown-global}
+%% =========================================================================
 
 La Figura~\ref{fig:burndown-global} muestra el \emph{burndown chart} del
 proyecto, representación gráfica de los \emph{story points} pendientes en
@@ -1440,6 +1443,427 @@ nuevos antes de cerrar cada historia de usuario.
 \textbf{Resumen global del proyecto:} 364~h estimadas vs.\ 425~h reales
 (+16,8\,\% de desviación total), dentro del rango habitual para proyectos de
 software de esta envergadura.
+
+
+%% =========================================================================
+\section{Resultados globales}
+\label{sec:resultados-alcanzados}
+%% =========================================================================
+
+\dataqual es una plataforma funcional de extremo a extremo que cumple con los
+cinco objetivos específicos definidos en la
+sección~\ref{sec:objetivos-especificos}.
+
+\subsection{Resultados cuantitativos}
+
+El Cuadro~\ref{tab:resultados-cuantitativos} resume las principales
+magnitudes del sistema implementado.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Resultados cuantitativos de la implementación}
+  \label{tab:resultados-cuantitativos}
+  \begin{tabularx}{\textwidth}{X r}
+    \toprule
+    \textbf{Dimensión} & \textbf{Cantidad} \\
+    \midrule
+    Métricas de calidad evaluables (Quality Score) & 7     \\
+    Clases de métricas implementadas (incl.\ outliers para \ac{EDA}) & 8 \\
+    Servicios Docker orquestados                    & 8     \\
+    Rutas / páginas del \emph{frontend}             & 20    \\
+    Componentes React reutilizables                 & 50+   \\
+    Módulos funcionales de \ac{API} (\emph{blueprints} principales) & 7 \\
+    \emph{Blueprints} Flask totales (incl.\ sub-rutas \ac{REST})        & 10 \\
+    Tablas en base de datos                         & 11    \\
+    Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
+    Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
+    Migraciones de base de datos (Alembic)          & 5     \\
+    Módulos de pruebas automatizadas (pytest)       & 13    \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La batería de pruebas automatizadas se organiza en trece módulos pytest
+agrupados por dominio funcional; las suites unitarias y de integración
+se complementaron con pruebas manuales de extremo a extremo sobre los
+flujos completos de la plataforma.  La automatización de estas pruebas
+\emph{end-to-end} queda como tarea pendiente y se identifica como
+limitación en la sección~\ref{sec:limitaciones}.  El plan de pruebas
+integral (estrategia, niveles, casos y trazabilidad con requisitos) se
+formaliza en el Anexo~\ref{anx:pruebas}.
+
+\subsection{Calidad del código y análisis estático (SonarQube)}
+\label{sec:calidad-sonarqube-resumen}
+
+Como corresponde a un proyecto cuyo núcleo teórico gira en torno a la calidad, los principios de aseguramiento de la calidad y el análisis métrico se han aplicado rigurosamente al propio desarrollo de \dataqual. Para ello, se ha integrado y ejecutado la herramienta estándar de la industria \textbf{SonarQube}, evaluando la totalidad de la base de código tanto del \emph{frontend} (TypeScript y React) como del \emph{backend} (Python y Flask).
+
+El volumen total analizado asciende a \textbf{44.518 líneas de código} (NCLOC). El análisis estático de SonarQube ha verificado la solidez del software, otorgando al proyecto la máxima calificación de \textbf{Grado A} en seguridad y mantenibilidad. Los resultados consolidados se resumen en los siguientes puntos:
+
+\begin{itemize}
+  \item \textbf{Seguridad:} 0 vulnerabilidades de seguridad detectadas (Grado A).
+  \item \textbf{Fiabilidad:} Grado D con 82 incidencias de tipo bug, en su mayoría warnings de tipado y avisos de compatibilidad.
+  \item \textbf{Mantenibilidad:} Deuda técnica muy baja con Grado A (748 \emph{code smells}).
+  \item \textbf{Duplicación de código:} Un porcentaje de duplicación del \textbf{3,5\,\%}, demostrando una correcta modularización.
+  \item \textbf{Cobertura de pruebas:} Un 18,3\,\% global, con el \emph{Quality Gate} en estado \emph{Failed} (Fallo), provocado por no alcanzar el umbral exigido del 80\,\% en código nuevo debido a la exclusión de pruebas del frontend.
+\end{itemize}
+
+El desglose detallado de la configuración utilizada, el análisis minucioso de las métricas de calidad y la justificación de los puntos calientes de seguridad se detallan en el \textbf{Anexo~\ref{anx:sonarqube}}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/sonar-dashboard.png}
+  \caption{Panel general de control de calidad de SonarQube para el proyecto \dataqual, mostrando el estado del Quality Gate.}
+  \label{fig:sonar-dashboard}
+\end{figure}
+
+\subsection{Esfuerzo y desviaciones}
+\label{sec:esfuerzo}
+
+El Cuadro~\ref{tab:esfuerzo} consolida la estimación inicial de horas frente
+al esfuerzo real invertido en cada sprint.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Esfuerzo estimado vs.\ real por sprint}
+  \label{tab:esfuerzo}
+  \begin{tabularx}{\textwidth}{l c c r r r}
+    \toprule
+    \textbf{Sprint} & \textbf{Período} & \textbf{SP} &
+      \textbf{H.\ est.} & \textbf{H.\ real} & \textbf{Desv.} \\
+    \midrule
+    S1 — Arquitectura y setup   & ago.--sep.\ 2025 & 13 & 52  & 60  & +15,4\,\% \\
+    S2 — Backend core           & ene.\ 2026       & 18 & 72  & 85  & +18,1\,\% \\
+    S3 — Motor de métricas      & feb.\ 2026       & 16 & 64  & 70  & +9,4\,\%  \\
+    S4 — Frontend y dashboard   & mar.\ 2026       & 14 & 56  & 65  & +16,1\,\% \\
+    S5 — Funcionalidades avanzadas & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
+    S6 — Pruebas y documentación & may.--jun.\ 2026 & — & 80  & 90  & +12,5\,\% \\
+    \midrule
+    \textbf{Total}              &                  & \textbf{71} &
+      \textbf{364} & \textbf{425} & \textbf{+16,8\,\%} \\
+    \bottomrule
+  \end{tabularx}
+  \medskip\par\footnotesize\raggedright
+  \textit{Nota.}~La columna \ac{SP} agrega, por sprint, las historias de
+  usuario más las tareas técnicas que conformaron el plan de cada
+  iteración (véase Anexo~\ref{anx:backlog}).  El backlog original
+  (Tabla~\ref{tab:backlog-hu}) contabiliza 59~\ac{SP} en historias de
+  usuario, de los cuales se entregaron 56~\ac{SP} (HU-15 fue descartada
+  del alcance final); sumando las tareas técnicas (15~\ac{SP}), el
+  esfuerzo ejecutado asciende a los 71~\ac{SP} de esta tabla.
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/commits-per-sprint}
+  \caption{Número de \emph{commits} reales por sprint en el repositorio Git.
+  Refleja la actividad de desarrollo medida a partir del historial de
+  \texttt{git log}; complementa los datos de esfuerzo estimado de la
+  Tabla~\ref{tab:esfuerzo}.}
+  \label{fig:commits-per-sprint}
+\end{figure}
+
+La Figura~\ref{fig:commits-per-sprint} muestra el reparto real de
+\emph{commits} por sprint a partir del historial de Git, con la mayor
+actividad concentrada en S1, S4 y S5 (en torno al 78\,\% del total).
+La desviación global de +16,8\,\% se mantiene dentro del rango habitual
+para proyectos individuales; el sprint con mayor desviación fue S5
+(+37,5\,\%, problemas de integración del \emph{fingerprinting} con la
+línea base) y el de menor desviación, S3 (+9,4\,\%, gracias a la
+arquitectura de \emph{plugins} ya establecida en S2).
+
+\subsection{Verificación del cumplimiento de objetivos}
+
+El Cuadro~\ref{tab:cumplimiento} recoge, para cada objetivo específico, la
+evidencia de su cumplimiento.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Verificación del cumplimiento de los objetivos específicos}
+  \label{tab:cumplimiento}
+  \begin{tabularx}{\textwidth}{l X c}
+    \toprule
+    \textbf{Obj.} & \textbf{Evidencia} & \textbf{Estado} \\
+    \midrule
+    OE1 & Módulo de ingesta en formato \ac{CSV} con parseo robusto mediante
+      matriz de \emph{fallback} (codificaciones $\times$ separadores);
+      almacenamiento en MinIO; extracción automática de esquema;
+      versionado padre-hijo con etiquetas personalizables. & Cumplido \\
+    OE2 & Siete métricas implementadas como \emph{plugins}; parametrización
+      completa; sistema de pesos; plantillas reutilizables; ejecución
+      asíncrona con Celery. & Cumplido \\
+    OE3 & Seis \emph{blueprints} funcionales planificados, ampliados a
+      siete con la adición de \texttt{patterns} (validación
+      reutilizable); autenticación \ac{JWT}; formato de respuesta
+      estandarizado; paginación; validación Marshmallow. & Superado \\
+    OE4 & Más de 20 páginas; cuadros de mando interactivos; \ac{EDA} con
+      histogramas, diagramas de caja y matrices de correlación; diseño
+      adaptable. & Cumplido \\
+    OE5 & Sistema de \emph{issues} con cuatro severidades;
+      \emph{fingerprinting} \ac{SHA}-256; comparación con línea base;
+      \emph{Quality Gates} con tres estados. & Cumplido \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+Los cinco objetivos se cumplen con el sistema tal como está desplegado.  El
+único objetivo superado es OE3: la \ac{API} creció de seis a siete
+\emph{blueprints} funcionales durante el desarrollo, y los \emph{blueprints}
+de organización técnica elevaron el total a diez.
+
+\subsection{Cumplimiento de los requisitos no funcionales}
+\label{sec:rnf-cumplimiento}
+
+Más allá de los objetivos funcionales, el diseño de \dataqual ha prestado
+atención a cinco requisitos no funcionales que han orientado sus decisiones
+arquitectónicas y tecnológicas: \textbf{seguridad}, \textbf{escalabilidad},
+\textbf{mantenibilidad}, \textbf{usabilidad} y \textbf{portabilidad}.  El
+Cuadro~\ref{tab:rnf-cumplimiento} recoge, para cada uno, las decisiones de
+diseño que lo materializan y su estado.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cumplimiento de los requisitos no funcionales}
+  \label{tab:rnf-cumplimiento}
+  \footnotesize
+  \renewcommand{\arraystretch}{1.4}%
+  \begin{tabularx}{\textwidth}{l X c}
+    \toprule
+    \textbf{RNF} & \textbf{Evidencia} & \textbf{Estado} \\
+    \midrule
+    Seguridad & Autenticación \ac{JWT} con \emph{tokens} de acceso y
+      refresco; \emph{hashing} de contraseñas con \ac{PBKDF2}; limitación
+      de tasa de peticiones (Flask-Limiter sobre Redis); validación de
+      entradas con esquemas Marshmallow; lista de tokens prohibidos en
+      las reglas de consistencia lógica para evitar la ejecución de
+      código arbitrario; enmascaramiento automático de las columnas
+      marcadas como \ac{PII} en todos los \emph{outputs}.  No se ha
+      realizado una auditoría de seguridad ni pruebas de penetración
+      formales. & Parcial \\
+    Escalabilidad & Procesamiento asíncrono con Celery y Redis como
+      \emph{broker}; arquitectura preparada para escalar
+      horizontalmente el número de \emph{workers}; separación de
+      responsabilidades entre los ocho servicios desplegados.  No se han
+      realizado pruebas de carga con grandes volúmenes ni usuarios
+      concurrentes. & Parcial \\
+    Mantenibilidad & Arquitectura modular basada en \emph{blueprints},
+      servicios y modelos; motor de métricas extensible mediante
+      \emph{plugins} (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY});
+      migraciones de base de datos versionadas con Alembic; separación
+      estricta entre \emph{frontend} y \emph{backend}. & Cumplido \\
+    Usabilidad & Interfaz basada en Material Design con validación en
+      tiempo real, notificaciones \emph{toast}, \emph{breadcrumbs} de
+      navegación y estados de carga/error diferenciados; soporte
+      español/inglés con cambio en tiempo real sin recargar la
+      aplicación.  No se ha realizado una evaluación de usabilidad. & Parcial \\
+    Portabilidad & Despliegue íntegro del \emph{stack} con un único
+      \texttt{docker\,compose\,up}; configuración por variables de
+      entorno; sin dependencias de servicios propietarios en la nube;
+      ocho servicios orquestados conjuntamente. & Cumplido \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Quedan como verificación pendiente una \textbf{auditoría de seguridad}, la
+\textbf{validación de escalabilidad mediante pruebas de carga} y una
+\textbf{evaluación de usabilidad}, así como la \textbf{cobertura de pruebas
+\emph{end-to-end} del \emph{frontend}}, que durante el desarrollo se validó
+manualmente.  Estas tareas se recogen como trabajo futuro
+(sección~\ref{sec:trabajo-futuro}).
+
+%% =========================================================================
+\section{Instanciación del marco \ac{ISO}/\ac{IEC} 5259 en DataQual}
+\label{sec:instanciacion-iso5259}
+%% =========================================================================
+
+El marco normativo descrito en el capítulo~\ref{chap:antecedentes},
+y en particular la taxonomía de
+\ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} expuesta en la
+sección~\ref{sec:alcance-metodologico}, permite estructurar las decisiones
+de alcance de \dataqual en dos niveles.  El primero distingue qué
+características son evaluables sobre el fichero de datos y cuáles requieren
+acceso a infraestructura o metadatos externos, criterio derivado
+directamente de la propia taxonomía.  El segundo nivel responde a
+decisiones de priorización del propio proyecto: algunas características
+técnicamente evaluables no fueron incluidas en esta versión por razones de
+alcance, quedando como trabajo futuro.  La presente sección
+detalla la instanciación resultante.
+
+El Cuadro~\ref{tab:iso5259-cobertura} sintetiza la cobertura de \dataqual
+respecto a las cuatro categorías de \ac{ISO}/\ac{IEC}~5259-2.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cobertura de \dataqual respecto al modelo de calidad de \ac{ISO}/\ac{IEC} 5259-2}
+  \label{tab:iso5259-cobertura}
+  \footnotesize
+  \renewcommand{\arraystretch}{2.0}%
+  \begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{5cm} l >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Categoría} & \textbf{Características} & \textbf{\dataqual} & \textbf{Motivo} \\
+    \midrule
+    Inherentes
+      & Exactitud, Completitud, Consistencia, Actualidad
+      & Implementadas
+      & Extraíbles del dataset sin contexto externo \\
+      & Credibilidad
+      & Fuera de alcance
+      & No priorizada en esta versión del proyecto; candidata para versiones futuras \\
+    Mixtas
+      & Accesibilidad, Conformidad, Eficiencia, Precisión, Trazabilidad, Confidencialidad, Comprensibilidad
+      & Fuera de alcance
+      & Requieren información del sistema que aloja el dato \\
+    Dep.\ del sistema
+      & Disponibilidad, Portabilidad, Recuperabilidad
+      & Fuera de alcance
+      & Determinadas por la infraestructura TI de la organización \\
+    Adicionales (impl.)
+      & Equilibrio (\texttt{class\_balance}), Diversidad (\texttt{diversity})
+      & Implementadas
+      & Impacto directo en fiabilidad y cumplimiento normativo de modelos de \ac{IA} \\
+    Adicionales (técn.)
+      & Efectividad, Relevancia, Representatividad, Similitud
+      & Fuera de alcance
+      & Requieren metadatos organizativos externos al fichero de datos \\
+    Adicionales (futuro)
+      & Identificabilidad, Auditabilidad, Puntualidad
+      & Fuera de alcance
+      & No priorizadas en esta versión del proyecto; candidatas para versiones futuras \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Características implementadas algorítmicamente}
+\label{sec:caracteristicas-evaluables}
+
+Las características inherentes de \ac{ISO}/\ac{IEC}~5259-2 son evaluables
+algorítmicamente porque sus métricas se calculan a partir de los propios
+valores del dataset, sin necesidad de acceder a sistemas externos ni de
+conocer el dominio de negocio.  La completitud se mide como la proporción
+de valores no nulos; la exactitud sintáctica, como la conformidad con
+patrones de formato definidos; la consistencia, como la ausencia de
+contradicciones lógicas entre columnas (sub-dimensión Con-ML-4 de
+\ac{ISO}/\ac{IEC}~5259-2) y como la ausencia de registros duplicados
+(sub-dimensión Con-ML-1); y la actualidad, como la antigüedad del valor
+más reciente en columnas temporales.  Del grupo de características
+adicionales, el equilibrio de clases (\emph{balance}) y la diversidad
+(\emph{diversity}) son también evaluables algorítmicamente: el primero se
+cuantifica mediante la entropía de Shannon sobre los valores de la columna
+objetivo, y el segundo mide la cobertura de los valores y rangos esperados
+definidos por el usuario.
+
+Esta propiedad de \emph{auto-contención} es lo que ha hecho posible
+desarrollar una herramienta de análisis y evaluación que opera
+exclusivamente sobre el fichero de datos sin requerir integración con los
+sistemas de la organización.  El motor de métricas de \dataqual explota
+esta característica al procesar cada \texttt{AnalysisRun} de forma
+asíncrona y aislada, leyendo el dataset almacenado en MinIO y calculando
+las métricas configuradas sin acceso a los sistemas propios de la
+organización propietaria del dataset.
+
+\subsection{Características fuera del alcance}
+\label{sec:caracteristicas-fuera-alcance}
+
+Las características no implementadas en \dataqual responden a dos motivos
+distintos: imposibilidad técnica estructural y decisiones de priorización
+del propio proyecto.  Los tres primeros párrafos describen características
+técnicamente inviables sin acceso a infraestructura o metadatos externos;
+el último recoge las que quedaron fuera por decisión de alcance del
+proyecto.
+
+\paragraph{Dependencia de infraestructura organizativa.}
+Las características dependientes del sistema (disponibilidad, portabilidad
+y recuperabilidad) no describen propiedades del dato en sí, sino de la
+infraestructura que lo almacena y sirve.  La \emph{disponibilidad} mide si
+el dataset puede ser recuperado por usuarios autorizados dentro de un
+plazo acordado, lo que remite a acuerdos de nivel de servicio (\ac{SLA})
+y arquitecturas de almacenamiento.  La \emph{portabilidad} evalúa la
+capacidad de mover el dato entre sistemas preservando su calidad, lo que
+requiere acceso a los conectores y formatos de exportación propietarios de
+la organización.  La \emph{recuperabilidad} depende de las políticas de
+copia de seguridad y los mecanismos de restauración de datos.  Ninguna de
+estas características puede evaluarse analizando el contenido de un
+fichero: exigen acceso al entorno operativo de la organización, del que
+una herramienta de análisis externa no dispone por definición.
+
+\paragraph{Características mixtas con dependencia del sistema.}
+Las siete características mixtas (accesibilidad, conformidad, eficiencia,
+precisión, trazabilidad, confidencialidad y comprensibilidad) dependen
+tanto de las propiedades del dato como del entorno tecnológico que lo
+gestiona.  Su evaluación requiere información sobre el sistema que aloja
+el dato: los controles de acceso para la accesibilidad, los estándares
+aplicables para la conformidad, o las políticas de uso para la
+comprensibilidad.  Sin acceso a esa capa de contexto organizativo, su
+medición no puede realizarse sobre el fichero de datos de forma aislada.
+
+\paragraph{Dependencia de metadatos organizativos y contexto de negocio.}
+Un subconjunto de las características adicionales requiere información que
+trasciende el fichero de datos.  La \emph{representatividad} necesita la
+definición de la población objetivo del modelo, que es un requisito de
+negocio no inscrito en el dato.  La \emph{relevancia} y la
+\emph{efectividad} requieren un diccionario de datos y políticas de
+gobernanza privadas para determinar si el dataset es adecuado para la
+tarea prevista.  La \emph{similitud} presupone un conocimiento del espacio
+de características del dominio que no resulta accesible sin la
+colaboración directa de la organización propietaria.
+
+\paragraph{Decisiones de priorización del proyecto.}
+Algunas características técnicamente evaluables no fueron incluidas en
+esta versión por razones de alcance del proyecto.  La \emph{credibilidad}
+requiere la verificación de la procedencia de los datos, lo que, aunque
+factible, no se consideró prioritario para el caso de uso objetivo.  La
+\emph{identificabilidad}, la \emph{auditabilidad} y la \emph{puntualidad}
+son candidatas a implementarse en versiones futuras de \dataqual.
+
+\subsection{Criterios de priorización aplicados}
+\label{sec:priorizacion-mvp}
+
+Entre las características algorítmicamente evaluables, el desarrollo de
+\dataqual ha priorizado aquellas con mayor impacto en la fiabilidad de los
+modelos de \ac{IA} y en el cumplimiento del marco normativo aplicable:
+
+\begin{enumerate}
+  \item \textbf{Las características inherentes de \ac{ISO}/\ac{IEC}~25012}
+    (completitud, exactitud, consistencia y actualidad) implementadas a
+    través de cinco métricas: \texttt{completeness},
+    \texttt{syntactic\_accuracy}, \texttt{logical\_consistency},
+    \texttt{currentness} y \texttt{uniqueness}, siendo esta última la
+    sub-dimensión Con-ML-1 de consistencia definida en
+    \ac{ISO}/\ac{IEC}~5259-2.  Esto proporciona cobertura directa de los
+    requisitos de \ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} e
+    \ac{ISO}/\ac{IEC}~25024~\citep{iso25024}.
+
+  \item \textbf{Equilibrio de clases} (\texttt{class\_balance}), medido
+    mediante la entropía de Shannon.  El desequilibrio de clases es uno de
+    los factores documentados de sesgo en sistemas de
+    \ac{IA}~\citep{amazon2018, buolamwini2018} y su corrección tiene un
+    impacto directo en la equidad y fiabilidad de los modelos de
+    clasificación.
+
+  \item \textbf{Diversidad del dataset} (\texttt{diversity}): evalúa, de
+    forma \emph{opt-in} con expectativas definidas por el usuario, si el
+    dataset cubre los valores y rangos esperados por columna, detectando
+    valores ausentes, categorías sub-representadas e intervalos numéricos
+    sin datos, lo que puede comprometer la capacidad de generalización de
+    los modelos entrenados con ese conjunto~\citep{iso5259}.
+\end{enumerate}
+
+Adicionalmente, los valores atípicos (\emph{outliers}) se han incorporado
+como herramienta de diagnóstico en el módulo de \ac{EDA}, sin ser
+computados como parte de la puntuación de calidad global.  Esta decisión
+sigue explícitamente la recomendación de
+\ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259}, que no considera los \emph{outliers}
+una dimensión de calidad inherente, sino un indicador diagnóstico cuya
+relevancia depende del dominio de aplicación.
+
+El resultado es una delimitación deliberada del alcance del proyecto:
+\dataqual proporciona una evaluación algorítmica y estadística de las
+características de calidad priorizadas para proyectos de \ac{IA}, aquellas
+medibles directamente sobre el fichero de datos con mayor impacto en la
+fiabilidad de los modelos.  Las características que requieren
+infraestructura externa, metadatos organizativos o que no fueron
+priorizadas en esta versión del proyecto quedan fuera de su ámbito actual,
+configurándose como líneas de trabajo futuro.
 
 
 % Local Variables:
