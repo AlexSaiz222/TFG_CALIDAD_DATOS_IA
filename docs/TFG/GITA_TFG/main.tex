@@ -4,6 +4,10 @@
 \pgfplotsset{compat=1.18}
 \input{misc/metadata.tex}
 
+% Evita que palabras inquebrantables (p. ej. identificadores en \texttt{})
+% invadan el margen: permite estirar el espaciado en líneas problemáticas.
+\emergencystretch=3em
+
 
 \begin{document}
 \let\cleardoublepage\clearpage
@@ -22,8 +26,8 @@
 % \dedication{A mis padres}
 
 \tableofcontents
-\listoftables
-\listoffigures
+{\singlespacing\listoftables}
+{\singlespacing\listoffigures}
 % \lstlistoflistings  % Descomentar si se incluyen listados de código
 \input{misc/acro.tex}
 

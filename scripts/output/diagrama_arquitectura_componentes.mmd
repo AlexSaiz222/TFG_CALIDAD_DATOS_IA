@@ -1,0 +1,37 @@
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'Segoe UI, sans-serif','primaryColor':'#EEF2FF','primaryBorderColor':'#4338CA','primaryTextColor':'#1E1B4B','lineColor':'#475569','clusterBkg':'#F8FAFC','clusterBorder':'#CBD5E1','edgeLabelBackground':'#FFFFFF'}}}%%
+graph TB
+    user([Usuario autenticado])
+
+    subgraph app ["Aplicación (software)"]
+        direction LR
+        front["Frontend<br/>(Next.js + React)"]
+        api["Backend · API REST<br/>(Flask, 10 blueprints)"]
+        front -->|HTTP/JSON| api
+    end
+
+    subgraph proc ["Procesamiento asíncrono (Celery)"]
+        direction LR
+        beat["Celery Beat"]
+        worker["Celery Worker"]
+        flower["Flower"]
+        flower -.->|monitoriza| worker
+    end
+
+    subgraph infra ["Datos e infraestructura (Docker Compose)"]
+        direction LR
+        redis[(Redis<br/>broker / caché)]
+        pg[(PostgreSQL)]
+        minio[(MinIO · S3)]
+    end
+
+    user -->|HTTPS| front
+    api -->|encola tarea| redis
+    api -->|SQLAlchemy| pg
+    api -->|S3| minio
+    beat -->|programa| redis
+    worker -->|consume| redis
+    worker -->|resultados| pg
+    worker -->|dataset| minio
+
+    classDef store fill:#ECFDF5,stroke:#047857,color:#064E3B;
+    class redis,pg,minio store;

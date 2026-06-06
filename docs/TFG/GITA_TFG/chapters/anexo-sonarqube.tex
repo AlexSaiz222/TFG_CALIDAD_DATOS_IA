@@ -71,6 +71,13 @@ El ciclo de análisis estático opera bajo demanda y de manera local en el entor
 
 El volumen total analizado en el proyecto asciende a \textbf{44.518 líneas de código físico} (NCLOC). La distribución global de la calidad de software del proyecto se resume en la Tabla~\ref{tab:sonar-resumen}.
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/sonar-dashboard.png}
+  \caption{Panel general de control de calidad de SonarQube para el proyecto \dataqual, mostrando el estado del Quality Gate.}
+  \label{fig:sonar-dashboard}
+\end{figure}
+
 \begin{table}[htbp]
   \centering
   \caption{Resumen cualitativo y cuantitativo de SonarQube}
@@ -83,7 +90,7 @@ El volumen total analizado en el proyecto asciende a \textbf{44.518 líneas de c
     >{\hsize=1.8\hsize\raggedright\arraybackslash}X
   }
     \toprule
-    \textbf{Métrica} & \textbf{Grado/Calificación} & \textbf{Valor} & \textbf{Significado técnico} \\
+    \textbf{Métrica} & \textbf{Grado / Calificación} & \textbf{Valor} & \textbf{Significado técnico} \\
     \midrule
     Estado del Quality Gate             & --- & Failed        & No supera el umbral del 80\,\% de cobertura en código nuevo. \\
     Fiabilidad (\emph{Reliability})     & Grado D & 82 Bugs        & Presencia de bugs menores y advertencias de tipado. \\
@@ -145,7 +152,7 @@ Esta falta de cobertura en el frontend y la falta de revisión manual de los hot
 
 \begin{table}[htbp]
   \centering
-  \caption{Desglose de cobertura de pruebas en el motor de métricas (\texttt{backend/services/metrics/})}
+  \caption[Desglose de cobertura de pruebas en el motor de métricas]{Desglose de cobertura de pruebas en el motor de métricas (\texttt{backend/services/metrics/})}
   \label{tab:sonar-cobertura-metrics}
   \renewcommand{\arraystretch}{1.4}%
   \begin{tabularx}{\textwidth}{X r}

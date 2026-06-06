@@ -1,11 +1,22 @@
 \chapter{Conclusiones y trabajo futuro}
 \label{chap:conclusiones}
 
-\drop{E}{ste} capítulo final recoge la revisión punto por punto de los
-objetivos del proyecto, las fortalezas y limitaciones de la plataforma, la
-discusión de los resultados, las lecciones aprendidas, las líneas de trabajo
-futuro, la aportación del proyecto, las competencias adquiridas y una
-valoración personal del proceso.
+\drop{D}{esde} el punto de vista técnico, \dataqual aporta al panorama de
+herramientas de calidad de datos una solución \emph{full-stack} autoalojada y
+sin necesidad de programar que reúne métricas específicas para \ac{ML},
+\emph{fingerprinting} determinista, \emph{Quality Gates} y protección nativa de
+\ac{PII}, una combinación ausente en las herramientas de código abierto
+analizadas en el estado del arte (sección~\ref{sec:estado-arte}) y cuyo detalle
+se recoge en la sección~\ref{sec:fortalezas}.
+
+Desde el punto de vista académico, el proyecto materializa la convergencia entre
+la ingeniería del software moderna (arquitecturas de microservicios, patrones de
+diseño como \emph{plugin} y factoría) y el dominio emergente de la calidad de
+datos para \ac{IA}, proporcionando una implementación de referencia alineada
+con los estándares \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259 que puede servir como
+base para investigación futura sobre métricas de calidad específicas para
+\ac{ML}.
+
 
 
 %% =========================================================================
@@ -92,7 +103,7 @@ completitud de las evaluaciones incluso en escenarios degradados.
 
 
 %% =========================================================================
-\section{Limitaciones y desafíos}
+\section{Limitaciones y desafíos encontrados}
 \label{sec:limitaciones}
 %% =========================================================================
 
@@ -176,88 +187,6 @@ actualmente con la plataforma a través de ficheros \ac{CSV} cargados
 manualmente.
 
 %% =========================================================================
-\section{Discusión}
-\label{sec:discusion}
-%% =========================================================================
-
-El presente \ac{TFG} ha abordado el diseño, la implementación y la validación
-de \dataqual, una plataforma web integral para la evaluación automatizada de
-la calidad de datos en proyectos de \ac{IA}.
-A lo largo de los seis sprints descritos en el capítulo~\ref{chap:desarrollo},
-se ha logrado construir un sistema funcional de extremo a extremo que cumple
-los cinco objetivos específicos establecidos en el
-capítulo~\ref{chap:objetivos}, tal como se ha verificado en la
-sección~\ref{sec:resultados-alcanzados}.
-
-Más allá de las fortalezas y limitaciones ya descritas, del trabajo se
-desprenden dos conclusiones de fondo: la respuesta a una necesidad
-práctica del ecosistema actual de calidad de datos y el valor de los
-estándares internacionales como marco de rigor metodológico.
-
-En primer lugar, el proyecto confirma que \textbf{la calidad de datos
-para \ac{IA} requiere herramientas más accesibles} que los enfoques
-\emph{ad hoc} basados en \emph{scripts} y cuadernos Jupyter.  Estas
-aproximaciones, aunque flexibles, presentan barreras de estandarización,
-historización y accesibilidad que dificultan su adopción sistemática en
-organizaciones donde los responsables de la calidad no son perfiles
-puramente técnicos.  \dataqual\ demuestra que es viable ofrecer una
-interfaz web accesible sin renunciar a la potencia de una \ac{API}
-\ac{REST}ful programática, conciliando ambos modos de uso bajo el mismo
-sistema.
-
-En segundo lugar, \textbf{los estándares internacionales han demostrado
-ser un marco sólido para el diseño de métricas}.  La alineación con
-\ac{ISO}/\ac{IEC}~25012~\citep{iso25012} e
-\ac{ISO}/\ac{IEC}~5259~\citep{iso5259} ha evitado definiciones arbitrarias y
-ha aportado un vocabulario común que facilita la comparabilidad entre
-proyectos.  La adopción explícita de estándares como referencia, lejos
-de constreñir el diseño, ha aportado claridad a decisiones que de otro
-modo habrían requerido justificación \emph{ad hoc}.
-
-
-%% =========================================================================
-\section{Lecciones aprendidas}
-\label{sec:lecciones}
-%% =========================================================================
-
-El desarrollo del proyecto ha proporcionado lecciones que cabe agrupar
-en dos planos: el metodológico, relativo a cómo se organiza el trabajo,
-y el técnico, relativo a las decisiones de diseño que conviene tomar
-pronto.
-
-En el plano metodológico, la lección principal es que el \textbf{desarrollo
-iterativo no es solo una metodología formal, sino una forma de pensar
-que reduce el riesgo real de los proyectos}.  La organización en
-iteraciones con entregas funcionales permitió detectar y corregir
-problemas de diseño de forma temprana, evitando retrabajos costosos en
-fases avanzadas.  Paralelamente, el desarrollo confirmó que \textbf{el
-diseño de métricas de calidad de datos no es un ejercicio puramente
-algorítmico}: requiere comprender los estándares internacionales, las
-necesidades reales de los usuarios y los matices de cada dimensión de
-calidad (qué significa exactamente «completitud» cuando una columna
-tiene valores codificados como cadenas vacías, etiquetas
-\texttt{N/A} o ceros con sentido distinto al de nulo).  Sin este trabajo
-previo de modelado del dominio, las métricas resultantes habrían sido
-superficiales o francamente engañosas.
-
-En el plano técnico, dos decisiones tomadas pronto resultaron
-especialmente rentables.  \textbf{La seguridad debe integrarse desde el
-inicio del diseño}, no añadirse como capa posterior: decisiones como la
-protección contra inyección en las reglas de consistencia lógica o el
-enmascaramiento nativo de \ac{PII} fueron mucho más sencillas de
-implementar al considerarlas desde las fases iniciales que si hubiera
-sido necesario reconstruir el sistema sin ellas.  Por contraste, \textbf{la
-gestión de la complejidad del \emph{frontend} requiere una disciplina
-de modularización que conviene aplicar antes de que duela}: componentes
-como el módulo de \emph{profiling} de datos crecieron significativamente
-durante el desarrollo y, en retrospectiva, una mayor división temprana
-en subcomponentes habría facilitado el mantenimiento en las iteraciones
-finales.  La asimetría entre ambas lecciones resulta reveladora: lo que
-se asume cuidar desde el principio (seguridad) sale bien, mientras que
-lo que se posterga (refactor del \emph{frontend}) acaba doliendo.
-
-
-%% =========================================================================
 \section{Líneas de trabajo futuro}
 \label{sec:trabajo-futuro}
 %% =========================================================================
@@ -321,35 +250,73 @@ el ciclo de diagnóstico con propuestas concretas de acción.
 
 
 %% =========================================================================
-\section{Aportación del proyecto}
-\label{sec:aportacion}
+\section{Discusión}
+\label{sec:discusion}
 %% =========================================================================
 
-Desde el punto de vista técnico, \dataqual aporta al panorama de herramientas de
-calidad de datos una solución \emph{full-stack} autoalojada que combina en un
-único producto una interfaz web accesible sin necesidad de programar, métricas
-específicas para proyectos de \ac{ML} (equilibrio de clases, diversidad del dataset),
-sistema de \emph{fingerprinting} determinista para la trazabilidad de
-\emph{issues}, \emph{Quality Gates} configurables y protección nativa de
-\ac{PII}, una combinación que no está disponible en ninguna de las herramientas
-de código abierto analizadas en el estado del arte
-(sección~\ref{sec:estado-arte}).
+Más allá de las fortalezas y limitaciones ya descritas, del trabajo se
+desprenden dos conclusiones de fondo: la respuesta a una necesidad
+práctica del ecosistema actual de calidad de datos y el valor de los
+estándares internacionales como marco de rigor metodológico.
 
-Desde el punto de vista académico, el proyecto materializa la convergencia entre
-la ingeniería del software moderna (arquitecturas de microservicios, patrones de
-diseño como \emph{plugin} y factoría) y el dominio emergente de la calidad de
-datos para \ac{IA}, proporcionando una implementación de referencia alineada
-con los estándares \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259 que puede servir como
-base para investigación futura sobre métricas de calidad específicas para
-\ac{ML}.
+En primer lugar, el proyecto confirma que \textbf{la calidad de datos
+para \ac{IA} requiere herramientas más accesibles} que los enfoques
+\emph{ad hoc} basados en \emph{scripts} y cuadernos Jupyter.  Estas
+aproximaciones, aunque flexibles, presentan barreras de estandarización,
+historización y accesibilidad que dificultan su adopción sistemática en
+organizaciones donde los responsables de la calidad no son perfiles
+puramente técnicos.  \dataqual\ demuestra que es viable ofrecer una
+interfaz web accesible sin renunciar a la potencia de una \ac{API}
+\ac{REST}ful programática, conciliando ambos modos de uso bajo el mismo
+sistema.
 
-Desde el punto de vista profesional, el proyecto ha permitido al autor
-desarrollar competencias en un conjunto amplio de tecnologías de producción
-(desarrollo \emph{full-stack} con Flask y Next.js, bases de datos relacionales
-con JSONB, almacenamiento de objetos compatible con S3 (MinIO), colas de tareas asíncronas con
-Celery y Redis, y despliegue contenerizado con Docker Compose) en un
-contexto de proyecto real con requisitos de seguridad, escalabilidad y
-mantenibilidad.
+En segundo lugar, \textbf{los estándares internacionales han demostrado
+ser un marco sólido para el diseño de métricas}: la alineación con
+\ac{ISO}/\ac{IEC}~25012~\citep{iso25012} e
+\ac{ISO}/\ac{IEC}~5259~\citep{iso5259} evitó definiciones arbitrarias y aportó
+un vocabulario común que facilita la comparabilidad entre proyectos.
+
+
+%% =========================================================================
+\section{Lecciones aprendidas}
+\label{sec:lecciones}
+%% =========================================================================
+
+El desarrollo del proyecto ha proporcionado lecciones que cabe agrupar
+en dos planos: el metodológico, relativo a cómo se organiza el trabajo,
+y el técnico, relativo a las decisiones de diseño que conviene tomar
+pronto.
+
+En el plano metodológico, la lección principal es que el \textbf{desarrollo
+iterativo no es solo una metodología formal, sino una forma de pensar
+que reduce el riesgo real de los proyectos}.  La organización en
+iteraciones con entregas funcionales permitió detectar y corregir
+problemas de diseño de forma temprana, evitando retrabajos costosos en
+fases avanzadas.  Paralelamente, el desarrollo confirmó que \textbf{el
+diseño de métricas de calidad de datos no es un ejercicio puramente
+algorítmico}: requiere comprender los estándares internacionales, las
+necesidades reales de los usuarios y los matices de cada dimensión de
+calidad (qué significa exactamente «completitud» cuando una columna
+tiene valores codificados como cadenas vacías, etiquetas
+\texttt{N/A} o ceros con sentido distinto al de nulo).  Sin este trabajo
+previo de modelado del dominio, las métricas resultantes habrían sido
+superficiales o francamente engañosas.
+
+En el plano técnico, dos decisiones tomadas pronto resultaron
+especialmente rentables.  \textbf{La seguridad debe integrarse desde el
+inicio del diseño}, no añadirse como capa posterior: decisiones como la
+protección contra inyección en las reglas de consistencia lógica o el
+enmascaramiento nativo de \ac{PII} fueron mucho más sencillas de
+implementar al considerarlas desde las fases iniciales que si hubiera
+sido necesario reconstruir el sistema sin ellas.  Por contraste, \textbf{la
+gestión de la complejidad del \emph{frontend} requiere una disciplina
+de modularización que conviene aplicar antes de que duela}: componentes
+como el módulo de \emph{profiling} de datos crecieron significativamente
+durante el desarrollo y, en retrospectiva, una mayor división temprana
+en subcomponentes habría facilitado el mantenimiento en las iteraciones
+finales.  La asimetría entre ambas lecciones resulta reveladora: lo que
+se asume cuidar desde el principio (seguridad) sale bien, mientras que
+lo que se posterga (refactor del \emph{frontend}) acaba doliendo.
 
 
 %% =========================================================================

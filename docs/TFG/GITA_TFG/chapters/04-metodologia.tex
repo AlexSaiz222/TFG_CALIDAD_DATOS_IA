@@ -668,6 +668,64 @@ el sprint más ajustado (+9,4\,\%), mientras que S4 se situó en el
 incertidumbre habitual en proyectos de este tipo.
 
 
+\subsection{Burndown global del proyecto}
+\label{sec:burndown-global}
+
+La Figura~\ref{fig:burndown-global} muestra el \emph{burndown chart} del
+proyecto, representación gráfica de los \emph{story points} pendientes en
+función del tiempo que permite evaluar si el ritmo de avance es suficiente
+para completar el alcance previsto.  La figura compara la línea ideal de
+progreso con el avance real sprint a sprint (S1--S5; el Sprint~6 es de
+documentación y no consume \emph{story points}).
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.82\textwidth,
+      height=6.5cm,
+      xlabel={Sprint},
+      ylabel={\emph{Story Points} restantes},
+      xmin=-0.25, xmax=5.25,
+      ymin=-3, ymax=78,
+      xtick={0,1,2,3,4,5},
+      xticklabels={Inicio, S1, S2, S3, S4, S5},
+      ytick={0,10,20,30,40,50,60,70},
+      legend pos=north east,
+      grid=major,
+      grid style={line width=0.3pt, draw=gray!40},
+    ]
+    %% Línea ideal: 71 SP distribuidos linealmente en 5 sprints
+    \addplot[dashed, thick, color=gray!70, mark=square*,
+             mark options={solid}] coordinates {
+      (0,71) (1,57) (2,43) (3,28) (4,14) (5,0)
+    };
+    \addlegendentry{Línea ideal}
+    %% Progreso real: SP completados por sprint
+    \addplot[solid, thick, color=blue!70!black, mark=*] coordinates {
+      (0,71) (1,58) (2,40) (3,24) (4,10) (5,0)
+    };
+    \addlegendentry{Progreso real}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Burndown global del proyecto: \emph{story points} restantes por
+    sprint (línea ideal vs.\ progreso real)}
+  \label{fig:burndown-global}
+\end{figure}
+
+El progreso real se mantuvo próximo a la línea ideal en todos los sprints,
+con convergencia total en S5.  La posición favorable de la línea real
+respecto a la ideal desde S2 en adelante se debe a que los sprints centrales
+tenían más puntos asignados que la media uniforme (S2:~18~\ac{SP}, S3:~16~\ac{SP},
+frente a los 14{,}2~\ac{SP}/sprint de la distribución lineal), no a que se
+completara menos trabajo del planificado.  Esta diferencia se mantiene en S4
+y se anula en S5, donde ambas líneas convergen.  Sin embargo, registrar un avance superior al estimado en \ac{SP} no implica
+menor carga de trabajo: las horas reales superaron las
+estimadas en todos los sprints, poniendo de manifiesto que los
+\emph{story points} subestiman la complejidad de las tareas técnicas de
+infraestructura.
+
+
 %% =========================================================================
 \section{Estimación de costes}
 \label{sec:costes}
