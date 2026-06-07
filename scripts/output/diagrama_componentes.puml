@@ -1,0 +1,78 @@
+@startuml diagrama_componentes
+!pragma layout smetana
+left to right direction
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Segoe UI
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam dpi 200
+skinparam ArrowColor #475569
+skinparam ArrowFontColor #1E293B
+skinparam component {
+  BackgroundColor #EEF2FF
+  BorderColor #4338CA
+  FontColor #1E1B4B
+}
+skinparam interface {
+  BackgroundColor #EEF2FF
+  BorderColor #4338CA
+  FontColor #1E1B4B
+}
+skinparam actor {
+  BorderColor #4338CA
+  FontColor #1E1B4B
+}
+skinparam package {
+  BackgroundColor #F8FAFC
+  BorderColor #CBD5E1
+  FontColor #0F172A
+}
+skinparam rectangle {
+  BackgroundColor #F8FAFC
+  BorderColor #CBD5E1
+  FontColor #0F172A
+}
+skinparam database {
+  BackgroundColor #ECFDF5
+  BorderColor #047857
+  FontColor #064E3B
+}
+skinparam queue {
+  BackgroundColor #ECFDF5
+  BorderColor #047857
+  FontColor #064E3B
+}
+
+' Margen invisible a la izquierda (evita que se recorten las etiquetas)
+rectangle "                " as pad #line:transparent;back:transparent;text:transparent
+
+' Interfaces públicas provistas (lollipop)
+interface "UI Web" as iweb
+interface "API REST" as irest
+
+pad -[hidden]- iweb
+pad -[hidden]- irest
+
+package "Aplicación (software)" {
+  component "Frontend\n(Next.js + React)" as front
+  component "Backend\n(Flask · API REST + Celery)" as backend
+}
+
+rectangle "Infraestructura (Docker Compose)" {
+  database "PostgreSQL" as pg
+  queue "Redis" as redis
+  component "MinIO · S3" as minio #ECFDF5
+}
+
+' Interfaces provistas y requeridas (parte pública)
+front -up- iweb
+backend -up- irest
+front ..> irest : HTTP/JSON
+
+' El backend usa la infraestructura (dependencias etiquetadas)
+backend ..> pg : Persistencia\n(SQLAlchemy)
+backend ..> redis : Broker\n(Celery)
+backend ..> minio : Almacén\n(S3)
+
+@enduml

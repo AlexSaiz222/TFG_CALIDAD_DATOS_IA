@@ -140,7 +140,9 @@ def create_project():
                 "message": "El nombre del proyecto es obligatorio"
             }), 400
         
-        # Métricas por defecto para nuevos proyectos
+        # Métricas por defecto para nuevos proyectos (las que no requieren
+        # configuración por columna). Los valores atípicos (outliers) se
+        # calculan en el perfilado de datos y no se asignan como métrica.
         default_metrics = [
             {
                 "id": "completeness",
@@ -149,10 +151,6 @@ def create_project():
             {
                 "id": "uniqueness",
                 "parameters": {}
-            },
-            {
-                "id": "outliers",
-                "parameters": {"method": "iqr", "factor": 1.5}
             }
         ]
         

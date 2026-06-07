@@ -16,10 +16,10 @@
 \contentsline {figure}{\numberline {4.5}{\ignorespaces Burndown global del proyecto: \emph {story points} restantes por sprint (línea ideal vs.\ progreso real)}}{34}{figure.4.5}%
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {5.1}{\ignorespaces Diagrama \ac {UML} de casos de uso de \dataqual }}{38}{figure.5.1}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Arquitectura de componentes de \dataqual : separación entre aplicación (software) e infraestructura, con las relaciones y protocolos de comunicación entre componentes}}{40}{figure.5.2}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Diagrama de componentes \acs {UML} de la plataforma \dataqual }}{40}{figure.5.2}%
 \contentsline {figure}{\numberline {5.3}{\ignorespaces Esquema relacional de la base de datos \texttt {dataquality}}}{42}{figure.5.3}%
-\contentsline {figure}{\numberline {5.4}{\ignorespaces Diagrama de paquetes del sistema (Frontend y Backend)}}{44}{figure.5.4}%
-\contentsline {figure}{\numberline {5.5}{\ignorespaces Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{47}{figure.5.5}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Diagrama de paquetes \acs {UML} del \emph {backend}}}{44}{figure.5.4}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Canvas de árbol de versiones (\emph {Visual version tree}): grafo interactivo con nodos coloreados por estado de \emph {Quality Gate} y diferencial de puntuación entre versiones padre-hijo}}{46}{figure.5.5}%
 \contentsline {figure}{\numberline {5.6}{\ignorespaces Diagrama de clases del motor de métricas y los servicios asociados}}{49}{figure.5.6}%
 \contentsline {figure}{\numberline {5.7}{\ignorespaces Cuadro de mando principal de \dataqual : tarjetas resumen de proyectos, distribución de estados de \emph {Quality Gate} y alertas de proyectos con problemas detectados}}{55}{figure.5.7}%
 \contentsline {figure}{\numberline {5.8}{\ignorespaces Página de resultados de evaluación: puntuación de calidad global, resumen de métricas por dimensión, listado de \emph {issues} con severidad y columna afectada, y cálculo detallado de la puntuación final}}{56}{figure.5.8}%

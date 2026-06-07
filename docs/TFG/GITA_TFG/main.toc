@@ -75,12 +75,12 @@
 \contentsline {subsubsection}{Arquitectura general del sistema}{39}{subsection.5.2.2}%
 \contentsline {subsubsection}{Modelo de datos}{41}{table.5.3}%
 \contentsline {subsection}{\numberline {5.2.3}Retrospectiva}{41}{subsection.5.2.3}%
-\contentsline {section}{\numberline {5.3}Sprint 2: \emph {Backend} principal, datasets y \acs {API} \acs {REST}}{43}{section.5.3}%
-\contentsline {subsection}{\numberline {5.3.1}Trabajo realizado}{43}{subsection.5.3.1}%
-\contentsline {subsection}{\numberline {5.3.2}Cómo se ha hecho}{44}{subsection.5.3.2}%
-\contentsline {subsubsection}{Arquitectura del \emph {backend}}{44}{subsection.5.3.2}%
-\contentsline {subsubsection}{Módulo de ingesta y almacenamiento}{46}{lstnumber.5.1.25}%
-\contentsline {subsubsection}{\acs {API} \acs {REST}ful}{46}{figure.5.5}%
+\contentsline {section}{\numberline {5.3}Sprint 2: \emph {Backend} principal, datasets y \acs {API} \acs {REST}}{41}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Trabajo realizado}{41}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Cómo se ha hecho}{43}{subsection.5.3.2}%
+\contentsline {subsubsection}{Arquitectura del \emph {backend}}{43}{subsection.5.3.2}%
+\contentsline {subsubsection}{Módulo de ingesta y almacenamiento}{45}{lstnumber.5.1.24}%
+\contentsline {subsubsection}{\acs {API} \acs {REST}ful}{47}{figure.5.5}%
 \contentsline {subsection}{\numberline {5.3.3}Retrospectiva}{47}{subsection.5.3.3}%
 \contentsline {section}{\numberline {5.4}Sprint 3: Motor de métricas de calidad}{47}{section.5.4}%
 \contentsline {subsection}{\numberline {5.4.1}Trabajo realizado}{47}{subsection.5.4.1}%
@@ -187,8 +187,8 @@
 \contentsline {section}{\numberline {H.7}Apagado del sistema}{131}{section.Alph8.7}%
 \contentsline {section}{\numberline {H.8}Capturas complementarias de la interfaz}{131}{section.Alph8.8}%
 \contentsline {chapter}{\numberline {I}Diagramas del sistema}{135}{appendix.Alph9}%
-\contentsline {section}{\numberline {I.1}Descripción de los paquetes del sistema}{135}{section.Alph9.1}%
+\contentsline {section}{\numberline {I.1}Descripción de los paquetes del backend}{135}{section.Alph9.1}%
 \contentsline {section}{\numberline {I.2}Especificación de casos de uso}{136}{section.Alph9.2}%
 \contentsline {section}{\numberline {I.3}Diagrama de secuencia: Ejecución de evaluación}{136}{section.Alph9.3}%
 \contentsline {section}{\numberline {I.4}Diagrama de clases: Motor de métricas}{137}{section.Alph9.4}%
-\contentsline {chapter}{Referencias}{138}{appendix*.74}%
+\contentsline {chapter}{Referencias}{139}{appendix*.74}%

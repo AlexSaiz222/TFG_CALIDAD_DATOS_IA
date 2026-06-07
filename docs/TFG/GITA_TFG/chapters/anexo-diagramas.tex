@@ -5,22 +5,14 @@ Este anexo recoge las descripciones estructuradas y las representaciones gráfic
 de los principales diagramas \ac{UML} y del modelo relacional del sistema.  Estos
 diagramas se incluyen y detallan en este anexo.
 
-\section{Descripción de los paquetes del sistema}
+\section{Descripción de los paquetes del backend}
 
-La arquitectura del sistema se organiza en seis paquetes principales,
-representados en la Figura~\ref{fig:diagrama-paquetes}
-(sección~\ref{sec:arq-backend}). La descripción detallada de cada paquete
-es la siguiente:
+La Figura~\ref{fig:diagrama-paquetes} (sección~\ref{sec:arq-backend})
+representa la organización del \emph{backend} en paquetes y sus dependencias.
+Sus capas principales se describen a continuación:
 
 \begin{itemize}
-  \item \textbf{Presentación} (\emph{frontend} Next.js + React):
-    \texttt{pages/} (rutas), \texttt{components/} (más de 40 componentes
-    React reutilizables), \texttt{services/} (cliente \ac{API} con Axios)
-    y \texttt{contexts/} (estado global: \texttt{AuthContext},
-    \texttt{NotificationContext}, \texttt{SidebarContext},
-    \texttt{LanguageContext}).
-
-  \item \textbf{API REST} (\emph{backend} Flask, 10 \emph{blueprints}):
+  \item \textbf{API REST} (Flask, 10 \emph{blueprints}):
     siete \emph{blueprints} funcionales (\texttt{auth}, \texttt{projects},
     \texttt{datasets}, \texttt{metrics}, \texttt{evaluations},
     \texttt{admin}, \texttt{patterns}) y tres de organización técnica
@@ -45,21 +37,26 @@ es la siguiente:
     \texttt{OutliersMetric}, usada exclusivamente desde el módulo de
     perfilado \ac{EDA}.
 
-  \item \textbf{Datos} (modelos SQLAlchemy \ac{ORM}, 11 tablas):
+  \item \textbf{Datos} (modelos SQLAlchemy \ac{ORM}, once tablas):
     \texttt{User}, \texttt{Project}, \texttt{Dataset}, \texttt{Metric},
     \texttt{MetricTemplate}, \texttt{Evaluation}, \texttt{Issue}
     (modelo original) y \texttt{AnalysisRun}, \texttt{DataQualityIssue},
     \texttt{QualityGate}, \texttt{ValidationPattern} (subsistema de análisis incremental).
 
-  \item \textbf{Infraestructura externa}: PostgreSQL\,14, MinIO,
-    Redis, Celery Worker, Celery Beat y Flower, orquestados con
-    Docker~Compose.
 \end{itemize}
 
 Las dependencias fluyen de las capas superiores hacia las inferiores
-(presentación $\to$ \ac{API} REST $\to$ servicios $\to$ motor de métricas
-y datos $\to$ infraestructura), con la conexión adicional
-Celery~Worker~$\to$~Servicios para la ejecución asíncrona de tareas.
+(\ac{API} REST $\to$ servicios $\to$ motor de métricas y datos), con la
+relación bidireccional \texttt{services}~$\leftrightarrow$~\texttt{tasks}
+para la ejecución asíncrona: el servicio encola la evaluación y la tarea
+Celery la ejecuta invocando de vuelta al servicio (el \emph{import} se
+realiza de forma diferida para evitar el ciclo en tiempo de carga).
+Completan el backend los paquetes de apoyo \texttt{schemas}
+(validación), \texttt{middleware}, \texttt{utils} y \texttt{config}.  La
+infraestructura sobre la que se despliega (PostgreSQL, Redis, MinIO y los
+procesos Celery) se detalla en el diagrama de componentes
+(Figura~\ref{fig:arquitectura-componentes}); la estructura del \emph{frontend}
+se describe en la sección~\ref{sec:impl-frontend}.
 
 \section{Especificación de casos de uso}
 
@@ -106,16 +103,19 @@ describen a continuación:
   \item \textbf{Frontend} → Polling GET
     \texttt{/api/evaluations/analysis/<run\_id>/status} cada pocos segundos
   \item \textbf{Celery Worker} → Marca el \texttt{AnalysisRun} como
-    \texttt{RUNNING} y descarga el \emph{dataset} de MinIO
+    \texttt{RUNNING}
   \item \textbf{Celery Worker} → Invoca
     \texttt{EvaluationService.run\_evaluation()}
+  \item \textbf{EvaluationService} → Descarga el \emph{dataset} de MinIO y
+    carga el \ac{CSV}
   \item \textbf{EvaluationService} → Ejecuta cada métrica configurada
+    (genera los \emph{issues} con su \emph{fingerprint})
   \item \textbf{EvaluationService} → Calcula el \emph{Quality Score}
-  \item \textbf{EvaluationService} → Genera \emph{fingerprints} y compara
-    con el \emph{baseline}
   \item \textbf{EvaluationService} → Evalúa el \emph{Quality Gate}
-  \item \textbf{Celery Worker} → Persiste resultados y marca el
-    \texttt{AnalysisRun} (y la \texttt{Evaluation}) como
+  \item \textbf{EvaluationService} → Compara los \emph{issues} con el
+    \emph{baseline} (nuevos frente a recurrentes) y persiste el
+    \texttt{AnalysisRun} como \texttt{COMPLETED}
+  \item \textbf{Celery Worker} → Marca la \texttt{Evaluation} legacy como
     \texttt{COMPLETED}
   \item \textbf{Frontend} → Detecta \texttt{COMPLETED} y redirige a la
     página de resultados

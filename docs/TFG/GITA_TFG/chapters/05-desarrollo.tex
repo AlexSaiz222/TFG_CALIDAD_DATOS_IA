@@ -169,16 +169,19 @@ Docker Compose~\citep{docker}.  Los ocho servicios que componen la plataforma
 se comunican a través de una red interna (\texttt{app-network}, \emph{driver}
 \emph{bridge}) y exponen al anfitrión únicamente los puertos necesarios.
 
-La Figura~\ref{fig:arquitectura-componentes} ofrece una visión de conjunto:
-distingue la \textbf{aplicación} (software) de la \textbf{infraestructura}
-y muestra las relaciones entre componentes con su protocolo de comunicación.
+La Figura~\ref{fig:arquitectura-componentes} presenta el diagrama de
+componentes en notación \ac{UML}: separa los componentes de software
+(\emph{frontend} y \emph{backend}) de la infraestructura (PostgreSQL, Redis y
+MinIO), con sus interfaces provistas y requeridas y el protocolo de cada
+comunicación.  El \emph{backend} constituye un único componente que se
+despliega como servidor web (Gunicorn) y como procesos Celery (\emph{worker}
+y \emph{beat}) a partir del mismo artefacto; el detalle de los ocho servicios
+orquestados se recoge en el Cuadro~\ref{tab:servicios}.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{img/arquitectura-componentes.png}
-  \caption{Arquitectura de componentes de \dataqual: separación entre
-    aplicación (software) e infraestructura, con las relaciones y
-    protocolos de comunicación entre componentes}
+  \caption{Diagrama de componentes \acs{UML} de la plataforma \dataqual}
   \label{fig:arquitectura-componentes}
 \end{figure}
 
@@ -197,7 +200,7 @@ propósito.
     \texttt{backend}       & 5000 & \ac{API} \ac{REST} (Flask + Gunicorn) \\
     \texttt{postgres}      & 5432 & Base de datos relacional (PostgreSQL~14) \\
     \texttt{minio}         & 9000/9001 & Almacenamiento de objetos S3 \\
-    \texttt{redis}         & 6379 & \emph{Broker} de mensajes y caché \\
+    \texttt{redis}         & 6379 & \emph{Broker} de Celery y \emph{storage} del limitador de tasa \\
     \texttt{celery-worker} & --- & Ejecución asíncrona de evaluaciones \\
     \texttt{celery-beat}   & --- & Programación de tareas periódicas \\
     \texttt{flower}        & 5555 & Monitorización de Celery \\
@@ -208,7 +211,7 @@ propósito.
 El flujo de comunicación entre servicios se organiza de la siguiente manera:
 el \emph{frontend} (Next.js) realiza peticiones HTTP/JSON al \emph{backend}
 (Flask); éste lee y escribe en PostgreSQL (datos relacionales), MinIO
-(archivos binarios) y Redis (caché y \emph{broker}); cuando el usuario lanza
+(archivos binarios) y Redis (\emph{broker} de Celery y limitador de tasa); cuando el usuario lanza
 una evaluación, el \emph{backend} encola una tarea en Redis que es consumida
 por el \emph{Celery worker}.
 
@@ -374,14 +377,15 @@ formatos de archivo y codificaciones de \ac{CSV} puede generar una estrategia de
 El \emph{backend} sigue una \textbf{arquitectura en capas} con separación
 clara de responsabilidades.
 
-La Figura~\ref{fig:diagrama-paquetes} sitúa el \emph{backend} en el conjunto
-del sistema y muestra su organización en paquetes y las dependencias entre
-capas (\texttt{api}~$\to$~\texttt{services}~$\to$~\texttt{metrics}/\texttt{models}).
+La Figura~\ref{fig:diagrama-paquetes} muestra el diagrama de paquetes
+\ac{UML} del \emph{backend}, con su organización en capas
+(\texttt{api}~$\to$~\texttt{services}~$\to$~\texttt{metrics}/\texttt{models})
+y las dependencias principales entre paquetes.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.95\textwidth,keepaspectratio]{img/diagrama_paquetes.png}
-  \caption{Diagrama de paquetes del sistema (Frontend y Backend)}
+  \includegraphics[width=\textwidth,keepaspectratio]{img/diagrama_paquetes.png}
+  \caption{Diagrama de paquetes \acs{UML} del \emph{backend}}
   \label{fig:diagrama-paquetes}
 \end{figure}
 
@@ -421,8 +425,7 @@ Content-Type: application/json
     "owner_id": 3,
     "metrics_config": [
       { "id": "completeness", "parameters": {} },
-      { "id": "uniqueness",   "parameters": {} },
-      { "id": "outliers", "parameters": { "method": "iqr", "factor": 1.5 } }
+      { "id": "uniqueness",   "parameters": {} }
     ],
     "created_at": "2026-01-15T10:32:00",
     "updated_at": "2026-01-15T10:32:00",
