@@ -26,6 +26,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Local env files
+.env
 .env*.local
 
 # Vercel
@@ -87,3 +88,23 @@ skills-lock.json
 
 # Scanner artifacts
 .scannerwork/
+
+# Coverage / test artifacts
+.coverage
+coverage.xml
+test_output.txt
+
+# Downloaded tooling (graphviz, plantuml, etc.)
+scripts/output/tools/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.synctex.gz
+*.toc
