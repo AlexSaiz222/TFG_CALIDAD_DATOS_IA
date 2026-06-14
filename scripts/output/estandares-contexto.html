@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --ink:#1f2733;
+    --navy:#243b53;
+    --muted:#6b7685;
+    --border:#c2cbd6;
+    --line:#aab3bf;
+    --label:#3a4a5e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#ffffff;}
+  #stage{width:1400px;height:760px;background:#ffffff;
+    font-family:"Segoe UI",Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;}
+  svg{display:block;}
+  .ntitle{font-weight:700;fill:var(--navy);letter-spacing:.4px;}
+  .nsub{fill:var(--muted);font-weight:400;}
+  .elabel{fill:var(--label);font-weight:600;letter-spacing:.2px;}
+  .ilabel{fill:var(--muted);font-weight:600;font-style:italic;}
+</style>
+</head>
+<body>
+<div id="stage">
+<svg width="1400" height="760" viewBox="0 0 1400 760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3"
+            orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#8a94a3"/>
+    </marker>
+    <marker id="arrow2" markerWidth="9" markerHeight="9" refX="7" refY="3"
+            orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#9aa3b1"/>
+    </marker>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#1f2733" flood-opacity="0.10"/>
+    </filter>
+    <filter id="shc" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#243b53" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <!-- ============ INTER-STANDARD EDGES (left column, secondary) ============ -->
+  <line x1="200" y1="363" x2="200" y2="252" stroke="#bcc4d0" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow2)"/>
+  <g>
+    <rect x="92" y="294" width="216" height="26" rx="4" fill="#ffffff"/>
+    <text class="ilabel" x="200" y="312" text-anchor="middle" font-size="14.5">complementa con medidas</text>
+  </g>
+  <line x1="200" y1="578" x2="200" y2="467" stroke="#bcc4d0" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow2)"/>
+  <g>
+    <rect x="112" y="509" width="176" height="26" rx="4" fill="#ffffff"/>
+    <text class="ilabel" x="200" y="527" text-anchor="middle" font-size="14.5">refina sus medidas</text>
+  </g>
+
+  <!-- ============ EDGES TO DATAQUAL ============ -->
+  <line x1="730" y1="130" x2="722" y2="317" stroke="#aab3bf" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="340" y1="205" x2="537" y2="348" stroke="#aab3bf" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="340" y1="415" x2="537" y2="408" stroke="#aab3bf" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="340" y1="610" x2="560" y2="472" stroke="#aab3bf" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="1088" y1="415" x2="903" y2="408" stroke="#aab3bf" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- ============ EDGE LABELS (to DATAQUAL) ============ -->
+  <g>
+    <rect x="640" y="210" width="170" height="28" rx="4" fill="#ffffff"/>
+    <text class="elabel" x="725" y="229" text-anchor="middle" font-size="16">Contexto normativo</text>
+  </g>
+  <g>
+    <rect x="356" y="262" width="168" height="28" rx="4" fill="#ffffff"/>
+    <text class="elabel" x="440" y="281" text-anchor="middle" font-size="16">Modelo conceptual</text>
+  </g>
+  <g>
+    <rect x="356" y="378" width="188" height="28" rx="4" fill="#ffffff"/>
+    <text class="elabel" x="450" y="397" text-anchor="middle" font-size="16">Medidas cuantificables</text>
+  </g>
+  <g>
+    <rect x="372" y="520" width="188" height="28" rx="4" fill="#ffffff"/>
+    <text class="elabel" x="466" y="539" text-anchor="middle" font-size="16">Proceso de evaluación</text>
+  </g>
+  <g>
+    <rect x="912" y="378" width="166" height="28" rx="4" fill="#ffffff"/>
+    <text class="elabel" x="995" y="397" text-anchor="middle" font-size="15">Dimensiones para IA</text>
+  </g>
+
+  <!-- ============ CENTER ============ -->
+  <g filter="url(#shc)">
+    <rect x="540" y="320" width="360" height="150" rx="14" fill="#243b53"/>
+  </g>
+  <text x="720" y="390" text-anchor="middle" font-size="38" font-weight="800" fill="#ffffff" letter-spacing="1.5">DATAQUAL</text>
+  <text x="720" y="423" text-anchor="middle" font-size="15" fill="#b9c5d4">Plataforma de evaluación de calidad</text>
+  <text x="720" y="444" text-anchor="middle" font-size="15" fill="#b9c5d4">de datos para proyectos de IA</text>
+
+  <!-- ============ NODES ============ -->
+  <!-- Reglamento Europeo de IA (top) -->
+  <g filter="url(#sh)"><rect x="580" y="30" width="300" height="100" rx="10" fill="#ffffff" stroke="#c2cbd6" stroke-width="1.4"/></g>
+  <rect x="580" y="30" width="5" height="100" rx="2.5" fill="#243b53"/>
+  <text class="ntitle" x="734" y="70" text-anchor="middle" font-size="19">Reglamento Europeo de IA</text>
+  <text class="nsub" x="734" y="96" text-anchor="middle" font-size="14">Calidad, trazabilidad y</text>
+  <text class="nsub" x="734" y="115" text-anchor="middle" font-size="14">documentación de datos</text>
+
+  <!-- ISO/IEC 25012 (left, upper) -->
+  <g filter="url(#sh)"><rect x="60" y="150" width="280" height="100" rx="10" fill="#ffffff" stroke="#c2cbd6" stroke-width="1.4"/></g>
+  <rect x="60" y="150" width="5" height="100" rx="2.5" fill="#243b53"/>
+  <text class="ntitle" x="204" y="190" text-anchor="middle" font-size="19">ISO/IEC 25012</text>
+  <text class="nsub" x="204" y="216" text-anchor="middle" font-size="14">Modelo general de</text>
+  <text class="nsub" x="204" y="235" text-anchor="middle" font-size="14">calidad de datos</text>
+
+  <!-- ISO/IEC 25024 (left, middle) -->
+  <g filter="url(#sh)"><rect x="60" y="365" width="280" height="100" rx="10" fill="#ffffff" stroke="#c2cbd6" stroke-width="1.4"/></g>
+  <rect x="60" y="365" width="5" height="100" rx="2.5" fill="#243b53"/>
+  <text class="ntitle" x="204" y="405" text-anchor="middle" font-size="19">ISO/IEC 25024</text>
+  <text class="nsub" x="204" y="431" text-anchor="middle" font-size="14">Medición de la</text>
+  <text class="nsub" x="204" y="450" text-anchor="middle" font-size="14">calidad de datos</text>
+
+  <!-- UNE 0081 (left, lower) -->
+  <g filter="url(#sh)"><rect x="60" y="580" width="280" height="100" rx="10" fill="#ffffff" stroke="#c2cbd6" stroke-width="1.4"/></g>
+  <rect x="60" y="580" width="5" height="100" rx="2.5" fill="#243b53"/>
+  <text class="ntitle" x="204" y="620" text-anchor="middle" font-size="19">UNE 0081</text>
+  <text class="nsub" x="204" y="646" text-anchor="middle" font-size="14">Evaluación de la</text>
+  <text class="nsub" x="204" y="665" text-anchor="middle" font-size="14">calidad del dato</text>
+
+  <!-- ISO/IEC 5259-2 (right) -->
+  <g filter="url(#sh)"><rect x="1090" y="365" width="280" height="100" rx="10" fill="#ffffff" stroke="#c2cbd6" stroke-width="1.4"/></g>
+  <rect x="1090" y="365" width="5" height="100" rx="2.5" fill="#243b53"/>
+  <text class="ntitle" x="1234" y="405" text-anchor="middle" font-size="19">ISO/IEC 5259-2</text>
+  <text class="nsub" x="1234" y="431" text-anchor="middle" font-size="14">Taxonomía de calidad</text>
+  <text class="nsub" x="1234" y="450" text-anchor="middle" font-size="14">de datos para IA</text>
+
+</svg>
+</div>
+</body>
+</html>

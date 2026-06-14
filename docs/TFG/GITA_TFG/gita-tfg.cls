@@ -40,7 +40,7 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{gita-tfg}[2013/08/15 TFG del Grado de Ing. Informática de Talavera de la Reina]
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{book}}
-\PassOptionsToClass{a4paper, 12pt, oneside, openright}{book}
+\PassOptionsToClass{a4paper, 12pt, twoside, openright}{book}
 \ProcessOptions\relax
 \LoadClass{book}
 
@@ -76,7 +76,7 @@
 % J. Martínez de Sousa. Ortografía y ortotipografía del español actual. Trea, 2008.
 
 %% -- MEDIDAS Y DISTANCIAS -----------------------------------------------------
-\usepackage[left=35mm, right=20mm, top=25mm, bottom=25mm]{geometry}
+\usepackage[twoside, inner=35mm, outer=20mm, top=25mm, bottom=25mm]{geometry}
 \usepackage{setspace}
 \setlength{\parskip}{2mm plus 0.2mm minus 0.2mm}
 
@@ -432,6 +432,9 @@
   \renewcommand{\@docyear}{#1}
   \renewcommand{\@docmonth}{#2}}
 
+\newcommand{\@titleEN}{}
+\newcommand{\titleEN}[1]{\renewcommand{\@titleEN}{#1}}
+
 
 \newcommand{\@license}{%
   \begin{minipage}{\textwidth}
@@ -548,6 +551,10 @@
     \vspace*{\stretch{4}}
 
     {\LARGE\bfseries \@title}
+
+    \ifthenelse{\equal{\@titleEN}{}}{}{%
+      \vspace*{\stretch{1}}
+      {\Large\itshape \@titleEN}}
   \end{center}
 
   \vspace*{\stretch{4}}
