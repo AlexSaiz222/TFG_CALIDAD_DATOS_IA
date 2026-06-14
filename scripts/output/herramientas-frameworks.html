@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --navy:#243b53;
+    --muted:#6b7685;
+    --faint:#9aa3b1;
+    --border:#e1e6ec;
+    --chipbd:#d7dce4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#ffffff;}
+  #stage{width:1180px;background:#ffffff;padding:14px;
+    font-family:"Segoe UI",Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  .col{display:flex;flex-direction:column;gap:16px;}
+  .card{background:#ffffff;border:1px solid var(--border);border-radius:12px;
+    padding:16px 18px;box-shadow:0 2px 6px rgba(31,39,51,.05);}
+  .layer{font-size:13px;font-weight:700;letter-spacing:1.5px;color:var(--navy);
+    text-transform:uppercase;padding-bottom:8px;margin-bottom:12px;
+    border-bottom:1px solid var(--border);}
+  .sub{font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--faint);
+    text-transform:uppercase;margin:10px 0 7px;}
+  .sub:first-of-type{margin-top:0;}
+  .row{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--chipbd);
+    background:#fbfcfd;border-radius:8px;padding:6px 11px;font-size:13.5px;
+    font-weight:600;color:var(--navy);}
+  .chip img{width:17px;height:17px;display:block;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="grid">
+
+    <!-- ===== Columna izquierda ===== -->
+    <div class="col">
+      <div class="card">
+        <div class="layer">Frontend</div>
+        <div class="sub">Frameworks y UI</div>
+        <div class="row">
+          <span class="chip"><img src="icons/nextdotjs.svg">Next.js</span>
+          <span class="chip"><img src="icons/react.svg">React</span>
+          <span class="chip"><img src="icons/mui.svg">Material UI</span>
+        </div>
+        <div class="sub">Lenguaje y utilidades</div>
+        <div class="row">
+          <span class="chip"><img src="icons/typescript.svg">TypeScript</span>
+          <span class="chip"><img src="icons/chartdotjs.svg">Chart.js</span>
+          <span class="chip"><img src="icons/axios.svg">Axios</span>
+          <span class="chip"><img src="icons/i18next.svg">i18next</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="layer">Almacenamiento</div>
+        <div class="row">
+          <span class="chip"><img src="icons/postgresql.svg">PostgreSQL (BD relacional)</span>
+          <span class="chip"><img src="icons/minio.svg">MinIO (objeto)</span>
+          <span class="chip"><img src="icons/redis.svg">Redis (caché/broker)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Columna derecha ===== -->
+    <div class="col">
+      <div class="card">
+        <div class="layer">Backend</div>
+        <div class="sub">Core</div>
+        <div class="row">
+          <span class="chip"><img src="icons/python.svg">Python</span>
+          <span class="chip"><img src="icons/flask.svg">Flask</span>
+          <span class="chip"><img src="icons/gunicorn.svg">Gunicorn</span>
+        </div>
+        <div class="sub">Datos y autenticación</div>
+        <div class="row">
+          <span class="chip"><img src="icons/sqlalchemy.svg">SQLAlchemy</span>
+          <span class="chip"><img src="icons/pandas.svg">Pandas</span>
+          <span class="chip"><img src="icons/numpy.svg">NumPy</span>
+          <span class="chip"><img src="icons/jsonwebtokens.svg">JWT</span>
+          <span class="chip">Marshmallow</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="layer">Procesamiento asíncrono e infraestructura</div>
+        <div class="row">
+          <span class="chip"><img src="icons/celery.svg">Celery (task queue)</span>
+          <span class="chip">Flower (monitorización)</span>
+          <span class="chip"><img src="icons/docker.svg">Docker &amp; Compose</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
