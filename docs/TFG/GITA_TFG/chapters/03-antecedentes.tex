@@ -17,9 +17,9 @@ sección~\ref{sec:marco-normativo} examina el marco normativo de estándares
 \ac{ISO} aplicables, incluida la taxonomía de \ac{ISO}/\ac{IEC}~5259-2
 (sección~\ref{sec:alcance-metodologico}) que delimita el alcance del proyecto.
 Por último, la sección~\ref{sec:estado-arte} analiza las soluciones
-existentes y cierra con su análisis comparativo
-(sección~\ref{sec:analisis-comparativo}), del que se desprende el hueco que
-\dataqual viene a cubrir.
+existentes y las compara sistemáticamente
+(sección~\ref{sec:analisis-comparativo}), de lo que se desprende el hueco que
+\dataqual viene a cubrir, y reseña otras herramientas del ecosistema.
 
 
 %% =========================================================================
@@ -231,13 +231,15 @@ entre paréntesis la medida de 25024 sobre la que se pone el foco.
     \toprule
     \textbf{Característica} & \textbf{Norma} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
     \midrule
+    \multicolumn{4}{l}{\emph{Modelo general de calidad de datos (\ac{ISO}/\ac{IEC}~25012; medidas en 25024)}} \\
+    \midrule
     Completitud          & \ac{ISO}~25012; 25024 (Compl\_04)  & \texttt{completeness}          & Ratio de valores no nulos por columna \\[10pt]
     Exactitud            & \ac{ISO}~25012; 25024 (Exac\_01)   & \texttt{syntactic\_accuracy}    & Conformidad con patrones de formato \\[10pt]
-    Consistencia\tblnote & \ac{ISO}~5259-2                    & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
-    Consistencia\tblnote & \ac{ISO}~5259-2; 25024 (Cons\_03)  & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
-    Actualidad           & \ac{ISO}~5259-2          & \texttt{currentness}            & Antigüedad del dato más reciente \\
+    Consistencia\tblnote & \ac{ISO}~25012; 5259-2             & \texttt{logical\_consistency}   & Reglas IF-THEN entre columnas \\[10pt]
+    Consistencia\tblnote & \ac{ISO}~25012; 25024 (Cons\_03)   & \texttt{uniqueness}             & Detección de registros duplicados \\[10pt]
+    Actualidad           & \ac{ISO}~25012           & \texttt{currentness}            & Antigüedad del dato más reciente \\
     \midrule
-    \multicolumn{4}{l}{\emph{Características adicionales para \ac{IA} (\ac{ISO}/\ac{IEC} 5259-2)}} \\
+    \multicolumn{4}{l}{\emph{Características propias de los conjuntos de datos para \ac{IA} (\ac{ISO}/\ac{IEC}~5259-2)}} \\
     \midrule
     Equilibrio (Balance) & \ac{ISO}~5259-2          & \texttt{class\_balance}         & Entropía de Shannon \\[10pt]
     Diversidad           & \ac{ISO}~5259-2          & \texttt{diversity}              & Cobertura de valores esperados por columna \\
@@ -265,22 +267,15 @@ de las que importa el modelo de calidad y sus medidas, y las extiende con
 características propias de los conjuntos de datos para \ac{IA} (como la
 diversidad o la representatividad). La serie consta de cinco partes, de las
 cuales la Parte~2 (medidas de calidad de datos) fue publicada en noviembre de
-2024~\citep{iso5259}:
-
-\begin{enumerate}
-  \item \textbf{Parte 1. Visión general:} establece los conceptos
-    fundamentales y el vocabulario común.
-  \item \textbf{Parte 2. Métricas de calidad de datos:} define
-    métricas cuantitativas estandarizadas para evaluar la calidad de datos
-    destinados a sistemas de \ac{IA}.
-  \item \textbf{Parte 3. Gestión de datos:} cubre la gestión de
-    conjuntos de datos, incluyendo versionado y trazabilidad.
-  \item \textbf{Parte 4. Marco de procesos:} describe el flujo de
-    evaluación integrado en el ciclo de vida de un proyecto de \ac{IA}.
-  \item \textbf{Parte 5. Verificación y validación:} establece
-    los requisitos para verificar y validar los procesos y resultados de
-    evaluación de calidad de datos.
-\end{enumerate}
+2024~\citep{iso5259}: \textbf{Parte~1. Visión general}, que establece los
+conceptos fundamentales y el vocabulario común; \textbf{Parte~2. Métricas de
+calidad de datos}, que define métricas cuantitativas estandarizadas para
+evaluar la calidad de datos destinados a sistemas de \ac{IA}; \textbf{Parte~3.
+Gestión de datos}, que cubre la gestión de conjuntos de datos, incluyendo
+versionado y trazabilidad; \textbf{Parte~4. Marco de procesos}, que describe el
+flujo de evaluación integrado en el ciclo de vida de un proyecto de \ac{IA}; y
+\textbf{Parte~5. Verificación y validación}, que establece los requisitos para
+verificar y validar los procesos y resultados de evaluación de calidad de datos.
 
 \dataqual se alinea con este estándar en varios aspectos: proporciona métricas
 cuantitativas estandarizadas (Parte~2), implementa gestión de datasets con
@@ -310,9 +305,7 @@ de ellas.
   \includegraphics[width=0.95\textwidth]{figures/img/iso5259-taxonomia.png}
   \caption[Taxonomía de características de calidad de \ac{ISO}/\ac{IEC}~5259-2]{%
     Taxonomía de características de calidad de datos para analítica e
-    \ac{IA} según \ac{ISO}/\ac{IEC}~5259-2: características inherentes,
-    dependientes del sistema, mixtas (zona central) y adicionales
-    específicas para \ac{IA}/\ac{ML}. Fuente: \cite{iso25000web}.}
+    \ac{IA} según \ac{ISO}/\ac{IEC}~5259-2. Fuente: \cite{iso25000web}.}
   \label{fig:iso5259-taxonomia}
 \end{figure}
 
@@ -353,12 +346,12 @@ de ellas.
 En el contexto español, la norma \ac{UNE} 0081~\citep{une0081}, publicada
 en 2023 por la Asociación Española de Normalización dentro de la familia
 \ac{UNE} 0078--0081 sobre gobierno, gestión y calidad del dato (Comité Técnico
-de Normalización CTN~320/SC~1), complementa este ecosistema concibiéndose
-como una refinación de las normas \ac{ISO}/\ac{IEC}~25012 e
-\ac{ISO}/\ac{IEC}~25024 orientada a mejorar su
-aplicabilidad: formaliza un proceso operativo de evaluación de la calidad
-del dato en organizaciones y precisa las medidas existentes con criterios
-de cálculo más concretos.  \dataqual se alinea con su enfoque al adoptar
+de Normalización CTN~320/SC~1), complementa este ecosistema orientándose
+a mejorar la aplicabilidad de la familia \ac{SQuaRE}: propone un modelo de
+evaluación de la calidad del dato que toma las características de
+\ac{ISO}/\ac{IEC}~25012 y las medidas de \ac{ISO}/\ac{IEC}~25024, que precisa
+con criterios de cálculo más concretos, formalizando así un procedimiento
+operativo para su aplicación en organizaciones.  \dataqual se alinea con su enfoque al adoptar
 las medidas cuantitativas de \ac{ISO}/\ac{IEC}~25024 dentro de un proceso
 reproducible de evaluación con trazabilidad y comparación entre
 ejecuciones, lo que facilita la auditoría de resultados en entornos
@@ -410,155 +403,58 @@ existe ya. Las herramientas descritas a continuación representan las
 soluciones de referencia en evaluación de calidad de datos; sus fortalezas
 y sus límites definen el espacio en el que \dataqual opera.
 
-\subsection{Great Expectations}
-\label{sec:great-expectations}
+\begin{itemize}
+  \item \textbf{Great Expectations}~\citep{greatexpectations} es una biblioteca
+    de código abierto en Python para definir y validar «expectativas»
+    (\emph{expectations}): aserciones declarativas sobre las propiedades que se
+    esperan de los datos, como «esta columna no debe contener valores nulos».
+    Cuenta con un ecosistema maduro y comunidad activa, soporta múltiples
+    \emph{backends} de ejecución (Pandas, Spark, \ac{SQL}) y genera
+    documentación visual automática de los resultados (\emph{Data Docs}). Como
+    contrapartida, es \emph{code-first} y exige conocimientos de Python: la
+    versión de código abierto carece de interfaz gráfica integrada (GX~Cloud
+    la ofrece solo como \ac{SaaS}, sin autoalojamiento), no dispone de Quality
+    Gates con estado global ni rastreo de issues entre ejecuciones, y presenta
+    una curva de aprendizaje pronunciada.
 
-Great Expectations~\citep{greatexpectations} es una biblioteca de código abierto
-escrita en Python para la definición y validación de «expectativas»
-(\emph{expectations}) sobre conjuntos de datos. Las expectativas son
-aserciones declarativas que describen las propiedades que se esperan de los
-datos, como «esta columna no debe contener valores nulos» o «los valores de
-esta columna deben estar comprendidos entre 0 y 100».
+  \item \textbf{Apache Deequ}~\citep{schelter2018} es una biblioteca de
+    verificación de calidad desarrollada por Amazon sobre Apache Spark, diseñada
+    para operar a gran escala en entornos distribuidos. Su principal ventaja es
+    la escalabilidad masiva que hereda de Spark, con integración nativa con los
+    servicios de Amazon Web Services, verificación declarativa de restricciones y
+    detección de anomalías basada en series temporales. Sin embargo, requiere un
+    entorno JVM y un clúster de Spark (una barrera de entrada considerable),
+    no dispone de interfaz web, resulta desproporcionado para datasets de tamaño
+    medio y no implementa métricas específicas para \ac{IA} como el equilibrio de
+    clases.
 
-\paragraph{Fortalezas.}
-Great Expectations cuenta con un ecosistema maduro y una comunidad activa.
-Soporta múltiples \emph{backends} de ejecución (Pandas, Spark, \ac{SQL}),
-lo que permite evaluar datasets de distintos tamaños y procedencias. Además,
-genera automáticamente documentación visual de los resultados de validación
-(\emph{Data Docs}).
+  \item \textbf{DQOps}~\citep{dqops} es una herramienta de código abierto
+    inspirada en la filosofía de SonarQube~\citep{sonarqube}, que trata la
+    calidad de datos como un proceso continuo con monitorización y alertas
+    automatizadas (una filosofía cercana a la de \dataqual). Soporta múltiples
+    fuentes de datos (BigQuery, Snowflake, PostgreSQL), ofrece interfaz web para
+    configuración y visualización, y permite definir alertas ante degradaciones
+    de calidad. No obstante, su configuración es compleja dado el elevado número
+    de checks disponibles y, aunque incorpora soporte para ficheros planos
+    (\ac{CSV}, Parquet) a través de DuckDB, su enfoque principal es la
+    monitorización de fuentes conectadas; no ha sido diseñada para proyectos de
+    \ac{IA} y carece de métricas como el equilibrio de clases o la diversidad.
 
-\paragraph{Limitaciones.}
-Se trata de una herramienta \emph{code-first} que requiere conocimientos de
-Python para su configuración y uso. La versión de código abierto no dispone
-de interfaz gráfica integrada; GX Cloud ofrece una interfaz web gestionada
-pero como servicio externo (\emph{SaaS}), sin posibilidad de autoalojamiento.
-No ofrece Quality Gates nativos con estado global configurable, no implementa
-un sistema de rastreo de issues entre ejecuciones sucesivas y presenta una
-curva de aprendizaje pronunciada para equipos sin experiencia en programación.
-
-\subsection{Apache Deequ}
-\label{sec:apache-deequ}
-
-Apache Deequ~\citep{schelter2018} es una biblioteca de verificación de calidad
-de datos desarrollada por Amazon y construida sobre Apache Spark. Está diseñada
-para operar a gran escala sobre datasets masivos en entornos distribuidos.
-
-\paragraph{Fortalezas.}
-Su principal ventaja es la escalabilidad masiva que hereda de Spark, lo que
-permite procesar datasets de millones de registros de forma distribuida.
-Ofrece integración nativa con los servicios de Amazon Web Services, verificación
-declarativa de restricciones y detección de anomalías basada en series
-temporales.
-
-\paragraph{Limitaciones.}
-Requiere un entorno JVM y un clúster de Spark para su ejecución, lo que supone
-una barrera de entrada considerable. No dispone de interfaz web, resulta
-desproporcionado para datasets de tamaño medio y no implementa métricas
-específicas para proyectos de \ac{IA} como el equilibrio de clases.
-
-\subsection{DQOps}
-\label{sec:dqops}
-
-DQOps~\citep{dqops} es una herramienta de calidad de datos de código abierto
-inspirada en la filosofía de SonarQube~\citep{sonarqube}. Proporciona un enfoque
-sistemático a la calidad de datos con monitorización continua y alertas
-automatizadas.
-
-\paragraph{Fortalezas.}
-DQOps comparte una filosofía similar a la de \dataqual en cuanto al
-tratamiento de la calidad de datos como un proceso continuo. Soporta múltiples
-fuentes de datos (BigQuery, Snowflake, PostgreSQL), ofrece una interfaz web
-para la configuración y visualización de resultados, y permite definir alertas
-automatizadas ante degradaciones de calidad.
-
-\paragraph{Limitaciones.}
-Su configuración es compleja dado el elevado número de checks disponibles.
-Aunque incorpora soporte para ficheros planos (\ac{CSV}, Parquet) a través
-de DuckDB, su enfoque principal es la monitorización continua de fuentes de
-datos conectadas. No ha sido diseñado específicamente para proyectos de
-\ac{IA} y carece de métricas específicas como el equilibrio de clases o
-la diversidad de los datos de entrenamiento.
-
-\subsection{Soda Core}
-\label{sec:soda-core}
-
-Soda Core~\citep{sodacore} es un \emph{framework} de código abierto (licencia
-Apache~2.0) para la validación y monitorización continua de la calidad de datos.
-Los controles de calidad se expresan en \ac{SodaCL}, un lenguaje declarativo
-basado en \ac{YAML} de sintaxis legible sin necesidad de programar en Python.
-Cuenta con respaldo comercial de Soda Data, Inc. y se integra de forma nativa
-con orquestadores habituales como Apache Airflow y dbt.
-
-\paragraph{Fortalezas.}
-Soda Core soporta un amplio abanico de fuentes de datos: bases de datos
-relacionales (PostgreSQL, BigQuery, Snowflake) y ficheros tabulares mediante
-integración con pandas (\ac{CSV}, Parquet).  Su lenguaje \ac{SodaCL} reduce la
-barrera técnica respecto a herramientas \emph{code-first}.  La versión comercial
-Soda Cloud añade una interfaz web de visualización, comparación histórica de
-resultados y \emph{Quality Gates} con notificaciones automatizadas.
-
-\paragraph{Limitaciones.}
-La interfaz web está disponible únicamente en el nivel comercial (Soda Cloud),
-por lo que el uso puramente \emph{open source} se limita a la línea de
-comandos.  Soda Core carece de métricas específicas para \ac{IA}
-(equilibrio de clases, detección de valores atípicos orientada a modelos) y
-no implementa \emph{fingerprinting} de issues entre ejecuciones ni
-ocultación nativa de datos sensibles (\ac{PII}).
-
-\subsection{Otras herramientas relevantes}
-\label{sec:herramientas-comerciales}
-
-\paragraph{Herramientas comerciales.}
-Existen soluciones comerciales orientadas a la preparación de datos, como
-Alteryx~\citep{alteryx} y Talend~\citep{talend}.  Estas herramientas ofrecen
-interfaces gráficas pulidas, capacidades de transformación (\emph{data
-wrangling}) y soporte empresarial, pero presentan limitaciones significativas
-para el caso de uso de \dataqual: coste de licenciamiento elevado,
-dependencia del proveedor (\emph{vendor lock-in}) y operación mayoritaria
-como \ac{SaaS}, lo que impide que la organización controle dónde residen sus datos.  Además, su
-foco es la transformación de datos, no la evaluación de calidad para
-proyectos de \ac{IA}.
-
-En un segmento más maduro y especializado se encuentran las
-\emph{soluciones de calidad de datos aumentada}, plataformas empresariales de
-perfilado, reglas, monitorización y gobierno del dato que Gartner evalúa
-anualmente en su \emph{Cuadrante Mágico}~\citep{gartner2025adq}, con
-proveedores de larga trayectoria como Ataccama, Qlik, IBM o Ab~Initio. Estas
-suites superan a \dataqual en amplitud funcional y madurez, pero se
-han excluido de la comparativa sistemática del Cuadro~\ref{tab:comparativa} por
-dos motivos: son productos propietarios bajo licencia o \ac{SaaS} que no pueden
-instalarse ni probarse de primera mano, lo que impediría una comparación
-funcional rigurosa y justa; y su foco es la calidad de datos de propósito
-general y el gobierno corporativo del dato, no la evaluación orientada
-específicamente a datasets de \ac{IA}/\ac{ML} en la que se centra \dataqual.
-
-\paragraph{Herramientas gestionadas en la nube.}
-\ac{AWS} Glue Data Quality~\citep{awsgluedq} es el servicio de calidad de datos
-gestionado de Amazon Web Services, integrado en el catálogo de \ac{AWS}~Glue
-y construido sobre Apache Deequ.  Permite definir reglas mediante el
-lenguaje declarativo DQDL, aplicarlas sobre tablas catalogadas y programar
-evaluaciones periódicas con alertas en CloudWatch.  Su principal ventaja es
-la integración nativa con el ecosistema \ac{AWS} (S3, Glue Catalog, Lake
-Formation, EMR) y la escalabilidad sin gestión de infraestructura.  A
-cambio, presenta limitaciones que la sitúan fuera del espacio competitivo
-de \dataqual: opera exclusivamente como \ac{SaaS} con coste por DPU
-consumida, requiere que los datos residan ya en el ecosistema \ac{AWS}
-(\emph{vendor lock-in}) y carece de métricas específicas para proyectos de
-\ac{IA} como el equilibrio de clases o la diversidad del dataset.
-
-\paragraph{Herramientas orientadas a \ac{ML}.}
-Evidently~AI~\citep{evidentlyai} es una biblioteca \emph{open source}
-específicamente diseñada para la monitorización de datos y modelos de
-\ac{ML}: detecta \emph{data drift}, evalúa el equilibrio de clases y genera
-informes visuales en HTML.  Su enfoque está orientado a la comparación
-distribucional entre conjuntos de referencia y producción, más que a la
-auditoría estática de un fichero puntual.  Pandera~\citep{pandera} ofrece
-validación esquemática de \emph{DataFrames} de pandas mediante anotaciones
-de tipo, útil en la etapa de pruebas del \emph{pipeline} pero sin interfaz
-gráfica ni historial de ejecuciones.  ydata-profiling~\citep{ydataprofiling}
-genera informes exploratorios exhaustivos en HTML a partir de un fichero de
-datos, con estadísticas descriptivas, correlaciones y alertas básicas de
-calidad, pero sin motor de evaluación configurable ni Quality Gates.
+  \item \textbf{Soda Core}~\citep{sodacore} es un \emph{framework} de código
+    abierto (Apache~2.0) para validación y monitorización continua, cuyos
+    controles se expresan en \ac{SodaCL}, un lenguaje declarativo basado en
+    \ac{YAML} legible sin programar en Python; cuenta con respaldo comercial de
+    Soda Data, Inc. e integración nativa con Apache Airflow y dbt. Soporta un
+    amplio abanico de fuentes, desde bases relacionales (PostgreSQL, BigQuery,
+    Snowflake) hasta ficheros tabulares vía pandas (\ac{CSV}, Parquet), y su
+    versión comercial Soda Cloud añade interfaz web, comparación histórica y
+    \emph{Quality Gates} con notificaciones. Su limitación es que esa interfaz
+    web solo está disponible en el nivel comercial, por lo que el uso puramente
+    \emph{open source} se reduce a la línea de comandos; además, carece de
+    métricas específicas para \ac{IA} (equilibrio de clases, detección de valores
+    atípicos orientada a modelos) y no implementa \emph{fingerprinting} de issues
+    entre ejecuciones ni ocultación nativa de datos sensibles (\ac{PII}).
+\end{itemize}
 
 \subsection{Análisis comparativo}
 \label{sec:analisis-comparativo}
@@ -566,9 +462,9 @@ calidad, pero sin motor de evaluación configurable ni Quality Gates.
 El Cuadro~\ref{tab:comparativa} presenta una comparación sistemática de
 \dataqual con las cuatro herramientas de código abierto analizadas,
 seleccionadas por ser instalables y evaluables de primera mano; las suites
-comerciales de calidad de datos quedan fuera del cotejo directo por los motivos
-expuestos más arriba. Se han
-seleccionado dieciséis características que cubren la funcionalidad, la
+comerciales y gestionadas quedan fuera del cotejo directo por no poder
+instalarse ni probarse de primera mano (sección~\ref{sec:herramientas-comerciales}).
+Se han seleccionado dieciséis características que cubren la funcionalidad, la
 accesibilidad, las capacidades específicas para \ac{IA} y los aspectos
 operativos.
 
@@ -632,15 +528,46 @@ sí ofrece una interfaz web gratuita en local, aunque sin las capacidades de
 colaboración en equipo de su versión en la nube.
 
 \paragraph{Hueco que ocupa \dataqual.}
-La comparativa anterior revela que ninguna de las herramientas revisadas
-combina simultáneamente una interfaz web accesible sin coste de licencia,
-métricas específicas para proyectos de \ac{IA} y un sistema de seguimiento
-entre ejecuciones con veredicto explícito sobre la aptitud del dataset.
-\dataqual se posiciona deliberadamente en ese hueco, articulando esas
-capacidades en un único producto autoalojable.  Las decisiones técnicas que
-las materializan se desarrollan en el capítulo~\ref{chap:desarrollo} y la
-aportación resultante al panorama de herramientas existentes se valora en
-el capítulo~\ref{chap:conclusiones}.
+Ninguna de las herramientas revisadas combina interfaz web sin coste de
+licencia, métricas específicas para proyectos de \ac{IA} y seguimiento entre
+ejecuciones con veredicto sobre la aptitud del dataset. \dataqual se posiciona
+en ese hueco, articulando esas capacidades en un único producto autoalojable
+cuyo desarrollo y aportación se detallan en los
+capítulos~\ref{chap:desarrollo} y~\ref{chap:conclusiones}.
+
+\subsection{Otras herramientas relevantes}
+\label{sec:herramientas-comerciales}
+
+Más allá de las cuatro herramientas \emph{open source} cotejadas, otras
+soluciones quedan fuera de la comparativa directa por no ser instalables y
+evaluables de primera mano o por no orientarse a datasets de \ac{IA}.
+
+\paragraph{Herramientas comerciales.}
+Soluciones de preparación de datos como Alteryx~\citep{alteryx} y
+Talend~\citep{talend} ofrecen interfaces pulidas y soporte empresarial, pero su
+foco es la transformación del dato, no la evaluación de calidad para
+\ac{IA}, con coste de licencia elevado, dependencia del proveedor y operación
+mayoritaria como \ac{SaaS}. En un segmento más maduro, las \emph{soluciones de
+calidad de datos aumentada} que Gartner recoge en su \emph{Cuadrante
+Mágico}~\citep{gartner2025adq} (Ataccama, Qlik, IBM o Ab~Initio) superan a
+\dataqual en amplitud funcional, pero son productos propietarios orientados al
+gobierno corporativo del dato, no a la evaluación específica de datasets de
+\ac{IA}/\ac{ML}.
+
+\paragraph{Herramientas gestionadas en la nube.}
+\ac{AWS} Glue Data Quality~\citep{awsgluedq}, construido sobre Apache Deequ,
+integra reglas DQDL en el catálogo de \ac{AWS}~Glue con escalabilidad sin
+gestión de infraestructura, pero opera solo como \ac{SaaS} con coste por uso,
+exige que los datos residan ya en \ac{AWS} y carece de métricas específicas para
+\ac{IA}.
+
+\paragraph{Herramientas orientadas a \ac{ML}.}
+Evidently~AI~\citep{evidentlyai} monitoriza \emph{data drift} y equilibrio de
+clases, orientada a la comparación distribucional entre referencia y producción
+más que a la auditoría estática de un fichero; Pandera~\citep{pandera} valida
+esquemas de \emph{DataFrames} de pandas pero sin interfaz ni historial; e
+ydata-profiling~\citep{ydataprofiling} genera informes exploratorios en HTML sin
+motor de evaluación configurable ni Quality Gates.
 
 
 % Local Variables:
