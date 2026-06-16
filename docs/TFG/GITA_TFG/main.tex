@@ -8,6 +8,23 @@
 % invadan el margen: permite estirar el espaciado en líneas problemáticas.
 \emergencystretch=3em
 
+% Colocación de flotantes: evita las páginas de flotantes semivacías. Permite
+% que un cuadro/figura ocupe gran parte del alto de la página (arriba o abajo)
+% dejando que el texto fluya antes y después, y exige que una página dedicada a
+% flotantes vaya casi llena antes de crearse.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+% Reduce (sin exagerar) el espacio en blanco que rodea a cuadros y figuras,
+% recuperando líneas útiles en páginas con varios flotantes.
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+
 
 \begin{document}
 
@@ -53,6 +70,7 @@
 \input{chapters/anexo-sonarqube.tex}
 \input{chapters/anexo-manual.tex}
 \input{chapters/anexo-diagramas.tex}
+\input{chapters/anexo-ia.tex}
 % {\scriptsize \input{misc/GFDL.tex}}
 
 \bibliography{main}

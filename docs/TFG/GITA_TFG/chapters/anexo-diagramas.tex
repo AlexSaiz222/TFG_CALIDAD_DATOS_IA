@@ -1,9 +1,13 @@
-\chapter{Diagramas del sistema}
+\chapter{Especificación detallada del diseño del sistema}
 \label{anx:diagramas}
 
-Este anexo recoge las descripciones estructuradas y las representaciones gráficas
-de los principales diagramas \ac{UML} y del modelo relacional del sistema.  Estos
-diagramas se incluyen y detallan en este anexo.
+Este anexo recoge la especificación textual detallada de los principales
+elementos de diseño del sistema, cuyas representaciones gráficas se presentan en
+el cuerpo de la memoria.  Se desarrolla aquí el detalle que complementa cada
+figura: la estructura de paquetes del \emph{backend}, la especificación de los
+casos de uso, el flujo de ejecución de una evaluación y la estructura de clases
+del motor de métricas, con la referencia a la sección donde aparece cada
+diagrama.
 
 \section{Descripción de los paquetes del backend}
 
@@ -83,7 +87,7 @@ que se enumera a continuación.
     \end{itemize}
 \end{itemize}
 
-\section{Diagrama de secuencia: Ejecución de evaluación}
+\section{Flujo de ejecución de una evaluación}
 
 La ejecución de un análisis de calidad asíncrono (Sonar-Lite) sigue el flujo
 representado gráficamente en la Figura~\ref{fig:diagrama-secuencia}
@@ -121,7 +125,7 @@ describen a continuación:
     página de resultados
 \end{enumerate}
 
-\section{Diagrama de clases: Motor de métricas}
+\section{Estructura de clases del motor de métricas}
 
 La jerarquía de clases principales y servicios del motor de métricas se
 representa en la Figura~\ref{fig:diagrama-clases}

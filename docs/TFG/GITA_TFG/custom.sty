@@ -73,6 +73,19 @@
   captionpos       = b,
 }
 
+% Estilo para listados de API REST (HTTP + JSON): resalta verbos/cabeceras HTTP
+% y literales, y colorea la estructura JSON (llaves, corchetes, comas) para que
+% el cuerpo no quede plano. No toca el interior de las cadenas (fechas, textos).
+\lstdefinestyle{apijson}{%
+  morekeywords={true,false,null,POST,GET,PUT,DELETE,Authorization,Bearer,Created,Accepted},
+  literate=
+    {\{}{{\color{codegray}\{}}{1}
+    {\}}{{\color{codegray}\}}}{1}
+    {[}{{\color{codegray}[}}{1}
+    {]}{{\color{codegray}]}}{1}
+    {,}{{\color{codegray},}}{1}
+}
+
 \lstloadlanguages{Python, Java, XML}
 \lstdefinelanguage{JavaScript}{
   keywords={break, case, catch, const, continue, debugger, default, delete,

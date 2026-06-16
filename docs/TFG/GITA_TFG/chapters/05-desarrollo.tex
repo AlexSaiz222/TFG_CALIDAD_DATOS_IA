@@ -102,7 +102,8 @@ cada uno se recoge en el Anexo~\ref{anx:diagramas}.
 %% =========================================================================
 \section{Sprint 1: Análisis, arquitectura y setup inicial}
 \label{sec:sprint1}
-\textit{Período: agosto--septiembre 2025 \quad Duración: 8 semanas \quad SP: 13}
+Este primer sprint se desarrolló entre agosto y septiembre de 2025, a lo largo
+de ocho semanas, con una carga estimada de 13 puntos de historia.
 %% =========================================================================
 
 \subsection{Trabajo realizado}
@@ -178,7 +179,7 @@ despliega como servidor web (Gunicorn) y como procesos Celery (\emph{worker}
 y \emph{beat}) a partir del mismo artefacto; el detalle de los ocho servicios
 orquestados se recoge en el Cuadro~\ref{tab:servicios}.
 
-\begin{figure}[htbp]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{img/arquitectura-componentes.png}
   \caption{Diagrama de componentes \acs{UML} de la plataforma \dataqual}
@@ -188,7 +189,7 @@ orquestados se recoge en el Cuadro~\ref{tab:servicios}.
 El Cuadro~\ref{tab:servicios} recoge los ocho servicios, sus puertos y su
 propósito.
 
-\begin{table}[htbp]
+\begin{table}[t]
   \centering
   \caption{Servicios Docker de \dataqual}
   \label{tab:servicios}
@@ -217,7 +218,7 @@ por el \emph{Celery worker}.
 
 El Cuadro~\ref{tab:comunicacion} resume los protocolos de comunicación.
 
-\begin{table}[htbp]
+\begin{table}[t]
   \centering
   \caption{Protocolos de comunicación entre componentes}
   \label{tab:comunicacion}
@@ -269,7 +270,7 @@ representa en la Figura~\ref{fig:er-diagram}: las columnas marcadas con
 \texttt{alembic\_version} es interna de Flask-Migrate (control de
 migraciones), ajena al dominio.
 
-\begin{figure}[htbp]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{img/er-diagram.png}
   \caption[Esquema relacional de la base de datos \texttt{dataquality}]{Esquema
@@ -312,7 +313,8 @@ migraciones), ajena al dominio.
 %% =========================================================================
 \section{Sprint 2: \emph{Backend} principal, datasets y \acs{API} \acs{REST}}
 \label{sec:sprint2}
-\textit{Período: enero 2026 \quad Duración: 4 semanas \quad SP: 18}
+Este segundo sprint se desarrolló durante enero de 2026, a lo largo de cuatro
+semanas, con una carga estimada de 18 puntos de historia.
 %% =========================================================================
 
 \subsection{Trabajo realizado}
@@ -408,7 +410,7 @@ A modo de ilustración, el Listado~\ref{lst:api-ejemplo} muestra la creación
 de un proyecto (\texttt{POST /api/projects/}) y su respuesta en el formato
 estandarizado \texttt{\{success, data, message\}} común a toda la \ac{API}.
 
-\begin{listing}[caption={Petición y respuesta de la API REST: creación de un proyecto},label={lst:api-ejemplo}]
+\begin{listing}[language=Python,style=apijson,float=!t,caption={Petición y respuesta de la API REST: creación de un proyecto},label={lst:api-ejemplo}]
 POST /api/projects/
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -565,7 +567,8 @@ Anexo~A.
 %% =========================================================================
 \section{Sprint 3: Motor de métricas de calidad}
 \label{sec:sprint3}
-\textit{Período: febrero 2026 \quad Duración: 4 semanas \quad SP: 16}
+Este tercer sprint se desarrolló durante febrero de 2026, a lo largo de cuatro
+semanas, con una carga estimada de 16 puntos de historia.
 %% =========================================================================
 
 \subsection{Trabajo realizado}
@@ -759,7 +762,8 @@ Figura~\ref{fig:metric-config-detail} del manual de usuario
 %% =========================================================================
 \section{Sprint 4: \emph{Frontend} e interfaz de usuario}
 \label{sec:sprint4}
-\textit{Período: marzo 2026 \quad Duración: 4 semanas \quad SP: 14}
+Este cuarto sprint se desarrolló durante marzo de 2026, a lo largo de cuatro
+semanas, con una carga estimada de 14 puntos de historia.
 %% =========================================================================
 
 \subsection{Trabajo realizado}
@@ -967,7 +971,8 @@ G~(figuras~\ref{fig:manual-analysis-history} y~\ref{fig:manual-eda}).
 %% =========================================================================
 \section{Sprint 5: Funcionalidades avanzadas}
 \label{sec:sprint5}
-\textit{Período: abril 2026 \quad Duración: 4 semanas \quad SP: 10}
+Este quinto sprint se desarrolló durante abril de 2026, a lo largo de cuatro
+semanas, con una carga estimada de 10 puntos de historia.
 %% =========================================================================
 
 \subsection{Trabajo realizado}
@@ -1237,7 +1242,8 @@ implementado en este sprint.
 %% =========================================================================
 \section{Sprint 6: Pruebas, refinamiento y documentación}
 \label{sec:sprint6}
-\textit{Período: mayo--junio 2026 \quad Duración: 8 semanas}
+Este sexto y último sprint se desarrolló entre mayo y junio de 2026, a lo largo
+de ocho semanas, dedicadas a pruebas, refinamiento y documentación.
 %% =========================================================================
 
 \subsection{Trabajo realizado}
@@ -1335,7 +1341,7 @@ El Listado~\ref{lst:test-fingerprint} muestra dos casos representativos del
 módulo de \emph{fingerprinting}: el determinismo (misma entrada, mismo
 \emph{hash}) y la discriminación (columnas distintas, \emph{hashes} distintos).
 
-\begin{listing}[language=Python,caption={Pruebas de determinismo y discriminación del \emph{fingerprinting}},label={lst:test-fingerprint}]
+\begin{listing}[language=Python,float=!t,caption={Pruebas de determinismo y discriminación del \emph{fingerprinting}},label={lst:test-fingerprint}]
 def test_same_inputs_produce_same_hash():
     # determinismo: la misma entrada produce el mismo fingerprint
     assert (generate_issue_fingerprint("completeness", "email") ==
@@ -1434,232 +1440,6 @@ Cuadro~\ref{tab:esfuerzo} (sección~\ref{sec:esfuerzo}).
 
 
 %% =========================================================================
-\section{Resultados globales}
-\label{sec:resultados-alcanzados}
-%% =========================================================================
-
-\dataqual es una plataforma funcional de extremo a extremo que cumple con los
-cinco objetivos específicos definidos en la
-sección~\ref{sec:objetivos-especificos}.
-
-\subsection{Resultados cuantitativos}
-
-El Cuadro~\ref{tab:resultados-cuantitativos} resume las principales
-magnitudes del sistema implementado.
-
-\begin{table}[htbp]
-  \centering
-  \caption{Resultados cuantitativos de la implementación}
-  \label{tab:resultados-cuantitativos}
-  \begin{tabularx}{\textwidth}{X r}
-    \toprule
-    \textbf{Dimensión} & \textbf{Cantidad} \\
-    \midrule
-    Métricas de calidad evaluables (Quality Score) & 7     \\
-    Clases de métricas implementadas (incl.\ outliers para \ac{EDA}) & 8 \\
-    Servicios Docker orquestados                    & 8     \\
-    Rutas / páginas del \emph{frontend}             & 20    \\
-    Componentes React reutilizables                 & 50+   \\
-    Módulos funcionales de \ac{API} (\emph{blueprints} principales) & 7 \\
-    \emph{Blueprints} Flask totales (incl.\ sub-rutas \ac{REST})        & 10 \\
-    Tablas en base de datos                         & 11    \\
-    Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
-    Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
-    Migraciones de base de datos (Alembic)          & 5     \\
-    Módulos de pruebas automatizadas (pytest)       & 13    \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
-La batería de pruebas automatizadas se organiza en trece módulos pytest
-agrupados por dominio funcional; las suites unitarias y de integración
-se complementaron con pruebas manuales de extremo a extremo sobre los
-flujos completos de la plataforma.  La automatización de estas pruebas
-\emph{end-to-end} queda como tarea pendiente y se identifica como
-limitación en la sección~\ref{sec:limitaciones}.  El plan de pruebas
-integral (estrategia, niveles, casos y trazabilidad con requisitos) se
-formaliza en el Anexo~\ref{anx:pruebas}.
-
-\subsection{Calidad del código y análisis estático (SonarQube)}
-\label{sec:calidad-sonarqube-resumen}
-
-Los principios de aseguramiento de la calidad y el análisis métrico se han aplicado al propio desarrollo de \dataqual. Para ello, se ha integrado y ejecutado la herramienta estándar de la industria \textbf{SonarQube}, evaluando la totalidad de la base de código tanto del \emph{frontend} (TypeScript y React) como del \emph{backend} (Python y Flask).
-
-El volumen total analizado asciende a \textbf{44.518 líneas de código} (NCLOC). El análisis estático de SonarQube ha verificado la solidez del software, otorgando al proyecto la máxima calificación de \textbf{Grado A} en seguridad y mantenibilidad. Los resultados consolidados se resumen en los siguientes puntos:
-
-\begin{itemize}
-  \item \textbf{Seguridad:} 0 vulnerabilidades de seguridad detectadas (Grado A).
-  \item \textbf{Fiabilidad:} Grado D con 82 incidencias de tipo bug, en su mayoría warnings de tipado y avisos de compatibilidad.
-  \item \textbf{Mantenibilidad:} Deuda técnica muy baja con Grado A (748 \emph{code smells}).
-  \item \textbf{Duplicación de código:} Un porcentaje de duplicación del \textbf{3,5\,\%}, demostrando una correcta modularización.
-  \item \textbf{Cobertura de pruebas:} Un 18,3\,\% global, con el \emph{Quality Gate} en estado \emph{Failed} (Fallo), provocado por no alcanzar el umbral exigido del 80\,\% en código nuevo debido a la exclusión de pruebas del frontend.
-\end{itemize}
-
-El panel general de control de calidad (Figura~\ref{fig:sonar-dashboard}), el
-desglose detallado de la configuración, el análisis de las métricas y la
-justificación de los puntos calientes de seguridad se detallan en el
-\textbf{Anexo~\ref{anx:sonarqube}}.
-
-\subsection{Esfuerzo y desviaciones}
-\label{sec:esfuerzo}
-
-El Cuadro~\ref{tab:esfuerzo} consolida la estimación inicial de horas frente
-al esfuerzo real invertido en cada sprint.
-
-\begin{table}[htbp]
-  \centering
-  \caption{Esfuerzo estimado vs.\ real por sprint}
-  \label{tab:esfuerzo}
-  \begin{tabularx}{\textwidth}{l c c r r r}
-    \toprule
-    \textbf{Sprint} & \textbf{Período} & \textbf{SP} &
-      \textbf{H.\ est.} & \textbf{H.\ real} & \textbf{Desv.} \\
-    \midrule
-    S1 — Arquitectura y setup   & ago.--sep.\ 2025 & 13 & 52  & 60  & +15,4\,\% \\
-    S2 — Backend core           & ene.\ 2026       & 18 & 72  & 85  & +18,1\,\% \\
-    S3 — Motor de métricas      & feb.\ 2026       & 16 & 64  & 70  & +9,4\,\%  \\
-    S4 — Frontend y dashboard   & mar.\ 2026       & 14 & 56  & 65  & +16,1\,\% \\
-    S5 — Funcionalidades avanzadas & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
-    S6 — Pruebas y documentación & may.--jun.\ 2026 & — & 80  & 90  & +12,5\,\% \\
-    \midrule
-    \textbf{Total}              &                  & \textbf{71} &
-      \textbf{364} & \textbf{425} & \textbf{+16,8\,\%} \\
-    \bottomrule
-  \end{tabularx}
-  \medskip\par\footnotesize\raggedright
-  \textit{Nota.}~La columna \ac{SP} agrega, por sprint, las historias de
-  usuario más las tareas técnicas que conformaron el plan de cada
-  iteración (véase Anexo~\ref{anx:backlog}).  El backlog original
-  (Tabla~\ref{tab:backlog-hu}) contabiliza 59~\ac{SP} en historias de
-  usuario, de los cuales se entregaron 56~\ac{SP} (HU-15 fue descartada
-  del alcance final); sumando las tareas técnicas (15~\ac{SP}), el
-  esfuerzo ejecutado asciende a los 71~\ac{SP} de esta tabla.
-\end{table}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth]{figures/commits-per-sprint}
-  \caption{Número de \emph{commits} reales por sprint en el repositorio Git.
-  Refleja la actividad de desarrollo medida a partir del historial de
-  \texttt{git log}; complementa los datos de esfuerzo estimado de la
-  Tabla~\ref{tab:esfuerzo}.}
-  \label{fig:commits-per-sprint}
-\end{figure}
-
-La Figura~\ref{fig:commits-per-sprint} muestra el reparto real de
-\emph{commits} por sprint a partir del historial de Git, con la mayor
-actividad concentrada en S1, S4 y S5 (en torno al 78\,\% del total).
-La desviación global de +16,8\,\% se mantiene dentro del rango habitual
-para proyectos individuales; el sprint con mayor desviación fue S5
-(+37,5\,\%, problemas de integración del \emph{fingerprinting} con la
-línea base) y el de menor desviación, S3 (+9,4\,\%, gracias a la
-arquitectura de \emph{plugins} ya establecida en S2).
-
-\subsection{Verificación del cumplimiento de objetivos}
-
-El Cuadro~\ref{tab:cumplimiento} recoge, para cada objetivo específico, la
-evidencia de su cumplimiento, el sprint en que se materializó y la subsección
-donde se documenta.
-
-\begin{table}[htbp]
-  \centering
-  \caption{Verificación del cumplimiento de los objetivos específicos}
-  \label{tab:cumplimiento}
-  \begin{tabularx}{\textwidth}{l X l c}
-    \toprule
-    \textbf{Obj.} & \textbf{Evidencia} & \textbf{Sprint} & \textbf{Estado} \\
-    \midrule
-    OE1 & Módulo de ingesta en formato \ac{CSV} con parseo robusto mediante
-      matriz de \emph{fallback} (codificaciones $\times$ separadores);
-      almacenamiento en MinIO; extracción automática de esquema;
-      versionado padre-hijo con etiquetas personalizables.
-      & S2 (sec.~\ref{sec:impl-ingesta}) & Cumplido \\
-    OE2 & Siete métricas implementadas como \emph{plugins}; parametrización
-      completa; sistema de pesos; plantillas reutilizables; ejecución
-      asíncrona con Celery. & S3--S5 (sec.~\ref{sec:motor-metricas}) & Cumplido \\
-    OE3 & Seis \emph{blueprints} funcionales planificados, ampliados a
-      siete con la adición de \texttt{patterns} (validación
-      reutilizable); autenticación \ac{JWT}; formato de respuesta
-      estandarizado; paginación; validación Marshmallow.
-      & S2 (sec.~\ref{sec:arq-backend}) & Superado \\
-    OE4 & Más de 20 páginas; cuadros de mando interactivos; \ac{EDA} con
-      histogramas, diagramas de caja y matrices de correlación; diseño
-      adaptable. & S4 (sec.~\ref{sec:impl-frontend}) & Cumplido \\
-    OE5 & Sistema de \emph{issues} con cuatro severidades;
-      \emph{fingerprinting} \ac{SHA}-256; comparación con línea base;
-      \emph{Quality Gates} con tres estados.
-      & S5 (sec.~\ref{sec:impl-fingerprinting}) & Cumplido \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
-
-Los cinco objetivos se cumplen con el sistema tal como está desplegado.  El
-único objetivo superado es OE3: la \ac{API} creció de seis a siete
-\emph{blueprints} funcionales durante el desarrollo, y los \emph{blueprints}
-de organización técnica elevaron el total a diez.
-
-\subsection{Cumplimiento de los requisitos no funcionales}
-\label{sec:rnf-cumplimiento}
-
-Más allá de los objetivos funcionales, el diseño de \dataqual ha prestado
-atención a cinco requisitos no funcionales que han orientado sus decisiones
-arquitectónicas y tecnológicas: \textbf{seguridad}, \textbf{escalabilidad},
-\textbf{mantenibilidad}, \textbf{usabilidad} y \textbf{portabilidad}.  El
-Cuadro~\ref{tab:rnf-cumplimiento} recoge, para cada uno, las decisiones de
-diseño que lo materializan y su grado de cumplimiento (total o parcial).
-
-\begin{table}[htbp]
-  \centering
-  \caption{Cumplimiento de los requisitos no funcionales}
-  \label{tab:rnf-cumplimiento}
-  \footnotesize
-  \renewcommand{\arraystretch}{1.4}%
-  \begin{tabularx}{\textwidth}{l X c}
-    \toprule
-    \textbf{RNF} & \textbf{Evidencia} & \textbf{Cumplimiento} \\
-    \midrule
-    Seguridad & Autenticación \ac{JWT} con \emph{tokens} de acceso y
-      refresco; \emph{hashing} de contraseñas con \ac{PBKDF2}; limitación
-      de tasa de peticiones (Flask-Limiter sobre Redis); validación de
-      entradas con esquemas Marshmallow; lista de tokens prohibidos en
-      las reglas de consistencia lógica para evitar la ejecución de
-      código arbitrario; enmascaramiento automático de las columnas
-      marcadas como \ac{PII} en todos los \emph{outputs}.  No se ha
-      realizado una auditoría de seguridad ni pruebas de penetración
-      formales. & Parcial \\
-    Escalabilidad & Procesamiento asíncrono con Celery y Redis como
-      \emph{broker}; arquitectura preparada para escalar
-      horizontalmente el número de \emph{workers}; separación de
-      responsabilidades entre los ocho servicios desplegados.  No se han
-      realizado pruebas de carga con grandes volúmenes ni usuarios
-      concurrentes. & Parcial \\
-    Mantenibilidad & Arquitectura modular basada en \emph{blueprints},
-      servicios y modelos; motor de métricas extensible mediante
-      \emph{plugins} (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY});
-      migraciones de base de datos versionadas con Alembic; separación
-      estricta entre \emph{frontend} y \emph{backend}. & Total \\
-    Usabilidad & Interfaz basada en Material Design con validación en
-      tiempo real, notificaciones \emph{toast}, \emph{breadcrumbs} de
-      navegación y estados de carga/error diferenciados; soporte
-      español/inglés con cambio en tiempo real sin recargar la
-      aplicación.  No se ha realizado una evaluación de usabilidad. & Parcial \\
-    Portabilidad & Despliegue íntegro del \emph{stack} con un único
-      \texttt{docker\,compose\,up}; configuración por variables de
-      entorno; sin dependencias de servicios propietarios en la nube;
-      ocho servicios orquestados conjuntamente. & Total \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
-Quedan como verificación pendiente una \textbf{auditoría de seguridad}, la
-\textbf{validación de escalabilidad mediante pruebas de carga} y una
-\textbf{evaluación de usabilidad}, así como la \textbf{cobertura de pruebas
-\emph{end-to-end} del \emph{frontend}}, que durante el desarrollo se validó
-manualmente.  Estas tareas se recogen como trabajo futuro
-(sección~\ref{sec:trabajo-futuro}).
-
-%% =========================================================================
 \section{Instanciación del marco \ac{ISO}/\ac{IEC} 5259 en DataQual}
 \label{sec:instanciacion-iso5259}
 %% =========================================================================
@@ -1738,17 +1518,14 @@ acceso a los sistemas de la organización propietaria.
 \subsection{Características fuera del alcance}
 \label{sec:caracteristicas-fuera-alcance}
 
-Las características no incluidas (recogidas en el
-Cuadro~\ref{tab:iso5259-cobertura}) responden a dos motivos.  La mayoría no
+Las características no incluidas, detalladas con su motivo en el
+Cuadro~\ref{tab:iso5259-cobertura}, responden a dos razones.  La mayoría no
 son evaluables sobre el fichero de datos de forma aislada, pues exigen acceso
 a la infraestructura, a metadatos organizativos o al contexto de negocio del
-que una herramienta externa no dispone: es el caso de las dependientes del
-sistema (disponibilidad, portabilidad, recuperabilidad), las mixtas
-(accesibilidad, conformidad, eficiencia, precisión, trazabilidad,
-confidencialidad y comprensibilidad) y varias adicionales (representatividad,
-relevancia, efectividad y similitud).  Otras, técnicamente abordables
-(credibilidad, identificabilidad, auditabilidad y puntualidad), quedaron
-fuera por priorización del proyecto y son candidatas para versiones futuras.
+que una herramienta externa no dispone (las dependientes del sistema, las
+mixtas y varias de las adicionales).  Otras son técnicamente abordables, pero
+quedaron fuera por priorización del proyecto y son candidatas para versiones
+futuras.
 
 \subsection{Criterios de priorización aplicados}
 \label{sec:priorizacion-mvp}
@@ -1759,12 +1536,10 @@ modelos de \ac{IA} y en el cumplimiento del marco normativo aplicable:
 
 \begin{enumerate}
   \item \textbf{Las características inherentes de \ac{ISO}/\ac{IEC}~25012}
-    (completitud, exactitud, consistencia y actualidad) implementadas a
-    través de cinco métricas: \texttt{completeness},
-    \texttt{syntactic\_accuracy}, \texttt{logical\_consistency},
-    \texttt{currentness} y \texttt{uniqueness}, siendo esta última la
-    sub-dimensión Con-ML-1 de consistencia definida en
-    \ac{ISO}/\ac{IEC}~5259-2.  Esto proporciona cobertura directa de los
+    (completitud, exactitud, consistencia y actualidad), cuya correspondencia
+    con las medidas de \ac{ISO}/\ac{IEC}~25024 y las métricas concretas que las
+    implementan se detalla en el Cuadro~\ref{tab:iso25012-dataqual} del
+    capítulo~\ref{chap:antecedentes}.  Proporcionan cobertura directa de los
     requisitos de \ac{ISO}/\ac{IEC}~5259-2~\citep{iso5259} e
     \ac{ISO}/\ac{IEC}~25024~\citep{iso25024}.
 
@@ -1800,6 +1575,128 @@ infraestructura externa, metadatos organizativos o que no fueron
 priorizadas en esta versión del proyecto quedan fuera de su ámbito actual,
 configurándose como líneas de trabajo futuro.
 
+
+%% =========================================================================
+\section{Resultados globales}
+\label{sec:resultados-alcanzados}
+%% =========================================================================
+
+\dataqual es una plataforma funcional de extremo a extremo que cumple con los
+cinco objetivos específicos definidos en la
+sección~\ref{sec:objetivos-especificos}.
+
+\subsection{Resultados cuantitativos}
+
+El Cuadro~\ref{tab:resultados-cuantitativos} resume las principales
+magnitudes del sistema implementado.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Resultados cuantitativos de la implementación}
+  \label{tab:resultados-cuantitativos}
+  \begin{tabularx}{\textwidth}{X r}
+    \toprule
+    \textbf{Dimensión} & \textbf{Cantidad} \\
+    \midrule
+    Métricas de calidad evaluables (Quality Score) & 7     \\
+    Clases de métricas implementadas (incl.\ outliers para \ac{EDA}) & 8 \\
+    Servicios Docker orquestados                    & 8     \\
+    Rutas / páginas del \emph{frontend}             & 20    \\
+    Componentes React reutilizables                 & 50+   \\
+    Módulos funcionales de \ac{API} (\emph{blueprints} principales) & 7 \\
+    \emph{Blueprints} Flask totales (incl.\ sub-rutas \ac{REST})        & 10 \\
+    Tablas en base de datos                         & 11    \\
+    Patrones de formato predefinidos (exactitud sintáctica) & 13 \\
+    Tipos de \emph{issue} (por métrica y subtipo)   & 10+   \\
+    Migraciones de base de datos (Alembic)          & 5     \\
+    Módulos de pruebas automatizadas (pytest)       & 13    \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La batería de pruebas automatizadas se organiza en trece módulos pytest
+agrupados por dominio funcional; las suites unitarias y de integración
+se complementaron con pruebas manuales de extremo a extremo sobre los
+flujos completos de la plataforma.  La automatización de estas pruebas
+\emph{end-to-end} queda como tarea pendiente y se reconoce como
+limitación en el capítulo~\ref{chap:conclusiones}.  El plan de pruebas
+integral (estrategia, niveles, casos y trazabilidad con requisitos) se
+formaliza en el Anexo~\ref{anx:pruebas}.
+
+\subsection{Calidad del código y análisis estático (SonarQube)}
+\label{sec:calidad-sonarqube-resumen}
+
+Los principios de aseguramiento de la calidad y el análisis métrico se han aplicado al propio desarrollo de \dataqual. Para ello, se ha integrado y ejecutado la herramienta estándar de la industria \textbf{SonarQube}, evaluando la totalidad de la base de código tanto del \emph{frontend} (TypeScript y React) como del \emph{backend} (Python y Flask).
+
+El volumen total analizado asciende a \textbf{44.518 líneas de código} (NCLOC). El análisis estático de SonarQube ha verificado la solidez del software, otorgando al proyecto la máxima calificación de \textbf{Grado A} en seguridad y mantenibilidad. Los resultados consolidados se resumen en los siguientes puntos:
+
+\begin{itemize}
+  \item \textbf{Seguridad:} 0 vulnerabilidades de seguridad detectadas (Grado A).
+  \item \textbf{Fiabilidad:} Grado D con 82 incidencias de tipo bug, en su mayoría warnings de tipado y avisos de compatibilidad.
+  \item \textbf{Mantenibilidad:} Deuda técnica muy baja con Grado A (748 \emph{code smells}).
+  \item \textbf{Duplicación de código:} Un porcentaje de duplicación del \textbf{3,5\,\%}, demostrando una correcta modularización.
+  \item \textbf{Cobertura de pruebas:} Un 18,3\,\% global, con el \emph{Quality Gate} en estado \emph{Failed} (Fallo), provocado por no alcanzar el umbral exigido del 80\,\% en código nuevo debido a la exclusión de pruebas del frontend.
+\end{itemize}
+
+El panel general de control de calidad (Figura~\ref{fig:sonar-dashboard}), el
+desglose detallado de la configuración, el análisis de las métricas y la
+justificación de los puntos calientes de seguridad se detallan en el
+\textbf{Anexo~\ref{anx:sonarqube}}.
+
+\subsection{Esfuerzo y desviaciones}
+\label{sec:esfuerzo}
+
+El Cuadro~\ref{tab:esfuerzo} consolida la estimación inicial de horas frente
+al esfuerzo real invertido en cada sprint.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Esfuerzo estimado vs.\ real por sprint}
+  \label{tab:esfuerzo}
+  \begin{tabularx}{\textwidth}{l c c r r r}
+    \toprule
+    \textbf{Sprint} & \textbf{Período} & \textbf{SP} &
+      \textbf{H.\ est.} & \textbf{H.\ real} & \textbf{Desv.} \\
+    \midrule
+    S1 — Arquitectura y setup   & ago.--sep.\ 2025 & 13 & 52  & 60  & +15,4\,\% \\
+    S2 — Backend core           & ene.\ 2026       & 18 & 72  & 85  & +18,1\,\% \\
+    S3 — Motor de métricas      & feb.\ 2026       & 16 & 64  & 70  & +9,4\,\%  \\
+    S4 — Frontend y dashboard   & mar.\ 2026       & 14 & 56  & 65  & +16,1\,\% \\
+    S5 — Funcionalidades avanzadas & abr.\ 2026       & 10 & 40  & 55  & +37,5\,\% \\
+    S6 — Pruebas y documentación & may.--jun.\ 2026 & — & 80  & 90  & +12,5\,\% \\
+    \midrule
+    \textbf{Total}              &                  & \textbf{71} &
+      \textbf{364} & \textbf{425} & \textbf{+16,8\,\%} \\
+    \bottomrule
+  \end{tabularx}
+  \medskip\par\footnotesize\raggedright
+  \textit{Nota.}~La columna \ac{SP} agrega, por sprint, las historias de
+  usuario más las tareas técnicas que conformaron el plan de cada
+  iteración (véase Anexo~\ref{anx:backlog}).  El backlog original
+  (Tabla~\ref{tab:backlog-hu}) contabiliza 59~\ac{SP} en historias de
+  usuario, de los cuales se entregaron 56~\ac{SP} (HU-15 fue descartada
+  del alcance final); sumando las tareas técnicas (15~\ac{SP}), el
+  esfuerzo ejecutado asciende a los 71~\ac{SP} de esta tabla.
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/commits-per-sprint}
+  \caption{Número de \emph{commits} reales por sprint en el repositorio Git.
+  Refleja la actividad de desarrollo medida a partir del historial de
+  \texttt{git log}; complementa los datos de esfuerzo estimado de la
+  Tabla~\ref{tab:esfuerzo}.}
+  \label{fig:commits-per-sprint}
+\end{figure}
+
+La Figura~\ref{fig:commits-per-sprint} muestra el reparto real de
+\emph{commits} por sprint a partir del historial de Git, con la mayor
+actividad concentrada en S1, S4 y S5 (en torno al 78\,\% del total).
+La desviación global de +16,8\,\% se mantiene dentro del rango habitual
+para proyectos individuales; el sprint con mayor desviación fue S5
+(+37,5\,\%, problemas de integración del \emph{fingerprinting} con la
+línea base) y el de menor desviación, S3 (+9,4\,\%, gracias a la
+arquitectura de \emph{plugins} ya establecida en S2).
 
 % Local Variables:
 %  coding: utf-8

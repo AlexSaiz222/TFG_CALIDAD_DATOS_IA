@@ -260,7 +260,7 @@ La Tabla~\ref{tab:tech-backend} recoge el detalle de cada biblioteca y
 herramienta empleada.
 
 
-\begin{table}[htbp]
+\begin{table}[t]
   \centering
   \caption{Tecnologías del \emph{backend}}
   \label{tab:tech-backend}
@@ -447,12 +447,12 @@ La Figura~\ref{fig:gantt} muestra la distribución temporal de los sprints
 a lo largo del curso; el resumen de hitos entregados en cada sprint se
 recoge en la Figura~\ref{fig:roadmap} del Anexo~\ref{anx:backlog}.
 
-\begin{sidewaysfigure}
+\begin{figure}[t]
   \centering
-  \includegraphics[width=\textheight,height=\textwidth,keepaspectratio]{figures/gantt}
+  \includegraphics[width=\textwidth,height=0.9\textheight,keepaspectratio]{figures/gantt}
   \caption{Diagrama de Gantt del proyecto (curso académico 2025--2026)}
   \label{fig:gantt}
-\end{sidewaysfigure}
+\end{figure}
 
 El diagrama de Gantt refleja el \emph{cuándo} de cada sprint, pero no la
 intensidad relativa del trabajo en cada área.  La
@@ -492,7 +492,7 @@ al cierre de cada sprint con los tiempos aproximados de cada tarea.
 El backlog completo con la asignación a sprints se incluye en el
 Anexo~C.
 
-\begin{table}[htbp]
+\begin{table}[!t]
   \centering
   \small
   \caption{Backlog inicial — historias de usuario principales}
@@ -697,54 +697,13 @@ infraestructura.
 %% =========================================================================
 
 Con el objetivo de proporcionar una perspectiva de viabilidad económica,
-se estima el coste que tendría el proyecto en un entorno profesional real.
-
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{Estimación de costes del proyecto}
-  \label{tab:costes}
-  \begin{tabularx}{\textwidth}{%
-    >{\raggedright\arraybackslash}p{3.3cm}
-    >{\raggedright\arraybackslash}X
-    >{\centering\arraybackslash}p{1.5cm}
-    >{\centering\arraybackslash}p{2.0cm}
-    >{\raggedleft\arraybackslash}p{1.8cm}}
-    \toprule
-    \textbf{Concepto} & \textbf{Detalle} &
-      \textbf{Cantidad} & \textbf{Precio unit.} & \textbf{Total} \\
-    \midrule
-    \multicolumn{5}{l}{\textbf{\textit{Recursos humanos}}} \\[2pt]
-    Desarrollador \emph{full-stack} (junior) &
-      425~h de desarrollo real & 425~h & 25~€/h & 10\,625~€ \\
-    Supervisión de tutores &
-      2~tutores $\times$ 10~h de reuniones y revisiones & 20~h & 60~€/h & 1\,200~€ \\[4pt]
-    \multicolumn{5}{l}{\textbf{\textit{Licencias de software}}} \\[2pt]
-    Python, Flask, Next.js, PostgreSQL\ldots &
-      Todo el stack es \emph{open source} & --- & 0~€ & 0~€ \\
-    GitHub (plan Free) &
-      Repositorio de código y control de versiones & 1 & 0~€ & 0~€ \\[4pt]
-    \multicolumn{5}{l}{\textbf{\textit{Infraestructura}}} \\[2pt]
-    Hardware de desarrollo &
-      Amortización equipo propio (1\,000~€, vida útil 3~años) & 9~meses & 28~€/mes & 252~€ \\
-    Electricidad &
-      50~W $\times$ 8~h/día $\times$ 270~días & 108~kWh & 0{,}20~€/kWh & 22~€ \\
-    Servicios cloud &
-      Despliegue local con Docker Compose & --- & 0~€ & 0~€ \\
-    \midrule
-    \multicolumn{4}{r}{\textbf{Coste total estimado}} & \textbf{12\,099~€} \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
-El coste total estimado de \textbf{12\,099~€} se desglosa en 11\,825~€ de
-recursos humanos (10\,625~€ de desarrollo y 1\,200~€ de supervisión de
-tutores) y 274~€ de infraestructura (252~€ de amortización del equipo y
-22~€ de electricidad).  Dado que todas las tecnologías utilizadas son de
-código abierto y el despliegue es local, el coste de licencias es nulo.
-Para un escenario de producción con despliegue en nube, el Anexo~E estima
-un coste adicional de aproximadamente 90~€/mes con servicios equivalentes
-de \ac{AWS} (\ac{RDS}, S3, ElastiCache, \ac{ECS}).
+se ha estimado el coste que tendría el proyecto en un entorno profesional
+real, considerando recursos humanos, licencias e infraestructura.  El coste
+total estimado asciende a \textbf{12\,099~€}, prácticamente en su totalidad
+recursos humanos, dado que todo el \emph{stack} es de código abierto y el
+despliegue es local.  El desglose completo (horas reales por sprint y
+categoría, costes detallados y un análisis de viabilidad para un modelo SaaS
+en la nube) se recoge en el Anexo~\ref{anx:costes}.
 
 
 %% =========================================================================
@@ -780,7 +739,7 @@ La Tabla~\ref{tab:riesgos} recoge los riesgos así reconstruidos con su
 probabilidad de ocurrencia (Alta/Media/Baja), impacto (Alto/Medio/Bajo)
 y las acciones asociadas.
 
-\begin{table}[htbp]
+\begin{table}[!t]
   \centering
   \caption{Plan de gestión de riesgos}
   \label{tab:riesgos}

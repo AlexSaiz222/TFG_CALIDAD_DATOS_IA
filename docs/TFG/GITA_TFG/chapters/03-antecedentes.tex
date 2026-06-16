@@ -221,12 +221,13 @@ específica de 25024 y no a la característica genérica. El
 Cuadro~\ref{tab:iso25012-dataqual} muestra esa correspondencia, indicando
 entre paréntesis la medida de 25024 sobre la que se pone el foco.
 
-\begin{table}[htbp]
+\begin{table}[t]
   \centering
   \caption{Correspondencia entre las características de calidad de \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259-2, sus medidas en \ac{ISO}/\ac{IEC}~25024 y las métricas implementadas en \dataqual}
   \label{tab:iso25012-dataqual}
   \footnotesize
   \newcommand{\tblnote}{\textsuperscript{a}}%
+  \vspace{1.5ex}
   \begin{tabularx}{\textwidth}{l l l >{\raggedright\arraybackslash}X}
     \toprule
     \textbf{Característica} & \textbf{Norma} & \textbf{Métrica \dataqual} & \textbf{Implementación} \\
@@ -424,9 +425,8 @@ y sus límites definen el espacio en el que \dataqual opera.
     servicios de Amazon Web Services, verificación declarativa de restricciones y
     detección de anomalías basada en series temporales. Sin embargo, requiere un
     entorno JVM y un clúster de Spark (una barrera de entrada considerable),
-    no dispone de interfaz web, resulta desproporcionado para datasets de tamaño
-    medio y no implementa métricas específicas para \ac{IA} como el equilibrio de
-    clases.
+    no dispone de interfaz web y resulta desproporcionado para datasets de
+    tamaño medio.
 
   \item \textbf{DQOps}~\citep{dqops} es una herramienta de código abierto
     inspirada en la filosofía de SonarQube~\citep{sonarqube}, que trata la
@@ -437,8 +437,8 @@ y sus límites definen el espacio en el que \dataqual opera.
     de calidad. No obstante, su configuración es compleja dado el elevado número
     de checks disponibles y, aunque incorpora soporte para ficheros planos
     (\ac{CSV}, Parquet) a través de DuckDB, su enfoque principal es la
-    monitorización de fuentes conectadas; no ha sido diseñada para proyectos de
-    \ac{IA} y carece de métricas como el equilibrio de clases o la diversidad.
+    monitorización de fuentes conectadas y no ha sido diseñada para proyectos de
+    \ac{IA}.
 
   \item \textbf{Soda Core}~\citep{sodacore} es un \emph{framework} de código
     abierto (Apache~2.0) para validación y monitorización continua, cuyos
@@ -451,9 +451,8 @@ y sus límites definen el espacio en el que \dataqual opera.
     \emph{Quality Gates} con notificaciones. Su limitación es que esa interfaz
     web solo está disponible en el nivel comercial, por lo que el uso puramente
     \emph{open source} se reduce a la línea de comandos; además, carece de
-    métricas específicas para \ac{IA} (equilibrio de clases, detección de valores
-    atípicos orientada a modelos) y no implementa \emph{fingerprinting} de issues
-    entre ejecuciones ni ocultación nativa de datos sensibles (\ac{PII}).
+    métricas específicas para \ac{IA}, de \emph{fingerprinting} de issues y de
+    ocultación nativa de \ac{PII}.
 \end{itemize}
 
 \subsection{Análisis comparativo}
@@ -563,11 +562,10 @@ exige que los datos residan ya en \ac{AWS} y carece de métricas específicas pa
 
 \paragraph{Herramientas orientadas a \ac{ML}.}
 Evidently~AI~\citep{evidentlyai} monitoriza \emph{data drift} y equilibrio de
-clases, orientada a la comparación distribucional entre referencia y producción
-más que a la auditoría estática de un fichero; Pandera~\citep{pandera} valida
-esquemas de \emph{DataFrames} de pandas pero sin interfaz ni historial; e
-ydata-profiling~\citep{ydataprofiling} genera informes exploratorios en HTML sin
-motor de evaluación configurable ni Quality Gates.
+clases comparando distribuciones entre referencia y producción, no auditando un
+fichero estático; Pandera~\citep{pandera} valida esquemas de \emph{DataFrames}
+de pandas, sin interfaz ni historial; e ydata-profiling~\citep{ydataprofiling}
+genera informes exploratorios en HTML, sin motor de evaluación ni Quality Gates.
 
 
 % Local Variables:

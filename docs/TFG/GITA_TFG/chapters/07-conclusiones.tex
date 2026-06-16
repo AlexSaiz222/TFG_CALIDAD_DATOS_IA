@@ -6,8 +6,7 @@ herramientas de calidad de datos una solución \emph{full-stack} autoalojada y
 sin necesidad de programar que reúne métricas específicas para \ac{ML},
 \emph{fingerprinting} determinista, \emph{Quality Gates} y protección nativa de
 \ac{PII}, una combinación ausente en las herramientas de código abierto
-analizadas en el estado del arte (sección~\ref{sec:estado-arte}) y cuyo detalle
-se recoge en la sección~\ref{sec:fortalezas}.
+analizadas en el estado del arte (sección~\ref{sec:estado-arte}).
 
 Desde el punto de vista académico, el proyecto materializa la convergencia entre
 la ingeniería del software moderna (arquitecturas de microservicios, patrones de
@@ -17,182 +16,224 @@ con los estándares \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259 que puede s
 base para investigación futura sobre métricas de calidad específicas para
 \ac{ML}.
 
+A modo de balance general, el proyecto deja un resultado con luces y sombras
+que conviene presentar de forma conjunta antes de revisar objetivos, lecciones
+y líneas futuras.
+
+\textbf{En el plano de los logros, \dataqual es una plataforma funcional de
+extremo a extremo asentada sobre una base arquitectónica extensible:} el motor
+de métricas basado en \emph{plugins} (\texttt{BaseMetric}~+~\texttt{METRIC\_REGISTRY})
+creció de tres a siete métricas durante el desarrollo sin reescribir el
+orquestador de evaluaciones, y el \emph{frontend} se organiza en más de
+cincuenta componentes React reutilizables.  Sobre esa base, la plataforma
+incorpora capacidades diferenciadoras frente a las herramientas analizadas:
+\emph{fingerprinting} \ac{SHA}-256 para trazar la evolución de cada \emph{issue}
+entre ejecuciones, \emph{Quality Gates} con veredicto integrable en
+\emph{pipelines} de \ac{MLOps}, un módulo de perfilado interactivo y métricas
+específicas para \ac{ML} (equilibrio de clases y diversidad) ausentes en las
+herramientas generalistas.  A ello se suman una protección de \ac{PII} nativa
+por construcción, no como filtro añadido a posteriori, de especial valor en
+contextos regulados por el \ac{RGPD}, y un despliegue íntegramente autoalojable
+con Docker Compose sin dependencias de nube propietaria.
+
+\textbf{Frente a esos logros, conviene reconocer también las debilidades del
+sistema.}  La restricción técnica más significativa es la escalabilidad: el
+motor opera sobre \emph{DataFrames} de Pandas cargados íntegramente en memoria,
+lo que acota el tamaño de \emph{dataset} a la RAM disponible, y la
+escalabilidad horizontal con varios \emph{workers} de Celery no se ha validado;
+el \emph{frontend}, además, obtiene el estado de las evaluaciones por
+\emph{polling} periódico en lugar de notificaciones \emph{push}.  A esto se
+añaden una madurez limitada de cara a entornos corporativos (autenticación solo
+\ac{JWT}, sin OAuth~2.0, \ac{SSO} ni autenticación multifactor, y sin
+exportación de informes a
+\ac{PDF} o Excel), la ausencia de pruebas \emph{end-to-end} automatizadas (la
+mayor brecha en el aseguramiento de calidad del propio proyecto, hoy cubierta
+solo con validación manual), el alcance de la validación experimental
+(verificación realizada por el propio autor, sin usuarios externos del dominio)
+y la frontera funcional del sistema, que diagnostica los problemas de calidad
+pero no los corrige ni dispone todavía de conectores nativos a bases de datos o
+a almacenamiento en la nube.  Su madurez es, por tanto, la de un prototipo
+funcional y no la de una herramienta de producción, lo cual es coherente con el
+alcance de un \ac{TFG}.  Las líneas de evolución que se derivan de estas
+limitaciones se recogen en la sección~\ref{sec:trabajo-futuro}.
 
 
 %% =========================================================================
-\section{Revisión de objetivos}
+\section{Revisión de consecución de objetivos}
 \label{sec:revision-objetivos}
 %% =========================================================================
 
 El presente \ac{TFG} estableció cinco objetivos específicos (OE1--OE5) y
-un conjunto de requisitos no funcionales.  La verificación detallada del
-grado de cumplimiento, con la evidencia técnica asociada a cada uno, se
-recoge en los Cuadros~\ref{tab:cumplimiento} y~\ref{tab:rnf-cumplimiento}
-del capítulo de resultados.  En síntesis, los cinco objetivos específicos
-se cumplen y OE3 se supera (la \ac{API} creció a diez \emph{blueprints}
-registrados con la incorporación de \texttt{patterns} en el Sprint~5);
-los cinco requisitos no funcionales (seguridad, escalabilidad,
-mantenibilidad, usabilidad y portabilidad) se atienden satisfactoriamente.
-La seguridad, la escalabilidad y la usabilidad quedan como cumplimiento
-parcial, pendientes de una auditoría de seguridad, de pruebas de carga y de
-una evaluación de usabilidad respectivamente, junto con las pruebas
-\emph{end-to-end} del \emph{frontend}.  Todo ello se recoge como trabajo
-futuro.
+un conjunto de requisitos no funcionales.  Esta sección verifica su grado de
+cumplimiento con la evidencia técnica asociada a cada uno.
 
-\textbf{Valoración global del proyecto:} \dataqual es una plataforma
-funcional de extremo a extremo cuyas fortalezas se detallan en la
-sección~\ref{sec:fortalezas}.  Su madurez es la de un prototipo funcional,
-no de una herramienta de producción, lo cual está alineado con el alcance
-de un \ac{TFG}.
+El Cuadro~\ref{tab:cumplimiento} recoge, para cada objetivo específico, la
+evidencia de su cumplimiento, el sprint en que se materializó y la subsección
+donde se documenta.
 
-\textbf{Limitaciones encontradas:} las restricciones técnicas y de alcance
-del sistema se analizan en la sección~\ref{sec:limitaciones}, y las líneas
-de trabajo derivadas, en la sección~\ref{sec:trabajo-futuro}.
+\begin{table}[htbp]
+  \centering
+  \caption{Verificación del cumplimiento de los objetivos específicos}
+  \label{tab:cumplimiento}
+  \begin{tabularx}{\textwidth}{l X l c}
+    \toprule
+    \textbf{Obj.} & \textbf{Evidencia} & \textbf{Sprint} & \textbf{Estado} \\
+    \midrule
+    OE1 & Módulo de ingesta en formato \ac{CSV} con parseo robusto mediante
+      matriz de \emph{fallback} (codificaciones $\times$ separadores);
+      almacenamiento en MinIO; extracción automática de esquema;
+      versionado padre-hijo con etiquetas personalizables.
+      & S2 (sec.~\ref{sec:impl-ingesta}) & Cumplido \\
+    OE2 & Siete métricas implementadas como \emph{plugins}; parametrización
+      completa; sistema de pesos; plantillas reutilizables; ejecución
+      asíncrona con Celery. & S3--S5 (sec.~\ref{sec:motor-metricas}) & Cumplido \\
+    OE3 & Seis \emph{blueprints} funcionales planificados, ampliados a
+      siete con la adición de \texttt{patterns} (validación
+      reutilizable); autenticación \ac{JWT}; formato de respuesta
+      estandarizado; paginación; validación Marshmallow.
+      & S2 (sec.~\ref{sec:arq-backend}) & Superado \\
+    OE4 & Más de 20 páginas; cuadros de mando interactivos; \ac{EDA} con
+      histogramas, diagramas de caja y matrices de correlación; diseño
+      adaptable. & S4 (sec.~\ref{sec:impl-frontend}) & Cumplido \\
+    OE5 & Sistema de \emph{issues} con cuatro severidades;
+      \emph{fingerprinting} \ac{SHA}-256; comparación con línea base;
+      \emph{Quality Gates} con tres estados.
+      & S5 (sec.~\ref{sec:impl-fingerprinting}) & Cumplido \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Los cinco objetivos se cumplen con el sistema tal como está desplegado.  El
+único objetivo superado es OE3: la \ac{API} creció de seis a siete
+\emph{blueprints} funcionales durante el desarrollo, y los \emph{blueprints}
+de organización técnica elevaron el total a diez.
+
+Más allá de los objetivos funcionales, el diseño de \dataqual ha prestado
+atención a cinco requisitos no funcionales que han orientado sus decisiones
+arquitectónicas y tecnológicas: \textbf{seguridad}, \textbf{escalabilidad},
+\textbf{mantenibilidad}, \textbf{usabilidad} y \textbf{portabilidad}.  El
+Cuadro~\ref{tab:rnf-cumplimiento} recoge, para cada uno, las decisiones de
+diseño que lo materializan y su grado de cumplimiento (total o parcial).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cumplimiento de los requisitos no funcionales}
+  \label{tab:rnf-cumplimiento}
+  \footnotesize
+  \renewcommand{\arraystretch}{1.4}%
+  \begin{tabularx}{\textwidth}{l X c}
+    \toprule
+    \textbf{RNF} & \textbf{Evidencia} & \textbf{Cumplimiento} \\
+    \midrule
+    Seguridad & Autenticación \ac{JWT} con \emph{tokens} de acceso y
+      refresco; \emph{hashing} de contraseñas con \ac{PBKDF2}; limitación
+      de tasa de peticiones (Flask-Limiter sobre Redis); validación de
+      entradas con esquemas Marshmallow; lista de tokens prohibidos en
+      las reglas de consistencia lógica para evitar la ejecución de
+      código arbitrario; enmascaramiento automático de las columnas
+      marcadas como \ac{PII} en todos los \emph{outputs}.  No se ha
+      realizado una auditoría de seguridad ni pruebas de penetración
+      formales. & Parcial \\
+    Escalabilidad & Procesamiento asíncrono con Celery y Redis como
+      \emph{broker}; arquitectura preparada para escalar
+      horizontalmente el número de \emph{workers}; separación de
+      responsabilidades entre los ocho servicios desplegados.  No se han
+      realizado pruebas de carga con grandes volúmenes ni usuarios
+      concurrentes. & Parcial \\
+    Mantenibilidad & Arquitectura modular basada en \emph{blueprints},
+      servicios y modelos; motor de métricas extensible mediante
+      \emph{plugins} (\texttt{BaseMetric} + \texttt{METRIC\_REGISTRY});
+      migraciones de base de datos versionadas con Alembic; separación
+      estricta entre \emph{frontend} y \emph{backend}. & Total \\
+    Usabilidad & Interfaz basada en Material Design con validación en
+      tiempo real, notificaciones \emph{toast}, \emph{breadcrumbs} de
+      navegación y estados de carga/error diferenciados; soporte
+      español/inglés con cambio en tiempo real sin recargar la
+      aplicación.  No se ha realizado una evaluación de usabilidad. & Parcial \\
+    Portabilidad & Despliegue íntegro del \emph{stack} con un único
+      \texttt{docker\,compose\,up}; configuración por variables de
+      entorno; sin dependencias de servicios propietarios en la nube;
+      ocho servicios orquestados conjuntamente. & Total \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Quedan como verificación pendiente una \textbf{auditoría de seguridad}, la
+\textbf{validación de escalabilidad mediante pruebas de carga} y una
+\textbf{evaluación de usabilidad}, así como la \textbf{cobertura de pruebas
+\emph{end-to-end} del \emph{frontend}}, que durante el desarrollo se validó
+manualmente.  Estas tareas se recogen como trabajo futuro
+(sección~\ref{sec:trabajo-futuro}).
+
 
 %% =========================================================================
-\section{Fortalezas de la plataforma}
-\label{sec:fortalezas}
+\section{Lecciones aprendidas}
+\label{sec:lecciones}
 %% =========================================================================
 
-A partir de los resultados consolidados, las fortalezas de \dataqual se
-pueden agrupar en cuatro ejes: una base arquitectónica extensible, un
-conjunto de capacidades funcionales diferenciadoras, una integración
-nativa de la protección de \acs{PII} y un modelo de despliegue y operación
-robusto.  El desarrollo técnico de cada una se describe en los sprints
-correspondientes del capítulo~\ref{chap:desarrollo}; aquí se discute su
-valor desde la perspectiva del sistema acabado.
+El desarrollo del proyecto ha proporcionado lecciones que cabe agrupar
+en dos planos: el metodológico, relativo a cómo se organiza el trabajo,
+y el técnico, relativo a las decisiones de diseño que conviene tomar
+pronto.
 
-La principal fortaleza arquitectónica es el \textbf{patrón de
-\emph{plugins} del motor de métricas}
-(\texttt{BaseMetric}~+~\texttt{METRIC\_REGISTRY}, descrito en la
-sección~\ref{sec:motor-metricas}).  Su valor quedó demostrado durante el
-propio desarrollo, en el que el catálogo creció de tres métricas en el
-Sprint~3 a siete al cierre del Sprint~5 sin necesidad de reescribir el
-orquestador de evaluaciones.  La misma filosofía de extensibilidad se
-traslada al \emph{frontend}, organizado en torno a más de cincuenta
-componentes React reutilizables.
+En el plano metodológico, la lección principal es que el \textbf{desarrollo
+iterativo no es solo una metodología formal, sino una forma de pensar
+que reduce el riesgo real de los proyectos}.  La organización en
+iteraciones con entregas funcionales permitió detectar y corregir
+problemas de diseño de forma temprana, evitando retrabajos costosos en
+fases avanzadas.  Paralelamente, el desarrollo confirmó que \textbf{el
+diseño de métricas de calidad de datos no es un ejercicio puramente
+algorítmico}: requiere comprender los estándares internacionales, las
+necesidades reales de los usuarios y los matices de cada dimensión de
+calidad (qué significa exactamente «completitud» cuando una columna
+tiene valores codificados como cadenas vacías, etiquetas
+\texttt{N/A} o ceros con sentido distinto al de nulo).  Sin este trabajo
+previo de modelado del dominio, las métricas resultantes habrían sido
+superficiales o francamente engañosas.
 
-Sobre esa base, la plataforma incorpora cuatro \textbf{capacidades
-funcionales diferenciadoras} frente a las herramientas analizadas en el
-capítulo~\ref{chap:antecedentes}: el sistema de \emph{fingerprinting}
-\ac{SHA}-256 (Sprint~5), que permite trazar la evolución de cada
-\emph{issue} entre ejecuciones; los \emph{Quality Gates} con veredicto
-\texttt{PASSED}/\texttt{WARNING}/\texttt{FAILED}, integrables en
-\emph{pipelines} de \ac{MLOps}~\citep{sonarqube}; el módulo de perfilado
-interactivo (Sprint~4), que concentra histogramas, diagramas de caja,
-matrices de correlación y detección de \emph{outliers} en una sola
-pantalla; y las \textbf{métricas específicas para \ac{ML}} (equilibrio
-de clases y diversidad), ausentes en las herramientas generalistas.
+En el plano técnico, dos decisiones tomadas pronto resultaron
+especialmente rentables.  \textbf{La seguridad debe integrarse desde el
+inicio del diseño}, no añadirse como capa posterior: decisiones como la
+protección contra inyección en las reglas de consistencia lógica o el
+enmascaramiento nativo de \ac{PII} fueron mucho más sencillas de
+implementar al considerarlas desde las fases iniciales que si hubiera
+sido necesario reconstruir el sistema sin ellas.  Por contraste, \textbf{la
+gestión de la complejidad del \emph{frontend} requiere una disciplina
+de modularización que conviene aplicar antes de que duela}: componentes
+como el módulo de \emph{profiling} de datos crecieron significativamente
+durante el desarrollo y, en retrospectiva, una mayor división temprana
+en subcomponentes habría facilitado el mantenimiento en las iteraciones
+finales.  La asimetría entre ambas lecciones resulta reveladora: lo que
+se asume cuidar desde el principio (seguridad) sale bien, mientras que
+lo que se posterga (refactor del \emph{frontend}) acaba doliendo.
 
-La \textbf{protección nativa de \acs{PII}} es la fortaleza con mayor
-valor diferencial en contextos regulados por el \ac{RGPD}.  Lejos de
-tratarse de una capa filtro añadida \emph{a posteriori}, el
-enmascaramiento es un contrato que toda métrica debe respetar
-(Sprint~5): marca la diferencia entre «la herramienta puede ofuscar
-\acs{PII} si se configura» y «la herramienta no puede revelar
-\acs{PII} por construcción».
+En un plano más amplio, el proyecto deja dos convicciones de fondo.  La
+primera es que \textbf{la calidad de datos para \ac{IA} requiere
+herramientas más accesibles} que los enfoques \emph{ad hoc} basados en
+\emph{scripts} y cuadernos Jupyter: estas aproximaciones, aunque
+flexibles, imponen barreras de estandarización, historización y
+accesibilidad que dificultan su adopción cuando los responsables de la
+calidad no son perfiles puramente técnicos.  La segunda es que \textbf{los
+estándares internacionales constituyen un marco sólido para el diseño de
+métricas}: alinearse con \ac{ISO}/\ac{IEC}~25012~\citep{iso25012} e
+\ac{ISO}/\ac{IEC}~5259~\citep{iso5259} evitó definiciones arbitrarias y
+aportó un vocabulario común que facilita la comparabilidad entre proyectos.
 
-Desde el punto de vista operativo, \dataqual es \textbf{íntegramente
-autoalojable mediante Docker Compose} (ocho servicios en una red
-interna, sin dependencias de nube propietaria), incorpora un
-\textbf{parseo robusto de \ac{CSV}} mediante matriz de \emph{fallback}
-(Sprint~2), y orquesta el procesamiento asíncrono con
-Celery~\citep{celery} complementado por un \emph{watchdog} y un
-servicio híbrido de \emph{fallback} síncrono que garantizan la
-completitud de las evaluaciones incluso en escenarios degradados.
+Por último, afrontar en solitario un proyecto de nueve meses ha
+consolidado lecciones de carácter transversal: la resolución autónoma de
+problemas de integración entre servicios, la disciplina de estimación y
+planificación con \emph{story points} y el ajuste continuo del plan ante
+imprevistos, hábitos de gestión que difícilmente se adquieren fuera de un
+proyecto de esta envergadura.
 
-
-%% =========================================================================
-\section{Limitaciones y desafíos encontrados}
-\label{sec:limitaciones}
-%% =========================================================================
-
-A pesar de los resultados alcanzados, la plataforma presenta limitaciones
-que conviene reconocer explícitamente.  Estas se pueden agrupar en cinco
-ámbitos: la escalabilidad y el rendimiento del motor de procesamiento,
-la madurez de los servicios de plataforma de cara a entornos
-corporativos, la cobertura de las pruebas automatizadas, el alcance de
-la validación experimental y la frontera funcional del sistema en
-relación con la corrección de datos y la integración con fuentes
-externas.
-
-El primer grupo afecta a la \textbf{escalabilidad y al rendimiento} bajo
-cargas elevadas y constituye la restricción técnica más significativa de
-la plataforma.  El motor de métricas opera sobre \emph{DataFrames} de
-Pandas cargados íntegramente en memoria, lo que impone como cota
-superior el tamaño de la RAM disponible y descarta procesar
-\emph{datasets} de varios GB sin migrar a un motor distribuido como Dask
-o Spark.  La capa de procesamiento, además, no se ha validado con
-múltiples \emph{workers} de Celery en paralelo, por lo que la
-escalabilidad horizontal que el diseño permite es todavía teórica.  El
-\emph{frontend}, por su parte, obtiene el estado de las evaluaciones
-mediante \emph{polling} periódico en lugar de notificaciones \emph{push}
-por \emph{WebSocket}: aunque el patrón es funcionalmente correcto y
-simplifica la arquitectura, introduce latencia perceptible y carga
-innecesaria contra la \ac{API} cuando se ejecutan muchas evaluaciones
-simultáneamente.  Por último, la detección de valores atípicos en el
-módulo de perfilado se limita al método estadístico clásico del
-\ac{IQR}; algoritmos basados en aprendizaje automático como
-\emph{Isolation Forest} o \ac{DBSCAN}, que detectarían anomalías
-multidimensionales más sutiles, quedan fuera del alcance de esta versión
-(la decisión de tratar los \emph{outliers} como herramienta de
-diagnóstico y no como dimensión de calidad se justifica en la
-sección~\ref{sec:priorizacion-mvp}).
-
-Un segundo grupo afecta a la \textbf{madurez de los servicios de
-plataforma} de cara a entornos corporativos.  La autenticación se limita
-a \ac{JWT} con usuario y contraseña: no se han implementado OAuth~2.0,
-\emph{Single Sign-On} corporativo ni autenticación multifactor, por lo
-que la plataforma no está preparada todavía para integrarse en entornos
-empresariales con identidad federada.  Los resultados, además, no pueden
-exportarse a formatos de informe formal como \ac{PDF} o Excel, lo que
-dificulta el reporte a perfiles ajenos al equipo técnico y la
-incorporación de los hallazgos a documentación de auditoría.
-
-El tercer ámbito es la cobertura de \textbf{pruebas automatizadas}, que
-aunque amplia en componentes individuales (motor de métricas,
-\emph{Quality Score}, \emph{Quality Gates}, \emph{fingerprinting},
-comparación con línea base, autorización \ac{IDOR} y versionado de
-\emph{datasets}), no incluye pruebas \emph{end-to-end} que validen el
-flujo completo desde la subida de un \emph{dataset} hasta la emisión del
-veredicto del \emph{Quality Gate}.  Esta validación se realizó de forma
-manual durante el desarrollo, pero su automatización con herramientas
-como Playwright o Cypress queda como tarea pendiente y constituye la
-mayor brecha en la estrategia de aseguramiento de calidad del propio
-proyecto.
-
-Finalmente, conviene reconocer también una limitación de carácter
-metodológico relativa al \textbf{alcance de la validación
-experimental}.  La verificación funcional del sistema se ha realizado
-por el propio autor, complementada con un conjunto amplio de pruebas
-automatizadas, pero no se ha llevado a cabo una validación con usuarios
-externos del dominio de calidad de datos o de ingeniería de \ac{ML} que
-permita evaluar empíricamente la usabilidad de la interfaz, la
-adecuación del catálogo de métricas a casos de uso reales o el ajuste
-de los umbrales por defecto de los \emph{Quality Gates}.  La
-validación realizada acredita la corrección técnica del sistema, pero
-no su idoneidad operativa para perfiles externos al desarrollo.
-
-Un quinto ámbito es la \textbf{frontera funcional del sistema}.  Por un
-lado, \dataqual diagnostica y clasifica los problemas de calidad, pero la
-decisión y ejecución de las acciones correctoras (limpieza, imputación,
-deduplicación) corresponden al usuario: la incorporación de sugerencias
-de corrección automatizada queda como una de las líneas de trabajo
-futuro identificadas en la sección~\ref{sec:trabajo-futuro}.  Por otro,
-no se han desarrollado conectores específicos para bases de datos
-(MySQL, BigQuery, Snowflake) ni para servicios de almacenamiento en la
-nube (\ac{AWS}~S3, Azure~Blob, Google~Cloud~Storage); aunque la arquitectura
-basada en MinIO es compatible con el protocolo S3, el usuario interactúa
-actualmente con la plataforma a través de ficheros \ac{CSV} cargados
-manualmente.
 
 %% =========================================================================
 \section{Líneas de trabajo futuro}
 \label{sec:trabajo-futuro}
 %% =========================================================================
 
-A partir de las limitaciones identificadas en la
-sección~\ref{sec:limitaciones} y de las oportunidades detectadas durante
+A partir de las limitaciones reconocidas en este capítulo y de las
+oportunidades detectadas durante
 el desarrollo, las líneas de evolución de \dataqual\ se articulan en
 cuatro ejes: comunicación de resultados e integraciones salientes,
 escalabilidad y rendimiento, integraciones empresariales, y
@@ -250,135 +291,60 @@ el ciclo de diagnóstico con propuestas concretas de acción.
 
 
 %% =========================================================================
-\section{Discusión}
-\label{sec:discusion}
-%% =========================================================================
-
-Más allá de las fortalezas y limitaciones ya descritas, del trabajo se
-desprenden dos conclusiones de fondo: la respuesta a una necesidad
-práctica del ecosistema actual de calidad de datos y el valor de los
-estándares internacionales como marco de rigor metodológico.
-
-En primer lugar, el proyecto confirma que \textbf{la calidad de datos
-para \ac{IA} requiere herramientas más accesibles} que los enfoques
-\emph{ad hoc} basados en \emph{scripts} y cuadernos Jupyter.  Estas
-aproximaciones, aunque flexibles, presentan barreras de estandarización,
-historización y accesibilidad que dificultan su adopción sistemática en
-organizaciones donde los responsables de la calidad no son perfiles
-puramente técnicos.  \dataqual\ demuestra que es viable ofrecer una
-interfaz web accesible sin renunciar a la potencia de una \ac{API}
-\ac{REST}ful programática, conciliando ambos modos de uso bajo el mismo
-sistema.
-
-En segundo lugar, \textbf{los estándares internacionales han demostrado
-ser un marco sólido para el diseño de métricas}: la alineación con
-\ac{ISO}/\ac{IEC}~25012~\citep{iso25012} e
-\ac{ISO}/\ac{IEC}~5259~\citep{iso5259} evitó definiciones arbitrarias y aportó
-un vocabulario común que facilita la comparabilidad entre proyectos.
-
-
-%% =========================================================================
-\section{Lecciones aprendidas}
-\label{sec:lecciones}
-%% =========================================================================
-
-El desarrollo del proyecto ha proporcionado lecciones que cabe agrupar
-en dos planos: el metodológico, relativo a cómo se organiza el trabajo,
-y el técnico, relativo a las decisiones de diseño que conviene tomar
-pronto.
-
-En el plano metodológico, la lección principal es que el \textbf{desarrollo
-iterativo no es solo una metodología formal, sino una forma de pensar
-que reduce el riesgo real de los proyectos}.  La organización en
-iteraciones con entregas funcionales permitió detectar y corregir
-problemas de diseño de forma temprana, evitando retrabajos costosos en
-fases avanzadas.  Paralelamente, el desarrollo confirmó que \textbf{el
-diseño de métricas de calidad de datos no es un ejercicio puramente
-algorítmico}: requiere comprender los estándares internacionales, las
-necesidades reales de los usuarios y los matices de cada dimensión de
-calidad (qué significa exactamente «completitud» cuando una columna
-tiene valores codificados como cadenas vacías, etiquetas
-\texttt{N/A} o ceros con sentido distinto al de nulo).  Sin este trabajo
-previo de modelado del dominio, las métricas resultantes habrían sido
-superficiales o francamente engañosas.
-
-En el plano técnico, dos decisiones tomadas pronto resultaron
-especialmente rentables.  \textbf{La seguridad debe integrarse desde el
-inicio del diseño}, no añadirse como capa posterior: decisiones como la
-protección contra inyección en las reglas de consistencia lógica o el
-enmascaramiento nativo de \ac{PII} fueron mucho más sencillas de
-implementar al considerarlas desde las fases iniciales que si hubiera
-sido necesario reconstruir el sistema sin ellas.  Por contraste, \textbf{la
-gestión de la complejidad del \emph{frontend} requiere una disciplina
-de modularización que conviene aplicar antes de que duela}: componentes
-como el módulo de \emph{profiling} de datos crecieron significativamente
-durante el desarrollo y, en retrospectiva, una mayor división temprana
-en subcomponentes habría facilitado el mantenimiento en las iteraciones
-finales.  La asimetría entre ambas lecciones resulta reveladora: lo que
-se asume cuidar desde el principio (seguridad) sale bien, mientras que
-lo que se posterga (refactor del \emph{frontend}) acaba doliendo.
-
-
-%% =========================================================================
 \section{Competencias adquiridas}
 \label{sec:competencias}
 %% =========================================================================
 
-El desarrollo de este \ac{TFG} en la intensificación de Sistemas de
-Información ha permitido adquirir y consolidar las siguientes competencias:
+El desarrollo de \dataqual\ ha permitido ejercitar y justificar varias de las
+competencias específicas de la \textbf{Mención en Sistemas de Información} del
+Grado en Ingeniería Informática.  A continuación se justifican aquellas que el
+trabajo evidencia de forma directa, indicando para cada una la prueba concreta
+en el proyecto.
 
 \begin{itemize}
-  \item \textbf{Desarrollo \emph{full-stack}:} diseño e implementación de
-    una aplicación web completa con separación clara entre \emph{frontend}
-    (Next.js, React, TypeScript) y \emph{backend} (Python, Flask,
-    SQLAlchemy).
+  \item \textbf{[SI1]} \emph{Capacidad de integrar soluciones de Tecnologías de
+    la Información y las Comunicaciones y procesos empresariales para satisfacer
+    las necesidades de información de las organizaciones, permitiéndoles alcanzar
+    sus objetivos de forma efectiva y eficiente, dándoles así ventajas
+    competitivas.}\\
+    El proyecto ha exigido integrar diversas tecnologías de aplicación,
+    procesamiento asíncrono y almacenamiento en una solución cohesionada,
+    orientada a una necesidad de información real de las organizaciones: asegurar
+    la calidad de los datos que sustentan sus proyectos de \ac{IA}.  Al ofrecer
+    datos más fiables y trazables, contribuye a la eficacia de esos proyectos en
+    un terreno donde la calidad del dato es un factor determinante.
 
-  \item \textbf{Arquitecturas distribuidas y contenerización:} orquestación
-    de ocho servicios Docker con Docker Compose, gestión de dependencias
-    entre servicios, \emph{healthchecks} y volúmenes persistentes.
+  \item \textbf{[SI2]} \emph{Capacidad para determinar los requisitos de los
+    sistemas de información y comunicación de una organización atendiendo a
+    aspectos de seguridad y cumplimiento de la normativa y la legislación
+    vigente.}\\
+    El desarrollo incluyó la determinación de los requisitos del sistema
+    (capítulo~\ref{chap:objetivos}), entre ellos los de seguridad y cumplimiento
+    normativo.  Estos se concretaron en los mecanismos de autenticación y
+    protección de la aplicación y, en el plano legal, en el enmascaramiento de la
+    información personal (\ac{PII}) conforme al \ac{RGPD}, además de la alineación
+    del catálogo de métricas con los estándares \ac{ISO}/\ac{IEC}~25012 y~5259.
 
-  \item \textbf{Procesamiento de datos tabulares:} manipulación de datasets
-    en múltiples formatos con Pandas, cálculo de métricas estadísticas
-    y gestión de casos extremos (nulos, tipos mixtos, codificaciones).
+  \item \textbf{[SI3]} \emph{Capacidad para participar activamente en la
+    especificación, diseño, implementación y mantenimiento de los sistemas de
+    información y comunicación.}\\
+    El trabajo ha abarcado el ciclo de vida completo de un sistema de
+    información, desde la especificación y el diseño de la arquitectura hasta su
+    implementación y mantenimiento (migraciones versionadas, modularidad y
+    pruebas que facilitan la evolución del código), organizado en seis sprints
+    iterativos.
 
-  \item \textbf{Calidad de datos e ingeniería de la calidad:} comprensión
-    profunda de los estándares \ac{ISO}/\ac{IEC}~25012 e \ac{ISO}/\ac{IEC}~5259 y su
-    aplicación práctica en el diseño de métricas.
-
-  \item \textbf{Seguridad en aplicaciones web:} autenticación \ac{JWT},
-    \emph{hashing} de contraseñas con \ac{PBKDF2}, limitación de tasa,
-    cabeceras de seguridad y prevención de inyección de código.
-
-  \item \textbf{Diseño de \ac{API}s \ac{REST}:} especificación y
-    documentación de \emph{endpoints}, gestión de versiones, paginación y
-    validación de entradas.
-
-  \item \textbf{Gestión ágil con Scrum adaptado:} planificación de sprints,
-    gestión del backlog con GitHub Issues, retrospectivas y adaptación del
-    plan ante imprevistos.
-
-  \item \textbf{Control de versiones avanzado:} estrategia de \emph{feature
-    branches}, mensajes de \emph{commit} descriptivos y trazabilidad entre
-    código e issues.
-
-  \item \textbf{Estimación y planificación:} uso de \emph{story points},
-    análisis de desviaciones y ajuste de estimaciones a lo largo del
-    proyecto.
-
-  \item \textbf{Documentación técnica:} redacción de una memoria de \ac{TFG}
-    completa en \LaTeX, especificaciones de \ac{API} y catálogos de métricas.
-
-  \item \textbf{Resolución autónoma de problemas:} diagnóstico y resolución
-    de problemas de integración entre servicios Docker, incompatibilidades de
-    formato de datos y gestión de errores en sistemas distribuidos.
-
-  \item \textbf{Capacidad de síntesis y abstracción:} diseño de interfaces
-    que permiten extender el sistema (motor de métricas, arquitectura de
-    \emph{plugins}) sin conocer los detalles de las implementaciones concretas.
-
-  \item \textbf{Trabajo autónomo bajo supervisión:} gestión del tiempo y la
-    priorización en un proyecto individual de nueve meses con reuniones de
-    seguimiento periódicas.
+  \item \textbf{[SI6]} \emph{Capacidad para comprender y aplicar los principios
+    y las técnicas de gestión de la calidad y de la innovación tecnológica en
+    las organizaciones.}\\
+    Esta competencia se ha ejercido aplicando técnicas de gestión de la calidad
+    al propio desarrollo: el análisis estático continuo del código con SonarQube
+    (sección~\ref{sec:calidad-sonarqube-resumen}) y una batería de pruebas
+    automatizadas que actúa como red de seguridad frente a regresiones
+    (sección~\ref{sec:impl-pruebas}), reflejo de los principios de aseguramiento
+    y mejora continua.  La adopción de estándares recientes como
+    \ac{ISO}/\ac{IEC}~5259 aporta, además, el componente de innovación
+    tecnológica.
 \end{itemize}
 
 
