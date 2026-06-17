@@ -155,10 +155,11 @@ Se completaron los ítems del sprint con las siguientes observaciones:
     el endpoint básico de carga almacena el fichero en MinIO y registra los
     metadatos en la tabla \texttt{datasets}.  La implementación completa del
     módulo de ingesta se completó en el Sprint~2.
-  \item \textbf{Cambio respecto a lo planificado}: la configuración de
-    \emph{healthchecks} en Docker Compose requirió más tiempo del estimado
-    (+4h) debido a los tiempos de arranque de PostgreSQL y MinIO.
 \end{itemize}
+
+\textbf{Cambio respecto a lo planificado}: la configuración de
+\emph{healthchecks} en Docker Compose requirió más tiempo del estimado
+(+4h) debido a los tiempos de arranque de PostgreSQL y MinIO.
 
 \subsection{Cómo se ha hecho}
 
@@ -174,14 +175,14 @@ La Figura~\ref{fig:arquitectura-componentes} presenta el diagrama de
 componentes en notación \ac{UML}: separa los componentes de software
 (\emph{frontend} y \emph{backend}) de la infraestructura (PostgreSQL, Redis y
 MinIO), con sus interfaces provistas y requeridas y el protocolo de cada
-comunicación.  El \emph{backend} constituye un único componente que se
-despliega como servidor web (Gunicorn) y como procesos Celery (\emph{worker}
-y \emph{beat}) a partir del mismo artefacto; el detalle de los ocho servicios
-orquestados se recoge en el Cuadro~\ref{tab:servicios}.
+comunicación.  El \emph{backend} es un único artefacto que se despliega como
+servidor web (Gunicorn) y como procesos Celery; el detalle de los ocho
+servicios se recoge en el Cuadro~\ref{tab:servicios}.
 
-\begin{figure}[!t]
+\enlargethispage{\baselineskip}
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{img/arquitectura-componentes.png}
+  \includegraphics[width=0.85\textwidth]{img/arquitectura-componentes.png}
   \caption{Diagrama de componentes \acs{UML} de la plataforma \dataqual}
   \label{fig:arquitectura-componentes}
 \end{figure}
@@ -189,7 +190,7 @@ orquestados se recoge en el Cuadro~\ref{tab:servicios}.
 El Cuadro~\ref{tab:servicios} recoge los ocho servicios, sus puertos y su
 propósito.
 
-\begin{table}[t]
+\begin{table}[htbp]
   \centering
   \caption{Servicios Docker de \dataqual}
   \label{tab:servicios}
@@ -218,7 +219,7 @@ por el \emph{Celery worker}.
 
 El Cuadro~\ref{tab:comunicacion} resume los protocolos de comunicación.
 
-\begin{table}[t]
+\begin{table}[htbp]
   \centering
   \caption{Protocolos de comunicación entre componentes}
   \label{tab:comunicacion}
@@ -270,7 +271,7 @@ representa en la Figura~\ref{fig:er-diagram}: las columnas marcadas con
 \texttt{alembic\_version} es interna de Flask-Migrate (control de
 migraciones), ajena al dominio.
 
-\begin{figure}[!t]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{img/er-diagram.png}
   \caption[Esquema relacional de la base de datos \texttt{dataquality}]{Esquema
@@ -281,6 +282,7 @@ migraciones), ajena al dominio.
   \label{fig:er-diagram}
 \end{figure}
 
+\needspace{8\baselineskip}
 \subsection{Retrospectiva}
 
 \begin{table}[htbp]
@@ -366,10 +368,11 @@ formatos de archivo y codificaciones de \ac{CSV} puede generar una estrategia de
     (agregación de solo lectura), elevando el total a nueve \emph{blueprints}
     Flask registrados, que en el Sprint~5 ascenderían a diez con la
     incorporación de \texttt{patterns}.
-  \item \textbf{Cambio respecto a lo planificado}: el parseo robusto de \ac{CSV}
-    requirió una semana adicional por la casuística de ficheros con \ac{BOM},
-    delimitadores inusuales y codificaciones mixtas.
 \end{itemize}
+
+\textbf{Cambio respecto a lo planificado}: el parseo robusto de \ac{CSV}
+requirió una semana adicional por la casuística de ficheros con \ac{BOM},
+delimitadores inusuales y codificaciones mixtas.
 
 \subsection{Cómo se ha hecho}
 
@@ -814,12 +817,13 @@ resultados desde el \emph{frontend}).
     outliers.
   \item Integrado el perfilado (\ac{EDA}) completo en \texttt{DataProfilingTab.tsx}
     (~85\,KB, componente principal del análisis exploratorio).
-  \item \textbf{Cambios respecto a lo planificado}: la implementación de la
-    matriz de correlación con Chart.js requirió un \emph{plugin} personalizado,
-    lo que añadió tiempo no estimado.  Adicionalmente, la métrica de exactitud
-    sintáctica amplió su catálogo a trece tipos de formato (el plan inicial
-    contemplaba ocho), lo que añadió complejidad positiva al sprint.
 \end{itemize}
+
+\textbf{Cambios respecto a lo planificado}: la implementación de la
+matriz de correlación con Chart.js requirió un \emph{plugin} personalizado,
+lo que añadió tiempo no estimado.  Adicionalmente, la métrica de exactitud
+sintáctica amplió su catálogo a trece tipos de formato (el plan inicial
+contemplaba ocho), lo que añadió complejidad positiva al sprint.
 
 \subsection{Cómo se ha hecho}
 
@@ -1031,13 +1035,14 @@ evaluaciones.
     sus propias expresiones regulares sin tocar código.  Con esta adición,
     el total de \emph{blueprints} Flask registrados pasa de nueve a
     \textbf{diez} (siete funcionales más tres de organización técnica).
-  \item \textbf{Cambio respecto a lo planificado}: el diseño del
-    \emph{fingerprint} requirió más iteraciones de las esperadas para
-    garantizar que sea completamente determinista ante parámetros de métricas
-    flotantes.  Adicionalmente, el \emph{blueprint} \texttt{patterns}
-    constituye una desviación positiva respecto al plan de OE3, que
-    contemplaba seis módulos funcionales.
 \end{itemize}
+
+\textbf{Cambio respecto a lo planificado}: el diseño del
+\emph{fingerprint} requirió más iteraciones de las esperadas para
+garantizar que sea completamente determinista ante parámetros de métricas
+flotantes.  Adicionalmente, el \emph{blueprint} \texttt{patterns}
+constituye una desviación positiva respecto al plan de OE3, que
+contemplaba seis módulos funcionales.
 
 \subsection{Cómo se ha hecho}
 
@@ -1299,14 +1304,15 @@ de usuario y redactar la documentación técnica completa.
     inglés), archivos de traducción de aproximadamente 1\,500 entradas cada
     uno, integrada en 54 componentes y páginas mediante \texttt{useTranslation},
     con persistencia del idioma seleccionado en \texttt{localStorage}.
-  \item \textbf{Cambio respecto a lo planificado}: se detectaron tres
-    defectos de severidad media en el módulo de \emph{fingerprinting} que
-    requirieron refactorización.  La batería de pruebas se amplió respecto
-    al plan inicial al incorporar suites adicionales para Quality Score,
-    \emph{fingerprinting}, \emph{diff} contra línea base y autorización
-    \ac{IDOR}; la internacionalización del \emph{frontend} constituye
-    asimismo una funcionalidad adicional no planificada inicialmente.
 \end{itemize}
+
+\textbf{Cambio respecto a lo planificado}: se detectaron tres
+defectos de severidad media en el módulo de \emph{fingerprinting} que
+requirieron refactorización.  La batería de pruebas se amplió respecto
+al plan inicial al incorporar suites adicionales para Quality Score,
+\emph{fingerprinting}, \emph{diff} contra línea base y autorización
+\ac{IDOR}; la internacionalización del \emph{frontend} constituye
+asimismo una funcionalidad adicional no planificada inicialmente.
 
 \subsection{Cómo se ha hecho}
 
