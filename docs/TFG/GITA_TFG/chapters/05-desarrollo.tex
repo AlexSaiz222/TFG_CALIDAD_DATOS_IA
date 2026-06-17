@@ -1211,7 +1211,13 @@ implementado en este sprint.
 
 \subsection{Retrospectiva}
 
-\begin{table}[htbp]
+Con la incorporación del \emph{fingerprinting}, los \emph{Quality Gates} y la
+séptima métrica, el Sprint~5 consolidó el núcleo diferenciador de \dataqual y
+fue, a la vez, el de mayor complejidad de integración.  El
+Cuadro~\ref{tab:sprint5-retro} sintetiza la valoración del equipo al cierre del
+sprint.
+
+\begin{table}[H]
   \centering
   \small
   \caption{Sprint 5: Retrospectiva}
@@ -1257,28 +1263,6 @@ de ocho semanas, dedicadas a pruebas, refinamiento y documentación.
 pruebas automatizadas, corregir los defectos detectados, refinar la interfaz
 de usuario y redactar la documentación técnica completa.
 
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{Sprint 6: Actividades y estimación}
-  \label{tab:sprint6-hu}
-  \begin{tabularx}{\textwidth}{l X c c}
-    \toprule
-    \textbf{ID} & \textbf{Actividad} & \textbf{Est. (h)} & \textbf{Real (h)} \\
-    \midrule
-    T-10  & Pruebas unitarias del motor de métricas y \emph{Quality Score} (pytest) & 18 & 22 \\
-    T-11  & Pruebas de integración: versionado, Quality Gates y autorización IDOR & 14 & 16 \\
-    T-12  & Pruebas de \emph{fingerprinting} y comparación con \emph{baseline} & 4 & 6 \\
-    T-13  & Corrección de defectos detectados en pruebas & 16 & 18 \\
-    T-14  & Redacción de la memoria (\ac{TFG}) & 20 & 20 \\
-    T-15  & Internacionalización del \emph{frontend} (ES/EN, i18next) & 0 & --- \\
-    --    & Preparación de la defensa & 8 & 8 \\
-    \midrule
-    \multicolumn{2}{l}{\textbf{Total}} & \textbf{80 h} & \textbf{90 h} \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
 \begin{itemize}
   \item Implementada una batería de pruebas automatizadas con pytest
     organizada en trece módulos de test que cubren autenticación
@@ -1305,6 +1289,31 @@ de usuario y redactar la documentación técnica completa.
     uno, integrada en 54 componentes y páginas mediante \texttt{useTranslation},
     con persistencia del idioma seleccionado en \texttt{localStorage}.
 \end{itemize}
+
+El Cuadro~\ref{tab:sprint6-hu} recoge las actividades del sprint con su
+estimación inicial y la dedicación real.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Sprint 6: Actividades y estimación}
+  \label{tab:sprint6-hu}
+  \begin{tabularx}{\textwidth}{l X c c}
+    \toprule
+    \textbf{ID} & \textbf{Actividad} & \textbf{Est. (h)} & \textbf{Real (h)} \\
+    \midrule
+    T-10  & Pruebas unitarias del motor de métricas y \emph{Quality Score} (pytest) & 18 & 22 \\
+    T-11  & Pruebas de integración: versionado, Quality Gates y autorización IDOR & 14 & 16 \\
+    T-12  & Pruebas de \emph{fingerprinting} y comparación con \emph{baseline} & 4 & 6 \\
+    T-13  & Corrección de defectos detectados en pruebas & 16 & 18 \\
+    T-14  & Redacción de la memoria (\ac{TFG}) & 20 & 20 \\
+    T-15  & Internacionalización del \emph{frontend} (ES/EN, i18next) & 0 & --- \\
+    --    & Preparación de la defensa & 8 & 8 \\
+    \midrule
+    \multicolumn{2}{l}{\textbf{Total}} & \textbf{80 h} & \textbf{90 h} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 \textbf{Cambio respecto a lo planificado}: se detectaron tres
 defectos de severidad media en el módulo de \emph{fingerprinting} que
