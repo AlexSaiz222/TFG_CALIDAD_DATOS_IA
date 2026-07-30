@@ -1323,11 +1323,11 @@ const SmartMetricConfigDialog: React.FC<SmartMetricConfigDialogProps> = ({
 
   // Compute missing columns (selected but not in loaded dataset)
   const getSelectedStringColumns = (): string[] => {
-    const cols = params.columns ?? [];
+    const cols = Array.isArray(params.columns) ? params.columns : [];
     return cols.filter((c: any) => typeof c === 'string') as string[];
   };
   const getSelectedObjectColumns = (): string[] => {
-    const cols = params.columns ?? [];
+    const cols = Array.isArray(params.columns) ? params.columns : [];
     return cols.filter((c: any) => typeof c === 'object' && c?.column).map((c: any) => c.column);
   };
   const missingStringCols = loadedColumns.length > 0

@@ -30,6 +30,9 @@ class DiversityMetric(BaseMetric):
     # ------------------------------------------------------------------
     def evaluate(self, df, parameters, dataset, evaluation_id, metrics_map):
         col_configs: dict[str, dict[str, Any]] = parameters.get("columns", {})
+        if not isinstance(col_configs, dict):
+            # Tolerar el formato de lista usado por otras métricas: sin expectativas por columna
+            col_configs = {str(c): {} for c in col_configs}
         threshold: float = parameters.get("threshold", 0.60)
 
         issues: list[dict[str, Any]] = []

@@ -21,6 +21,7 @@ class MetricSchema(Schema):
             'currentness', 'validity', 'integrity', 'conformity',
             'outliers', 'correlation',
             'syntactic_accuracy', 'logical_consistency', 'class_balance',
+            'diversity',
         ]
         if value not in valid_metrics:
             raise ValidationError(f"Métrica no válida. Opciones disponibles: {', '.join(valid_metrics)}")
